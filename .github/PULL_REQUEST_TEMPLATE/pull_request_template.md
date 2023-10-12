@@ -11,7 +11,7 @@ Fixes # (issue)
 - [ ] 🐛 Bug fix (기존 기능을 해치지 않고 버그 수정)
 - [ ] 💎 New feature (기존 기능을 해치지 않고 새로운 기능을 추가)
 - [ ] 🛠️ Breaking change (기존 기능이 예상대로 동작하지 않을 가능성이 있는 수정 or 기능)
-- [ ] 이 PR 은 문서 업데이트가 필요합니다.
+- [ ] 📝 문서 변경
 
 # How Has This Been Tested?
 
