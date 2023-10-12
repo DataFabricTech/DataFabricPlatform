@@ -1,6 +1,7 @@
 # Description
 
-변경되거나 관련된 이슈에 대해 요약해서 작성 해주세요. PR 의 이유와 설명도 작성해주세요. 이 변경에 필요한 의존 관계를 나열해주세요. [이슈 연결 방법 참고](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
+변경되거나 관련된 이슈에 대해 요약해서 작성 해주세요. PR 의 이유와 설명도 작성해주세요. 이 변경에 필요한 의존 관계를
+나열해주세요. [이슈 연결 방법 참고](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
 
 Fixes # (issue)
 
@@ -21,6 +22,7 @@ Fixes # (issue)
 - [ ] Test B
 
 **Test Configuration**:
+
 * SDK:
 * Library:
 * Environment:
@@ -35,3 +37,7 @@ Fixes # (issue)
 - [ ] ⛑️ 이 변경으로 인해 새로운 경고를 생성하지 않습니다.
 - [ ] 🧪 이 수정이 효과적인지 또는 기능이 동작하는지를 증명하는 테스트를 추가했습니다.
 - [ ] ☀️ 새 단위테스트와 기존 단위테스트가 로컬에서 pass 했습니다.
+
+# Contributors
+
+@seungfwani
