@@ -1,5 +1,9 @@
 # DataFabricPlatform
 
+## 스펙
+
+- Java 11
+
 ## 소개
 
 본 저장소는 데이터 패브릭 구성요소 중 Data Catalog 를 위한
