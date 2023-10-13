@@ -5,6 +5,13 @@ import java.sql.SQLException;
 
 public class Connector {
 
+    private String url;
+    private String driver;
+    private String user;
+    private String password;
+    private String database;
+
+
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         var driver = "org.postgresql.Driver";
