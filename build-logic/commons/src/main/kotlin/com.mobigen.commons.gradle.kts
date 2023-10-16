@@ -1,9 +1,6 @@
 plugins {
-    java // <1>
-}
-
-repositories {
-    mavenCentral() // <2>
+    id("java")
+    id("com.mobigen.jacoco")
 }
 
 java {

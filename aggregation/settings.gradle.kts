@@ -1,7 +1,7 @@
 // == Define locations for build logic ==
 pluginManagement {
     repositories {
-        gradlePluginPortal()
+        gradlePluginPortal() // if pluginManagement.repositories looks like this, it can be omitted as this is the default
     }
     includeBuild("../build-logic")
 }
@@ -12,13 +12,11 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-includeBuild("../utilities")
 includeBuild("../libs")
+includeBuild("../services")
+includeBuild("../utilities")
 
 // == Define the inner structure of this component ==
-rootProject.name = "services" // the component name
+rootProject.name = "aggregation"
+include("test-coverage")
 
-// sub module
-include("sample")
-include("core")
