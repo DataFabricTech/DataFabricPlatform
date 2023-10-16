@@ -40,6 +40,7 @@ message OverviewResponse {
 }
 
 message StorageTypeModel {
+  string id = 1;
   string name = 2;
 }
 message StorageTypeRequest {
