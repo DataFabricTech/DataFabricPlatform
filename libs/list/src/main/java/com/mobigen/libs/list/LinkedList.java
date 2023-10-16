@@ -3,7 +3,6 @@
  */
 package com.mobigen.libs.list;
 
-@sl
 public class LinkedList {
     private Node head;
 
