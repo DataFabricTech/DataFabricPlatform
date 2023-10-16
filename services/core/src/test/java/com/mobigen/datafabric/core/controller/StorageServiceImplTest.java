@@ -5,6 +5,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
+import com.mobigen.libs.grpc.Storage.*;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;

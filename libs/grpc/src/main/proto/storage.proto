@@ -17,6 +17,9 @@ option optimize_for = SPEED;
 service StorageService {
   rpc Overview(Empty) returns (OverviewResponse);
   rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
+  rpc InsertUpdateType(Empty) returns (Empty);
+  rpc GetType(Empty) returns (Empty);
+  rpc DeleteType(Empty) returns (Empty);
 }
 
 message OverviewResponse {

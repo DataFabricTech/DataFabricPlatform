@@ -1,8 +1,7 @@
-package com.mobigen.datafabric.core.models;
+package com.mobigen.datafabric.core.old.models;
 
-import com.mobigen.datafabric.core.models.entities.DataStorageEntity;
-import com.mobigen.datafabric.core.models.entities.DataStorageTypeEntity;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import com.mobigen.datafabric.core.old.models.entities.DataStorageEntity;
+import com.mobigen.datafabric.core.old.models.entities.DataStorageTypeEntity;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 

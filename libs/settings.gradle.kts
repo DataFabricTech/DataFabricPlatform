@@ -17,3 +17,4 @@ rootProject.name = "libs" // the component name
 
 include("list")
 include("grpc")
+include("sqlgen")

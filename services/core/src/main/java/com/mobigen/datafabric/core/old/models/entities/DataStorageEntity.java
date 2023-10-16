@@ -1,4 +1,4 @@
-package com.mobigen.datafabric.core.models.entities;
+package com.mobigen.datafabric.core.old.models.entities;
 
 import jakarta.persistence.*;
 

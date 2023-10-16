@@ -1,7 +1,7 @@
 package com.mobigen.libs.grpc;
 
-import io.grpc.stub.StreamObserver;
 import com.mobigen.libs.grpc.DataLayer.*;
+import io.grpc.stub.StreamObserver;
 
 import java.util.List;
 
@@ -16,8 +16,8 @@ public class DataLayerService extends DataLayerServiceGrpc.DataLayerServiceImplB
                 .addAllRows(List.of(
                         Rows.newBuilder().addAllRow(
                                 List.of(
-                                        Row.newBuilder().setStringValue("a value").build(),
-                                        Row.newBuilder().setInt32Value(13).build()
+                                        Cell.newBuilder().setStringValue("a value").build(),
+                                        Cell.newBuilder().setInt32Value(13).build()
                                 )
                         ).build()
                 ))

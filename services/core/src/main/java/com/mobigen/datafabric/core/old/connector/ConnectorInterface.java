@@ -1,4 +1,4 @@
-package com.mobigen.datafabric.core.connector;
+package com.mobigen.datafabric.core.old.connector;
 
 import java.sql.SQLException;
 

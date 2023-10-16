@@ -31,7 +31,7 @@ message Column {
   string type = 2;
 }
 
-message Row {
+message Cell {
   string columnName = 1;
   oneof data {
     string stringValue = 2;
@@ -46,5 +46,5 @@ message Row {
 }
 
 message Rows {
-  repeated Row row = 1;
+  repeated Cell row = 1;
 }
