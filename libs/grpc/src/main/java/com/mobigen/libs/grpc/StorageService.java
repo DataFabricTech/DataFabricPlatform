@@ -1,6 +1,5 @@
 package com.mobigen.libs.grpc;
 
-import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +19,14 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
         log.debug(">> Storage:Overview");
         responseObserver.onNext( callBack.overview() );
         log.debug("<< Storage:Overview");
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void storageType(StorageTypeRequest request, StreamObserver<StorageTypeResponse> responseObserver) {
+        log.debug(">> Storage:storageType");
+        responseObserver.onNext( callBack.storageType(request) );
+        log.debug("<< Storage:storageType");
         responseObserver.onCompleted();
     }
 }

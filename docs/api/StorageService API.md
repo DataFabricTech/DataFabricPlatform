@@ -21,6 +21,7 @@
 Table DataStorage {
   id uuid [primary key]
   type uuid [note: 'fk']
+  adpator uuid [note: 'fk']
   name text
   user_desc text [note: '????']
   total_data int [note: '확인되는 전체 데이터(테이블?) 수']
@@ -49,12 +50,12 @@ Table DataStorageConnectionSchema {
 
 Table DataStorageAdaptor {
   id uuid [primary key]
-  datastorage_id uuid [note: 'fk']
+  datastorage_type_id uuid [note: 'fk']
   name text
   version text
   url text [note: '연결 url 포멧']
   path text [note: 'jdbc file path']
-  class text [note: 'jdbc driver class']
+  driver text [note: 'jdbc driver class']
   created_by uuid
   created_at timestamp
   updated_by uuid
@@ -84,7 +85,8 @@ Table DataStorageSetting {
   size_limit int [note: 'MB 단위']
   recursive bool
   sync bool
-  sync_period text
+  sync_period text [note: 'type-day=>1,2,3,4,..  type-dow=>mon,tue,...']
+  sync_period_type enum [note: 'day, dow(day of the week)']
   sync_time time
   auto_import bool [note: '새로운 데이터 확인 시 자동 추가']
   auto_update bool [note: '데이터 변경 확인시 자동 업데이트']
@@ -131,8 +133,9 @@ Table ConnectionCheckProtocol {
 
 
 Ref: DataStorage.type > DataStorageType.id
+Ref: DataStorage.adpator > DataStorageAdaptor.id
 Ref: DataStorageAdaptor.id < DataStorageConnectionSchema.datastorage_adaptor_id
-Ref: DataStorage.id < DataStorageAdaptor.datastorage_id
+Ref: DataStorageType.id < DataStorageAdaptor.datastorage_type_id
 Ref: DataStorage.id < DataStorageConnectionInfo.datastorage_id
 Ref: DataStorage.id - DataStorageSetting.datastorage_id
 Ref: DataStorage.id < DataStorageMetadata.datastorage_id

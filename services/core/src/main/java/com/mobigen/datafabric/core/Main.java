@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.core;
 
-import com.mobigen.datafabric.core.services.StorageServiceImpl;
+import com.mobigen.datafabric.core.controller.StorageServiceImpl;
 import com.mobigen.libs.grpc.GRPCServer;
 import com.mobigen.libs.grpc.StorageService;
 import com.mobigen.libs.grpc.StorageServiceCallBack;

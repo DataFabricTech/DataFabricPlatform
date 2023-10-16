@@ -1,0 +1,50 @@
+// proto3 버전 사용
+syntax = "proto3";
+
+import "general.proto";
+
+// package 세팅
+package grpc;
+
+// java option 세팅
+option java_package = "com.mobigen.libs.grpc";
+//option java_multiple_files = true;
+option java_outer_classname = "DataLayer";
+
+option optimize_for = SPEED;
+
+// 함수 리스트
+service DataLayerService {
+  rpc receiver(QueryGRPCRequestMessage) returns (QueryGRPCResponseMessage);
+}
+message QueryGRPCRequestMessage {
+  string query = 1;
+}
+
+message QueryGRPCResponseMessage {
+  repeated Column column = 1;
+  repeated Rows rows = 2;
+}
+
+message Column {
+  string columnName = 1;
+  string type = 2;
+}
+
+message Row {
+  string columnName = 1;
+  oneof data {
+    string stringValue = 2;
+    int32 int32Value = 3;
+    int64 int64Value = 4;
+    bool boolValue = 5;
+    bytes bytesValue = 6;
+    float floatValue = 7;
+    double doubleValue = 8;
+//    Time timeValue = 9;
+  }
+}
+
+message Rows {
+  repeated Row row = 1;
+}

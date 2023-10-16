@@ -1,34 +1,47 @@
 // proto3 버전 사용
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
+import "general.proto";
 
 // package 세팅
 package grpc;
 
 // java option 세팅
 option java_package = "com.mobigen.libs.grpc";
-option java_multiple_files = true;
+//option java_multiple_files = true;
 option java_outer_classname = "Storage";
 
 option optimize_for = SPEED;
 
 // 함수 리스트
 service StorageService {
-  rpc Overview(google.protobuf.Empty) returns (OverviewResponse);
+  rpc Overview(Empty) returns (OverviewResponse);
+  rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
 }
 
 message OverviewResponse {
   int32 total_storage = 1;
-//  message Summary {
-//    message NumOfStorageType {
-//      string storage_type_name = 1;
-//      string value = 2;
-//    }
-//    repeated NumOfStorageType num_of_storage_type = 1;
-//    message StatusOfStorage {
-//      string status = 1;
-//    }
-//  }
-//  Summary summary = 2;
+  //  message Summary {
+  //    message NumOfStorageType {
+  //      string storage_type_name = 1;
+  //      string value = 2;
+  //    }
+  //    repeated NumOfStorageType num_of_storage_type = 1;
+  //    message StatusOfStorage {
+  //      string status = 1;
+  //    }
+  //  }
+  //  Summary summary = 2;
+}
+
+message StorageTypeModel {
+  string id = 1;
+  string name = 2;
+}
+message StorageTypeRequest {
+  Method method = 1;
+  StorageTypeModel model = 2;
+}
+message StorageTypeResponse {
+  repeated StorageTypeModel models = 1;
 }

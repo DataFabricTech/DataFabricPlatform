@@ -17,6 +17,7 @@ dependencies {
 
     // jdbc
     implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
 
 // protobuf
 //    implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")
@@ -31,5 +32,13 @@ application {
 sourceSets {
     main {
 
+    }
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform() // <5>
+
+    testLogging {
+        events("passed", "skipped", "failed") // <6>
     }
 }
