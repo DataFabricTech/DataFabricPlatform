@@ -1,6 +1,6 @@
-package com.mobigen.sqlgen.maker.where.conditions;
+package com.mobigen.sqlgen.where.conditions;
 
-import com.mobigen.sqlgen.maker.where.AbstractBinaryCondition;
+import com.mobigen.sqlgen.where.AbstractBinaryCondition;
 
 public class NotEqual<L, R> extends AbstractBinaryCondition<L, R> {
     private NotEqual(L left, R right) {

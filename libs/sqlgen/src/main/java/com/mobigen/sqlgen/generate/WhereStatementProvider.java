@@ -1,6 +1,6 @@
-package com.mobigen.sqlgen.maker.generate;
+package com.mobigen.sqlgen.generate;
 
-import com.mobigen.sqlgen.maker.where.Condition;
+import com.mobigen.sqlgen.where.Condition;
 
 import java.util.List;
 import java.util.stream.Collectors;

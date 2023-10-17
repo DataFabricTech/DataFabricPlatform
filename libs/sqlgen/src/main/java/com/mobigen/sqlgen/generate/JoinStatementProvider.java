@@ -1,11 +1,9 @@
-package com.mobigen.sqlgen.maker.generate;
+package com.mobigen.sqlgen.generate;
 
-import com.mobigen.sqlgen.maker.JoinHow;
-import com.mobigen.sqlgen.maker.QueryMaker;
-import com.mobigen.sqlgen.maker.where.Condition;
+import com.mobigen.sqlgen.model.JoinHow;
 import com.mobigen.sqlgen.model.SqlTable;
+import com.mobigen.sqlgen.where.Condition;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

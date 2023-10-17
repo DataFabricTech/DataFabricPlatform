@@ -10,6 +10,9 @@ public class SqlTable {
     private String alias;
 
     public String getTotalName() {
+        if (name.equals(alias)) {
+            return name;
+        }
         return name + " as " + alias;
     }
 

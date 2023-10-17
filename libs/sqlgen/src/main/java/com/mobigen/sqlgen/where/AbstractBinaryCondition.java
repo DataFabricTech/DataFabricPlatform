@@ -1,4 +1,6 @@
-package com.mobigen.sqlgen.maker.where;
+package com.mobigen.sqlgen.where;
+
+import com.mobigen.sqlgen.model.SqlValue;
 
 public abstract class AbstractBinaryCondition<L, R> implements Condition {
     L left;
@@ -8,16 +10,17 @@ public abstract class AbstractBinaryCondition<L, R> implements Condition {
         this.left = left;
         this.right = right;
     }
+
     @Override
     public String getStatement() {
         return String.format("%s %s %s", getLeft(), operator(), getRight());
     }
 
     protected String getLeft() {
-        return new ConditionValue<>(left).getValue();
+        return new SqlValue<>(left).getValue();
     }
 
     protected String getRight() {
-        return new ConditionValue<>(right).getValue();
+        return new SqlValue<>(right).getValue();
     }
 }

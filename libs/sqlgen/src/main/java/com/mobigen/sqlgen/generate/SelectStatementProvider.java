@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.maker.generate;
+package com.mobigen.sqlgen.generate;
 
 
 import com.mobigen.sqlgen.model.SqlColumn;

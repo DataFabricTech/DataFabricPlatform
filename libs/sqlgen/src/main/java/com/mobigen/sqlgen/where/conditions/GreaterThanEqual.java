@@ -1,6 +1,6 @@
-package com.mobigen.sqlgen.maker.where.conditions;
+package com.mobigen.sqlgen.where.conditions;
 
-import com.mobigen.sqlgen.maker.where.AbstractBinaryCondition;
+import com.mobigen.sqlgen.where.AbstractBinaryCondition;
 
 public class GreaterThanEqual<L, R> extends AbstractBinaryCondition<L, R> {
     private GreaterThanEqual(L left, R right) {

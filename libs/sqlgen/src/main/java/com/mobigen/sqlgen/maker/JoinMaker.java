@@ -1,10 +1,10 @@
 package com.mobigen.sqlgen.maker;
 
-import com.mobigen.sqlgen.maker.generate.JoinStatementProvider;
-import com.mobigen.sqlgen.maker.generate.SelectStatementProvider;
-import com.mobigen.sqlgen.maker.generate.StatementProvider;
-import com.mobigen.sqlgen.maker.where.Condition;
+import com.mobigen.sqlgen.generate.JoinStatementProvider;
+import com.mobigen.sqlgen.generate.StatementProvider;
+import com.mobigen.sqlgen.model.JoinHow;
 import com.mobigen.sqlgen.model.SqlTable;
+import com.mobigen.sqlgen.where.Condition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Objects;
 
 public class JoinMaker implements MakerInterface {
-    private final QueryMaker queryMaker;
+    private final SelectMaker selectMaker;
     private final SqlTable rightTable;
     private JoinHow how;
     private final List<Condition> conditions;
 
     private JoinMaker(Builder builder) {
-        queryMaker = Objects.requireNonNull(builder.queryMaker);
+        selectMaker = Objects.requireNonNull(builder.selectMaker);
         rightTable = Objects.requireNonNull(builder.rightTable);
         how = builder.how;
         if (how == null) {
@@ -37,7 +37,7 @@ public class JoinMaker implements MakerInterface {
     @Override
     public StatementProvider generate() {
         return new JoinStatementProvider.Builder()
-                .withSelectStatementProvider(queryMaker.generate())
+                .withSelectStatementProvider(selectMaker.generate())
                 .withTable(rightTable)
                 .withHow(how)
                 .withConditions(conditions)
@@ -45,13 +45,13 @@ public class JoinMaker implements MakerInterface {
     }
 
     protected static class Builder {
-        private QueryMaker queryMaker;
+        private SelectMaker selectMaker;
         private SqlTable rightTable;
         private JoinHow how;
         private final List<Condition> conditions = new ArrayList<>();
 
-        protected Builder withQueryMaker(QueryMaker queryMaker) {
-            this.queryMaker = queryMaker;
+        protected Builder withSelectMaker(SelectMaker selectMaker) {
+            this.selectMaker = selectMaker;
             return this;
         }
 

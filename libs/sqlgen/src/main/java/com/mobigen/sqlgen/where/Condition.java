@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.maker.where;
+package com.mobigen.sqlgen.where;
 
 public interface Condition {
     String operator();

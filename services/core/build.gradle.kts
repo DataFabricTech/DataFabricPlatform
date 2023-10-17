@@ -8,6 +8,7 @@ val protobufVersion = "3.24.3"
 
 dependencies {
     implementation("com.mobigen.libs:grpc")
+    implementation("com.mobigen.libs:sqlgen")
 
     // the GOAT ORM
     implementation("org.hibernate.orm:hibernate-core:6.3.0.Final")

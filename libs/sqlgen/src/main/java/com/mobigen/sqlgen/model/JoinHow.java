@@ -1,5 +1,8 @@
-package com.mobigen.sqlgen.maker;
+package com.mobigen.sqlgen.model;
 
+import lombok.Getter;
+
+@Getter
 public enum JoinHow {
     INNER("inner join"),
     LEFT_OUTER("left outer join"),
@@ -11,11 +14,8 @@ public enum JoinHow {
     ; // right inner
 
     private final String value;
+
     JoinHow(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 }
