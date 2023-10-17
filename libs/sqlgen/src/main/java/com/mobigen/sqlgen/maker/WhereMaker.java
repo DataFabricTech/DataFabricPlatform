@@ -1,5 +1,6 @@
 package com.mobigen.sqlgen.maker;
 
+import com.mobigen.sqlgen.maker.generate.WhereStatementProvider;
 import com.mobigen.sqlgen.maker.where.Condition;
 
 import java.util.ArrayList;
@@ -7,23 +8,23 @@ import java.util.Collection;
 import java.util.List;
 
 public class WhereMaker implements MakerInterface {
-    private QueryMaker queryMaker;
-    private List<Condition> conditions;
+    private final MakerInterface maker;
+    private final List<Condition> conditions;
     private WhereMaker(Builder builder) {
-        queryMaker = builder.queryMaker;
+        maker = builder.maker;
         conditions = builder.conditions;
     }
 
     @Override
     public WhereStatementProvider generate() {
         return new WhereStatementProvider.Builder()
-                .withSelectStatementProvider(queryMaker.generate())
+                .withStatementProvider(maker.generate())
                 .withConditions(conditions)
                 .build();
     }
 
     protected static class Builder{
-        private QueryMaker queryMaker;
+        private MakerInterface maker;
         private final List<Condition> conditions = new ArrayList<>();
 
         protected Builder withConditions(Collection<? extends Condition> conditions) {
@@ -31,8 +32,8 @@ public class WhereMaker implements MakerInterface {
             return this;
         }
 
-        public Builder withQueryMaker(QueryMaker queryMaker) {
-            this.queryMaker = queryMaker;
+        public Builder withMaker(MakerInterface maker) {
+            this.maker = maker;
             return this;
         }
 

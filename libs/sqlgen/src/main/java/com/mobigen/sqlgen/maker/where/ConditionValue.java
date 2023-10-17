@@ -1,6 +1,6 @@
 package com.mobigen.sqlgen.maker.where;
 
-import com.mobigen.sqlgen.SqlColumn;
+import com.mobigen.sqlgen.model.SqlColumn;
 
 public class ConditionValue<T> {
     T value;

@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.maker;
+package com.mobigen.sqlgen.maker.generate;
 
 public interface StatementProvider {
     String getStatement();

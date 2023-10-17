@@ -1,19 +1,20 @@
-package com.mobigen.sqlgen.maker;
+package com.mobigen.sqlgen.maker.generate;
 
 
-import com.mobigen.sqlgen.SqlColumn;
-import com.mobigen.sqlgen.SqlTable;
+import com.mobigen.sqlgen.model.SqlColumn;
+import com.mobigen.sqlgen.model.SqlTable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SelectStatementProvider implements StatementProvider {
-    private String selectStatement;
-    private String tableStatement;
+    private final String selectStatement;
+    private final String tableStatement;
 
     private SelectStatementProvider(Builder builder) {
-        this.selectStatement = builder.selectStatement;
-        this.tableStatement = builder.tableStatement;
+        this.selectStatement = Objects.requireNonNull(builder.selectStatement);
+        this.tableStatement = Objects.requireNonNull(builder.tableStatement);
     }
 
     @Override
@@ -22,23 +23,23 @@ public class SelectStatementProvider implements StatementProvider {
                 + " from " + tableStatement;
     }
 
-    protected static class Builder {
+    public static class Builder {
         private String selectStatement;
         private String tableStatement;
 
-        protected Builder withSelectColumns(List<SqlColumn> selectColumns) {
+        public Builder withSelectColumns(List<SqlColumn> selectColumns) {
             this.selectStatement = selectColumns.stream()
                     .map(SqlColumn::getName)
                     .collect(Collectors.joining(", "));
             return this;
         }
 
-        protected Builder withTable(SqlTable table) {
-            this.tableStatement = table.getName();
+        public Builder withTable(SqlTable table) {
+            this.tableStatement = table.getTotalName();
             return this;
         }
 
-        protected SelectStatementProvider build() {
+        public SelectStatementProvider build() {
             return new SelectStatementProvider(this);
         }
     }

@@ -1,6 +1,6 @@
 package com.mobigen.sqlgen.old;
 
-import com.mobigen.sqlgen.SqlColumn;
+import com.mobigen.sqlgen.model.SqlColumn;
 
 import java.util.List;
 

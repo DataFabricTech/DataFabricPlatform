@@ -1,6 +1,6 @@
 package com.mobigen.sqlgen.old2;
 
-import com.mobigen.sqlgen.SqlColumn;
+import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.old2.QueryMaker.FromGatherer;
 
 import java.util.ArrayList;

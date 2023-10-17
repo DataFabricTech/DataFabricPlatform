@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen;
+package com.mobigen.sqlgen.model;
 
 import java.sql.JDBCType;
 import java.util.Objects;
@@ -11,6 +11,10 @@ public class SqlColumn {
     private final Character stringSpecialChar = '"';
 
     public String getName() {
+        return table.getAlias() + "." + getOnlyName();
+    }
+
+    public String getOnlyName() {
         return stringSpecialChar + name + stringSpecialChar;
     }
 

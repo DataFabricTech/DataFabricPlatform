@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.maker;
+package com.mobigen.sqlgen.maker.generate;
 
 import com.mobigen.sqlgen.maker.where.Condition;
 
@@ -6,17 +6,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class WhereStatementProvider implements StatementProvider {
-    private SelectStatementProvider selectStatementProvider;
+    private final StatementProvider statementProvider;
     private final String whereStatement;
 
     private WhereStatementProvider(Builder builder) {
-        selectStatementProvider = builder.selectStatementProvider;
+        statementProvider = builder.statementProvider;
         whereStatement = builder.whereStatement;
     }
 
     @Override
     public String getStatement() {
-        var statement = selectStatementProvider.getStatement();
+        var statement = statementProvider.getStatement();
         if (whereStatement.strip().isBlank()) {
             return statement;
         } else {
@@ -24,23 +24,23 @@ public class WhereStatementProvider implements StatementProvider {
         }
     }
 
-    protected static class Builder {
-        private SelectStatementProvider selectStatementProvider;
+    public static class Builder {
+        private StatementProvider statementProvider;
         private String whereStatement;
 
-        public Builder withSelectStatementProvider(SelectStatementProvider statementProvider) {
-            this.selectStatementProvider = statementProvider;
+        public Builder withStatementProvider(StatementProvider statementProvider) {
+            this.statementProvider = statementProvider;
             return this;
         }
 
-        protected Builder withConditions(List<Condition> conditions) {
+        public Builder withConditions(List<Condition> conditions) {
             this.whereStatement = conditions.stream()
                     .map(Condition::getStatement)
                     .collect(Collectors.joining(" and "));
             return this;
         }
 
-        protected WhereStatementProvider build() {
+        public WhereStatementProvider build() {
             return new WhereStatementProvider(this);
         }
     }
