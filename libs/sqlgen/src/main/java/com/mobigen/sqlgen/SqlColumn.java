@@ -1,12 +1,26 @@
-package com.mobigen.sqlgen.list;
+package com.mobigen.sqlgen;
 
 import java.sql.JDBCType;
 import java.util.Objects;
 
 public class SqlColumn {
-    private String name;
-    private SqlTable table;
-    private JDBCType type;
+    private final String name;
+    private final SqlTable table;
+    private final JDBCType type;
+
+    private final Character stringSpecialChar = '"';
+
+    public String getName() {
+        return stringSpecialChar + name + stringSpecialChar;
+    }
+
+    public SqlTable getTable() {
+        return table;
+    }
+
+    public JDBCType getType() {
+        return type;
+    }
 
     private SqlColumn(Builder builder) {
         name = Objects.requireNonNull(builder.name);
@@ -30,7 +44,7 @@ public class SqlColumn {
                 .build();
     }
 
-    public static class Builder {
+    private static class Builder {
         private String name;
         private SqlTable table;
         private JDBCType type;
