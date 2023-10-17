@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.list;
+package com.mobigen.sqlgen;
 
 import java.sql.JDBCType;
 import java.util.Objects;
@@ -6,13 +6,13 @@ import java.util.Objects;
 public class SqlTable {
     private String name;
 
+    public String getName() {
+        return name;
+    }
+
     private SqlTable(Builder builder) {
         name = Objects.requireNonNull(builder.name);
 
-    }
-
-    public SqlColumn column(String name, JDBCType type) {
-        return SqlColumn.of(name, this, type);
     }
 
     public static SqlTable of(String name) {
@@ -21,7 +21,7 @@ public class SqlTable {
                 .build();
     }
 
-    public static class Builder {
+    private static class Builder {
         private String name;
 
         public Builder withName(String name) {

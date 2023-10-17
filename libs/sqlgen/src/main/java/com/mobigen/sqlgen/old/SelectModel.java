@@ -1,4 +1,4 @@
-package com.mobigen.sqlgen.list;
+package com.mobigen.sqlgen.old;
 
 public class SelectModel {
     private SelectModel(Builder builder) {
