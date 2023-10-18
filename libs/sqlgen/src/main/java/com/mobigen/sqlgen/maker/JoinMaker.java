@@ -12,19 +12,36 @@ import java.util.List;
 import java.util.Objects;
 
 public class JoinMaker implements MakerInterface {
-    private final SelectMaker selectMaker;
+    private final MakerInterface maker;
     private final SqlTable rightTable;
     private JoinHow how;
     private final List<Condition> conditions;
 
     private JoinMaker(Builder builder) {
-        selectMaker = Objects.requireNonNull(builder.selectMaker);
+        maker = Objects.requireNonNull(builder.maker);
         rightTable = Objects.requireNonNull(builder.rightTable);
         how = builder.how;
         if (how == null) {
             how = JoinHow.INNER;
         }
         conditions = builder.conditions;
+    }
+
+    public JoinMaker join(SqlTable rightTable, JoinHow how, Condition... conditions) {
+        return new JoinMaker.Builder()
+                .withMaker(this)
+                .withTable(rightTable)
+                .withHow(how)
+                .withConditions(List.of(conditions))
+                .build();
+    }
+
+    public JoinMaker join(SqlTable rightTable, Condition... conditions) {
+        return join(rightTable, JoinHow.INNER, conditions);
+    }
+
+    public JoinMaker join(SqlTable rightTable) {
+        return join(rightTable, JoinHow.INNER);
     }
 
     public WhereMaker where(Condition... conditions) {
@@ -37,7 +54,7 @@ public class JoinMaker implements MakerInterface {
     @Override
     public StatementProvider generate() {
         return new JoinStatementProvider.Builder()
-                .withSelectStatementProvider(selectMaker.generate())
+                .withStatementProvider(maker.generate())
                 .withTable(rightTable)
                 .withHow(how)
                 .withConditions(conditions)
@@ -45,13 +62,13 @@ public class JoinMaker implements MakerInterface {
     }
 
     protected static class Builder {
-        private SelectMaker selectMaker;
+        private MakerInterface maker;
         private SqlTable rightTable;
         private JoinHow how;
         private final List<Condition> conditions = new ArrayList<>();
 
-        protected Builder withSelectMaker(SelectMaker selectMaker) {
-            this.selectMaker = selectMaker;
+        protected Builder withMaker(MakerInterface maker) {
+            this.maker = maker;
             return this;
         }
 

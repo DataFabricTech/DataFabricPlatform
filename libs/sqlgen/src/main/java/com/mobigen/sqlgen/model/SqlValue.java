@@ -1,5 +1,7 @@
 package com.mobigen.sqlgen.model;
 
+import com.mobigen.sqlgen.where.Condition;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,17 +13,18 @@ public class SqlValue<T> {
     }
 
     public String getValue() {
-        var type = value.getClass().getSimpleName();
-        if (type.equals("SqlColumn")) {
+        if (value instanceof SqlColumn) {
             return ((SqlColumn) value).getNameWithTable();
-        } else if (type.contains("List")) {
+        } else if (value instanceof List) {
             return "("
                     + ((List<?>) value).stream()
                     .map(x -> new SqlValue<>(x).getValue())
                     .collect(Collectors.joining(", "))
                     + ")";
-        } else if (type.equals("String")) {
+        } else if (value instanceof String) {
             return String.format("'%s'", value);
+        } else if (value instanceof Condition) {
+            return ((Condition) value).getStatement();
         } else {
             return String.format("%s", value);
         }

@@ -1,9 +1,11 @@
 package com.mobigen.sqlgen;
 
+import com.mobigen.sqlgen.model.JoinHow;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import com.mobigen.sqlgen.where.conditions.GreaterThan;
+import com.mobigen.sqlgen.where.conditions.Or;
 import org.junit.jupiter.api.Test;
 
 import java.sql.JDBCType;
@@ -13,7 +15,7 @@ class SqlBuilderTest {
     @Test
     void select() {
         var table1 = SqlTable.of("test1");
-        var table2 = SqlTable.of("test2");
+        var table2 = SqlTable.of("test2", "t2");
         var col1 = SqlColumn.of("A a", table1, JDBCType.BIGINT);
         var col2 = SqlColumn.of("B a", table1, JDBCType.BIGINT);
         var col3 = SqlColumn.of("C a", table2, JDBCType.BIGINT);
@@ -21,10 +23,10 @@ class SqlBuilderTest {
         var statementProvider = SqlBuilder.select(col1)
                 .from(table1)
                 .join(table2, Equal.of(col1, col3))
+                .join(table2, JoinHow.CROSS)
                 .where(Equal.of(col1, "1a"),
                         Equal.of(12, col2),
-                        GreaterThan.of(12.0, 12),
-                        Equal.of(col1, col3)
+                        Or.of(GreaterThan.of(12.0, 12), Equal.of(col1, col3))
                 )
                 .generate();
         System.out.println(statementProvider.getStatement());

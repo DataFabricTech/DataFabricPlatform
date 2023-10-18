@@ -24,7 +24,7 @@ public class SelectMaker implements MakerInterface {
 
     public JoinMaker join(SqlTable rightTable, JoinHow how, Condition... conditions) {
         return new JoinMaker.Builder()
-                .withSelectMaker(this)
+                .withMaker(this)
                 .withTable(rightTable)
                 .withHow(how)
                 .withConditions(List.of(conditions))

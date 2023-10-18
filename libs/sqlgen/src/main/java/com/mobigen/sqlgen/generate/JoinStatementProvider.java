@@ -39,7 +39,7 @@ public class JoinStatementProvider implements StatementProvider {
         private String how;
         private String whereStatement;
 
-        public Builder withSelectStatementProvider(StatementProvider statementProvider) {
+        public Builder withStatementProvider(StatementProvider statementProvider) {
             this.statementProvider = statementProvider;
             return this;
         }

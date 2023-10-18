@@ -10,12 +10,6 @@ dependencies {
     implementation("com.mobigen.libs:grpc")
     implementation("com.mobigen.libs:sqlgen")
 
-    // the GOAT ORM
-    implementation("org.hibernate.orm:hibernate-core:6.3.0.Final")
-    // Hibernate Validator
-    implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
-    implementation("org.glassfish:jakarta.el:4.0.2")
-
     // jdbc
     implementation("org.postgresql:postgresql:42.6.0")
 

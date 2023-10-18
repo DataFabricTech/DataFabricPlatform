@@ -1,17 +1,15 @@
 package com.mobigen.datafabric.core.services.storage;
 
-import com.mobigen.libs.grpc.DataLayer;
-import com.mobigen.libs.grpc.Storage.*;
+import com.mobigen.libs.grpc.Storage.StorageTypeModel;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.conditions.Equal;
-//import com.mobigen.libs.
 
 import java.sql.JDBCType;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.mobigen.datafabric.core.util.DataLayerConnection.getData;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
 import static com.mobigen.sqlgen.SqlBuilder.select;
 
@@ -52,30 +50,4 @@ public class StorageTypeService {
                 .build();
     }
 
-    private DataLayer.QueryGRPCResponseMessage getData(String sql) {
-
-        var req = DataLayer.QueryGRPCRequestMessage.newBuilder()
-                .setQuery(sql)
-                .build();
-        return DataLayer.QueryGRPCResponseMessage.newBuilder()
-                .addAllColumn(List.of(
-                        DataLayer.Column.newBuilder().setColumnName("id").setType("string").build(),
-                        DataLayer.Column.newBuilder().setColumnName("name").setType("string").build()
-                ))
-                .addAllRows(List.of(
-                        DataLayer.Rows.newBuilder().addAllRow(
-                                List.of(
-                                        DataLayer.Cell.newBuilder().setStringValue(UUID.randomUUID().toString()).build(),
-                                        DataLayer.Cell.newBuilder().setStringValue("mysql").build()
-                                )
-                        ).build(),
-                        DataLayer.Rows.newBuilder().addAllRow(
-                                List.of(
-                                        DataLayer.Cell.newBuilder().setStringValue(UUID.randomUUID().toString()).build(),
-                                        DataLayer.Cell.newBuilder().setStringValue("postgresql").build()
-                                )
-                        ).build()
-                ))
-                .build();
-    }
 }
