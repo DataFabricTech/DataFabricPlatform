@@ -14,13 +14,16 @@ public class SelectStatementProvider implements StatementProvider {
 
     private SelectStatementProvider(Builder builder) {
         this.selectStatement = Objects.requireNonNull(builder.selectStatement);
-        this.tableStatement = Objects.requireNonNull(builder.tableStatement);
+        this.tableStatement =builder.tableStatement;
     }
 
     @Override
     public String getStatement() {
-        return "select " + selectStatement
-                + " from " + tableStatement;
+        var statement = "select " + selectStatement;
+        if (tableStatement != null && !tableStatement.isBlank()) {
+            statement = statement + " from " + tableStatement;
+        }
+        return statement;
     }
 
     public static class Builder {

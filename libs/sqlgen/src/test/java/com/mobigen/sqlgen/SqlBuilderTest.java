@@ -22,12 +22,12 @@ class SqlBuilderTest {
 
         var statementProvider = SqlBuilder.select(col1)
                 .from(table1)
-                .join(table2, Equal.of(col1, col3))
-                .join(table2, JoinHow.CROSS)
-                .where(Equal.of(col1, "1a"),
-                        Equal.of(12, col2),
-                        Or.of(GreaterThan.of(12.0, 12), Equal.of(col1, col3))
-                )
+//                .join(table2, Equal.of(col1, col3))
+//                .join(table2, JoinHow.CROSS)
+//                .where(Equal.of(col1, "1a"),
+//                        Equal.of(12, col2),
+//                        Or.of(GreaterThan.of(12.0, 12), Equal.of(col1, col3))
+//                )
                 .generate();
         System.out.println(statementProvider.getStatement());
     }

@@ -54,9 +54,46 @@ public class SelectMaker implements MakerInterface {
                 .build();
     }
 
-    public static Builder select(SqlColumn... columns) {
-        return new SelectMaker.Builder()
-                .withSelectColumns(List.of(columns));
+    public static FromGatherer select(SqlColumn... columns) {
+        return new FromGatherer.Builder()
+                .withSelectMakerBuilder(new SelectMaker.Builder()
+                        .withSelectColumns(List.of(columns))
+                )
+                .build();
+    }
+
+    public static class FromGatherer implements MakerInterface {
+        private final SelectMaker.Builder selectMakerBuilder;
+
+        private FromGatherer(Builder builder) {
+            selectMakerBuilder = Objects.requireNonNull(builder.selectMakerBuilder);
+        }
+
+        public SelectMaker from(SqlTable table) {
+            return selectMakerBuilder
+                    .from(table)
+                    .build();
+        }
+
+        @Override
+        public SelectStatementProvider generate() {
+            return new SelectStatementProvider.Builder()
+                    .withSelectColumns(selectMakerBuilder.selectColumns)
+                    .build();
+        }
+
+        protected static class Builder {
+            private SelectMaker.Builder selectMakerBuilder;
+
+            protected Builder withSelectMakerBuilder(SelectMaker.Builder selectMakerBuilder) {
+                this.selectMakerBuilder = selectMakerBuilder;
+                return this;
+            }
+
+            protected FromGatherer build() {
+                return new FromGatherer(this);
+            }
+        }
     }
 
     public static class Builder {
@@ -68,9 +105,9 @@ public class SelectMaker implements MakerInterface {
             return this;
         }
 
-        public SelectMaker from(SqlTable table) {
+        protected Builder from(SqlTable table) {
             this.table = table;
-            return build();
+            return this;
         }
 
         protected SelectMaker build() {

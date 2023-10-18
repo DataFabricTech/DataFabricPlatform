@@ -7,7 +7,7 @@ import com.mobigen.sqlgen.model.SqlTable;
 
 public class SqlBuilder {
 
-    public static SelectMaker.Builder select(SqlColumn... columns) {
+    public static SelectMaker.FromGatherer select(SqlColumn... columns) {
         return SelectMaker.select(columns);
     }
 
