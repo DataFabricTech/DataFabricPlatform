@@ -17,6 +17,7 @@ option optimize_for = SPEED;
 service StorageService {
   rpc Overview(Empty) returns (OverviewResponse);
   rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
+  rpc Adaptor(AdaptorRequest) returns (AdaptorResponse);
   rpc InsertUpdateType(Empty) returns (Empty);
   rpc GetType(Empty) returns (Empty);
   rpc DeleteType(Empty) returns (Empty);
@@ -38,7 +39,6 @@ message OverviewResponse {
 }
 
 message StorageTypeModel {
-  string id = 1;
   string name = 2;
 }
 message StorageTypeRequest {
@@ -47,4 +47,23 @@ message StorageTypeRequest {
 }
 message StorageTypeResponse {
   repeated StorageTypeModel models = 1;
+}
+
+message AdaptorModel {
+  string id = 1;
+  string storageType = 2;
+  string name = 3;
+  string version = 4;
+  string url = 5;
+  string path = 6;
+  string driver = 7;
+}
+
+message AdaptorRequest {
+  Method method = 1;
+  AdaptorModel model = 2;
+}
+
+message AdaptorResponse {
+  repeated AdaptorModel models = 3;
 }

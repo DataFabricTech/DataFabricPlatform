@@ -1,11 +1,11 @@
 package com.mobigen.libs.grpc;
 
+import com.mobigen.libs.grpc.Storage.*;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import com.mobigen.libs.grpc.Storage.*;
 
 @Slf4j
-public final class StorageService extends StorageServiceGrpc.StorageServiceImplBase{
+public final class StorageService extends StorageServiceGrpc.StorageServiceImplBase {
 
     StorageServiceCallBack callBack;
 
@@ -15,10 +15,10 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
     }
 
     @Override
-    public void overview( Empty request, StreamObserver<OverviewResponse> responseObserver ) {
+    public void overview(Empty request, StreamObserver<OverviewResponse> responseObserver) {
 
         log.debug(">> Storage:Overview");
-        responseObserver.onNext( callBack.overview() );
+        responseObserver.onNext(callBack.overview());
         log.debug("<< Storage:Overview");
         responseObserver.onCompleted();
     }
@@ -26,8 +26,16 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
     @Override
     public void storageType(StorageTypeRequest request, StreamObserver<StorageTypeResponse> responseObserver) {
         log.debug(">> Storage:storageType");
-        responseObserver.onNext( callBack.storageType(request) );
+        responseObserver.onNext(callBack.storageType(request));
         log.debug("<< Storage:storageType");
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void adaptor(AdaptorRequest request, StreamObserver<AdaptorResponse> responseObserver) {
+        log.debug(">> Storage:adaptor");
+        responseObserver.onNext(callBack.adaptor(request));
+        log.debug("<< Storage:adaptor");
         responseObserver.onCompleted();
     }
 }

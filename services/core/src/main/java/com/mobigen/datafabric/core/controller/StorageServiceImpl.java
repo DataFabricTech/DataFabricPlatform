@@ -1,9 +1,11 @@
 package com.mobigen.datafabric.core.controller;
 
+import com.mobigen.datafabric.core.services.storage.AdaptorService;
 import com.mobigen.datafabric.core.services.storage.StorageTypeService;
-import com.mobigen.libs.grpc.*;
-import lombok.extern.slf4j.Slf4j;
+import com.mobigen.libs.grpc.Method;
 import com.mobigen.libs.grpc.Storage.*;
+import com.mobigen.libs.grpc.StorageServiceCallBack;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StorageServiceImpl implements StorageServiceCallBack {
@@ -17,14 +19,26 @@ public class StorageServiceImpl implements StorageServiceCallBack {
     public StorageTypeResponse storageType(StorageTypeRequest request) {
         if (request.getMethod().equals(Method.get)) {
             return StorageTypeResponse.newBuilder()
-                    .addAllModels(new StorageTypeService().getStorageTypeModels(request.getModel().getId()))
+                    .addAllModels(new StorageTypeService().getStorageTypeModels())
+                    .build();
+        } else {
+            throw new RuntimeException("Not supported method");
+        }
+    }
+
+    @Override
+    public AdaptorResponse adaptor(AdaptorRequest request) {
+        var service = new AdaptorService();
+        if (request.getMethod().equals(Method.list)) {
+            return AdaptorResponse.newBuilder()
+                    .addAllModels(service.getAdaptors(request.getModel().getStorageType()))
                     .build();
         } else if (request.getMethod().equals(Method.create)) {
-            return null;
+
+            return AdaptorResponse.newBuilder().addModels(service.create(request.getModel())).build();
         } else {
-            return StorageTypeResponse.newBuilder()
-                    .addModels(StorageTypeModel.newBuilder().setName("a").build())
-                    .build();
+            return null;
+
         }
     }
 }

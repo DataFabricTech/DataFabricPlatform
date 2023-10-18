@@ -17,6 +17,7 @@ enum Method {
   update = 1;
   delete = 2;
   get = 3;
+  list = 4;
 }
 
 message Empty {}

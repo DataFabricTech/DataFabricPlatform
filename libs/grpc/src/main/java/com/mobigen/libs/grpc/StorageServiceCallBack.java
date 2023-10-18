@@ -6,4 +6,6 @@ public interface StorageServiceCallBack {
     OverviewResponse overview();
 
     StorageTypeResponse storageType(StorageTypeRequest request);
+
+    AdaptorResponse adaptor(AdaptorRequest request);
 }
