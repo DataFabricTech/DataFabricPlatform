@@ -42,7 +42,7 @@ public class InsertStatementProvider implements StatementProvider {
 
         public Builder withColumns(List<SqlColumn> insertColumns) {
             this.columnStatement = insertColumns.stream()
-                    .map(SqlColumn::getOnlyName)
+                    .map(SqlColumn::getNameWithSpecialChar)
                     .collect(Collectors.joining(", "));
             return this;
         }

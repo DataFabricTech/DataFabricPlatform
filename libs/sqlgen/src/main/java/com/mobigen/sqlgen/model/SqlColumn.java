@@ -8,22 +8,13 @@ public class SqlColumn {
     private final SqlTable table;
     private final JDBCType type;
 
-    private final Character stringSpecialChar = '"';
-
-    public String getName() {
-        return table.getAlias() + "." + getOnlyName();
+    public String getNameWithTable() {
+        return table.getAlias() + "." + getNameWithSpecialChar();
     }
 
-    public String getOnlyName() {
+    public String getNameWithSpecialChar() {
+        Character stringSpecialChar = '"';
         return stringSpecialChar + name + stringSpecialChar;
-    }
-
-    public SqlTable getTable() {
-        return table;
-    }
-
-    public JDBCType getType() {
-        return type;
     }
 
     private SqlColumn(Builder builder) {

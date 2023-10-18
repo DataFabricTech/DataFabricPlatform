@@ -29,7 +29,7 @@ public class SelectStatementProvider implements StatementProvider {
 
         public Builder withSelectColumns(List<SqlColumn> selectColumns) {
             this.selectStatement = selectColumns.stream()
-                    .map(SqlColumn::getName)
+                    .map(SqlColumn::getNameWithTable)
                     .collect(Collectors.joining(", "));
             return this;
         }

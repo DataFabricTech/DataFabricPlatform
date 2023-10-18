@@ -13,7 +13,7 @@ public class SqlValue<T> {
     public String getValue() {
         var type = value.getClass().getSimpleName();
         if (type.equals("SqlColumn")) {
-            return ((SqlColumn) value).getName();
+            return ((SqlColumn) value).getNameWithTable();
         } else if (type.contains("List")) {
             return "("
                     + ((List<?>) value).stream()
