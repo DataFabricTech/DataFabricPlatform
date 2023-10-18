@@ -1,19 +1,21 @@
 package com.mobigen.sqlgen.model;
 
-import lombok.Getter;
-
 import java.util.Objects;
 
-@Getter
 public class SqlTable {
     private final String name;
     private String alias;
+    private final Character stringSpecialChar = '"';
+
+    public String getAlias() {
+        return stringSpecialChar + alias + stringSpecialChar;
+    }
 
     public String getTotalName() {
         if (name.equals(alias)) {
-            return name;
+            return stringSpecialChar + name + stringSpecialChar;
         }
-        return name + " as " + alias;
+        return stringSpecialChar + name + stringSpecialChar + " as " + getAlias();
     }
 
     private SqlTable(Builder builder) {
