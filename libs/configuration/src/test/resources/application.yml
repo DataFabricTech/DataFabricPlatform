@@ -1,0 +1,10 @@
+stringValue: stringValueTest
+intValue: 123
+booleanValue: true
+
+test:
+  stringTest: "test's stringTest"
+  intTest: 1234
+  nestedTest:
+    children: 123.456.789.10
+
