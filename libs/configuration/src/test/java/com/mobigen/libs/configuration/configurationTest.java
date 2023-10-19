@@ -1,4 +1,4 @@
-package com.mobigen.utilities.configuration;
+package com.mobigen.libs.configuration;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class configurationTest {
     @Test
     void configTest() {
-        var config = configuration.getConfig(getClass());
+        var config = new Config().getConfig();
         // string
         Assertions.assertEquals("stringValueTest", config.getProperty("stringValue"));
         // int
@@ -25,7 +25,8 @@ class configurationTest {
     void profileTest() {
 
         System.setProperty("ACTIVE_PROFILE", "dev");
-        var config = configuration.getConfig(getClass());
+        var config = new Config().getConfig();
+//        var config = Config.getConfig(getClass());
         // string
         Assertions.assertEquals("stringValueTest", config.getProperty("stringValue"));
         // int

@@ -1,4 +1,4 @@
-package com.mobigen.utilities.configuration;
+package com.mobigen.libs.configuration;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -11,8 +11,8 @@ import java.net.URL;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class configuration {
-    public static Configuration getConfig(Class targetClass) {
+public class Config {
+    public Configuration getConfig() {
         var config = new PropertiesConfiguration();
         try {
             var baseFileName = "application";
@@ -29,7 +29,7 @@ public class configuration {
                 else
                     fileName = baseFileName + "." + extend;
 
-                resourceFile = targetClass.getClassLoader().getResource(fileName);
+                resourceFile = getClass().getClassLoader().getResource(fileName);
                 if (extend.equals("properties")) type = false;
                 if (resourceFile != null)
                     break;
@@ -58,7 +58,7 @@ public class configuration {
         return config;
     }
 
-    private static String toProperties(TreeMap<String, Map<String, Object>> config) {
+    private String toProperties(TreeMap<String, Map<String, Object>> config) {
         StringBuilder sb = new StringBuilder();
 
         for (String key : config.keySet())
@@ -67,7 +67,7 @@ public class configuration {
         return sb.toString();
     }
 
-    private static String toString(String key, Object mapr) {
+    private String toString(String key, Object mapr) {
         StringBuilder sb = new StringBuilder();
 
         if (!(mapr instanceof Map)) {
