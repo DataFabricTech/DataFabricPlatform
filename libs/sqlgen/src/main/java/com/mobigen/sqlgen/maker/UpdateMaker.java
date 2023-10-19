@@ -4,52 +4,60 @@ import com.mobigen.sqlgen.generate.InsertUpdateStatementProvider;
 import com.mobigen.sqlgen.generate.StatementProvider;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
+import com.mobigen.sqlgen.where.Condition;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class InsertMaker implements MakerInterface {
+public class UpdateMaker implements MakerInterface {
 
     private final SqlTable table;
 
-    private final List<SqlColumn> insertColumns = new ArrayList<>();
-    private final List<List<Object>> insertValues = new ArrayList<>();
+    private final List<SqlColumn> updateColumns = new ArrayList<>();
+    private final List<List<Object>> updateValues = new ArrayList<>();
 
-    private InsertMaker(Builder builder) {
+    private UpdateMaker(Builder builder) {
         table = Objects.requireNonNull(builder.table);
     }
 
-    public InsertMaker columns(SqlColumn... insertColumns) {
-        this.insertColumns.addAll(List.of(insertColumns));
+    public UpdateMaker columns(SqlColumn... insertColumns) {
+        this.updateColumns.addAll(List.of(insertColumns));
         return this;
     }
 
     private boolean checkValueNumber(Object... insertValues) {
-        return insertColumns.size() == insertValues.length;
+        return updateColumns.size() == insertValues.length;
     }
 
-    public InsertMaker values(Object... insertValues) {
+    public UpdateMaker values(Object... insertValues) {
         if (!checkValueNumber(insertValues)) {
             throw new RuntimeException("Difference length between column and value.");
         }
-        this.insertValues.add(List.of(insertValues));
+        this.updateValues.add(List.of(insertValues));
         return this;
     }
 
     @Override
     public StatementProvider generate() {
-        if (this.insertValues.isEmpty()) {
+        if (this.updateValues.isEmpty()) {
             throw new RuntimeException("no values");
         }
-        return new InsertUpdateStatementProvider.Builder(true)
+        return new InsertUpdateStatementProvider.Builder(false)
                 .withTable(table)
-                .withColumns(insertColumns)
-                .withValues(insertValues)
+                .withColumns(updateColumns)
+                .withValues(updateValues)
                 .build();
     }
 
-    public static InsertMaker insert(SqlTable table) {
+    public WhereMaker where(Condition... conditions) {
+        return new WhereMaker.Builder()
+                .withMaker(this)
+                .withConditions(List.of(conditions))
+                .build();
+    }
+
+    public static UpdateMaker update(SqlTable table) {
         return new Builder()
                 .withTable(table)
                 .build();
@@ -63,8 +71,8 @@ public class InsertMaker implements MakerInterface {
             return this;
         }
 
-        private InsertMaker build() {
-            return new InsertMaker(this);
+        private UpdateMaker build() {
+            return new UpdateMaker(this);
         }
     }
 }

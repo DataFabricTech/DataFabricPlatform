@@ -38,4 +38,12 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
         log.debug("<< Storage:adaptor");
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void info(InfoRequest request, StreamObserver<InfoResponse> responseObserver) {
+        log.debug(">> Storage:adaptor");
+        responseObserver.onNext(callBack.info(request));
+        log.debug("<< Storage:adaptor");
+        responseObserver.onCompleted();
+    }
 }

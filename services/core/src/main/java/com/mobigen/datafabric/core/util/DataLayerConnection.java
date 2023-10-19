@@ -31,6 +31,7 @@ public class DataLayerConnection {
     }
 
     public static ResultSet getDataDB(String sql) {
+        log.info("sql: " + sql);
         try {
             var conn = getConnection();
             var stmt = conn.createStatement();
@@ -43,7 +44,8 @@ public class DataLayerConnection {
         }
     }
 
-    public static int insertDataDB(String sql) {
+    public static int insertUpdateDataDB(String sql) {
+        log.info("sql: " + sql);
         try {
             var conn = getConnection();
             var stmt = conn.createStatement();

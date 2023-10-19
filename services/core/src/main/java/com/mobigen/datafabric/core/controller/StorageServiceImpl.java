@@ -1,6 +1,7 @@
 package com.mobigen.datafabric.core.controller;
 
 import com.mobigen.datafabric.core.services.storage.AdaptorService;
+import com.mobigen.datafabric.core.services.storage.InfoService;
 import com.mobigen.datafabric.core.services.storage.StorageTypeService;
 import com.mobigen.libs.grpc.Method;
 import com.mobigen.libs.grpc.Storage.*;
@@ -34,8 +35,30 @@ public class StorageServiceImpl implements StorageServiceCallBack {
                     .addAllModels(service.getAdaptors(request.getModel().getStorageType()))
                     .build();
         } else if (request.getMethod().equals(Method.create)) {
+            return AdaptorResponse.newBuilder().addModels(service.createAdaptor(request.getModel())).build();
+        } else if (request.getMethod().equals(Method.update)) {
+            return AdaptorResponse.newBuilder().addModels(service.updateAdaptor(request.getModel())).build();
+        } else {
+            return null;
 
-            return AdaptorResponse.newBuilder().addModels(service.create(request.getModel())).build();
+        }
+    }
+
+    @Override
+    public InfoResponse info(InfoRequest request) {
+        var service = new InfoService();
+        if (request.getMethod().equals(Method.list)) {
+            return InfoResponse.newBuilder()
+                    .addAllModels(service.getInfos())
+                    .build();
+        } else if (request.getMethod().equals(Method.create)) {
+            return InfoResponse.newBuilder()
+                    .addModels(service.createInfo(request.getModel()))
+                    .build();
+        } else if (request.getMethod().equals(Method.update)) {
+            return InfoResponse.newBuilder()
+//                    .addModels(service.updateAdaptor(request.getModel()))
+                    .build();
         } else {
             return null;
 

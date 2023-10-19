@@ -46,6 +46,20 @@ class SqlBuilderTest {
         System.out.println(statementProvider.getStatement());
     }
 
+    @Test
+    void update() {
+        var table1 = SqlTable.of("test1");
+        var col1 = SqlColumn.of("A a", table1, JDBCType.BIGINT);
+        var col2 = SqlColumn.of("B a", table1, JDBCType.BIGINT);
+
+        var statementProvider = SqlBuilder.update(table1)
+                .columns(col1, col2)
+                .values("a", 2)
+                .where(Equal.of(12, col2))
+                .generate();
+        System.out.println(statementProvider.getStatement());
+    }
+
 //    @Test
 //    void select2() {
 //        var d = new Date();

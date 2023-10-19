@@ -8,4 +8,6 @@ public interface StorageServiceCallBack {
     StorageTypeResponse storageType(StorageTypeRequest request);
 
     AdaptorResponse adaptor(AdaptorRequest request);
+
+    InfoResponse info(InfoRequest request);
 }

@@ -18,6 +18,7 @@ service StorageService {
   rpc Overview(Empty) returns (OverviewResponse);
   rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
   rpc Adaptor(AdaptorRequest) returns (AdaptorResponse);
+  rpc Info(InfoRequest) returns (InfoResponse);
   rpc InsertUpdateType(Empty) returns (Empty);
   rpc GetType(Empty) returns (Empty);
   rpc DeleteType(Empty) returns (Empty);
@@ -66,4 +67,23 @@ message AdaptorRequest {
 
 message AdaptorResponse {
   repeated AdaptorModel models = 3;
+}
+message InfoModel {
+  string id = 1;
+  string adaptorId = 2;
+  string storageType = 3;
+  string name = 4;
+  string user_desc = 5;
+  string total_data = 6;
+  string regi_data = 7;
+  string status = 8;
+}
+
+message InfoRequest {
+  Method method = 1;
+  InfoModel model = 2;
+}
+
+message InfoResponse {
+  repeated InfoModel models = 3;
 }

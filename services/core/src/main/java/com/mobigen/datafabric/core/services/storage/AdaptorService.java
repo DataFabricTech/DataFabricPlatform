@@ -12,9 +12,9 @@ import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-import static com.mobigen.sqlgen.SqlBuilder.insert;
-import static com.mobigen.sqlgen.SqlBuilder.select;
+import static com.mobigen.sqlgen.SqlBuilder.*;
 
 public class AdaptorService {
     SqlTable table = SqlTable.of("DataStorageAdaptor");
@@ -60,16 +60,31 @@ public class AdaptorService {
         return models;
     }
 
-    public Storage.AdaptorModel create(Storage.AdaptorModel model) {
+    public Storage.AdaptorModel createAdaptor(Storage.AdaptorModel model) {
         var sql = insert(table)
-                .columns(storageTypeCol, nameCol, versionCol, urlCol, pathCol, driverCol)
-                .values(model.getStorageType(), model.getName(), model.getVersion(), model.getUrl(), model.getPath(), model.getDriver())
+                .columns(idCol, storageTypeCol, nameCol, versionCol, urlCol, pathCol, driverCol)
+                .values(UUID.randomUUID().toString(), model.getStorageType(), model.getName(), model.getVersion(), model.getUrl(), model.getPath(), model.getDriver())
                 .generate().getStatement();
-        var result = DataLayerConnection.insertDataDB(sql);
+        var result = DataLayerConnection.insertUpdateDataDB(sql);
         System.out.println(result);
         if (result != 1) {
-            return null;
+            throw new RuntimeException("insert fail");
         }
         return model;
     }
+
+    public Storage.AdaptorModel updateAdaptor(Storage.AdaptorModel model) {
+        var sql = update(table)
+                .columns(storageTypeCol, nameCol, versionCol, urlCol, pathCol, driverCol)
+                .values(model.getStorageType(), model.getName(), model.getVersion(), model.getUrl(), model.getPath(), model.getDriver())
+                .where(Equal.of(idCol, model.getId()))
+                .generate().getStatement();
+        var result = DataLayerConnection.insertUpdateDataDB(sql);
+        System.out.println(result);
+        if (result != 1) {
+            throw new RuntimeException("update fail");
+        }
+        return model;
+    }
+
 }
