@@ -4,8 +4,8 @@ includeBuild("build-logic")
 
 includeBuild("aggregation")
 
+includeBuild("share")
 includeBuild("libs")
-includeBuild("utilities")
 includeBuild("services")
 
 //System.setProperty( "user.dir", project.projectDir.toString() )

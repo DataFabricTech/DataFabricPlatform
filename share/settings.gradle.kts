@@ -12,9 +12,7 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../libs")
-
 // == Define the inner structure of this component ==
-rootProject.name = "utilities" // the component name
+rootProject.name = "share" // the component name
 
-include("list")
+include("models")

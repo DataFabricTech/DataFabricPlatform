@@ -4,7 +4,6 @@ plugins {
     id("com.mobigen.java-library")
     // Protobuf Gradle Plugin
     id("com.google.protobuf") version "0.9.4"
-    idea
 }
 
 group = "com.mobigen.libs"
