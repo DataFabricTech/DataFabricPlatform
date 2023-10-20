@@ -9,9 +9,9 @@ public enum JoinHow {
     RIGHT_OUTER("right outer join"),
     FULL_OUTER("full outer join"),
     CROSS("cross join"),
-    LEFT("left inner join"), // left inner
-    RIGHT("right inner join"),
-    ; // right inner
+    LEFT("left join"),
+    RIGHT("right join"),
+    ;
 
     private final String value;
 

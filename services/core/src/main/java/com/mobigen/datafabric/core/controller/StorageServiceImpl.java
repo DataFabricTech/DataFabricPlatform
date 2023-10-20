@@ -30,7 +30,11 @@ public class StorageServiceImpl implements StorageServiceCallBack {
     @Override
     public AdaptorResponse adaptor(AdaptorRequest request) {
         var service = new AdaptorService();
-        if (request.getMethod().equals(Method.list)) {
+        if (request.getMethod().equals(Method.get)) {
+            return AdaptorResponse.newBuilder()
+                    .addModels(service.getAdaptor(request.getModel().getId()))
+                    .build();
+        } else if (request.getMethod().equals(Method.list)) {
             return AdaptorResponse.newBuilder()
                     .addAllModels(service.getAdaptors(request.getModel().getStorageType()))
                     .build();

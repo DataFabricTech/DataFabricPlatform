@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ public class DataLayerConnection {
             Class.forName("org.postgresql.Driver");
             log.info("Success to load driver");
             var conn = DriverManager.getConnection(url, id, password);
+            conn.setAutoCommit(false);
             log.info("Success to connect db");
             return conn;
         } catch (ClassNotFoundException | SQLException e) {
@@ -44,18 +46,23 @@ public class DataLayerConnection {
         }
     }
 
-    public static int insertUpdateDataDB(String sql) {
-        log.info("sql: " + sql);
+    public static List<Integer> insertUpdateDataDB(String... sqls) {
+        var conn = getConnection();
+        List<Integer> res = new ArrayList<>();
         try {
-            var conn = getConnection();
-            var stmt = conn.createStatement();
-            var res = stmt.executeUpdate(sql);
-            log.info("result: " + res);
-            return res;
+            for (var sql : sqls) {
+                log.info("sql: " + sql);
+                var stmt = conn.createStatement();
+                var result = stmt.executeUpdate(sql);
+                res.add(result);
+                log.info("result: " + res);
+            }
+            conn.commit();
         } catch (SQLException e) {
             log.error("Error: " + e.getMessage());
             throw new RuntimeException(e);
         }
+        return res;
     }
 
     public static DataLayer.QueryGRPCResponseMessage getData(String sql) {

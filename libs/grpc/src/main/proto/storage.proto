@@ -79,6 +79,7 @@ message AdaptorResponse {
 
 message ConnectionInfo {
   string key = 1;
+  string type = 9;
   oneof value {
     string stringValue = 2;
     int32 int32Value = 3;

@@ -59,6 +59,17 @@ class SqlBuilderTest {
                 .generate();
         System.out.println(statementProvider.getStatement());
     }
+    @Test
+    void drop() {
+        var table1 = SqlTable.of("test1");
+        var col1 = SqlColumn.of("A a", table1, JDBCType.BIGINT);
+        var col2 = SqlColumn.of("B a", table1, JDBCType.BIGINT);
+
+        var statementProvider = SqlBuilder.drop(table1)
+                .where(Equal.of(12, col2))
+                .generate();
+        System.out.println(statementProvider.getStatement());
+    }
 
 //    @Test
 //    void select2() {

@@ -1,5 +1,6 @@
 package com.mobigen.sqlgen;
 
+import com.mobigen.sqlgen.maker.DeleteMaker;
 import com.mobigen.sqlgen.maker.InsertMaker;
 import com.mobigen.sqlgen.maker.SelectMaker;
 import com.mobigen.sqlgen.maker.UpdateMaker;
@@ -18,6 +19,10 @@ public class SqlBuilder {
 
     public static UpdateMaker update(SqlTable table) {
         return UpdateMaker.update(table);
+    }
+
+    public static DeleteMaker drop(SqlTable table) {
+        return DeleteMaker.delete(table);
     }
 
 }
