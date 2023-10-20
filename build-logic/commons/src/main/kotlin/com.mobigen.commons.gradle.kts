@@ -1,34 +1,32 @@
 plugins {
     id("java")
     id("com.mobigen.jacoco")
+    idea
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
 dependencies {
-    constraints {
-        implementation("org.apache.commons:commons-text:1.10.0") // <3>
-    }
     // For Annotation
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
+    compileOnly(Dependency.lombok)
+    annotationProcessor(Dependency.lombok)
 
     // For Log
-    implementation("org.apache.logging.log4j:log4j-api:2.20.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
+    implementation(Dependency.log4j.log4jApi)
+    implementation(Dependency.log4j.log4jCore)
+    implementation(Dependency.log4j.log4jSlf4jImpl)
     // For YAML Format Configurations - For To Using Log4j2
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2")
+    implementation(Dependency.log4j.jacksonYaml)
 
     // For Test
     // JUnit Jupiter = 테스트 작성용
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <4>
+    testImplementation(Dependency.junitTest.junitJupiter)
     // JUnit Platform Launcher = 테스트를 검색, 필터링 및 실행하는 데 사용할 수 있음(Gradle Test Task 상에서 Filter 적용 등)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(Dependency.junitTest.junitPlatformLauncher)
 }
 
 tasks.named<Test>("test") {

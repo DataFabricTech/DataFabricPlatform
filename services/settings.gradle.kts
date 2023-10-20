@@ -2,6 +2,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        mavenLocal()
     }
     includeBuild("../build-logic")
 }
@@ -13,12 +14,12 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../utilities")
+includeBuild("../share")
 includeBuild("../libs")
 
 // == Define the inner structure of this component ==
 rootProject.name = "services" // the component name
 
 // sub module
-include("sample")
 include("core")
+//include("gateway") - golang
