@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "data-catalog.proto";
+
+package com.mobigen.datafabric.share.protobuf;
+
+message SearchRequest {
+  string input = 1;
+}
+
+message SearchResponse {
+  repeated DataCatalog dataCatalogs = 1;
+}
+
+service PortalService {
+  rpc Search(SearchRequest) returns (SearchRequest);
+}

@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+
+// DataCatalog 검색 결과, 미리보기, 기본 정보를 위한 데이터
+message DataCatalog {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+
+  bool status = 4;
+
+  string dataType = 5;
+  string dataFormat = 6;
+
+  optional int32 row = 7;
+  optional int32 column = 8;
+  optional int32 size = 9;
+
+  // 저장소 정보와 원본 데이터로부터 가상화 설정 정보
+  optional StorageInfo storageInfo = 10;
+  optional DataLocation dataLocation = 11;
+  optional DataRefine dataRefine = 12;
+  // 전처리 후 가상화된 최종 데이터 구조
+  optional DataStructure dataStructure = 13;
+
+  // 카테고리, 메타 데이터, 태그
+  repeated Category category = 14;
+  repeated Meta systemMeta = 15;
+  repeated Meta userMeta = 16;
+  repeated string tag = 17;
+
+  optional Permission permission = 18;
+  optional SampleData sampleData = 19;
+  optional DownloadInfo downloadInfo = 20;
+
+  // 사용자들의 평가 정보
+  repeated RatingAndComment ratingAndComment = 21;
+
+  optional Statistics statistics = 22;
+
+  optional UserShortInfo creator = 23;
+  optional DateTime createdAt = 24;
+  optional UserShortInfo lastModifier = 25;
+  optional DateTime lastModifiedAt = 26;
+}
+
+message StorageInfo {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string storageType = 4;
+}
+
+message DataLocation {
+  string storageId = 1;
+  optional string databaseName = 2;
+  optional string dataPath = 3;
+  optional string tableName = 4;
+  optional string fileName = 5;
+
+  optional string scope = 6;
+  optional string sheetName = 7;
+  optional string callRange = 8;
+  optional string separator = 9;
+  optional string beginTime = 10;
+  optional string endTime = 11;
+}
+
+message DataRefine {
+  optional string json = 1;
+  optional string query = 2;
+}
+
+message DataStructure {
+  string name = 1;
+  string colType = 2;
+  int32 length = 3;
+  string defaultValue = 4;
+  string desc = 5;
+}
+
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string parentId = 4;
+  string path = 5;
+}
+
+message Meta {
+  string key = 1;
+  string value = 2;
+}
+
+message Permission {
+  bool read = 1;
+  bool write = 2;
+  bool share = 3;
+  bool execute = 4;
+}
+
+message SampleData {
+  string url = 1;
+}
+
+message DownloadInfo {
+  bool status = 1;
+  string url = 2;
+}
+
+message RatingAndComment {
+  UserShortInfo user = 1;
+  int32 rating = 4;
+  string comment = 5;
+  optional DateTime lastModifiedAt = 26;
+}
+
+message Statistics {
+  int64 access = 1;
+  int64 bookmark = 2;
+  int64 download = 3;
+  double rating = 4;
+}
+
+message UserShortInfo {
+  string id = 1;
+  string name = 2;
+  optional string alias = 3;
+}
+
+message DateTime {
+  string strDateTime = 1;
+  int64 utcTime = 2;
+}
