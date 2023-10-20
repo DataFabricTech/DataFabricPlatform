@@ -51,6 +51,12 @@ message StorageTypeResponse {
   repeated StorageTypeModel models = 1;
 }
 
+message AdaptorSchema {
+  string key = 1;
+  string type = 2;
+  bool required = 3;
+}
+
 message AdaptorModel {
   string id = 1;
   string storageType = 2;
@@ -59,6 +65,7 @@ message AdaptorModel {
   string url = 5;
   string path = 6;
   string driver = 7;
+  repeated AdaptorSchema schema = 8;
 }
 
 message AdaptorRequest {
@@ -69,6 +76,19 @@ message AdaptorRequest {
 message AdaptorResponse {
   repeated AdaptorModel models = 3;
 }
+
+message ConnectionInfo {
+  string key = 1;
+  oneof value {
+    string stringValue = 2;
+    int32 int32Value = 3;
+    int64 int64Value = 4;
+    bool boolValue = 5;
+    bytes bytesValue = 6;
+    float floatValue = 7;
+    double doubleValue = 8;
+  }
+}
 message InfoModel {
   string id = 1;
   string adaptorId = 2;
@@ -78,6 +98,7 @@ message InfoModel {
   string total_data = 6;
   string regi_data = 7;
   string status = 8;
+  repeated ConnectionInfo connInfo = 9;
 }
 
 message InfoRequest {

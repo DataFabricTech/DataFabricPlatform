@@ -60,7 +60,7 @@ public class InfoService {
                 .generate().getStatement();
         var result = DataLayerConnection.insertUpdateDataDB(sql);
         System.out.println(result);
-        if (result != 1) {
+        if (result.stream().anyMatch(x-> x.equals(0))) {
             throw new RuntimeException("insert fail");
         }
         return model;
