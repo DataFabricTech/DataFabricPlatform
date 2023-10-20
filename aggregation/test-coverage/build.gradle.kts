@@ -6,31 +6,26 @@ plugins {
 
 val projectList = mutableListOf(
     "com.mobigen.libs:list",
-    "com.mobigen.utilities:list",
     "com.mobigen.datafabric:sample"
 )
 
 val pathSonarSources  = mutableListOf(
     "libs/list/src/main/java",
-    "utilities/list/src/main/java",
     "services/sample/src/main/java"
 )
 
 val pathSonarTests = mutableListOf(
     "libs/list/src/test/java",
-    "utilities/list/src/test/java",
     "services/sample/src/test/java"
 )
 
 val pathSonarJavaBinaries = mutableListOf(
     "libs/list/build/classes/java/main",
-    "utilities/list/build/classes/java/main",
     "services/sample/build/classes/java/main"
 )
 
 val pathSonarJavaTestBinaries = mutableListOf(
     "libs/list/build/classes/java/test",
-    "utilities/list/build/classes/java/test",
     "services/sample/build/classes/java/test"
 )
 
