@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package grpc;
+
+option java_package = "com.mobigen.libs.grpc";
+option java_multiple_files = true; // TODO
+option java_outer_classname = "datasLayer";
+
+option optimize_for = SPEED;
+
+import "google/protobuf/empty.proto";
+
+service DataLayerGRPCService {
+  rpc receiver(QueryRequestMessage) returns (QueryResponseMessage);
+  rpc search(SearchRequestMessage) returns (SearchResponseMessage);
+  rpc recentSearch(RecentSearchesRequestMessage) returns (RecentSearchesResponseMessage);
+  rpc healthCheck(google.protobuf.Empty) returns (HealthCheckResponseMessage);
+}
+
+message QueryRequestMessage {
+  string query = 1;
+}
+
+message QueryResponseMessage {
+  bool success = 1;
+  repeated Column column = 2;
+  repeated Rows rows = 3;
+}
+
+message Column {
+  string columnName = 1;
+  string type = 2;
+}
+
+message Row {
+  string columnName = 1;
+  oneof data {
+    string stringValue = 2;
+    int32 int32Value = 3;
+    int64 int64Value = 4;
+    bool boolValue = 5;
+    bytes bytesValue = 6;
+    float floatValue = 7;
+    double doubleValue = 8;
+    Time timeValue = 9;
+  }
+}
+
+message Rows {
+  repeated Row row = 1;
+}
+
+message SearchRequestMessage {
+  string input = 1;
+  DataModel detailSearch = 2;
+  Filter filterSearch = 3;
+  string userId = 4;
+}
+
+message Filter{
+  repeated string types = 1;
+  repeated string formats = 2;
+  repeated string knowledgeGraphs = 3;
+  repeated string categoryNames = 4;
+  repeated string tagNames = 5;
+  repeated string connectorNames = 6;
+  repeated string connectorTypes = 7;
+  repeated string creatorIDs = 8;
+}
+
+message SearchResponseMessage{
+  repeated DataModel dataModel = 1;
+  FiltersResponse filters = 2;
+}
+
+message DataModel{
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string type = 4;
+  string format = 5;
+  repeated Meta meta = 6;
+  string knowledgeGraph = 7;
+  bool status = 8;
+  repeated string categories = 9;
+  repeated string tags = 10;
+  string connectorType = 11;
+  string connectorName = 12;
+  string creatorId = 13;
+  string creatorName = 14;
+  Time createdAt = 15;
+}
+
+message Time {
+  string time = 1;
+  string format = 2;
+  string timeOperator = 16;
+}
+
+message Meta {
+  string key = 1;
+  string value = 2;
+}
+
+message FiltersResponse {
+  FilterResponse typeFilter = 1;
+  FilterResponse formatFilter = 2;
+  FilterResponse knowledgeGraphFilter = 3;
+  FilterResponse categoryFilter = 4;
+  FilterResponse tagFilter = 5;
+  FilterResponse connectorTypeFilter = 6;
+  FilterResponse connectorNameFilter = 7;
+  CreatorResponse creatorFilter = 8;
+}
+
+message FilterResponse {
+  string name = 1;
+  int64 count = 2;
+}
+
+message CreatorResponse {
+  string uuid = 1;
+  string name = 2;
+  int64 count = 3;
+}
+
+message RecentSearchesRequestMessage{
+  string userId = 1;
+}
+
+message RecentSearchesResponseMessage{
+  repeated string searched = 1;
+}
+
+message HealthCheckRequestMessage{
+}
+
+message HealthCheckResponseMessage{
+  bool status = 1;
+}

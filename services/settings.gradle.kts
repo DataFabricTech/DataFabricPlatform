@@ -23,3 +23,4 @@ rootProject.name = "services" // the component name
 // sub module
 include("core")
 //include("gateway") - golang
+include("search")
