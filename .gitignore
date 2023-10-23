@@ -46,3 +46,4 @@ bin/
 
 ### Goland ###
 /services/gateway/.idea/
+gradle/wrapper/
