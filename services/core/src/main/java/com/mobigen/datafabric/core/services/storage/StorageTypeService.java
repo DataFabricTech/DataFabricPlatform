@@ -1,5 +1,7 @@
 package com.mobigen.datafabric.core.services.storage;
 
+import com.google.protobuf.ByteString;
+import com.mobigen.datafabric.core.model.DataStorageTypeTable;
 import com.mobigen.libs.grpc.Storage.StorageTypeModel;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
@@ -16,12 +18,11 @@ import static com.mobigen.sqlgen.SqlBuilder.select;
 
 @Slf4j
 public class StorageTypeService {
-    SqlTable table = SqlTable.of("DataStorageType");
-    SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);
+    DataStorageTypeTable table = new DataStorageTypeTable();
 
     public List<StorageTypeModel> getStorageTypeModels() {
-        var sql = select(nameCol)
-                .from(table)
+        var sql = select(table.getNameCol(), table.getIconCol())
+                .from(table.getTable())
                 .generate()
                 .getStatement();
         log.info("sql: " + sql);
@@ -31,6 +32,7 @@ public class StorageTypeService {
             while (res.next()) {
                 result.add(StorageTypeModel.newBuilder()
                         .setName(res.getString(1))
+                        .setIcon(ByteString.copyFrom(res.getBytes(2)))
                         .build());
             }
         } catch (SQLException e) {

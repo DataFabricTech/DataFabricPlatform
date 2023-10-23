@@ -8,6 +8,8 @@ import com.mobigen.libs.grpc.Storage.*;
 import com.mobigen.libs.grpc.StorageServiceCallBack;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.SQLException;
+
 @Slf4j
 public class StorageServiceImpl implements StorageServiceCallBack {
 
@@ -39,7 +41,11 @@ public class StorageServiceImpl implements StorageServiceCallBack {
                     .addAllModels(service.getAdaptors(request.getModel().getStorageType()))
                     .build();
         } else if (request.getMethod().equals(Method.create)) {
-            return AdaptorResponse.newBuilder().addModels(service.createAdaptor(request.getModel())).build();
+            try {
+                return AdaptorResponse.newBuilder().addModels(service.createAdaptor(request.getModel())).build();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         } else if (request.getMethod().equals(Method.update)) {
             return AdaptorResponse.newBuilder().addModels(service.updateAdaptor(request.getModel())).build();
         } else {
@@ -56,9 +62,13 @@ public class StorageServiceImpl implements StorageServiceCallBack {
                     .addAllModels(service.getInfos())
                     .build();
         } else if (request.getMethod().equals(Method.create)) {
-            return InfoResponse.newBuilder()
-                    .addModels(service.createInfo(request.getModel()))
-                    .build();
+            try {
+                return InfoResponse.newBuilder()
+                        .addModels(service.createInfo(request.getModel()))
+                        .build();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         } else if (request.getMethod().equals(Method.update)) {
             return InfoResponse.newBuilder()
 //                    .addModels(service.updateAdaptor(request.getModel()))

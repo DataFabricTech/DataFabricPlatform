@@ -40,8 +40,8 @@ message OverviewResponse {
 }
 
 message StorageTypeModel {
-  string id = 1;
-  string name = 2;
+  string name = 1;
+  bytes icon = 2;
 }
 message StorageTypeRequest {
   Method method = 1;
@@ -66,6 +66,7 @@ message AdaptorModel {
   string path = 6;
   string driver = 7;
   repeated AdaptorSchema schema = 8;
+  string authType = 9;
 }
 
 message AdaptorRequest {

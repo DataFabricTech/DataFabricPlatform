@@ -129,7 +129,7 @@ public class InfoService {
         return models;
     }
 
-    public Storage.InfoModel createInfo(Storage.InfoModel model) {
+    public Storage.InfoModel createInfo(Storage.InfoModel model) throws SQLException {
         var sql = insert(dataStorageTable)
                 .columns(idCol, storageTypeCol, adaptorCol, nameCol)
                 .values(UUID.randomUUID().toString(), model.getStorageType(), model.getAdaptorId(), model.getName())

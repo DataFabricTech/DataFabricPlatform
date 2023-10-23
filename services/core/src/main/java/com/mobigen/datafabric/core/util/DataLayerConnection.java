@@ -46,7 +46,7 @@ public class DataLayerConnection {
         }
     }
 
-    public static List<Integer> insertUpdateDataDB(String... sqls) {
+    public static List<Integer> insertUpdateDataDB(String... sqls) throws SQLException {
         var conn = getConnection();
         List<Integer> res = new ArrayList<>();
         try {
@@ -57,10 +57,11 @@ public class DataLayerConnection {
                 res.add(result);
                 log.info("result: " + res);
             }
-            conn.commit();
         } catch (SQLException e) {
             log.error("Error: " + e.getMessage());
             throw new RuntimeException(e);
+        } finally {
+            conn.commit();
         }
         return res;
     }
