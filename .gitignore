@@ -43,3 +43,6 @@ bin/
 .DS_Store
 
 *.log
+
+### Goland ###
+/services/gateway/.idea/
