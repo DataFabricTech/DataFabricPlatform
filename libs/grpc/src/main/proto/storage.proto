@@ -66,7 +66,7 @@ message AdaptorModel {
   string path = 6;
   string driver = 7;
   repeated AdaptorSchema schema = 8;
-  string authType = 9;
+  repeated string authType = 9;
 }
 
 message AdaptorRequest {

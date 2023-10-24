@@ -5,7 +5,9 @@ import com.mobigen.datafabric.core.model.ConnectionSchemaTable;
 import com.mobigen.datafabric.core.model.DataStorageAdaptorTable;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.libs.grpc.Storage;
+import com.mobigen.sqlgen.maker.JoinMaker;
 import com.mobigen.sqlgen.maker.MakerInterface;
+import com.mobigen.sqlgen.model.JoinHow;
 import com.mobigen.sqlgen.where.conditions.Equal;
 
 import javax.annotation.Nullable;
@@ -13,8 +15,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static com.mobigen.sqlgen.SqlBuilder.*;
-import static com.mobigen.sqlgen.maker.DeleteMaker.delete;
+import static com.mobigen.sqlgen.SqlBuilder.insert;
+import static com.mobigen.sqlgen.SqlBuilder.select;
 
 public class AdaptorService {
     DataStorageAdaptorTable adaptorTable = new DataStorageAdaptorTable();
@@ -27,6 +29,7 @@ public class AdaptorService {
         try {
             Map<String, Storage.AdaptorModel.Builder> adaptorData = new HashMap<>();
             Map<String, List<Storage.AdaptorSchema>> adaptorSchemaData = new HashMap<>();
+            Map<String, Set<String>> authTypes = new HashMap<>();
             while (result.next()) {
                 if (!adaptorData.containsKey(result.getString(1))) {
                     adaptorData.put(result.getString(1),
@@ -37,6 +40,13 @@ public class AdaptorService {
                                     .setUrl(result.getString(4))
                                     .setDriver(result.getString(5))
                     );
+                }
+                if (!authTypes.containsKey(result.getString(1))) {
+                    Set<String> set = new HashSet<>();
+                    set.add(result.getString(9));
+                    authTypes.put(result.getString(1), set);
+                } else {
+                    authTypes.get(result.getString(1)).add(result.getString(9));
                 }
 
                 if (!adaptorSchemaData.containsKey(result.getString(1))) {
@@ -59,6 +69,7 @@ public class AdaptorService {
                 models.add(
                         adaptorData.get(adaptorModelId)
                                 .addAllSchema(adaptorSchemaData.get(adaptorModelId))
+                                .addAllAuthType(authTypes.get(adaptorModelId).stream().toList())
                                 .build()
                 );
             }
@@ -68,12 +79,27 @@ public class AdaptorService {
         return models;
     }
 
-    public Storage.AdaptorModel getAdaptor(String adaptorId) {
-        var sql = select(adaptorTable.getIdCol(), adaptorTable.getNameCol(), adaptorTable.getStorageTypeNameCol(),
-                adaptorTable.getVersionCol(), adaptorTable.getDriverCol(),
-                connectionSchemaTable.getKeyCol(), connectionSchemaTable.getTypeCol(), connectionSchemaTable.getDefaultCol())
+    private MakerInterface getStatementToGetAdaptor() {
+        return select(
+                adaptorTable.getIdCol(),
+                adaptorTable.getNameCol(),
+                adaptorTable.getStorageTypeNameCol(),
+                adaptorTable.getVersionCol(),
+                adaptorTable.getDriverCol(),
+
+                connectionSchemaTable.getKeyCol(),
+                connectionSchemaTable.getTypeCol(),
+                connectionSchemaTable.getDefaultCol(),
+
+                adaptorUsableAuthTable.getAuthTypeCol()
+        )
                 .from(adaptorTable.getTable())
-                .join(connectionSchemaTable.getTable(), Equal.of(adaptorTable.getIdCol(), connectionSchemaTable.getAdaptorIdCol()))
+                .join(connectionSchemaTable.getTable(), JoinHow.LEFT, Equal.of(adaptorTable.getIdCol(), connectionSchemaTable.getAdaptorIdCol()))
+                .join(adaptorUsableAuthTable.getTable(), JoinHow.LEFT, Equal.of(adaptorTable.getIdCol(), adaptorUsableAuthTable.getAdaptorIdCol()));
+    }
+
+    public Storage.AdaptorModel getAdaptor(String adaptorId) {
+        var sql = ((JoinMaker) getStatementToGetAdaptor())
                 .where(Equal.of(adaptorTable.getIdCol(), adaptorId))
                 .generate().getStatement();
         var result = DataLayerConnection.getDataDB(sql);
@@ -85,11 +111,7 @@ public class AdaptorService {
     }
 
     public List<Storage.AdaptorModel> getAdaptors(@Nullable String storageType) {
-        var sqlSelect = select(adaptorTable.getIdCol(), adaptorTable.getNameCol(), adaptorTable.getStorageTypeNameCol(),
-                adaptorTable.getVersionCol(), adaptorTable.getDriverCol(),
-                connectionSchemaTable.getKeyCol(), connectionSchemaTable.getTypeCol(), connectionSchemaTable.getDefaultCol())
-                .from(adaptorTable.getTable())
-                .join(connectionSchemaTable.getTable(), Equal.of(adaptorTable.getIdCol(), connectionSchemaTable.getAdaptorIdCol()));
+        var sqlSelect = (JoinMaker) getStatementToGetAdaptor();
         MakerInterface sqlStmt;
         if (storageType != null && !storageType.isBlank()) {
             sqlStmt = sqlSelect.where(Equal.of(adaptorTable.getStorageTypeNameCol(), storageType));
@@ -111,7 +133,7 @@ public class AdaptorService {
                 .generate().getStatement();
         var authSql = insert(adaptorUsableAuthTable.getTable())
                 .columns(adaptorUsableAuthTable.getAdaptorIdCol(), adaptorUsableAuthTable.getAuthTypeCol())
-                .values(adaptorId, model.getAuthType())
+                .values(adaptorId, model.getAuthType(0))
                 .generate().getStatement();
         List<Integer> result;
         if (!model.getSchemaList().isEmpty()) {

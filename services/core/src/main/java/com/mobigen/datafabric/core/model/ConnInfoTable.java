@@ -9,7 +9,8 @@ import java.sql.JDBCType;
 @Getter
 public class ConnInfoTable {
     SqlTable table = SqlTable.of("ConnInfo");
-    SqlColumn storageTypeNameCol = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR); // fk
+    SqlColumn datastorageIdCol = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR); // fk
     SqlColumn keyCol = SqlColumn.of("key", table, JDBCType.VARCHAR);
+    SqlColumn typeCol = SqlColumn.of("type", table, JDBCType.VARCHAR);
     SqlColumn valueCol = SqlColumn.of("value", table, JDBCType.BLOB);
 }
