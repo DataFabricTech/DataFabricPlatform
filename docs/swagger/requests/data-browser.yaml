@@ -1,0 +1,57 @@
+DataCatalogSearch:
+  description: 이름 검색, 페이지, 정렬
+  content:
+    application/json:
+      schema:
+        properties:
+          filter:
+            type: object
+            properties:
+              keyword:
+                type: string
+                description: "검색어(target 데이터 이름)"
+              dateRange:
+                type: object
+                description: "데이터 수정일 기준 필터링"
+                properties:
+                  from:
+                    type: string
+                    description: "시작일"
+                  to:
+                    type: string
+                    description: "종료일"
+              dataType:
+                $ref: "../schemas/__index.yaml#/DataType"
+              dataFormat:
+                $ref: "../schemas/__index.yaml#/DataFormat"
+          pageable:
+            $ref: "../schemas/__index.yaml#/Pageable"
+      examples:
+        noFilter:
+          description: 전체 조회, 100개, 이름 정렬
+          value:
+            filter: {}
+            pageable:
+              page: 1
+              size: 100
+              sort:
+                - order: 1
+                  field: "name"
+                  direction: "ASC"
+        filter:
+          description: 이름, 시간, 데이터 유형, 포맷, 이름 정렬
+          value:
+            filter:
+              keyword: "test"
+              dateRange:
+                from: "2020-11-11"
+                to: "2023-11-11"
+              dataType: "STRUCTURED"
+              dataFormat: "TABLE"
+            pageable:
+              page: 1
+              size: 100
+              sort:
+                - order: 1
+                  field: "name"
+                  direction: "ASC"

@@ -1,0 +1,103 @@
+AdaptorBasicOption:
+  type: object
+  description: >
+    저장소 연결에 필요한 사용자 입력 요구 정보로 
+    저장소 유형에 따라 요구하는 정보와 드라이버에서 설정한 정보가 포함된다.
+  properties:
+    key:
+      type: string
+      description: 입력 필드 이름
+    required:
+      type: boolean
+      description: 필수/선택 여부
+    valueType:
+      type: string
+      description: 입력 필드 타입
+    default:
+      type: string
+      description: 기본값(예시)
+    description:
+      type: string
+      description: 설명
+    value:
+      type: object
+      description: 사용자가 입력한 값
+AdaptorAdditionalOption:
+  type: object
+  description: "용도 - 사용자가 추가하는 옵션, 드라이버 옵션"
+  additionalProperties:
+    type: object
+    properties:
+      key:
+        type: string
+        description: 옵션 이름
+      value:
+        type: string
+        description: 옵션 값
+Adaptor:
+  type: object
+  description: 저장소 연결 어댑터(드라이버) 정보
+  properties:
+    id:
+      type: string
+      description: ID
+      format: uuid
+    name:
+      type: string
+      description: 이름
+    storageType:
+      type: string
+      description: 저장소 타입 이름
+      format: uuid
+    version:
+      type: string
+      description: 버전
+    path:
+      type: string
+      description: JDBC 파일 경로
+    class:
+      type: string
+      description: 클래스
+    basicOptions:
+      type: array
+      description: 저장소 연결에 필요한 설정 정보
+      items:
+        $ref: "#/AdaptorBasicOption"
+    additionalOptions:
+      $ref: "#/AdaptorAdditionalOption"
+      description: 사용자가 추가로 설정한 정보 / 드라이버 옵션
+  example:
+    id: "adaptor-id01"
+    name: "Mobigen-IRIS"
+    storageType: "IRIS"
+    version: "1.0.0"
+    path: "/home/mobigen/adaptor/iris/iris-jdbc.jar"
+    class: "com.mobigen.iris.jdbc.Iris"
+    basicOptions:
+      - key: "HOST"
+        valueType: "STRING"
+        required: true
+        default: "STRING"
+        value: "localhost"
+        description: "호스트"
+      - key: "PORT"
+        required: true
+        valueType: "NUMBER"
+        value: 1234
+        description: "포트"
+      - key: "TARGETS"
+        required: true
+        valueType: "STR_ARRAY"
+        value: ["datafabric", "datafabric2"]
+        description: "타겟(데이터베이스, 경로)"
+      - key: "ID"
+        valueType: "STRING"
+        value: "mobigen-user"
+        description: "사용자 아이디"
+      - key: "PASSWORD"
+        valueType: "STRING"
+        value: "user-password"
+        description: "사용자 패스워드"
+    additionalOptions:
+      charset: "utf-8"
+      timezone: "asia/seoul"

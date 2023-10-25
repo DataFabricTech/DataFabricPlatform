@@ -1,0 +1,176 @@
+ConnectTestRequest:
+  description: "연결 테스트 요청 메시지"
+  content:
+    application/json:
+      schema:
+        $ref: "../schemas/__index.yaml#/ConnectTestRequest"
+      examples:
+        postgresql:
+          value:
+            adaptorId: "adaptor-id01"
+            basicOptions:
+              - key: "HOST"
+                value: "localhost"
+              - key: "PORT"
+                value: 1234
+              - key: "TARGETS"
+                value: [ "target01" ]
+              - key: "ID"
+                value: "mobigen-user"
+              - key: "PASSWORD"
+                value: "mobigen-password"
+            additionalOptions:
+              charset: "utf-8"
+              timezone: "asia/seoul"
+        iris:
+          value:
+            adaptorId: "iris-adaptor-001"
+            basicOptions:
+              - key: "HOST"
+                value: "localhost"
+              - key: "PORT"
+                value: 1234
+              - key: "TARGETS"
+                value: [ "target01" ]
+              - key: "ID"
+                value: "mobigen-user"
+              - key: "PASSWORD"
+                value: "mobigen-password"
+            additionalOptions:
+              charset: "utf-8"
+              timezone: "asia/seoul"
+StorageAddRequest:
+  description: "연결정보(저장소) 저장 요청 메시지"
+  content:
+    application/json:
+      schema:
+        $ref: "../schemas/__index.yaml#/Storage"
+      examples:
+        add-iris:
+          value:
+            name: "IRIS"
+            description: "IRIS 연결 정보"
+            userMeta:
+              - key: "프로젝트"
+                value: "데이터패브릭"
+            tag:
+              - "IT"
+              - "데이터패브릭"
+              - "설계"
+            storageType: "IRIS"
+            adaptorId: "IRIS-adaptor-01"
+            basicOptions:
+              - key: "HOST"
+                value: "localhost"
+              - key: "PORT"
+                value: 1234
+              - key: "TARGETS"
+                value: [ "DATA_FABRIC" ]
+              - key: "ID"
+                value: "mobigen-user"
+              - key: "PASSWORD"
+                value: "mobigen-password"
+            additionalOptions:
+              charset: "utf-8"
+              timezone: "asia/seoul"
+            settings:
+              autoAddSetting:
+                enable: true
+                options:
+                  - regex: "*"
+                    dataType: "STRUCTURED"
+                    dataFormat: "TABLE"
+                    minSize: -1
+                    maxSize: -1
+                    startDate: ""
+                    endDate: "2022-12-31"
+                  - regex: "\\w+_VIEW"
+                    dataType: "STRUCTURED"
+                    dataFormat: "VIEW"
+                    minSize: -1
+                    maxSize: -1
+                    startDate: "2022-01-01"
+                    endDate: ""
+              syncSetting:
+                enable: true
+                syncType: 1
+                week: 0x0A
+                runTime: "02:30"
+              monitoringSetting:
+                enable: true
+                protocol: "SQL"
+                host: "localhost"
+                port: "3306"
+                sql: "SELECT 1"
+                period: 30
+                timeout: 30
+                successThreshold: 1
+                failThreshold: 2
+StorageModifyRequest:
+  description: "연결정보(저장소) 수정 요청 메시지"
+  content:
+    application/json:
+      schema:
+        $ref: "../schemas/__index.yaml#/Storage"
+      examples:
+        modify:
+          value:
+            id: "connection-id-01abc"
+            name: "IRIS"
+            description: "IRIS 연결 정보"
+            userMeta:
+              - key: "프로젝트"
+                value: "데이터패브릭"
+              - key: "1차년도목표"
+                value: "가상화"
+            tag:
+              - "데이터패브릭"
+              - "설계"
+            adaptorId: "IRIS-adaptor-01"
+            basicOptions:
+              - key: "HOST"
+                value: "localhost"
+              - key: "PORT"
+                value: 1234
+              - key: "TARGETS"
+                value: [ "DATA_FABRIC" ]
+              - key: "ID"
+                value: "mobigen-user"
+              - key: "PASSWORD"
+                value: "mobigen-password"
+            additionalOptions:
+              charset: "utf-8"
+              timezone: "asia/seoul"
+            settings:
+              autoAddSetting:
+                enable: true
+                options:
+                  - regex: "*"
+                    dataType: "STRUCTURED"
+                    dataFormat: "TABLE"
+                    minSize: -1
+                    maxSize: -1
+                    startDate: ""
+                    endDate: "2022-12-31"
+                  - regex: "\\w+_VIEW"
+                    dataType: "STRUCTURED"
+                    dataFormat: "VIEW"
+                    minSize: -1
+                    maxSize: -1
+                    startDate: "2022-01-01"
+                    endDate: ""
+              syncSetting:
+                enable: true
+                syncType: 1
+                week: 0x0A
+                runTime: "02:30"
+              monitoringSetting:
+                enable: true
+                protocol: "SQL"
+                host: "localhost"
+                port: "3306"
+                sql: "SELECT 1"
+                period: 30
+                timeout: 30
+                successThreshold: 1
+                failThreshold: 2

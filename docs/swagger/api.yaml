@@ -1,0 +1,1005 @@
+openapi: "3.0.2"
+info:
+  title: Data Fabric Rest API Doc
+  version: "1.0.0"
+servers:
+  - url: http://192.168.106.1:33080
+paths:
+  ## 데이터 패브릭
+  /portal/v1/search:
+    description: "데이터/저장소 검색"
+    post:
+      tags:
+        - "portal"
+      requestBody:
+        $ref: "#/components/requestBodies/Search"
+      responses:
+        '200':
+          description: OK
+          $ref: "#/components/responses/Search"
+  /portal/v1/recent-searches:
+    description: "사용자 최근 검색어"
+    get:
+      tags:
+        - "portal"
+      responses:
+        '200':
+          description: OK
+          $ref: "#/components/responses/RecentSearches"
+  ## 데이터 카탈로그
+  ## 미리보기
+  /data/v1/preview?data-id={data-id}:
+    description: "데이터 미리보기"
+    get:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataPreview"
+  ## 상세보기 - 기본정보
+  /data/v1/default?data-id={data-id}:
+    description: "데이터 상세 보기 - 기본 정보"
+    get:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataDefault"
+  # 사용자 메타 데이터 업데이트
+  /data/v1/metadata?data-id={data-id}:
+    description: >
+      메타데이터 업데이트
+      기존 데이터에서 신규/수정/삭제에 따라 변화된 사용자 메타 데이터 전체를 업데이트한다.
+    post:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userMeta:
+                  $ref: "./schemas/__index.yaml#/Meta"
+            examples:
+              old:
+                description: 이전 데이터가 만약 다음과 같고, 목표일을 삭제하고 다른 태그를 추가한 경우
+                value:
+                  userMeta:
+                    - key: "프로젝트"
+                      value: "데이터패브릭"
+                    - key: "목표일"
+                      value: "11월"
+              new:
+                description: 목표일 대신 리더 데이터를 넣어 업데이트 요청을 전송한다.
+                value:
+                  userMeta:
+                    - key: "프로젝트"
+                      value: "데이터패브릭"
+                    - key: "리더"
+                      value: "전민철"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataMetaUpdate"
+  # 태그 업데이트
+  /data/v1/tag?data-id={data-id}:
+    description: >
+      태그 업데이트
+      기존 데이터에서 신규/수정/삭제에 따라 변화된 사용자 태그 전체를 업데이트한다.
+    post:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  $ref: "./schemas/__index.yaml#/Tag"
+            examples:
+              old:
+                description: 이전 데이터가 만약 다음과 같고, 11월을 삭제하고 다른 태그를 추가한 경우
+                value:
+                  tags:
+                    - "프로젝트"
+                    - "데이터패브릭"
+                    - "11월"
+              new:
+                description: 11월을 제외하고 전민철을 넣어 업데이트 요청을 전송한다.
+                value:
+                  tags:
+                    - key: "프로젝트"
+                    - value: "데이터패브릭"
+                    - value: "전민철"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataTagUpdate"
+  # 다운로드 요청
+  /data/v1/download-request?data-id={data-id}:
+    description: 다운로드 요청
+    get:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataDownloadRequest"
+  # 다운로드
+  /data/v1/download?data-id={data-id}:
+    description: 다운로드
+    get:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      responses:
+        '200':
+          description: >
+            ZIP 압축 파일을 전송. 
+            테이블 형태의 데이터는 CSV
+            일반 데이터는 원본과 동일한 포맷으로 전달
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+  # 데이터 평가와 코멘트
+  /data/v1/comment/add?data-id={data-id}:
+    description: "데이터 평가와 댓글 추가"
+    post:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/__index.yaml#/RatingAndComment"
+            example:
+              rating: 7
+              comment: "좋아요"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  description: "평가와 댓글 추가 성공"
+                  value:
+                    code: "200"
+                error:
+                  description: "평가와 댓글 추가 실패"
+                  value:
+                    code: "500"
+                    errMsg: "에러 발생"
+  /data/v1/comment/update?data-id={data-id}:
+    description: "데이터 평가와 댓글 수정"
+    post:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/__index.yaml#/RatingAndComment"
+            example:
+              id: "comment-id01"
+              rating: 7
+              comment: "좋아요"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  description: "평가와 댓글 업데이트 성공"
+                  value:
+                    code: "200"
+                error:
+                  description: "평가와 댓글 업데이트 실패"
+                  value:
+                    code: "500"
+                    errMsg: "에러 발생"
+  /data/v1/comment/delete?data-id={data-id}:
+    description: "데이터 평가와 댓글 삭제"
+    post:
+      tags:
+        - "data"
+      parameters:
+        - $ref: "./parameters/__index.yaml#/DataId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/__index.yaml#/RatingAndComment"
+            example:
+              id: "comment-id01"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  description: "평가와 댓글 삭제 성공"
+                  value:
+                    code: "200"
+                error:
+                  description: "평가와 댓글 삭제 실패"
+                  value:
+                    code: "500"
+                    errMsg: "에러 발생"
+
+  ## 저장소 탐색
+  /storage/v1/overview:
+    description: "저장소 대시보드"
+    get:
+      tags:
+        - "storage"
+      responses:
+        '200':
+          description: OK
+          $ref: "#/components/responses/StorageOverview"
+        '401':
+          description: Unauthorized
+  /storage/v1/search:
+    description: "저장소 검색(저장소 목록 조회)"
+    post:
+      tags:
+        - "storage"
+      requestBody:
+        $ref: "#/components/requestBodies/StorageSearch"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageSearch"
+        '401':
+          description: Unauthorized
+  /storage/v1/status/{storageId}:
+    description: "저장소 상태 정보"
+    get:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageStatus"
+  /storage/v1/default/{storageId}:
+    description: "저장소 기본 정보"
+    get:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageDefault"
+  /storage/v1/advanced/{storageId}:
+    description: "저장소 고급(수집) 설정 정보"
+    get:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageAdvance"
+  /storage/v1/browse/{storageId}?path={path}:
+    description: "저장소 내 테이블(파일) 탐색"
+    get:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+        - $ref: "#/components/parameters/StoragePath"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageBrowse"
+  /storage/v1/browse/{storageId}/default?path={path}&name={name}:
+    description: "저장소 내 사용자가 선택한 테이블(파일)의 기본 정보"
+    get:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+        - $ref: "#/components/parameters/StoragePath"
+        - $ref: "#/components/parameters/StorageDataName"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageDataDefault"
+  /storage/v1/browse/{storageId}/data-view?path={path}&name={name}:
+    description: "저장소 내 사용자가 선택한 테이블(파일)의 데이터 보기 - 1차 미제공"
+    post:
+      tags:
+        - "storage"
+      parameters:
+        - $ref: "#/components/parameters/StorageId"
+        - $ref: "#/components/parameters/StoragePath"
+        - $ref: "#/components/parameters/StorageDataName"
+      responses:
+        '200':
+          description: OK
+
+  # 저장소 연결 정보 관리 Storage Connection Info Management
+  /storage/v1/storage-type:
+    description: > 
+      시스템에서 연결을 지원하는 저장소 타입 조회
+      API PATH 변경될 수 있음
+    get:
+      tags:
+        - "storage-management"
+      responses:
+        '200':
+          description: OK
+          $ref: "#/components/responses/SupportedStorageTypeResponse"
+  /storage/v1/adaptors:
+    description: >
+      선택한 저장소 타입의 드라이버 리스트 조회
+      드라이버 리스트 별 연결에 필요한 입력 필드 정보를 포함한다.
+    get:
+      tags:
+        - "storage-management"
+      parameters:
+        - in: query
+          name: storage-type
+          description: "저장소 타입"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: "#/components/responses/AdapterResponse"
+  /storage/v1/connect-test:
+    description: >
+      선택한 저장소 타입(어댑터[JDBC])에 맞춰 사용자 입력을 확인하고 연결 테스트를 진행한다.
+    post:
+      tags:
+        - "storage-management"
+      requestBody:
+        $ref: "#/components/requestBodies/ConnectTestRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  summary: "연결 테스트 성공"
+                  value:
+                    code: "200"
+                authErr:
+                  summary: "인증 실패"
+                  value:
+                    code: "401"
+                    errMsg: "사용자 인증에 실패하였습니다"
+                connectTimeout:
+                  summary: "연결 타임 아웃"
+                  value:
+                    code: "408"
+                    errMsg: "저장소 연결 실패(타임아웃)했습니다"
+  /storage/v1/add:
+    description: >
+      연결 테스트를 완료한 연결 정보의 저장
+      기본 정보(이름, 설명, 메타, 태그) 연결 정보(어탭터, 연결 옵션), 고급(수집) 설정 정보를 저장한다.
+    post:
+      tags:
+        - "storage-management"
+      requestBody:
+        $ref: "#/components/requestBodies/StorageAddRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  summary: "저장 성공"
+                  value:
+                    code: "200"
+                authErr:
+                  summary: "저장 실패"
+                  value:
+                    code: "401"
+                    errMsg: "사용자 인증에 실패하였습니다"
+                server-error:
+                  summary: "서버 오류-저장소 연결 에러"
+                  value:
+                    code: "500"
+                    errMsg: "서버 내부에 오류가 발생하여 연결정보 등록에 실패하였습니다"
+  /storage/v1/modify:
+    description: >
+      저장소 연결 정보 수정
+      기본 정보(이름, 설명, 메타, 태그) 연결 정보(어탭터, 연결 옵션), 고급(수집) 설정 정보를 수정한다.
+    post:
+      tags:
+        - "storage-management"
+      requestBody:
+        $ref: "#/components/requestBodies/StorageModifyRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./responses/__index.yaml#/CommonResponse"
+              examples:
+                success:
+                  summary: "수정 성공"
+                  value:
+                    code: "200"
+                server-error:
+                  summary: "서버 오류-저장소 연결 에러"
+                  value:
+                    code: "500"
+                    errMsg: "서버 내부에 오류가 발생하여 연결정보 수정에 실패하였습니다"
+  /storage/v1/connected-data/{storageId}:
+    description: >
+      연결정보(저장소) 삭제 전 연결된 데이터를 확인하는 API
+    get:
+      tags:
+        - "storage-management"
+      responses:
+        '200':
+          $ref: "#/components/responses/ConnectedData"
+  /storage/v1/{storageId}/delete:
+    description: 연결정보(저장소) 삭제
+    post:
+      tags:
+        - "storage-management"
+      responses:
+        '200':
+          $ref: "#/components/responses/StorageDelete"
+
+  # 저장소 유형과 어탭터 관리 관련 내용은 12월 개발
+  /storage/v1/storage-type/schema:
+    description: "저장소 유형에 따라 요구되는 입력 정보 조회"
+    get:
+      tags:
+        - "Management : Supported Storage And Adaptor(Driver)"
+      responses:
+        '200':
+          $ref: "#/components/responses/SupportedStorageTypeSchemaResponse"
+
+  # 데이터 탐색기
+  /data/v1/all-data/summary:
+    description: "시스템 내 전체 데이터 조회 - 요약된 데이터 정보를 전달(좌측 패널 출력을 목적으로 함)"
+    post:
+      tags:
+        - data-browser
+      requestBody:
+        $ref: "./requests/data-browser.yaml#/DataCatalogSearch"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "./responses/__index.yaml#/CommonResponse"
+                  - type: object
+                    properties:
+                      data:
+                        properties:
+                          dataCatalogs:
+                            type: array
+                            items:
+                              $ref: "./schemas/__index.yaml#/DataCatalog"
+              examples:
+                success:
+                  description: "데이터 조회 성공"
+                  value:
+                    code: "200"
+                    data:
+                      dataCatalogs:
+                        - id: "data-id-01"
+                          name: "data-name"
+                          description: "data-description"
+                          dataTye: "STRUCTURED"
+                          dataFormat: "TABLE"
+                          lastModifiedAt:
+                            strDateTime: "2020-11-11 12:00:00.000"
+                            utcTime: 1605062400000
+  /data/v1/all-data:
+    description: "시스템 내 전체 데이터를 조회"
+    post:
+      tags:
+        - data-browser
+      requestBody:
+        $ref: "./requests/data-browser.yaml#/DataCatalogSearch"
+      responses:
+        '200':
+          $ref: "#/components/responses/DataBrowser"
+
+        # 인증 관련
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    StorageId:
+      $ref: "./parameters/__index.yaml#/StorageId"
+    StoragePath:
+      $ref: "./parameters/__index.yaml#/StoragePath"
+    StorageDataName:
+      $ref: "./parameters/__index.yaml#/StorageDataName"
+    DataCatalogId:
+      $ref: "./parameters/__index.yaml#/DataCatalogId"
+  requestBodies:
+    Search:
+      $ref: "./requests/search.yaml#/SearchRequest"
+    StorageSearch:
+      $ref: "./requests/storage.yaml#/StorageSearchRequest"
+    ConnectTestRequest:
+      $ref: "./requests/storage-management.yaml#/ConnectTestRequest"
+    StorageAddRequest:
+      $ref: "./requests/storage-management.yaml#/StorageAddRequest"
+    StorageModifyRequest:
+      $ref: "./requests/storage-management.yaml#/StorageModifyRequest"
+  responses:
+    # 검색
+    Search:
+      $ref: "./responses/__index.yaml#/Search"
+    RecentSearches:
+      $ref: "./responses/__index.yaml#/RecentSearches"
+    # 데이터 카탈로그
+    # 지원 저장소 유형 관리
+    SupportedStorageTypeSchemaResponse:
+      $ref: "./responses/__index.yaml#/SupportedStorageTypeSchemaResponse"
+    # 어댑터 관리
+    # 저장소 관리(저장소 추가, 수정, 삭제)
+    SupportedStorageTypeResponse:
+      description: "연결 지원 저장소 타입 목록"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "./responses/__index.yaml#/CommonResponse"
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storageTypes:
+                        type: array
+                        items:
+                          $ref: "./schemas/__index.yaml#/SupportedStorageType"
+          examples:
+            success:
+              value:
+                code: "200"
+                data:
+                  storageTypes:
+                    - name: "IRIS"
+                      icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
+                    - name: "Oracle"
+                      icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
+            error:
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+                data: null
+    # 저장소 브라우저
+    StorageOverview:
+      $ref: "./responses/__index.yaml#/StorageOverview"
+    StorageSearch:
+      $ref: "./responses/__index.yaml#/StorageSearch"
+    StorageStatus:
+      $ref: "./responses/__index.yaml#/StorageStatus"
+    StorageDefault:
+      $ref: "./responses/__index.yaml#/StorageDefault"
+    StorageAdvance:
+      $ref: "./responses/__index.yaml#/StorageAdvance"
+    StorageBrowse:
+      $ref: "./responses/__index.yaml#/StorageBrowse"
+    StorageDataDefault:
+      $ref: "./responses/__index.yaml#/StorageDataDefault"
+    # 데이터 브라우저
+    AdapterResponse:
+      description: "저장소 연결 어댑터(드라이버) 목록과 연결에 필요한 입력 필드 정보"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "./responses/__index.yaml#/CommonResponse"
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      adaptors:
+                        type: array
+                        items:
+                          $ref: "./schemas/__index.yaml#/Adaptor"
+          examples:
+            success:
+              value:
+                code: "200"
+                data:
+                  adaptors:
+                    - id: "adaptor-id01"
+                      name: "Mobigen-IRIS"
+                      storageType: "IRIS"
+                      version: "1.0.0"
+                      class: "com.mobigen.iris.jdbc.Iris"
+                      basicOptions:
+                        - key: "HOST"
+                          valueType: "STRING"
+                          required: true
+                          default: "STRING"
+                          value: "localhost"
+                          description: "호스트"
+                        - key: "PORT"
+                          required: true
+                          valueType: "NUMBER"
+                          value: 1234
+                          description: "포트"
+                        - key: "TARGETS"
+                          required: true
+                          valueType: "STR_ARRAY"
+                          value: ["datafabric", "datafabric2"]
+                          description: "타겟(데이터베이스, 경로)"
+                        - key: "ID"
+                          valueType: "STRING"
+                          value: "mobigen-user"
+                          description: "사용자 아이디"
+                        - key: "PASSWORD"
+                          valueType: "STRING"
+                          value: "user-password"
+                          description: "사용자 패스워드"
+            error:
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+                data: null
+    ConnectedData:
+      $ref: "./responses/__index.yaml#/ConnectedData"
+    StorageDelete:
+      description: "저장소 삭제 응답 메시지"
+      content:
+        application/json:
+          schema:
+            $ref: "./responses/__index.yaml#/CommonResponse"
+          examples:
+            success:
+              description: 삭제 성공
+              value:
+                code: "200"
+            error01:
+              description: 삭제 실패
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+                data: null
+            error02:
+              description: 삭제 실패
+              value:
+                code: "500"
+                errMsg: "서버 내부 오류로 삭제에 실패하였습니다"
+                data: null
+    # 데이터 미리보기
+    DataPreview:
+      description: "데이터 미리보기"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "./responses/__index.yaml#/CommonResponse"
+              - type: object
+                properties:
+                  dataCatalog:
+                    $ref: "./schemas/__index.yaml#/DataCatalog"
+          examples:
+            sample01:
+              description: "데이터 미리보기"
+              value:
+                code: "200"
+                data:
+                  dataCatalog:
+                    id: "data-catalog-id01"
+                    name: "데이터 이름"
+                    description: "데이터 설명"
+                    status: "CONNECTED"
+                    dataType: "STRUCTURED"
+                    dataFormat: "TABLE"
+                    size: 11234
+                    systemMeta:
+                      - key: "프로젝트"
+                        value: "데이터패브릭"
+                    userMeta:
+                      - key: "프로젝트"
+                        value: "데이터패브릭"
+                    tag:
+                      - "IT"
+                      - "데이터패브릭"
+                      - "설계"
+#                   category
+                    downloadInfo:
+                      status: 0
+                      link: "http://datafabric.mobigen.com/download/id-90123"
+                    dataStructure:
+                      - order: 1
+                        name: "column01"
+                        columnType: "int"
+                        length: 11
+                        defaultValue: 0
+                        description: "컬럼 설명"
+                      - order: 2
+                        name: "column02"
+                        columnType: "int"
+                        length: 11
+                        defaultValue: 0
+                        description: "컬럼 설명"
+#                   sample
+#                   profile
+#                   knowledge
+#                   correlationData
+#                   recommendedData
+                    createdBy:
+                      id: "user-id01"
+                      name: "user-name01"
+                    createdAt:
+                      strDateTime: "2020-12-01 12:00:00"
+                      utcTime: 1606824000000
+                    lastModifiedBy:
+                      id: "user-id01"
+                      name: "user-name01"
+                    lastModifiedAt:
+                      strDateTime: "2020-12-01 12:00:00"
+                      utcTime: 1606824000000
+    DataDefault:
+      description: "데이터 상세 보기 - 기본정보"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "./responses/__index.yaml#/CommonResponse"
+              - type: object
+                properties:
+                  dataCatalog:
+                    $ref: "./schemas/__index.yaml#/DataCatalog"
+          examples:
+            sample01:
+              description: "데이터 상세 보기 - 기본정보"
+              value:
+                code: "200"
+                data:
+                  dataCatalog:
+                    id: "data-catalog-id01"
+                    name: "데이터 이름"
+                    description: "데이터 설명"
+                    status: "CONNECTED"
+                    dataType: "STRUCTURED"
+                    dataFormat: "TABLE"
+                    size: 11234
+                    systemMeta:
+                      - key: "프로젝트"
+                        value: "데이터패브릭"
+                    userMeta:
+                      - key: "프로젝트"
+                        value: "데이터패브릭"
+                    tag:
+                      - "IT"
+                      - "데이터패브릭"
+                      - "설계"
+                    #                   category
+                    downloadInfo:
+                      status: 0
+                      link: "http://datafabric.mobigen.com/download/id-90123"
+                    dataStructure:
+                      - order: 1
+                        name: "column01"
+                        columnType: "int"
+                        length: 11
+                        defaultValue: 0
+                        description: "컬럼 설명"
+                      - order: 2
+                        name: "column02"
+                        columnType: "int"
+                        length: 11
+                        defaultValue: 0
+                        description: "컬럼 설명"
+                    #                   sample
+                    #                   profile
+                    #                   knowledge
+                    #                   correlationData
+                    #                   recommendedData
+                    permission:
+                      read: true
+                      write: true
+                    ratingAndComments:
+                      avgRating: 4.5
+                      ratingAndComment:
+                        - id: "comment-id"
+                          time:
+                            strDateTime: "2020-12-01 12:00:00"
+                            utcTime: 1606824000000
+                          user:
+                            id: "user-id01"
+                            name: "user-name01"
+                          rating: 4.5
+                          comment: "데이터가 좋습니다"
+                    statistics:
+                      accessCount: 1000
+                      downloadCount: 10
+                      bookMarkCount: 20
+                      avgResponseTime: 1.2
+                    createdBy:
+                      id: "user-id01"
+                      name: "user-name01"
+                    createdAt:
+                      strDateTime: "2020-12-01 12:00:00"
+                      utcTime: 1606824000000
+                    lastModifiedBy:
+                      id: "user-id01"
+                      name: "user-name01"
+                    lastModifiedAt:
+                      strDateTime: "2020-12-01 12:00:00"
+                      utcTime: 1606824000000
+    DataMetaUpdate:
+      description: "데이터 미리보기"
+      content:
+        application/json:
+          schema:
+            $ref: "./responses/__index.yaml#/CommonResponse"
+          examples:
+            success:
+              value:
+                code: "200"
+            clientError:
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+            serverError:
+              value:
+                code: "500"
+                errMsg: "서버에서 내부에서 오류가 발생하였습니다"
+    DataTagUpdate:
+      description: "데이터 태그 수정"
+      content:
+        application/json:
+          schema:
+            $ref: "./responses/__index.yaml#/CommonResponse"
+          examples:
+            success:
+              description: 성공
+              value:
+                code: "200"
+            error01:
+              description: 실패
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+                data: null
+            error02:
+              description: 실패
+              value:
+                code: "500"
+                errMsg: "서버 내부 오류로 삭제에 실패하였습니다"
+                data: null
+    DataDownloadRequest:
+      description: "데이터 다운로드 요청"
+      content:
+        application/json:
+          schema:
+            $ref: "./responses/__index.yaml#/CommonResponse"
+          examples:
+            success:
+              description: 성공
+              value:
+                code: "200"
+            error01:
+              description: 실패
+              value:
+                code: "400"
+                errMsg: "잘못된 요청입니다"
+                data: null
+            error02:
+              description: 실패
+              value:
+                code: "0000"
+                errMsg: "이미 다운로드 요청이 진행중입니다"
+                data: null
+    DataBrowser:
+      description: "데이터 조회 응답 메시지"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "./responses/__index.yaml#/CommonResponse"
+              - type: object
+                properties:
+                  dataCatalogs:
+                    type: array
+                    items:
+                      $ref: "./schemas/__index.yaml#/DataCatalog"
+          examples:
+            sample01:
+              description: "데이터 리스트"
+              value:
+                code: "200"
+                data:
+                  dataCatalogs:
+                    - id: "data-catalog-id01"
+                      name: "데이터 이름"
+                      description: "데이터 설명"
+                      status: "CONNECTED"
+                      dataType: "STRUCTURED"
+                      dataFormat: "TABLE"
+                      size: 11234
+                      systemMeta:
+                        - key: "프로젝트"
+                          value: "데이터패브릭"
+                      userMeta:
+                        - key: "프로젝트"
+                          value: "데이터패브릭"
+                      tag:
+                        - "IT"
+                        - "데이터패브릭"
+                        - "설계"
+                      #                   category
+                      downloadInfo:
+                        status: 0
+                        link: "http://datafabric.mobigen.com/download/id-90123"
+                      permission:
+                        read: true
+                        write: true
+                      ratingAndComments:
+                        avgRating: 4.5
+                        ratingAndComment:
+                          - id: "comment-id"
+                            time:
+                              strDateTime: "2020-12-01 12:00:00"
+                              utcTime: 1606824000000
+                            user:
+                              id: "user-id01"
+                              name: "user-name01"
+                            rating: 4.5
+                            comment: "데이터가 좋습니다"
+                      statistics:
+                        accessCount: 1000
+                        downloadCount: 10
+                        bookMarkCount: 20
+                        avgResponseTime: 1.2
+                      createdBy:
+                        id: "user-id01"
+                        name: "user-name01"
+                      createdAt:
+                        strDateTime: "2020-12-01 12:00:00"
+                        utcTime: 1606824000000
+                      lastModifiedBy:
+                        id: "user-id01"
+                        name: "user-name01"
+                      lastModifiedAt:
+                        strDateTime: "2020-12-01 12:00:00"
+                        utcTime: 1606824000000
+  schemas:
+    $ref: "./schemas/__index.yaml"
