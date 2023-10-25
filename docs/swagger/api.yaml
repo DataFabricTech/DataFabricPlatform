@@ -547,6 +547,8 @@ components:
       bearerFormat: JWT
 
   parameters:
+    DataId:
+      $ref: "./parameters/__index.yaml#/DataId"
     StorageId:
       $ref: "./parameters/__index.yaml#/StorageId"
     StoragePath:

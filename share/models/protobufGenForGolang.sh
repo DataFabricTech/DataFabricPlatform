@@ -15,7 +15,6 @@ if ! command -v protoc &> /dev/null
 then
     echo "protoc could not be found"
     echo "apt install -y protobuf-compiler"
-    echo "apt install -y protobuf-compiler"
     echo "brew install protobuf"
     exit 1
 fi
@@ -38,6 +37,7 @@ for proto_file in $proto_files
 do
   # print proto_file
   echo "Generate Source From Proto[ $proto_file ]"
+
   # run protoc command for golang
   protoc --proto_path="$current_path"/src/main/proto \
     --go_out="$current_path"/src/main/golang \
@@ -45,7 +45,9 @@ do
     --go-grpc_out="$current_path"/src/main/golang \
     --go-grpc_opt=paths=source_relative \
     "$proto_file"
+
   # command run check success or error ?
+  # shellcheck disable=SC2181
   if [ $? -eq 0 ]; then
     echo "Success"
   else
@@ -53,7 +55,3 @@ do
     exit 1
   fi
 done
-
-
-
-

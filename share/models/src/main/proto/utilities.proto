@@ -3,19 +3,30 @@ syntax = "proto3";
 package com.mobigen.datafabric.share.protobuf;
 option go_package= "github.com/mobigen/datafabric/protobuf";
 
-// Page 페이지 데이터
+// Page 페이지, 데이터 개수 정보
 message Page {
-  optional int32 sizePerPage = 1;         // 페이지당 데이터 수
-  optional int32 selectPage = 2;          // 선택된 페이지
-  optional int32 total = 3;               // 전체 데이터 수
+  optional int32 size = 1;                // 페이지당 데이터 수
+  optional int32 totalSize = 2;           // 전체 데이터 수
+  optional int32 selectPage = 3;          // 선택 페이지
   optional int32 totalPage = 4;           // 전체 페이지 수
 }
 
-// Sort 정렬 데이터
+// Sort 정렬 정보, 다중 정렬을 위해 order 필드 추가
 message Sort {
   optional int32 order = 1;               // 정렬 순서
   optional string field = 2;              // 정렬 대상
-  optional string dir = 3;                // 정렬 방향(ASC, DESC)
+  optional string direction = 3;          // 정렬 방향(ASC, DESC)
+}
+
+// Pageable 페이지 & 정렬 정보
+message Pageable {
+  optional Page page = 1;                 // 페이지 정보
+  repeated Sort sort = 2;                 // 정렬 정보
+}
+
+message Meta {
+  optional string key = 1;                // 메타 데이터 키
+  optional string value = 2;              // 메타 데이터 값
 }
 
 // DateTime 시간 데이터

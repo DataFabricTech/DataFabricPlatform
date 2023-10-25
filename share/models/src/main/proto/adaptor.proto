@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+// Supported Storage Type
+message SupportedStorageType {
+  string name = 1;
+  optional bytes icon = 2;
+  message Schema {
+    optional string key = 1;
+    optional string valueType= 2;
+    optional bool required = 3;
+    optional string desc = 4;
+  }
+  repeated Schema schema = 3;
+  message AuthSchema {
+    optional string authType = 1;
+    optional string key = 2;
+    optional string type = 3;
+    optional bool required = 4;
+  }
+  repeated AuthSchema authSchema = 4;
+}
+
+// Driver 저장소 연결용 드라이버
+message Driver {
+  string id = 1;
+  string storageType = 2;
+  string name = 3;
+  string version = 4;
+  string url = 5;
+  string path = 6;
+  string driver = 7;
+  repeated AdaptorSchema schema = 8;
+}
+
+message AdaptorSchema {
+  string key = 1;
+  string type = 2;
+  bool required = 3;
+}
+

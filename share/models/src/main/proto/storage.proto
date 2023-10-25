@@ -9,9 +9,9 @@ import "meta.proto";
 import "user.proto";
 
 service StorageService {
-  // GET    : storage/v1/overview
+  // GET    : /storage/v1/overview
   rpc Overview(google.protobuf.Empty) returns (StorageOverviewResponse);
-  // POST   : storage/v1/search
+  // POST   : /storage/v1/search
   rpc Search(StorageSearchRequest) returns (StorageSearchResponse);
 
   rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
@@ -27,6 +27,7 @@ message StorageOverviewResponse {
   string code = 1;
   optional string errMsg = 2;
   message Data {
+
     repeated StorageTypeCount storageTypeCount = 1;
     repeated StorageStatusCount storageStatusCount = 2;
     repeated StorageStatistics storageStatistics = 3;

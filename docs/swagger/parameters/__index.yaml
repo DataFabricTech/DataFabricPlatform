@@ -1,11 +1,3 @@
-DataId:
-  name: data-id
-  in: query
-  description: "데이터 아이디(UUID)"
-  required: true
-  schema:
-    type: string
-    format: uuid
 StorageId:
   name: storageId
   in: path
@@ -42,6 +34,14 @@ DataCatalogId:
   name: dataCatalogId
   in: path
   description: "데이터 ID"
+  required: true
+  schema:
+    type: string
+    format: uuid
+DataId:
+  name: data-id
+  in: query
+  description: "데이터 아이디(UUID)"
   required: true
   schema:
     type: string
