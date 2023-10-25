@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+import "google/protobuf/empty.proto";
+import "utilities.proto";
+import "meta.proto";
+import "user.proto";
+
+service StorageService {
+  // GET    : storage/v1/overview
+  rpc Overview(google.protobuf.Empty) returns (StorageOverviewResponse);
+  // POST   : storage/v1/search
+  rpc Search(StorageSearchRequest) returns (StorageSearchResponse);
+
+  rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
+  rpc Adaptor(AdaptorRequest) returns (AdaptorResponse);
+  rpc Info(InfoRequest) returns (InfoResponse);
+  rpc InsertUpdateType(Empty) returns (Empty);
+  rpc GetType(Empty) returns (Empty);
+  rpc DeleteType(Empty) returns (Empty);
+}
+
+// StorageOverviewResponse 시스템의 전체적인 정보 전달
+message StorageOverviewResponse {
+  string code = 1;
+  optional string errMsg = 2;
+  message Data {
+    repeated StorageTypeCount storageTypeCount = 1;
+    repeated StorageStatusCount storageStatusCount = 2;
+    repeated StorageStatistics storageStatistics = 3;
+    repeated StorageDataCount storageDataCount = 4;
+    repeated StorageResponseTime storageResponseTime = 5;
+    repeated StorageHistory history = 6;
+    repeated StorageEvent event = 7;
+  }
+  optional Data data = 3;
+}
+
+// StorageTypeCount 저장소 종류(타입) 별 개수
+message StorageTypeCount {
+  string name = 1;    // 저장소 타입
+  int32 count = 2;
+}
+
+// StorageStatusCount 저장소 상태 별 개수
+message StorageStatusCount {
+  int32 status = 1;
+  int32 count = 2;
+}
+
+// StorageStatistics 저장소 통계 정보
+message StorageStatistics {
+  string id = 1;
+  string name = 2;
+  optional int32 accessCnt = 3;
+}
+
+message StorageDataCount {
+  string id = 1;
+  string name = 2;
+  optional int32 total = 3;
+  optional int32 registered = 4;
+}
+
+message StorageResponseTime {
+  string id = 1;
+  string name = 2;
+  optional double time = 3;
+}
+
+message StorageHistory {
+  DateTime time = 1;
+  string id = 2;
+  string name = 3;
+  User modifiedBy = 4;
+  string event = 5;
+  string detail = 6;
+}
+
+message StorageEvent {
+  DateTime time = 1;
+  string id = 2;
+  string name = 3;
+  string event = 5;
+  string detail = 6;
+}
+
+// StorageSearchRequest /storage/v1/search 요청
+message StorageSearchRequest {
+  StorageSearchFilter filter = 1;
+  Sort sort = 2;
+}
+
+// StorageSearchFilter 저장소 조회 요청 필터
+message StorageSearchFilter {
+  string name = 1;
+  string storageType = 2;
+  int32 status = 3;
+}
+
+// StorageSearchResponse /storage/v1/search 응답
+message StorageSearchResponse {
+  string code = 1;
+  optional string errMsg = 2;
+  message Data {
+    repeated Storage storage = 1;
+  }
+  optional Data data = 3;
+}
+
+// Storage 연결정보(저장소) 기본 정보(Optional 이용해 요약 정보 전송 시에도 사용)
+message Storage {
+  string id = 1;                            // 저장소 아이디(UUID)
+  string name = 2;                          // 저장소 이름
+  optional string desc = 3;                 // 저장소 설명
+  string storageType = 4;                   // 저장소 종류(IRIS, Tibero, PostgreSQL, MariadB, MySQL, Oracle... )
+  string driver = 5;                        // 저장소 연결 드라이버 아이디(이름?)
+
+  optional string uri = 6;                  // 저장소 연결 URI(Domain or IP)
+  optional int32 port = 7;                  // 저장소 연결 Port
+  repeated string targets = 8;              // 연결 대상(데이터 베이스 or Path or Bucket)
+
+  //  string authId = 9;                    // 인증 관리 기능이 활성화되는 경우 인증 관리의 아이디를 사용
+  optional string userId = 9;
+  optional string password = 10;
+
+  int32 status = 11;                        // 1 - 정상, 2 - 연결 실패(네트워크 장애), 3 - 에러
+
+  optional int32 numTotalData = 12;         // 저장소 내 전체 데이터 수
+  optional int32 numRegisteredData = 13;    // 데이터 패브릭 시스템에 등록된 데이터 수
+
+  repeated Meta systemMeta = 14;          // 시스템 메타데이터
+  repeated Meta userMeta = 15;            // 사용자 메타데이터
+  repeated string tags = 16;                // 태그
+
+  optional string lastSyncStatus = 17;      // 동기화 정보(Off, Success, Fail)
+  optional DateTime lastSyncTime = 18;      // 동기화 동작 시간 정보
+
+  optional User createdBy = 19;             // 생성자
+  optional DateTime createdAt = 20;         // 생성(등록) 시간
+
+  optional User lastModifiedBy = 21;        // 마지막 수정자
+  optional DateTime lastModifiedAt = 22;    // 수정 시간
+}
+
+// StorageSetting 저장소 설정 정보
+message StorageSetting {
+ repeated AutoAddSetting autoAddSetting = 1;
+ SyncSetting syncSetting = 2;
+ MonitoringSetting monitoringSetting = 3;
+}
+
+// AutoAddSetting 데이터 자동 추가 설정
+message AutoAddSetting {
+  int32 enable = 1;
+  string regex = 2;
+  string dataType = 3;
+  string dataFormat = 4;
+  DateTimeRange
+}
+
+// StorageType 시스템이 지원하는 저장소 종류 정보 전달
+message StorageTypeResponse {
+  string code = 1;
+  optional string errMsg = 2;
+  message Data {
+    repeated string storageType = 1;
+  }
+  optional Data data = 3;
+}
+
+
+

@@ -1,17 +1,39 @@
 syntax = "proto3";
 
-import "data-catalog.proto";
-
 package com.mobigen.datafabric.share.protobuf;
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+import "google/protobuf/empty.proto";
+import "data-catalog.proto";
+import "utilities.proto";
 
 message SearchRequest {
   string input = 1;
+  Sort sort = 2;
+  Page page = 3;
 }
 
 message SearchResponse {
-  repeated DataCatalog dataCatalogs = 1;
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    repeated DataCatalog dataCatalogs = 1;
+  }
+  Data data = 3;
+}
+
+message RecentSearchesResponse {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    repeated string words = 1;
+  }
+  Data data = 3;
 }
 
 service PortalService {
   rpc Search(SearchRequest) returns (SearchRequest);
+  rpc RecentSearches(google.protobuf.Empty) returns (RecentSearchesResponse);
 }
+
+

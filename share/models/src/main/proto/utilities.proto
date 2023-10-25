@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+// Page 페이지 데이터
+message Page {
+  optional int32 sizePerPage = 1;         // 페이지당 데이터 수
+  optional int32 selectPage = 2;          // 선택된 페이지
+  optional int32 total = 3;               // 전체 데이터 수
+  optional int32 totalPage = 4;           // 전체 페이지 수
+}
+
+// Sort 정렬 데이터
+message Sort {
+  optional int32 order = 1;               // 정렬 순서
+  optional string field = 2;              // 정렬 대상
+  optional string dir = 3;                // 정렬 방향(ASC, DESC)
+}
+
+// DateTime 시간 데이터
+message DateTime {
+  optional string strDateTime = 1;        // 문자형 시간 정보 yyyy-MM-dd HH:mm:ss.SSS ( Asia/Seoul )
+  optional int64 utcTime = 2;             // UTC EPOCH MilliSecond
+}
+
+// DateTimeRange 시간 범위
+message DateTimeRange {
+  optional string timeZone = 1;           // TimeZone Default Asia/Seoul
+  optional DateTime startDateTime = 2;    // 시작 시간
+  optional DateTime endDateTime = 3;      // 종료 시간
+}

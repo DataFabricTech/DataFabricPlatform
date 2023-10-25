@@ -33,12 +33,18 @@ protobuf {
         }
     }
     generateProtoTasks {
-        ofSourceSet("main").forEach {
-//            it.generateDescriptorSet = true
-//            it.descriptorSetOptions.includeSourceInfo = true
-//            it.descriptorSetOptions.includeImports = true
-//            it.descriptorSetOptions.path = "${projectDir}/src/main/resources/${it.sourceSet.name}.pb"
-            it.plugins {
+//        ofSourceSet("main").forEach {
+////            it.generateDescriptorSet = true
+////            it.descriptorSetOptions.includeSourceInfo = true
+////            it.descriptorSetOptions.includeImports = true
+////            it.descriptorSetOptions.path = "${projectDir}/src/main/resources/${it.sourceSet.name}.pb"
+//            it.plugins {
+//                id("grpc") {
+//                }
+//            }
+//        }
+        ofSourceSet("main").forEach { task ->
+            task.plugins {
                 id("grpc") {
                 }
             }
