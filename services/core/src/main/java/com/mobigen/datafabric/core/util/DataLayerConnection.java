@@ -49,10 +49,9 @@ public class DataLayerConnection {
     public static List<Integer> insertUpdateDataDB(String... sqls) throws SQLException {
         var conn = getConnection();
         List<Integer> res = new ArrayList<>();
-        try {
+        try (var stmt = conn.createStatement()) {
             for (var sql : sqls) {
                 log.info("sql: " + sql);
-                var stmt = conn.createStatement();
                 var result = stmt.executeUpdate(sql);
                 res.add(result);
                 log.info("result: " + res);

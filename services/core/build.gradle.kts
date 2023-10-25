@@ -12,6 +12,7 @@ dependencies {
 
     // jdbc
     implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.apache.commons:commons-text:1.10.0")
 }
 
 application {

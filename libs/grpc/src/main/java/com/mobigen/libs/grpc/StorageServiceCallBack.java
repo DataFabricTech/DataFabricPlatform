@@ -10,4 +10,6 @@ public interface StorageServiceCallBack {
     AdaptorResponse adaptor(AdaptorRequest request);
 
     InfoResponse info(InfoRequest request);
+
+    CommonResponse connectTest(ConnectTestRequest request);
 }

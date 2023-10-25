@@ -3,7 +3,6 @@ package com.mobigen.libs.grpc;
 import com.mobigen.libs.grpc.Storage.*;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import com.mobigen.libs.grpc.Storage.*;
 
 @Slf4j
 public final class StorageService extends StorageServiceGrpc.StorageServiceImplBase {
@@ -44,6 +43,13 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
     public void info(InfoRequest request, StreamObserver<InfoResponse> responseObserver) {
         log.debug(">> Storage:adaptor");
         responseObserver.onNext(callBack.info(request));
+        log.debug("<< Storage:adaptor");
+        responseObserver.onCompleted();
+    }
+    @Override
+    public void connectTest(ConnectTestRequest request, StreamObserver<CommonResponse> responseObserver) {
+        log.debug(">> Storage:adaptor");
+        responseObserver.onNext(callBack.connectTest(request));
         log.debug("<< Storage:adaptor");
         responseObserver.onCompleted();
     }

@@ -1,5 +1,6 @@
 package com.mobigen.datafabric.core.controller;
 
+import com.mobigen.datafabric.core.JdbcConnector;
 import com.mobigen.datafabric.core.services.storage.AdaptorService;
 import com.mobigen.datafabric.core.services.storage.InfoService;
 import com.mobigen.datafabric.core.services.storage.StorageTypeService;
@@ -9,6 +10,9 @@ import com.mobigen.libs.grpc.StorageServiceCallBack;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 @Slf4j
 public class StorageServiceImpl implements StorageServiceCallBack {
@@ -76,6 +80,44 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         } else {
             return null;
 
+        }
+    }
+
+    @Override
+    public CommonResponse connectTest(ConnectTestRequest request) {
+        Map<String, String> basic = new HashMap<>();
+
+        for (var op : request.getBasicOptionsList()) {
+            var key = op.getKey();
+            var type = op.getValueType();
+            var value = op.getValue();
+            basic.put(key, value);
+        }
+
+        Properties addition = new Properties();
+
+        for (var op : request.getAdditionalOptionsList()) {
+            var key = op.getKey();
+            var value = op.getValue();
+            addition.setProperty(key, value);
+        }
+
+        var urlFormat = request.getUrlFormat();
+        try (var connector = new JdbcConnector(urlFormat, basic)) {
+            var conn = connector.connect(addition);
+            var cur = conn.cursor();
+            cur.execute("select 1");
+            var result = cur.getResultSet();
+            System.out.println(result);
+            result.next();
+            var value = result.getString(1);
+            if (value.equals("1")) {
+                return CommonResponse.newBuilder().setData("success").build();
+            } else {
+                return CommonResponse.newBuilder().setData("fail").build();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }

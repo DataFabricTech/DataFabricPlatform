@@ -19,9 +19,8 @@ service StorageService {
   rpc StorageType(StorageTypeRequest) returns (StorageTypeResponse);
   rpc Adaptor(AdaptorRequest) returns (AdaptorResponse);
   rpc Info(InfoRequest) returns (InfoResponse);
-  rpc InsertUpdateType(Empty) returns (Empty);
-  rpc GetType(Empty) returns (Empty);
-  rpc DeleteType(Empty) returns (Empty);
+
+  rpc ConnectTest(ConnectTestRequest) returns (CommonResponse);
 }
 
 message OverviewResponse {
@@ -110,4 +109,82 @@ message InfoRequest {
 
 message InfoResponse {
   repeated InfoModel models = 3;
+}
+
+message AdaptorBasicOptions {
+  string key = 1;
+  bool required = 2;
+  string value_type = 3;
+  string default = 4;
+  string value = 5;
+}
+
+message AdaptorAdditionalOptions {
+  string key = 1;
+  string value = 5;
+}
+
+message StorageAddRequest {
+  message UserMeta {
+    string key = 1;
+    string value = 2;
+  }
+  message StorageSettings {
+    message AutoAddSetting {
+      message AutoAddSettingOption {
+        string regex = 1;
+        string data_type = 2;
+        string data_format = 3;
+        int32 min_size = 4;
+        int32 max_size = 5;
+        string start_date = 6;
+        string end_date = 7;
+      }
+      bool enable = 1;
+      repeated AutoAddSettingOption options = 2;
+    }
+    message SyncSetting {
+      bool enable = 1;
+      int32 sync_type = 2;
+      int32 week = 3;
+      string run_time = 4;
+    }
+    message MonitoringSetting {
+      bool enable = 1;
+      string protocol = 2;
+      string host = 3;
+      string port = 4;
+      string sql = 5;
+      int32 period = 6;
+      int32 timeout = 7;
+      int32 success_threshold = 8;
+      int32 fail_threshold = 9;
+    }
+    AutoAddSetting auto_add_setting = 1;
+    SyncSetting sync_setting = 2;
+    MonitoringSetting monitoring_setting = 3;
+  }
+
+  string name = 1;
+  string description = 2;
+  UserMeta user_meta = 3;
+  string adaptor_id = 4;
+  string url_format = 5;
+  AdaptorBasicOptions basic_options = 6;
+  AdaptorAdditionalOptions additional_options = 7;
+  StorageSettings settings = 8;
+}
+
+
+message ConnectTestRequest {
+  string adaptor_id = 1;
+  repeated AdaptorBasicOptions basic_options = 2;
+  repeated AdaptorAdditionalOptions additional_options = 3;
+  string url_format = 4;
+}
+
+message CommonResponse {
+  string code = 1;
+  string errMsg = 2;
+  string data = 3;
 }
