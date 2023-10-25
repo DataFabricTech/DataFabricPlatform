@@ -1,0 +1,3707 @@
+openapi: 3.0.2
+info:
+  title: Data Fabric Rest API Doc
+  version: 1.0.0
+servers:
+  - url: 'http://192.168.106.1:33080'
+paths:
+  /portal/v1/search:
+    description: 데이터/저장소 검색
+    post:
+      tags:
+        - portal
+      requestBody:
+        $ref: '#/components/requestBodies/Search'
+      responses:
+        '200':
+          description: OK
+          $ref: '#/components/responses/Search'
+  /portal/v1/recent-searches:
+    description: 사용자 최근 검색어
+    get:
+      tags:
+        - portal
+      responses:
+        '200':
+          description: OK
+          $ref: '#/components/responses/RecentSearches'
+  '/data/v1/preview?data-id={data-id}':
+    description: 데이터 미리보기
+    get:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      responses:
+        '200':
+          $ref: '#/components/responses/DataPreview'
+  '/data/v1/default?data-id={data-id}':
+    description: 데이터 상세 보기 - 기본 정보
+    get:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      responses:
+        '200':
+          $ref: '#/components/responses/DataDefault'
+  '/data/v1/metadata?data-id={data-id}':
+    description: |
+      메타데이터 업데이트 기존 데이터에서 신규/수정/삭제에 따라 변화된 사용자 메타 데이터 전체를 업데이트한다.
+    post:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userMeta:
+                  $ref: '#/components/schemas/Meta'
+            examples:
+              old:
+                description: '이전 데이터가 만약 다음과 같고, 목표일을 삭제하고 다른 태그를 추가한 경우'
+                value:
+                  userMeta:
+                    - key: 프로젝트
+                      value: 데이터패브릭
+                    - key: 목표일
+                      value: 11월
+              new:
+                description: 목표일 대신 리더 데이터를 넣어 업데이트 요청을 전송한다.
+                value:
+                  userMeta:
+                    - key: 프로젝트
+                      value: 데이터패브릭
+                    - key: 리더
+                      value: 전민철
+      responses:
+        '200':
+          $ref: '#/components/responses/DataMetaUpdate'
+  '/data/v1/tag?data-id={data-id}':
+    description: |
+      태그 업데이트 기존 데이터에서 신규/수정/삭제에 따라 변화된 사용자 태그 전체를 업데이트한다.
+    post:
+      tags:
+        - data
+      parameters:
+        - name: data-id
+          in: query
+          description: 데이터 아이디(UUID)
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  $ref: '#/components/schemas/Tag'
+            examples:
+              old:
+                description: '이전 데이터가 만약 다음과 같고, 11월을 삭제하고 다른 태그를 추가한 경우'
+                value:
+                  tags:
+                    - 프로젝트
+                    - 데이터패브릭
+                    - 11월
+              new:
+                description: 11월을 제외하고 전민철을 넣어 업데이트 요청을 전송한다.
+                value:
+                  tags:
+                    - key: 프로젝트
+                    - value: 데이터패브릭
+                    - value: 전민철
+      responses:
+        '200':
+          $ref: '#/components/responses/DataTagUpdate'
+  '/data/v1/download-request?data-id={data-id}':
+    description: 다운로드 요청
+    get:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      responses:
+        '200':
+          $ref: '#/components/responses/DataDownloadRequest'
+  '/data/v1/download?data-id={data-id}':
+    description: 다운로드
+    get:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      responses:
+        '200':
+          description: |
+            ZIP 압축 파일을 전송.  테이블 형태의 데이터는 CSV 일반 데이터는 원본과 동일한 포맷으로 전달
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+  '/data/v1/comment/add?data-id={data-id}':
+    description: 데이터 평가와 댓글 추가
+    post:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingAndComment'
+            example:
+              rating: 7
+              comment: 좋아요
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  description: 평가와 댓글 추가 성공
+                  value:
+                    code: '200'
+                error:
+                  description: 평가와 댓글 추가 실패
+                  value:
+                    code: '500'
+                    errMsg: 에러 발생
+  '/data/v1/comment/update?data-id={data-id}':
+    description: 데이터 평가와 댓글 수정
+    post:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingAndComment'
+            example:
+              id: comment-id01
+              rating: 7
+              comment: 좋아요
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  description: 평가와 댓글 업데이트 성공
+                  value:
+                    code: '200'
+                error:
+                  description: 평가와 댓글 업데이트 실패
+                  value:
+                    code: '500'
+                    errMsg: 에러 발생
+  '/data/v1/comment/delete?data-id={data-id}':
+    description: 데이터 평가와 댓글 삭제
+    post:
+      tags:
+        - data
+      parameters:
+        - $ref: '#/paths/~1data~1v1~1tag%3Fdata-id%3D%7Bdata-id%7D/post/parameters/0'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingAndComment'
+            example:
+              id: comment-id01
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  description: 평가와 댓글 삭제 성공
+                  value:
+                    code: '200'
+                error:
+                  description: 평가와 댓글 삭제 실패
+                  value:
+                    code: '500'
+                    errMsg: 에러 발생
+  /storage/v1/overview:
+    description: 저장소 대시보드
+    get:
+      tags:
+        - storage
+      responses:
+        '200':
+          description: OK
+          $ref: '#/components/responses/StorageOverview'
+        '401':
+          description: Unauthorized
+  /storage/v1/search:
+    description: 저장소 검색(저장소 목록 조회)
+    post:
+      tags:
+        - storage
+      requestBody:
+        $ref: '#/components/requestBodies/StorageSearch'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageSearch'
+        '401':
+          description: Unauthorized
+  '/storage/v1/status/{storageId}':
+    description: 저장소 상태 정보
+    get:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageStatus'
+  '/storage/v1/default/{storageId}':
+    description: 저장소 기본 정보
+    get:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageDefault'
+  '/storage/v1/advanced/{storageId}':
+    description: 저장소 고급(수집) 설정 정보
+    get:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageAdvance'
+  '/storage/v1/browse/{storageId}?path={path}':
+    description: 저장소 내 테이블(파일) 탐색
+    get:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+        - $ref: '#/components/parameters/StoragePath'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageBrowse'
+  '/storage/v1/browse/{storageId}/default?path={path}&name={name}':
+    description: 저장소 내 사용자가 선택한 테이블(파일)의 기본 정보
+    get:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+        - $ref: '#/components/parameters/StoragePath'
+        - $ref: '#/components/parameters/StorageDataName'
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageDataDefault'
+  '/storage/v1/browse/{storageId}/data-view?path={path}&name={name}':
+    description: 저장소 내 사용자가 선택한 테이블(파일)의 데이터 보기 - 1차 미제공
+    post:
+      tags:
+        - storage
+      parameters:
+        - $ref: '#/components/parameters/StorageId'
+        - $ref: '#/components/parameters/StoragePath'
+        - $ref: '#/components/parameters/StorageDataName'
+      responses:
+        '200':
+          description: OK
+  /storage/v1/storage-type:
+    description: |
+      시스템에서 연결을 지원하는 저장소 타입 조회 API PATH 변경될 수 있음
+    get:
+      tags:
+        - storage-management
+      responses:
+        '200':
+          description: OK
+          $ref: '#/components/responses/SupportedStorageTypeResponse'
+  /storage/v1/adaptors:
+    description: |
+      선택한 저장소 타입의 드라이버 리스트 조회 드라이버 리스트 별 연결에 필요한 입력 필드 정보를 포함한다.
+    get:
+      tags:
+        - storage-management
+      parameters:
+        - in: query
+          name: storage-type
+          description: 저장소 타입
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/AdapterResponse'
+  /storage/v1/connect-test:
+    description: |
+      선택한 저장소 타입(어댑터[JDBC])에 맞춰 사용자 입력을 확인하고 연결 테스트를 진행한다.
+    post:
+      tags:
+        - storage-management
+      requestBody:
+        $ref: '#/components/requestBodies/ConnectTestRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  summary: 연결 테스트 성공
+                  value:
+                    code: '200'
+                authErr:
+                  summary: 인증 실패
+                  value:
+                    code: '401'
+                    errMsg: 사용자 인증에 실패하였습니다
+                connectTimeout:
+                  summary: 연결 타임 아웃
+                  value:
+                    code: '408'
+                    errMsg: 저장소 연결 실패(타임아웃)했습니다
+  /storage/v1/add:
+    description: |
+      연결 테스트를 완료한 연결 정보의 저장 기본 정보(이름, 설명, 메타, 태그) 연결 정보(어탭터, 연결 옵션), 고급(수집) 설정 정보를 저장한다.
+    post:
+      tags:
+        - storage-management
+      requestBody:
+        $ref: '#/components/requestBodies/StorageAddRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  summary: 저장 성공
+                  value:
+                    code: '200'
+                authErr:
+                  summary: 저장 실패
+                  value:
+                    code: '401'
+                    errMsg: 사용자 인증에 실패하였습니다
+                server-error:
+                  summary: 서버 오류-저장소 연결 에러
+                  value:
+                    code: '500'
+                    errMsg: 서버 내부에 오류가 발생하여 연결정보 등록에 실패하였습니다
+  /storage/v1/modify:
+    description: |
+      저장소 연결 정보 수정 기본 정보(이름, 설명, 메타, 태그) 연결 정보(어탭터, 연결 옵션), 고급(수집) 설정 정보를 수정한다.
+    post:
+      tags:
+        - storage-management
+      requestBody:
+        $ref: '#/components/requestBodies/StorageModifyRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              examples:
+                success:
+                  summary: 수정 성공
+                  value:
+                    code: '200'
+                server-error:
+                  summary: 서버 오류-저장소 연결 에러
+                  value:
+                    code: '500'
+                    errMsg: 서버 내부에 오류가 발생하여 연결정보 수정에 실패하였습니다
+  '/storage/v1/connected-data/{storageId}':
+    description: |
+      연결정보(저장소) 삭제 전 연결된 데이터를 확인하는 API
+    get:
+      tags:
+        - storage-management
+      responses:
+        '200':
+          $ref: '#/components/responses/ConnectedData'
+  '/storage/v1/{storageId}/delete':
+    description: 연결정보(저장소) 삭제
+    post:
+      tags:
+        - storage-management
+      responses:
+        '200':
+          $ref: '#/components/responses/StorageDelete'
+  /storage/v1/storage-type/schema:
+    description: 저장소 유형에 따라 요구되는 입력 정보 조회
+    get:
+      tags:
+        - 'Management : Supported Storage And Adaptor(Driver)'
+      responses:
+        '200':
+          $ref: '#/components/responses/SupportedStorageTypeSchemaResponse'
+  /data/v1/all-data/summary:
+    description: 시스템 내 전체 데이터 조회 - 요약된 데이터 정보를 전달(좌측 패널 출력을 목적으로 함)
+    post:
+      tags:
+        - data-browser
+      requestBody:
+        $ref: '#/paths/~1data~1v1~1all-data/post/requestBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+                  - type: object
+                    properties:
+                      data:
+                        properties:
+                          dataCatalogs:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/DataCatalog'
+              examples:
+                success:
+                  description: 데이터 조회 성공
+                  value:
+                    code: '200'
+                    data:
+                      dataCatalogs:
+                        - id: data-id-01
+                          name: data-name
+                          description: data-description
+                          dataTye: STRUCTURED
+                          dataFormat: TABLE
+                          lastModifiedAt:
+                            strDateTime: '2020-11-11 12:00:00.000'
+                            utcTime: 1605062400000
+  /data/v1/all-data:
+    description: 시스템 내 전체 데이터를 조회
+    post:
+      tags:
+        - data-browser
+      requestBody:
+        description: '이름 검색, 페이지, 정렬'
+        content:
+          application/json:
+            schema:
+              properties:
+                filter:
+                  type: object
+                  properties:
+                    keyword:
+                      type: string
+                      description: 검색어(target 데이터 이름)
+                    dateRange:
+                      type: object
+                      description: 데이터 수정일 기준 필터링
+                      properties:
+                        from:
+                          type: string
+                          description: 시작일
+                        to:
+                          type: string
+                          description: 종료일
+                    dataType:
+                      $ref: '#/components/schemas/DataType'
+                    dataFormat:
+                      $ref: '#/components/schemas/DataFormat'
+                pageable:
+                  $ref: '#/components/schemas/Pageable'
+            examples:
+              noFilter:
+                description: '전체 조회, 100개, 이름 정렬'
+                value:
+                  filter: {}
+                  pageable:
+                    page: 1
+                    size: 100
+                    sort:
+                      - order: 1
+                        field: name
+                        direction: ASC
+              filter:
+                description: '이름, 시간, 데이터 유형, 포맷, 이름 정렬'
+                value:
+                  filter:
+                    keyword: test
+                    dateRange:
+                      from: '2020-11-11'
+                      to: '2023-11-11'
+                    dataType: STRUCTURED
+                    dataFormat: TABLE
+                  pageable:
+                    page: 1
+                    size: 100
+                    sort:
+                      - order: 1
+                        field: name
+                        direction: ASC
+      responses:
+        '200':
+          $ref: '#/components/responses/DataBrowser'
+security:
+  - BearerAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    StorageId:
+      name: storageId
+      in: path
+      description: 저장소 ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    StoragePath:
+      name: path
+      in: query
+      description: 테이블(파일) 경로
+      required: true
+      schema:
+        type: string
+      examples:
+        database:
+          value: DATABASE_NAME
+        directory:
+          value: /home/mobigen/data-platform
+    StorageDataName:
+      name: name
+      in: query
+      description: 테이블(파일) 이름
+      required: true
+      schema:
+        type: string
+      examples:
+        table:
+          value: TABLE_NAME
+        file:
+          value: FILE_NAME.csv
+    DataCatalogId:
+      name: dataCatalogId
+      in: path
+      description: 데이터 ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBodies:
+    Search:
+      description: 검색 요청 메시지
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              keyword:
+                type: string
+                description: 검색 키워드
+              pageable:
+                $ref: '#/components/schemas/Pageable'
+                description: 정렬 & 페이지 정보
+              detailSearch:
+                $ref: '#/components/schemas/SearchRequestDetail'
+              filterSearch:
+                $ref: '#/components/schemas/SearchRequestFilter'
+          examples:
+            firstTimeSearch:
+              summary: 검색어를 이용한 첫 검색
+              description: 검색어를 이용한 첫 검색
+              value:
+                keyword: data fabric
+                pageable:
+                  page:
+                    size: 20
+            nextPage:
+              description: 검색 결과 확인과 다음 페이지
+              summary: 검색 결과 확인과 다음 페이지
+              value:
+                keyword: data fabric
+                pageable:
+                  page:
+                    size: 20
+                    selectPage: 2
+            changeSort:
+              description: 검색 결과 정렬 변경
+              summary: 검색 결과 정렬 변경
+              value:
+                keyword: data fabric
+                pageable:
+                  sort:
+                    - order: 1
+                      field: createdAt
+                      direction: ASC
+                    - order: 2
+                      field: name
+                      direction: ASC
+                  page:
+                    size: 20
+                    selectPage: 1
+            filterSelect:
+              description: 검색 후 필터 별 데이터 수를 확인하고 필터를 선택
+              summary: 검색 후 필터 선택
+              value:
+                keyword: data fabric
+                pageable:
+                  page:
+                    size: 20
+                    selectPage: 1
+                filterSearch:
+                  DATA_TYPE:
+                    - STRUCTURED
+                    - SEMI_STRUCTURED
+                  DATA_FORMAT:
+                    - TABLE
+                    - CSV
+                    - JSON
+                  CATEGORY:
+                    - IT
+                    - 데이터
+                  TAG:
+                    - IT
+                    - 데이터패브릭
+                    - 설계
+                  STORAGE_TYPE:
+                    - IRIS
+                    - Tibero
+                    - HDFS
+                    - MySQL
+                    - PostgreSQL
+                  CONNECTOR_NAME:
+                    - Mobigen-IRIS
+                    - Mobigen-MySQL
+                    - Mobigen-PostgreSQL
+                  CREATOR:
+                    - mobigen-user
+                    - mobigen-admin
+            detailSearch:
+              description: 상세 검색
+              summary: 상세 검색
+              value:
+                keyword: data fabric
+                pageable:
+                  page:
+                    size: 20
+                detailSearch:
+                  DATA_NAME: data fabric
+                  DATA_TYPE: STRUCTURED
+                  DATA_FORMAT: TABLE
+                  CATEGORY: IT
+                  TAG: IT
+                  STORAGE_TYPE: PostgreSQL
+                  CONNECTOR_NAME: Mobigen-PostgreSQL
+                  CREATOR: mobigen-user
+                  START_DATE: '2021-01-01'
+                  END_DATE: '2021-01-31'
+            detailSearchNFilter:
+              description: 상세 검색
+              summary: 상세 검색
+              value:
+                keyword: data fabric
+                pageable:
+                  page:
+                    size: 20
+                    selectPage: 1
+                detailSearch:
+                  DATA_NAME: data fabric
+                  DATA_TYPE: STRUCTURED
+                  DATA_FORMAT: TABLE
+                  CATEGORY: IT
+                  TAG: IT
+                  STORAGE_TYPE: PostgreSQL
+                  CONNECTOR_NAME: Mobigen-PostgreSQL
+                  CREATOR: mobigen-user
+                  START_DATE: '2021-01-01'
+                  END_DATE: '2021-01-31'
+                filterSearch:
+                  DATA_TYPE:
+                    - STRUCTURED
+                    - SEMI_STRUCTURED
+                  DATA_FORMAT:
+                    - TABLE
+                    - CSV
+                    - JSON
+                  CATEGORY:
+                    - IT
+                    - 데이터
+                  TAG:
+                    - IT
+                    - 데이터패브릭
+                    - 설계
+                  STORAGE_TYPE:
+                    - IRIS
+                    - Tibero
+                    - HDFS
+                    - MySQL
+                    - PostgreSQL
+                  CONNECTOR_NAME:
+                    - Mobigen-IRIS
+                    - Mobigen-MySQL
+                    - Mobigen-PostgreSQL
+                  CREATOR:
+                    - mobigen-user
+                    - mobigen-admin
+    StorageSearch:
+      description: 저장소 검색(조회) 요청
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              filter:
+                $ref: '#/components/schemas/StorageSearchFilter'
+              sorts:
+                type: array
+                description: 정렬 정보
+                items:
+                  $ref: '#/components/schemas/Sort'
+          examples:
+            All:
+              summary: 연결정보(저장소) 전체 조회
+              description: '필터, 정렬 정보 없이 전체 조회'
+              value:
+                filter:
+                  name: ''
+                  storageType:
+                    - ''
+                  status:
+                    - ''
+                sorts:
+                  - order: 1
+                    field: name
+                    direction: ASC
+            NameSearch:
+              summary: 연결정보(저장소) 이름 검색
+              description: 연결정보(저장소) 이름 검색
+              value:
+                filter:
+                  name: data fabric
+                  storageType:
+                    - ''
+                  status:
+                    - ''
+                sorts:
+                  - order: 1
+                    field: name
+                    direction: ASC
+            StorageTypeSearch:
+              summary: 저장소 유형 검색
+              description: 저장소 유형을 선택하여 연결정보 필터링 검색
+              value:
+                filter:
+                  name: ''
+                  storageType:
+                    - IRIS
+                    - HDFS
+                    - MariaDB
+                  status:
+                    - ''
+                sorts:
+                  - order: 1
+                    field: name
+                    direction: ASC
+            StatusSearch:
+              summary: 연결 상태 검색
+              description: 연결 상태를 선택하여 연결정보 필터링 검색
+              value:
+                filter:
+                  name: ''
+                  storageType:
+                    - ''
+                  status:
+                    - CONNECTED
+                    - ERROR
+                sorts:
+                  - order: 1
+                    field: name
+                    direction: ASC
+            Sort:
+              summary: 정렬
+              description: 저장소 유형 오름차순 > 이름 내림차순
+              value:
+                filter:
+                  name: ''
+                  storageType:
+                    - ''
+                  status:
+                    - ''
+                sorts:
+                  - order: 1
+                    field: storageType
+                    direction: ASC
+                  - order: 1
+                    field: name
+                    direction: DESC
+    ConnectTestRequest:
+      description: 연결 테스트 요청 메시지
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConnectTestRequest'
+          examples:
+            postgresql:
+              value:
+                adaptorId: adaptor-id01
+                basicOptions:
+                  - key: HOST
+                    value: localhost
+                  - key: PORT
+                    value: 1234
+                  - key: TARGETS
+                    value:
+                      - target01
+                  - key: ID
+                    value: mobigen-user
+                  - key: PASSWORD
+                    value: mobigen-password
+                additionalOptions:
+                  charset: utf-8
+                  timezone: asia/seoul
+            iris:
+              value:
+                adaptorId: iris-adaptor-001
+                basicOptions:
+                  - key: HOST
+                    value: localhost
+                  - key: PORT
+                    value: 1234
+                  - key: TARGETS
+                    value:
+                      - target01
+                  - key: ID
+                    value: mobigen-user
+                  - key: PASSWORD
+                    value: mobigen-password
+                additionalOptions:
+                  charset: utf-8
+                  timezone: asia/seoul
+    StorageAddRequest:
+      description: 연결정보(저장소) 저장 요청 메시지
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Storage'
+          examples:
+            add-iris:
+              value:
+                name: IRIS
+                description: IRIS 연결 정보
+                userMeta:
+                  - key: 프로젝트
+                    value: 데이터패브릭
+                tag:
+                  - IT
+                  - 데이터패브릭
+                  - 설계
+                storageType: IRIS
+                adaptorId: IRIS-adaptor-01
+                basicOptions:
+                  - key: HOST
+                    value: localhost
+                  - key: PORT
+                    value: 1234
+                  - key: TARGETS
+                    value:
+                      - DATA_FABRIC
+                  - key: ID
+                    value: mobigen-user
+                  - key: PASSWORD
+                    value: mobigen-password
+                additionalOptions:
+                  charset: utf-8
+                  timezone: asia/seoul
+                settings:
+                  autoAddSetting:
+                    enable: true
+                    options:
+                      - regex: '*'
+                        dataType: STRUCTURED
+                        dataFormat: TABLE
+                        minSize: -1
+                        maxSize: -1
+                        startDate: ''
+                        endDate: '2022-12-31'
+                      - regex: \w+_VIEW
+                        dataType: STRUCTURED
+                        dataFormat: VIEW
+                        minSize: -1
+                        maxSize: -1
+                        startDate: '2022-01-01'
+                        endDate: ''
+                  syncSetting:
+                    enable: true
+                    syncType: 1
+                    week: 10
+                    runTime: '02:30'
+                  monitoringSetting:
+                    enable: true
+                    protocol: SQL
+                    host: localhost
+                    port: '3306'
+                    sql: SELECT 1
+                    period: 30
+                    timeout: 30
+                    successThreshold: 1
+                    failThreshold: 2
+    StorageModifyRequest:
+      description: 연결정보(저장소) 수정 요청 메시지
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Storage'
+          examples:
+            modify:
+              value:
+                id: connection-id-01abc
+                name: IRIS
+                description: IRIS 연결 정보
+                userMeta:
+                  - key: 프로젝트
+                    value: 데이터패브릭
+                  - key: 1차년도목표
+                    value: 가상화
+                tag:
+                  - 데이터패브릭
+                  - 설계
+                adaptorId: IRIS-adaptor-01
+                basicOptions:
+                  - key: HOST
+                    value: localhost
+                  - key: PORT
+                    value: 1234
+                  - key: TARGETS
+                    value:
+                      - DATA_FABRIC
+                  - key: ID
+                    value: mobigen-user
+                  - key: PASSWORD
+                    value: mobigen-password
+                additionalOptions:
+                  charset: utf-8
+                  timezone: asia/seoul
+                settings:
+                  autoAddSetting:
+                    enable: true
+                    options:
+                      - regex: '*'
+                        dataType: STRUCTURED
+                        dataFormat: TABLE
+                        minSize: -1
+                        maxSize: -1
+                        startDate: ''
+                        endDate: '2022-12-31'
+                      - regex: \w+_VIEW
+                        dataType: STRUCTURED
+                        dataFormat: VIEW
+                        minSize: -1
+                        maxSize: -1
+                        startDate: '2022-01-01'
+                        endDate: ''
+                  syncSetting:
+                    enable: true
+                    syncType: 1
+                    week: 10
+                    runTime: '02:30'
+                  monitoringSetting:
+                    enable: true
+                    protocol: SQL
+                    host: localhost
+                    port: '3306'
+                    sql: SELECT 1
+                    period: 30
+                    timeout: 30
+                    successThreshold: 1
+                    failThreshold: 2
+  responses:
+    Search:
+      description: 검색 결과 메시지
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      searchResponse:
+                        type: object
+                        description: 검색 결과
+                        properties:
+                          pageable:
+                            $ref: '#/components/schemas/Pageable'
+                          filters:
+                            $ref: '#/components/schemas/SearchResponseFilter'
+                          contents:
+                            $ref: '#/components/schemas/SearchResponseContent'
+          examples:
+            sample01:
+              description: 검색 결과
+              value:
+                code: '200'
+                data:
+                  searchResponse:
+                    pageable:
+                      page:
+                        size: 20
+                        totalSize: 100
+                        selectPage: 1
+                        totalPage: 5
+                      sort:
+                        - order: 1
+                          field: name
+                          direction: ASC
+                    filters:
+                      DATA_TYPE:
+                        STRUCTURED: 10
+                        UNSTRUCTURED: 20
+                        SEMI_STRUCTURED: 30
+                      DATA_FORMAT:
+                        TABLE: 10
+                        VIEW: 20
+                        CSV: 30
+                        EXCEL: 40
+                        WORD: 50
+                        HWP: 60
+                        PDF: 70
+                        PPT: 80
+                        IMAGE: 90
+                        AUDIO: 100
+                        VIDEO: 110
+                        JSON: 120
+                        YAML: 130
+                        HTML: 140
+                      CATEGORY:
+                        IT: 10
+                        데이터: 20
+                      TAG:
+                        모비젠: 10
+                        데이터: 20
+                      STORAGE_TYPE:
+                        IRIS: 10
+                        HDFS: 20
+                        MySQL: 30
+                        PostgreSQL: 40
+                      CONNECTOR_NAME:
+                        Mobigen-IRIS:
+                          ID: connector-id01
+                          Count: 10
+                        Mobigen-HDFS:
+                          ID: connector-id02
+                          Count: 20
+                        Mobigen-MySQL:
+                          ID: connector-id03
+                          Count: 30
+                        Mobigen-PostgreSQL:
+                          ID: connector-id04
+                          Count: 40
+                      CREATOR:
+                        mobigen-user:
+                          ID: user-01
+                          Count: 10
+                        mobigen-admin:
+                          ID: user-02
+                          Count: 20
+                    contents:
+                      dataCatalogs:
+                        - id: data-catalog-id01
+                          name: 데이터 이름
+                          description: 데이터 설명
+                          status: CONNECTED
+                          dataType: STRUCTURED
+                          dataFormat: TABLE
+                          size: 11234
+                          systemMeta:
+                            - key: 프로젝트
+                              value: 데이터패브릭
+                          userMeta:
+                            - key: 프로젝트
+                              value: 데이터패브릭
+                          tag:
+                            - IT
+                            - 데이터패브릭
+                            - 설계
+                          downloadInfo:
+                            status: 0
+                            link: 'http://datafabric.mobigen.com/download/id-90123'
+                          permission:
+                            read: true
+                            write: true
+                          ratingAndComments:
+                            avgRating: 4.5
+                            ratingAndComment:
+                              - id: comment-id
+                                time:
+                                  strDateTime: '2020-12-01 12:00:00'
+                                  utcTime: 1606824000000
+                                user:
+                                  id: user-id01
+                                  name: user-name01
+                                rating: 4.5
+                                comment: 데이터가 좋습니다
+                          statistics:
+                            accessCount: 1000
+                            downloadCount: 10
+                            bookMarkCount: 20
+                            avgResponseTime: 1.2
+                          createdBy:
+                            id: user-id01
+                            name: user-name01
+                          createdAt:
+                            strDateTime: '2020-12-01 12:00:00'
+                            utcTime: 1606824000000
+                          lastModifiedBy:
+                            id: user-id01
+                            name: user-name01
+                          lastModifiedAt:
+                            strDateTime: '2020-12-01 12:00:00'
+                            utcTime: 1606824000000
+                      storages:
+                        - id: storage-id-01
+                          name: IRIS
+                          description: IRIS 연결정보
+                          systemMeta:
+                            storageType: IRIS
+                            database: data-platform
+                            createdBy: admin
+                            modifiedBy: jblim
+                          userMeta:
+                            purpose: Data Fabric Test
+                          tag:
+                            - tag01
+                            - tag02
+                          status: CONNECTED
+                          storageType: IRIS
+                          adaptorId: adaptor-id01
+                          basicOptions:
+                            - key: HOST
+                              value: 192.168.0.1
+                            - key: PORT
+                              value: 1234
+                            - key: DATABASE
+                              value: DATA_FABRIC
+                            - key: USER
+                              value: admin
+                            - key: PASSWORD
+                              value: '****'
+                          createdBy:
+                            id: admin
+                            name: 관리자
+                          createdAt:
+                            strDateTime: '2021-01-01 00:00:00.000'
+                            utcTime: 1609459200000
+                          lastModifiedBy:
+                            id: admin
+                            name: 관리자
+                          lastModifiedAt:
+                            strDateTime: '2021-01-01 00:00:00.000'
+                            utcTime: 1609459200000
+    RecentSearches:
+      description: 최근 검색어 목록
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RecentSearchesResponse'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  recentSearches:
+                    - 모비젠
+                    - 데이터
+                    - 데이터패브릭
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    SupportedStorageTypeSchemaResponse:
+      description: 연결 지원 저장소 타입 목록
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SupportedStorageType'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  - name: IRIS
+                    schema:
+                      - key: HOST
+                        valueType: string
+                        required: true
+                        desc: Host name
+                      - key: PORT
+                        valueType: integer
+                        required: true
+                        desc: Port
+                    authSchema:
+                      - authType: USER&PASSWORD
+                        key: USERNAME
+                        type: STRING
+                        required: true
+                      - authType: USER&PASSWORD
+                        key: PASSWORD
+                        type: STRING
+                        required: true
+                      - authType: CERT
+                        key: CERTIFICATE
+                        type: bytes
+                        required: true
+                  - name: Oracle
+                    schema:
+                      - key: HOST
+                        valueType: string
+                        required: true
+                        desc: Host name
+                      - key: PORT
+                        valueType: integer
+                        required: true
+                        desc: Port
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    SupportedStorageTypeResponse:
+      description: 연결 지원 저장소 타입 목록
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storageTypes:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SupportedStorageType'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  storageTypes:
+                    - name: IRIS
+                      icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA'
+                    - name: Oracle
+                      icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA'
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    StorageOverview:
+      description: 저장소 대시보드
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storageOverview:
+                        $ref: '#/components/schemas/StorageOverview'
+          examples:
+            success:
+              description: 저장소 대시보드 샘플
+              value:
+                code: '200'
+                data:
+                  storageOverview:
+                    storageTypeCount:
+                      - storageType: IRIS
+                        count: 100
+                      - storageType: HDFS
+                        count: 200
+                      - storageType: MySQL
+                        count: 300
+                      - storageType: PostgreSQL
+                        count: 400
+                    storageStatusCount:
+                      - status: CONNECTED
+                        count: 1000
+                      - status: DISCONNECTED
+                        count: 10
+                      - status: ERROR
+                        count: 10
+                    storageStatistics:
+                      - id: storage-id-01
+                        name: IRIS
+                        accessCount: 100
+                      - id: storage-id-02
+                        name: HDFS
+                        accessCount: 200
+                      - id: storage-id-03
+                        name: PostgreSQL
+                        accessCount: 10
+                    storageDataCount:
+                      - id: storage-id-01
+                        name: IRIS
+                        total: 1000
+                        registered: 900
+                      - id: storage-id-02
+                        name: HDFS
+                        total: 1000
+                        registered: 900
+                      - id: storage-id-03
+                        name: MySQL
+                        total: 1000
+                        registered: 900
+                    storageResponseTime:
+                      - id: storage-id-01
+                        name: IRIS
+                        responseTime: 1.2
+                      - id: storage-id-02
+                        name: TEST01
+                        responseTime: 1.3
+                      - id: storage-id-03
+                        name: TEST02
+                        responseTime: 3.2
+                      - id: storage-id-04
+                        name: TEST03
+                        responseTime: 2.2
+                    history:
+                      - id: storage-id01
+                        name: IRIS
+                        modifiedBy:
+                          id: user-id01
+                          name: mobigen-user
+                        modifiedInfos:
+                          - cmd: CREATE
+                            key: additionalOptions.TimeZone
+                            newValue: Asia/Seoul
+                          - cmd: UPDATE
+                            key: name
+                            oldValue: IRIS
+                            newValue: IRIS-TEST
+                          - cmd: UPDATE
+                            key: description
+                            oldValue: IRIS 연결정보
+                            newValue: IRIS 연결정보(테스트)
+                          - cmd: DELETE
+                            key: additionalOptions.Encoding
+                    event:
+                      - time:
+                          strDateTime: '2021-01-01 00:00:00.000'
+                          utcTime: 1609459200000
+                        id: storage-id01
+                        name: IRIS
+                        eventType: CONNECTED
+                        description: 저장소 연결 성공
+    StorageSearch:
+      description: '저장소 리스트 조회(검색, 정렬)'
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storages:
+                        type: array
+                        description: 저장소 조회(검색) 리스트
+                        items:
+                          $ref: '#/components/schemas/Storage'
+          example:
+            success:
+              value:
+                code: '200'
+                data:
+                  storages:
+                    - id: storage-id-01
+                      name: IRIS
+                      storageType: IRIS
+                      status: CONNECTED
+                    - id: storage-id-02
+                      name: MariaDB
+                      storageType: MariaDB
+                      status: CONNECTED
+                    - id: storage-id-03
+                      name: MySQL
+                      storageType: MySQL
+                      status: DISCONNECTED
+                    - id: storage-id-04
+                      name: MinIO
+                      storageType: ObjectStorage
+                      status: DISCONNECTED
+                    - id: storage-id-05
+                      name: Hadoop
+                      storageType: HDFS
+                      status: ERROR
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    StorageStatus:
+      description: 선택한 연결정보(저장소)의 상태 정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storage:
+                        $ref: '#/components/schemas/Storage'
+          examples:
+            sample01:
+              summary: 저장소 연결 상태 샘플 01
+              value:
+                code: '200'
+                data:
+                  storage:
+                    id: storage-id-01
+                    name: IRIS
+                    description: IRIS 연결정보
+                    systemMeta:
+                      storageType: IRIS
+                      database: data-platform
+                      createdBy: admin
+                      modifiedBy: jblim
+                    userMeta:
+                      purpose: Data Fabric Test
+                    tag:
+                      - tag01
+                      - tag02
+                    status: CONNECTED
+                    storageType: IRIS
+                    adaptorId: adaptor-id01
+                    basicOptions:
+                      - key: HOST
+                        value: 192.168.0.1
+                      - key: PORT
+                        value: 1234
+                      - key: DATABASE
+                        value: DATA_FABRIC
+                      - key: USER
+                        value: admin
+                      - key: PASSWORD
+                        value: '****'
+                    statistics:
+                      totalDataCount: 10000
+                      registeredDataCount: 9000
+                    dataStatistics:
+                      - id: data-uuid01
+                        name: DATA_FABRIC
+                        accessCount: 1000
+                      - id: data-uuid02
+                        name: MOBIGEN_PLATFORM
+                        accessCount: 2000
+                    history:
+                      - time:
+                          strDateTime: '2021-01-01 00:00:00.000'
+                          utcTime: 1609459200000
+                        modifiedBy:
+                          id: admin-uuid
+                          name: 관리자
+                        modifiedInfos:
+                          - cmd: UPDATE
+                            key: PORT
+                            oldValue: 1234
+                            newValue: 4567
+                          - cmd: UPDATE
+                            key: name
+                            oldValue: test01
+                            newValue: test02
+                          - cmd: UPDATE
+                            key: description
+                            oldValue: test01
+                            newValue: test02
+                          - cmd: CREATE
+                            key: userMeta.purpose
+                            newValue: test
+                    event:
+                      - time:
+                          strDateTime: '2021-01-01 00:00:00.000'
+                          utcTime: 1609459200000
+                        eventType: CONNECTED
+                        description: 저장소 연결 성공
+                      - time:
+                          strDateTime: '2021-01-01 00:00:00.000'
+                          utcTime: 1609459200000
+                        eventType: DISCONNECTED
+                        description: 저장소 연결 해제
+                      - time:
+                          strDateTime: '2021-01-01 00:00:00.000'
+                          utcTime: 1609459200000
+                        eventType: ERROR
+                        description: 저장소 연결 실패
+                    createdBy:
+                      id: admin
+                      name: 관리자
+                    createdAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+                    lastModifiedBy:
+                      id: admin
+                      name: 관리자
+                    lastModifiedAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+    StorageDefault:
+      description: 저장소 기본 정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storage:
+                        $ref: '#/components/schemas/Storage'
+          examples:
+            success:
+              description: 'id, systemMeta, status, storageType, create, lastmodify 수정 불가'
+              value:
+                code: '200'
+                data:
+                  storage:
+                    id: storage-id-01
+                    name: IRIS
+                    description: IRIS 연결정보
+                    systemMeta:
+                      storageType: IRIS
+                      database: data-platform
+                      createdBy: admin
+                      modifiedBy: jblim
+                    userMeta:
+                      purpose: Data Fabric Test
+                    tag:
+                      - tag01
+                      - tag02
+                    status: CONNECTED
+                    storageType: IRIS
+                    adaptorId: adaptor-id01
+                    basicOptions:
+                      - key: HOST
+                        value: 192.168.0.1
+                      - key: PORT
+                        value: 1234
+                      - key: DATABASE
+                        value: DATA_FABRIC
+                      - key: USER
+                        value: admin
+                      - key: PASSWORD
+                        value: '****'
+                    additionalOptions:
+                      charset: utf-8
+                      timezone: asia/seoul
+                    createdBy:
+                      id: admin
+                      name: 관리자
+                    createdAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+                    lastModifiedBy:
+                      id: admin
+                      name: 관리자
+                    lastModifiedAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+    StorageAdvance:
+      description: 연결정보(저장소) 수집(고급) 설정 정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storage:
+                        $ref: '#/components/schemas/Storage'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  storage:
+                    id: storage-id-01
+                    name: IRIS
+                    systemMeta:
+                      storageType: IRIS
+                      database: data-platform
+                      createdBy: admin
+                      modifiedBy: jblim
+                    userMeta:
+                      purpose: Data Fabric Test
+                    tag:
+                      - tag01
+                      - tag02
+                    status: CONNECTED
+                    storageType: IRIS
+                    adaptorId: adaptor-id01
+                    settings:
+                      autoAddSetting:
+                        enable: true
+                        options:
+                          - regex: '*'
+                            dataType: STRUCTURED
+                            dataFormat: TABLE
+                            minSize: -1
+                            maxSize: -1
+                            startDate: ''
+                            endDate: '2022-12-31'
+                          - regex: \w+_VIEW
+                            dataType: STRUCTURED
+                            dataFormat: VIEW
+                            minSize: -1
+                            maxSize: -1
+                            startDate: '2022-01-01'
+                            endDate: ''
+                      syncSetting:
+                        enable: true
+                        syncType: 1
+                        week: 10
+                        runTime: '02:30'
+                      monitoringSetting:
+                        enable: true
+                        protocol: SQL
+                        host: localhost
+                        port: '3306'
+                        sql: SELECT 1
+                        period: 30
+                        timeout: 30
+                        successThreshold: 1
+                        failThreshold: 2
+                    createdBy:
+                      id: admin
+                      name: 관리자
+                    createdAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+                    lastModifiedBy:
+                      id: admin
+                      name: 관리자
+                    lastModifiedAt:
+                      strDateTime: '2021-01-01 00:00:00.000'
+                      utcTime: 1609459200000
+            error01:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+            error02:
+              value:
+                code: '500'
+                errMsg: 서버 내부 오류로 요청을 처리할 수 없습니다
+                data: null
+    StorageBrowse:
+      description: '저장소 내 데이터(테이블, 파일) 조회'
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      storageBrowse:
+                        $ref: '#/components/schemas/StorageBrowse'
+          examples:
+            rootBrowse01:
+              description: 연결정보(저장소) 하위 정보 요청(RDBMS)
+              value:
+                code: '200'
+                data:
+                  storageBrowse:
+                    id: storage-uuid01
+                    path: /
+                    data:
+                      - name: DATABASE_01
+                        type: 0
+                        dataFormat: null
+                        status: null
+                      - name: DATABASE_02
+                        type: 0
+                        dataFormat: null
+                        status: null
+            rootBrowse02:
+              description: 연결정보(저장소) 하위 정보 요청(파일시스템)
+              value:
+                code: '200'
+                data:
+                  storageBrowse:
+                    id: storage-uuid02
+                    path: /
+                    data:
+                      - name: Folder
+                        type: 0
+                        dataFormat: null
+                        status: null
+                      - name: Directory
+                        type: 0
+                        dataFormat: null
+                        status: null
+                      - name: File.csv
+                        type: 1
+                        dataFormat: CSV
+                        status: 0
+                      - name: File01.csv
+                        type: 1
+                        dataFormat: CSV
+                        status: 1
+            databaseBrowse:
+              description: 데이터 베이스 하위 정보 요청
+              value:
+                code: '200'
+                data:
+                  storageBrowse:
+                    id: storage-uuid01
+                    path: /DATABASE_01
+                    data:
+                      - name: TABLE_01
+                        type: 1
+                        dataFormat: TABLE
+                        status: 0
+                      - name: TABLE_02
+                        type: 1
+                        dataFormat: VIEW
+                        status: 0
+                      - name: TABLE_03
+                        type: 1
+                        dataFormat: TABLE
+                        status: 1
+            fileStorageBrowse:
+              description: 파일 시스템 저장소 탐색
+              value:
+                code: '200'
+                data:
+                  storageBrowse:
+                    id: storage-uuid01
+                    path: /FOO/BAR
+                    data:
+                      - name: Folder
+                        type: 0
+                        dataFormat: null
+                        status: null
+                      - name: FILE.ppt
+                        type: 1
+                        dataFormat: PPT
+                        status: 0
+                      - name: FILE_CSV.xlsx
+                        type: 1
+                        dataFormat: EXCEL
+                        status: 1
+    StorageDataDefault:
+      description: 저장소 내 사용자가 선택한 테이블(파일)의 기본 정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      dataDefaultInfo:
+                        $ref: '#/components/schemas/StorageDataDefault'
+          examples:
+            success:
+              description: 테이블(파일) 기본 정보
+              value:
+                code: '200'
+                data:
+                  dataDefaultInfo:
+                    storageId: storage-uuid01
+                    path: /DATABASE_01
+                    name: TABLE_01
+                    dataFormat: TABLE
+                    dataInfo:
+                      rows: 1000
+                      columns: 2
+                      owner: owner-name
+                      description: this table is test
+                      createdAt:
+                        strDateTime: '2021-01-01 00:00:00.000'
+                        utcTime: 1609459200000
+                      lastModifiedAt:
+                        strDateTime: '2021-01-01 00:00:00.000'
+                        utcTime: 1609459200000
+                    connectedDataCount: 2
+                    connectedData:
+                      - id: data-id-01
+                        name: data-name-01
+                        description: data desc 01
+                      - id: data-id-02
+                        name: data-name-02
+                        description: data desc 02
+                    dataStructure:
+                      - order: 1
+                        name: ID
+                        columnType: INTEGER
+                        length: 4
+                        defaultValue: null
+                        description: id
+                      - order: 2
+                        name: Name
+                        columnType: STRING
+                        length: 128
+                        defaultValue: null
+                        description: name
+    AdapterResponse:
+      description: 저장소 연결 어댑터(드라이버) 목록과 연결에 필요한 입력 필드 정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      adaptors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Adaptor'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  adaptors:
+                    - id: adaptor-id01
+                      name: Mobigen-IRIS
+                      storageType: IRIS
+                      version: 1.0.0
+                      class: com.mobigen.iris.jdbc.Iris
+                      basicOptions:
+                        - key: HOST
+                          valueType: STRING
+                          required: true
+                          default: STRING
+                          value: localhost
+                          description: 호스트
+                        - key: PORT
+                          required: true
+                          valueType: NUMBER
+                          value: 1234
+                          description: 포트
+                        - key: TARGETS
+                          required: true
+                          valueType: STR_ARRAY
+                          value:
+                            - datafabric
+                            - datafabric2
+                          description: '타겟(데이터베이스, 경로)'
+                        - key: ID
+                          valueType: STRING
+                          value: mobigen-user
+                          description: 사용자 아이디
+                        - key: PASSWORD
+                          valueType: STRING
+                          value: user-password
+                          description: 사용자 패스워드
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    ConnectedData:
+      description: '저장소 삭제 진행 전 연결 데이터 확인 용 : 저장소와 연결된 데이터 개수'
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  data:
+                    properties:
+                      connectedDataCount:
+                        type: integer
+                        description: 직접 연결된 데이터 개수
+                      correlationDataCount:
+                        type: integer
+                        description: 간접적으로 연결된(연관된) 데이터 개수
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  connectedDataCount: 100
+                  correlationDataCount: 200
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+    StorageDelete:
+      description: 저장소 삭제 응답 메시지
+      content:
+        application/json:
+          schema:
+            type: object
+            description: 응답 메시지
+            properties:
+              code:
+                type: string
+                description: |
+                  응답 코드 200: 성공 4XX: 클라이언트 요청 오류 5xx: 서버 오류  xxxx: 서비스 별 정의된 에러
+              errMsg:
+                type: string
+                description: 에러 메시지
+              data:
+                type: object
+                description: 응답 데이터
+          examples:
+            success:
+              description: 삭제 성공
+              value:
+                code: '200'
+            error01:
+              description: 삭제 실패
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+            error02:
+              description: 삭제 실패
+              value:
+                code: '500'
+                errMsg: 서버 내부 오류로 삭제에 실패하였습니다
+                data: null
+    DataPreview:
+      description: 데이터 미리보기
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  dataCatalog:
+                    $ref: '#/components/schemas/DataCatalog'
+          examples:
+            sample01:
+              description: 데이터 미리보기
+              value:
+                code: '200'
+                data:
+                  dataCatalog:
+                    id: data-catalog-id01
+                    name: 데이터 이름
+                    description: 데이터 설명
+                    status: CONNECTED
+                    dataType: STRUCTURED
+                    dataFormat: TABLE
+                    size: 11234
+                    systemMeta:
+                      - key: 프로젝트
+                        value: 데이터패브릭
+                    userMeta:
+                      - key: 프로젝트
+                        value: 데이터패브릭
+                    tag:
+                      - IT
+                      - 데이터패브릭
+                      - 설계
+                    downloadInfo:
+                      status: 0
+                      link: 'http://datafabric.mobigen.com/download/id-90123'
+                    dataStructure:
+                      - order: 1
+                        name: column01
+                        columnType: int
+                        length: 11
+                        defaultValue: 0
+                        description: 컬럼 설명
+                      - order: 2
+                        name: column02
+                        columnType: int
+                        length: 11
+                        defaultValue: 0
+                        description: 컬럼 설명
+                    createdBy:
+                      id: user-id01
+                      name: user-name01
+                    createdAt:
+                      strDateTime: '2020-12-01 12:00:00'
+                      utcTime: 1606824000000
+                    lastModifiedBy:
+                      id: user-id01
+                      name: user-name01
+                    lastModifiedAt:
+                      strDateTime: '2020-12-01 12:00:00'
+                      utcTime: 1606824000000
+    DataDefault:
+      description: 데이터 상세 보기 - 기본정보
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  dataCatalog:
+                    $ref: '#/components/schemas/DataCatalog'
+          examples:
+            sample01:
+              description: 데이터 상세 보기 - 기본정보
+              value:
+                code: '200'
+                data:
+                  dataCatalog:
+                    id: data-catalog-id01
+                    name: 데이터 이름
+                    description: 데이터 설명
+                    status: CONNECTED
+                    dataType: STRUCTURED
+                    dataFormat: TABLE
+                    size: 11234
+                    systemMeta:
+                      - key: 프로젝트
+                        value: 데이터패브릭
+                    userMeta:
+                      - key: 프로젝트
+                        value: 데이터패브릭
+                    tag:
+                      - IT
+                      - 데이터패브릭
+                      - 설계
+                    downloadInfo:
+                      status: 0
+                      link: 'http://datafabric.mobigen.com/download/id-90123'
+                    dataStructure:
+                      - order: 1
+                        name: column01
+                        columnType: int
+                        length: 11
+                        defaultValue: 0
+                        description: 컬럼 설명
+                      - order: 2
+                        name: column02
+                        columnType: int
+                        length: 11
+                        defaultValue: 0
+                        description: 컬럼 설명
+                    permission:
+                      read: true
+                      write: true
+                    ratingAndComments:
+                      avgRating: 4.5
+                      ratingAndComment:
+                        - id: comment-id
+                          time:
+                            strDateTime: '2020-12-01 12:00:00'
+                            utcTime: 1606824000000
+                          user:
+                            id: user-id01
+                            name: user-name01
+                          rating: 4.5
+                          comment: 데이터가 좋습니다
+                    statistics:
+                      accessCount: 1000
+                      downloadCount: 10
+                      bookMarkCount: 20
+                      avgResponseTime: 1.2
+                    createdBy:
+                      id: user-id01
+                      name: user-name01
+                    createdAt:
+                      strDateTime: '2020-12-01 12:00:00'
+                      utcTime: 1606824000000
+                    lastModifiedBy:
+                      id: user-id01
+                      name: user-name01
+                    lastModifiedAt:
+                      strDateTime: '2020-12-01 12:00:00'
+                      utcTime: 1606824000000
+    DataMetaUpdate:
+      description: 데이터 미리보기
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+          examples:
+            success:
+              value:
+                code: '200'
+            clientError:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+            serverError:
+              value:
+                code: '500'
+                errMsg: 서버에서 내부에서 오류가 발생하였습니다
+    DataTagUpdate:
+      description: 데이터 태그 수정
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+          examples:
+            success:
+              description: 성공
+              value:
+                code: '200'
+            error01:
+              description: 실패
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+            error02:
+              description: 실패
+              value:
+                code: '500'
+                errMsg: 서버 내부 오류로 삭제에 실패하였습니다
+                data: null
+    DataDownloadRequest:
+      description: 데이터 다운로드 요청
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+          examples:
+            success:
+              description: 성공
+              value:
+                code: '200'
+            error01:
+              description: 실패
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다
+                data: null
+            error02:
+              description: 실패
+              value:
+                code: '0000'
+                errMsg: 이미 다운로드 요청이 진행중입니다
+                data: null
+    DataBrowser:
+      description: 데이터 조회 응답 메시지
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/responses/StorageDelete/content/application~1json/schema'
+              - type: object
+                properties:
+                  dataCatalogs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DataCatalog'
+          examples:
+            sample01:
+              description: 데이터 리스트
+              value:
+                code: '200'
+                data:
+                  dataCatalogs:
+                    - id: data-catalog-id01
+                      name: 데이터 이름
+                      description: 데이터 설명
+                      status: CONNECTED
+                      dataType: STRUCTURED
+                      dataFormat: TABLE
+                      size: 11234
+                      systemMeta:
+                        - key: 프로젝트
+                          value: 데이터패브릭
+                      userMeta:
+                        - key: 프로젝트
+                          value: 데이터패브릭
+                      tag:
+                        - IT
+                        - 데이터패브릭
+                        - 설계
+                      downloadInfo:
+                        status: 0
+                        link: 'http://datafabric.mobigen.com/download/id-90123'
+                      permission:
+                        read: true
+                        write: true
+                      ratingAndComments:
+                        avgRating: 4.5
+                        ratingAndComment:
+                          - id: comment-id
+                            time:
+                              strDateTime: '2020-12-01 12:00:00'
+                              utcTime: 1606824000000
+                            user:
+                              id: user-id01
+                              name: user-name01
+                            rating: 4.5
+                            comment: 데이터가 좋습니다
+                      statistics:
+                        accessCount: 1000
+                        downloadCount: 10
+                        bookMarkCount: 20
+                        avgResponseTime: 1.2
+                      createdBy:
+                        id: user-id01
+                        name: user-name01
+                      createdAt:
+                        strDateTime: '2020-12-01 12:00:00'
+                        utcTime: 1606824000000
+                      lastModifiedBy:
+                        id: user-id01
+                        name: user-name01
+                      lastModifiedAt:
+                        strDateTime: '2020-12-01 12:00:00'
+                        utcTime: 1606824000000
+  schemas:
+    SearchRequestDetail:
+      type: object
+      description: 상세 검색 조건
+      additionalProperties:
+        type: object
+        properties:
+          key:
+            type: string
+            enum:
+              - DATA_NAME
+              - DATA_TYPE
+              - DATA_FORMAT
+              - CATEGORY
+              - TAG
+              - STORAGE_TYPE
+              - CONNECTOR_NAME
+              - CREATOR
+              - START_DATE
+              - END_DATE
+          value:
+            type: string
+        example:
+          DATA_NAME: data fabric
+          DATA_TYPE: STRUCTURED
+          DATA_FORMAT: TABLE
+          CATEGORY: IT
+          TAG: IT
+          STORAGE_TYPE: PostgreSQL
+          CONNECTOR_NAME: Mobigen-PostgreSQL
+          CREATOR: mobigen-user
+          START_DATE: '2021-01-01'
+          END_DATE: '2021-01-31'
+    SearchRequestFilter:
+      type: object
+      description: 필터링 검색 조건(1차 검색(검색어 검색) 후 추가 필터링 목적)
+      additionalProperties:
+        type: object
+        properties:
+          key:
+            type: string
+            enum:
+              - DATA_TYPE
+              - DATA_FORMAT
+              - CATEGORY
+              - TAG
+              - STORAGE_TYPE
+              - CONNECTOR_ID
+              - CREATOR_ID
+          value:
+            type: array
+            items:
+              type: string
+        example:
+          DATA_TYPE:
+            - STRUCTURED
+            - SEMI_STRUCTURED
+          DATA_FORMAT:
+            - TABLE
+            - CSV
+            - JSON
+          CATEGORY:
+            - IT
+            - 데이터
+          TAG:
+            - IT
+            - 데이터패브릭
+            - 설계
+          STORAGE_TYPE:
+            - IRIS
+            - Tibero
+            - HDFS
+            - MySQL
+            - PostgreSQL
+          CONNECTOR_NAME:
+            - Mobigen-IRIS
+            - Mobigen-MySQL
+            - Mobigen-PostgreSQL
+          CREATOR:
+            - mobigen-user
+            - mobigen-admin
+    SearchResponse:
+      type: object
+      description: 검색 결과
+      properties:
+        pageable:
+          $ref: '#/components/schemas/Pageable'
+        filters:
+          $ref: '#/components/schemas/SearchResponseFilter'
+        contents:
+          $ref: '#/components/schemas/SearchResponseContent'
+    SearchResponseFilter:
+      type: object
+      description: 필터 별 데이터 개수 정보
+      additionalProperties:
+        type: object
+        properties:
+          key:
+            type: string
+          value:
+            type: object
+      example:
+        DATA_TYPE:
+          STRUCTURED: 10
+          UNSTRUCTURED: 20
+          SEMI_STRUCTURED: 30
+        DATA_FORMAT:
+          TABLE: 10
+          VIEW: 20
+          CSV: 30
+          EXCEL: 40
+          WORD: 50
+          HWP: 60
+          PDF: 70
+          PPT: 80
+          IMAGE: 90
+          AUDIO: 100
+          VIDEO: 110
+          JSON: 120
+          YAML: 130
+          HTML: 140
+        CATEGORY:
+          IT: 10
+          데이터: 20
+        TAG:
+          모비젠: 10
+          데이터: 20
+        STORAGE_TYPE:
+          IRIS: 10
+          HDFS: 20
+          MySQL: 30
+          PostgreSQL: 40
+        CONNECTOR_NAME:
+          Mobigen-IRIS:
+            ID: connector-id01
+            Count: 10
+          Mobigen-HDFS:
+            ID: connector-id02
+            Count: 20
+          Mobigen-MySQL:
+            ID: connector-id03
+            Count: 30
+          Mobigen-PostgreSQL:
+            ID: connector-id04
+            Count: 40
+        CREATOR:
+          mobigen-user:
+            ID: user-01
+            Count: 10
+          mobigen-admin:
+            ID: user-02
+            Count: 20
+    SearchResponseContent:
+      type: object
+      description: 검색 결과 컨텐츠
+      properties:
+        dataCatalogs:
+          type: array
+          description: 데이터 목록
+          items:
+            $ref: '#/components/schemas/DataCatalog'
+        storages:
+          type: array
+          description: 저장소 목록
+          items:
+            $ref: '#/components/schemas/Storage'
+    RecentSearchesResponse:
+      type: object
+      description: 최근 검색어 목록
+      properties:
+        recentSearches:
+          type: array
+          items:
+            type: string
+    SupportedStorageType:
+      type: object
+      description: 시스템에서 연결을 지원하는 저장소 타입
+      properties:
+        name:
+          type: string
+          description: 저장소 타입 이름(Unique)
+        icon:
+          type: string
+          description: 저장소 타입 아이콘(추가될 수 있는 데이터의 예시)
+          format: byte
+        schema:
+          type: object
+          description: 저장소 연결에 필요한 인자 목록
+          properties:
+            key:
+              type: string
+              description: 인자 키
+            valueType:
+              type: string
+              description: 값의 타입
+            required:
+              type: boolean
+              description: 필수 요구
+            desc:
+              type: string
+              description: 설명
+        authSchema:
+          type: object
+          description: 인증에 사용될 필요한 인자 목록
+          properties:
+            authType:
+              type: string
+              description: 인증 종류
+            key:
+              type: string
+              description: 해당 인증에 사용될 옵션 이름
+            type:
+              type: string
+              description: 해당 인증에 사용된 옵션 값의 타입
+            required:
+              type: boolean
+              description: 옵션의 필수 여부
+      example:
+        name: IRIS
+        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA'
+        schema:
+          - key: HOST
+            valueType: string
+            required: true
+            desc: Host name
+          - key: PORT
+            valueType: integer
+            required: true
+            desc: Port
+        authSchema:
+          - authType: USER&PASSWORD
+            key: USERNAME
+            type: STRING
+            required: true
+          - authType: USER&PASSWORD
+            key: PASSWORD
+            type: STRING
+            required: true
+          - authType: CERT
+            key: CERTIFICATE
+            type: bytes
+            required: true
+    StorageBasicInputOption:
+      type: object
+      description: |
+        저장소 유형에 따른 필수(선택) 입력 정보
+      properties:
+        key:
+          type: string
+          description: 입력 필드 이름
+        required:
+          type: boolean
+          description: 필수/선택 여부
+        valueType:
+          type: string
+          description: 입력 필드 타입
+        default:
+          type: string
+          description: 기본값(예시)
+        value:
+          type: object
+          description: 사용자가 입력한 값
+    AdaptorBasicOption:
+      type: object
+      description: |
+        저장소 연결에 필요한 사용자 입력 요구 정보로  저장소 유형에 따라 요구하는 정보와 드라이버에서 설정한 정보가 포함된다.
+      properties:
+        key:
+          type: string
+          description: 입력 필드 이름
+        required:
+          type: boolean
+          description: 필수/선택 여부
+        valueType:
+          type: string
+          description: 입력 필드 타입
+        default:
+          type: string
+          description: 기본값(예시)
+        description:
+          type: string
+          description: 설명
+        value:
+          type: object
+          description: 사용자가 입력한 값
+    AdaptorAdditionalOption:
+      type: object
+      description: '용도 - 사용자가 추가하는 옵션, 드라이버 옵션'
+      additionalProperties:
+        type: object
+        properties:
+          key:
+            type: string
+            description: 옵션 이름
+          value:
+            type: string
+            description: 옵션 값
+    Adaptor:
+      type: object
+      description: 저장소 연결 어댑터(드라이버) 정보
+      properties:
+        id:
+          type: string
+          description: ID
+          format: uuid
+        name:
+          type: string
+          description: 이름
+        storageType:
+          type: string
+          description: 저장소 타입 이름
+          format: uuid
+        version:
+          type: string
+          description: 버전
+        path:
+          type: string
+          description: JDBC 파일 경로
+        class:
+          type: string
+          description: 클래스
+        basicOptions:
+          type: array
+          description: 저장소 연결에 필요한 설정 정보
+          items:
+            $ref: '#/components/schemas/AdaptorBasicOption'
+        additionalOptions:
+          $ref: '#/components/schemas/AdaptorAdditionalOption'
+          description: 사용자가 추가로 설정한 정보 / 드라이버 옵션
+      example:
+        id: adaptor-id01
+        name: Mobigen-IRIS
+        storageType: IRIS
+        version: 1.0.0
+        path: /home/mobigen/adaptor/iris/iris-jdbc.jar
+        class: com.mobigen.iris.jdbc.Iris
+        basicOptions:
+          - key: HOST
+            valueType: STRING
+            required: true
+            default: STRING
+            value: localhost
+            description: 호스트
+          - key: PORT
+            required: true
+            valueType: NUMBER
+            value: 1234
+            description: 포트
+          - key: TARGETS
+            required: true
+            valueType: STR_ARRAY
+            value:
+              - datafabric
+              - datafabric2
+            description: '타겟(데이터베이스, 경로)'
+          - key: ID
+            valueType: STRING
+            value: mobigen-user
+            description: 사용자 아이디
+          - key: PASSWORD
+            valueType: STRING
+            value: user-password
+            description: 사용자 패스워드
+        additionalOptions:
+          charset: utf-8
+          timezone: asia/seoul
+    ConnectTestRequest:
+      type: object
+      description: 연결 테스트 요청 메시지
+      properties:
+        adaptorId:
+          type: string
+          description: 어댑터 ID(드라이버? 어댑터?)
+          format: uuid
+        basicOptions:
+          type: array
+          description: 저장소 연결에 필요한 설정 정보
+          items:
+            $ref: '#/components/schemas/AdaptorBasicOption'
+        additionalOptions:
+          $ref: '#/components/schemas/AdaptorAdditionalOption'
+          description: 사용자가 추가한 옵션 / 드라이버 옵션
+    StorageOverview:
+      type: object
+      description: 저장소 개요 정보
+      properties:
+        storageTypeCount:
+          type: array
+          description: 저장소 유형별 개수
+          items:
+            type: object
+            properties:
+              storageType:
+                type: string
+                description: 저장소 유형
+                enum:
+                  - IRIS
+                  - HDFS
+                  - MySQL
+                  - PostgreSQL
+              count:
+                type: integer
+                description: 저장소 개수
+                format: integer
+        storageStatusCount:
+          type: array
+          description: 저장소 상태별 개수
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+                description: 저장소 상태
+                enum:
+                  - CONNECTED
+                  - DISCONNECTED
+                  - ERROR
+              count:
+                type: integer
+                description: 저장소 개수
+                format: integer
+        storageStatistics:
+          type: array
+          description: 저장소 통계 정보 - 최근 1주일 기준
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: 저장소 아이디
+              name:
+                type: string
+                description: 저장소 이름
+              accessCount:
+                type: number
+                description: 조회 수
+                format: long
+        storageDataCount:
+          type: array
+          description: 저장소 데이터 개수 정보
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: 저장소 아이디
+              name:
+                type: string
+                description: 저장소 이름
+              total:
+                type: number
+                description: 확인 가능한 전체 데이터 수
+                format: integer
+              registered:
+                type: number
+                description: 등록 데이터 수
+                format: integer
+        storageResponseTime:
+          type: array
+          description: 저장소 응답 시간 통계 정보 - 최근 1주일 기준
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: 저장소 아이디
+              name:
+                type: string
+                description: 저장소 이름
+              responseTime:
+                type: number
+                description: '평균 응답 시간(쿼리, 데이터 조회)'
+                format: double
+        history:
+          type: array
+          description: 저장소 변경 이력
+          items:
+            $ref: '#/components/schemas/StorageHistory'
+        event:
+          type: array
+          description: 연결정보(저장소) 이벤트
+          items:
+            $ref: '#/components/schemas/StorageEvent'
+    StorageBrowse:
+      type: object
+      description: 연결정보(저장소) 내부 탐색
+      properties:
+        id:
+          type: string
+          description: 연결정보(저장소) ID
+          format: uuid
+        path:
+          type: string
+          description: 탐색 경로(Database or Path'/a/b')
+        data:
+          type: array
+          description: '경로 내 데이터(테이블, 폴더/파일) 정보'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 데이터 이름
+              type:
+                type: integer
+                description: |
+                  데이터의 종류 ( 데이터베이스,폴더 : 0, 테이블, 파일 : 1 )
+                enum:
+                  - 0
+                  - 1
+              dataFormat:
+                type: string
+                description: 데이터 포맷
+                $ref: '#/components/schemas/StorageDataDefault/properties/dataFormat'
+              status:
+                type: integer
+                description: |
+                  데이터 동록 상태 0 : 미등록 1 : 등록
+                enum:
+                  - 0
+                  - 1
+    StorageDataDefault:
+      type: object
+      properties:
+        storageId:
+          type: string
+          description: 저장소 아이디
+          format: uuid
+        path:
+          type: string
+          description: 데이터 경로
+        name:
+          type: string
+          description: '데이터 이름(테이블이름, 파일이름)'
+        dataFormat:
+          description: 데이터 포맷
+          type: string
+          enum:
+            - TABLE
+            - VIEW
+            - CSV
+            - EXCEL
+            - WORD
+            - HWP
+            - PDF
+            - PPT
+            - JPG
+            - PNG
+            - MP3
+            - MP4
+            - MPEG
+            - JSON
+            - YAML
+            - HTML
+        dataInfo:
+          type: object
+          description: '데이터 정보(사이즈(row, byte), 연결 데이터 개수 등'
+          properties:
+            rows:
+              type: number
+              description: 데이터 크기(row)
+              format: long
+            size:
+              type: number
+              description: 데이터 크기(byte)
+              format: long
+            columns:
+              type: number
+              description: 컬럼 수
+              format: integer
+            owner:
+              type: string
+              description: 데이터 소유자
+            description:
+              type: string
+              description: 데이터 설명(테이블 생성 스크립트의 코멘트)
+            createdAt:
+              $ref: '#/components/schemas/DateTime'
+            lastModifiedAt:
+              $ref: '#/components/schemas/DateTime'
+        connectedDataCount:
+          type: integer
+          description: 데이터와 연결된 데이터 개수
+        connectedData:
+          type: array
+          description: 원본 데이터기반으로 생성(가상화)된 데이터 목록
+          items:
+            $ref: '#/components/schemas/DataCatalog'
+        dataStructure:
+          $ref: '#/components/schemas/DataStructure'
+    AutoAddSetting:
+      type: object
+      description: 데이터 자동 추가 설정 정보
+      properties:
+        regex:
+          type: string
+          description: '테이블, 파일 이름 정규식'
+          default: '*'
+        dataType:
+          type: string
+          description: 데이터 타입
+          enum:
+            - STRUCTURED
+            - UNSTRUCTURED
+            - SEMI_STRUCTURED
+            - ALL
+          default: ALL
+        dataFormat:
+          type: string
+          description: 데이터 포맷
+          enum:
+            - TABLE
+            - VIEW
+            - CSV
+            - EXCEL
+            - WORD
+            - HWP
+            - PDF
+            - PPT
+            - JPG
+            - PNG
+            - MP3
+            - MP4
+            - MPEG
+            - JSON
+            - YAML
+            - HTML
+            - ALL
+          default: ALL
+        minSize:
+          type: number
+          description: |
+            최소 크기(row, byte) -1 : 최소 조건 없음
+          format: long
+          default: -1
+        maxSize:
+          type: number
+          description: |
+            최대 크기(row, byte) -1 : 최대 조건 없음
+          format: long
+          default: -1
+        startDate:
+          type: string
+          description: |
+            데이터 자동 추가 조건(마지막 수정일(수정일이 없는 경우 생성일) 기준) format: yyyy-MM-dd null or 공백 : 조건 없음
+          default: ''
+        endDate:
+          type: string
+          description: |
+            데이터 자동 추가 조건(마지막 수정일(수정일이 없는 경우 생성일) 기준) format: yyyy-MM-dd null or 공백 : 조건 없음
+          default: ''
+    SyncSetting:
+      type: object
+      description: 데이터 동기화 설정 정보
+      properties:
+        enable:
+          type: boolean
+          description: 동기화 사용 여부
+          default: false
+        syncType:
+          type: integer
+          description: |
+            동기화 동작 방법 0 : 일정 주기 1 : 요일
+          enum:
+            - 0
+            - 1
+        period:
+          type: integer
+          description: |
+            동기화 주기(분) syncType이 0인 경우에만 사용
+          format: long
+          minimum: 120
+        week:
+          type: integer
+          description: |
+            동기화 동작 요일 syncType이 1인 경우에만 사용 0x01 : 일요일 0x02 : 월요일 0x04 : 화요일 0x08 : 수요일 0x10 : 목요일 0x20 : 금요일 0x40 : 토요일 월요일, 수요일 : 0x02 | 0x08 = 0x0A
+        runTime:
+          type: string
+          description: |
+            동기화 동작 시간 syncType이 1인 경우에만 사용 format: HH:mm
+          default: '02:00'
+    StorageMonitoringSetting:
+      type: object
+      description: 저장소 모니터링(연결 상태 검사) 설정 정보
+      properties:
+        enable:
+          type: boolean
+          description: 모니터링 사용 여부
+          default: false
+        protocol:
+          type: string
+          description: |
+            모니터링 프로토콜
+          enum:
+            - TCP
+            - UDP
+            - ICMP
+            - SQL
+        host:
+          type: string
+          description: IP 주소 or 도메인
+        port:
+          type: integer
+          description: 포트
+        period:
+          type: integer
+          description: 모니터링(연결 상태 검사) 주기(초)
+          default: 5
+          minimum: 5
+          maximum: 300
+        sql:
+          type: string
+          description: 모니터링 SQL
+          default: SELECT 1
+        timeout:
+          type: integer
+          description: 타임아웃(초)
+          default: 5
+          minimum: 5
+          maximum: 30
+        successThreshold:
+          type: integer
+          description: 정상으로 판정하는 기준 임계치
+          default: 1
+          minimum: 1
+          maximum: 5
+        failThreshold:
+          type: integer
+          description: 비정상으로 판정하는 기준 임계치
+          default: 3
+          minimum: 3
+          maximum: 5
+    StorageSetting:
+      type: object
+      description: 저장소 고급(수집) 설정 정보
+      properties:
+        autoAddSetting:
+          type: object
+          properties:
+            enable:
+              type: boolean
+              description: 데이터 자동 추가 사용 여부
+            options:
+              type: array
+              description: 데이터 자동 추가 설정 정보 리스트
+              items:
+                $ref: '#/components/schemas/AutoAddSetting'
+        syncSetting:
+          $ref: '#/components/schemas/SyncSetting'
+        monitoringSetting:
+          $ref: '#/components/schemas/StorageMonitoringSetting'
+    StorageStatistics:
+      type: object
+      description: 연결정보(저장소) 통계 정보
+      properties:
+        totalDataCount:
+          type: number
+          description: 연결정보(저장소) 내 탐색 가능한 전체 데이터 개수
+          format: long
+        registeredDataCount:
+          type: number
+          description: 데이터 패브릭 시스템에 등록된 데이터 개수
+          format: long
+        accessCount:
+          type: number
+          description: 연결정보(저장소) 조회 수
+          format: long
+        avgResponseTime:
+          type: number
+          description: 연결정보(저장소) 평균 응답 시간(초)
+          format: double
+    StorageHistory:
+      type: object
+      description: 연결정보(저장소) 변경 이력
+      properties:
+        time:
+          $ref: '#/components/schemas/DateTime'
+          description: 시간
+        id:
+          type: string
+          description: 연결정보(저장소) ID
+          format: uuid
+        name:
+          type: string
+          description: 연결정보(저장소) 이름
+        modifiedBy:
+          $ref: '#/components/schemas/User'
+          description: 정보를 변경한 사용자 정보
+        modifiedInfos:
+          type: array
+          description: 변경된 정보 목록
+          items:
+            type: object
+            properties:
+              cmd:
+                type: string
+                description: |
+                  변경된 정보 CREATE : 생성 UPDATE : 수정 DELETE : 삭제
+              key:
+                type: string
+                description: |
+                  키 정보를 .을 이용해 표현 (depth01.depth02.key) ex : basicOptions.HOST, additionalOptions.xxx, userMeta.소유자
+              oldValue:
+                type: object
+                description: 변경 전 값
+              newValue:
+                type: object
+                description: 변경 후 값
+      example:
+        id: storage-id01
+        name: IRIS
+        modifiedBy:
+          id: user-id01
+          name: mobigen-user
+        modifiedInfos:
+          - cmd: CREATE
+            key: additionalOptions.TimeZone
+            newValue: Asia/Seoul
+          - cmd: UPDATE
+            key: name
+            oldValue: IRIS
+            newValue: IRIS-TEST
+          - cmd: UPDATE
+            key: description
+            oldValue: IRIS 연결정보
+            newValue: IRIS 연결정보(테스트)
+          - cmd: DELETE
+            key: additionalOptions.Encoding
+    StorageEvent:
+      type: object
+      description: 연결정보(저장소) 이벤트
+      properties:
+        time:
+          $ref: '#/components/schemas/DateTime'
+          description: 이벤트 발생 시간
+        id:
+          type: string
+          description: 연결정보(저장소) ID
+          format: uuid
+        name:
+          type: string
+          description: 이벤트 이름
+        eventType:
+          type: string
+          description: 이벤트 타입
+          enum:
+            - CONNECTED
+            - DISCONNECTED
+            - ERROR
+        description:
+          type: string
+          description: 이벤트 설명
+      example:
+        time:
+          strDateTime: '2021-01-01 00:00:00.000'
+          utcTime: 1609459200000
+        id: storage-id01
+        name: IRIS
+        eventType: CONNECTED
+        description: 저장소 연결 성공
+    Storage:
+      type: object
+      description: 원천 데이터 저장소 연결 정보
+      properties:
+        id:
+          type: string
+          description: ID
+          format: uuid
+        name:
+          type: string
+          description: 이름
+        description:
+          type: string
+          description: 설명
+        systemMeta:
+          $ref: '#/components/schemas/Meta'
+          description: 시스템에의해 자동으로 생성된 메타 정보
+        userMeta:
+          $ref: '#/components/schemas/Meta'
+          description: 사용자가 추가한 메타 정보
+        tag:
+          $ref: '#/components/schemas/Tag'
+        storageType:
+          type: string
+          description: |
+            저장소 타입 시스템 연결 지원 저장소 리스트에 이름과 동일
+        adaptorId:
+          type: string
+          description: 어댑터 ID(드라이버? 어댑터?)
+          format: uuid
+        basicOptions:
+          type: array
+          description: 저장소 연결에 필요한 설정 정보
+          items:
+            $ref: '#/components/schemas/AdaptorBasicOption'
+        additionalOptions:
+          $ref: '#/components/schemas/AdaptorAdditionalOption'
+          description: 사용자가 추가로 설정한 정보 / 드라이버 옵션
+        settings:
+          $ref: '#/components/schemas/StorageSetting'
+        status:
+          type: string
+          description: 상태
+          enum:
+            - CONNECTED
+            - DISCONNECTED
+            - ERROR
+        statistics:
+          $ref: '#/components/schemas/StorageStatistics'
+          description: 저장소 통계 정보
+        dataStatistics:
+          type: array
+          description: 저장소 내 데이터 통계 정보
+          items:
+            $ref: '#/components/schemas/DataCatalogStatistics'
+          example:
+            - id: data-uuid01
+              name: data-name01
+              accessCount: 10
+            - id: data-uuid02
+              name: data-name02
+              accessCount: 20
+        history:
+          type: array
+          description: 저장소 변경 이력
+          items:
+            $ref: '#/components/schemas/StorageHistory'
+        event:
+          type: array
+          description: 연결정보(저장소) 이벤트
+          items:
+            $ref: '#/components/schemas/StorageEvent'
+        createdBy:
+          $ref: '#/components/schemas/User'
+          description: 연결정보(저장소) 등록 사용자 정보
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+          description: 생성일
+        lastModifiedBy:
+          $ref: '#/components/schemas/User'
+          description: 마지막 수정한 사용자 정보
+        lastModifiedAt:
+          $ref: '#/components/schemas/DateTime'
+          description: 최종 수정일
+    StorageSearchFilter:
+      type: object
+      description: 저장소 검색 필터
+      properties:
+        name:
+          type: string
+          description: 저장소 이름
+        storageType:
+          type: array
+          description: 저장소 유형. 선택하지 않는 경우 모든 유형의 저장소를 검색
+          items:
+            properties:
+              type: string
+              description: 저장소 유형
+              enum:
+                - IRIS
+                - HDFS
+                - MySQL
+                - PostgreSQL
+        status:
+          type: array
+          description: |
+            저장소 상태 CONNECTED - 정상, DISCONNECTED - 연결 끊김 / 연결 실패, ERROR - 인증 오류 / 데이터 베이스 찾을 수 없음 선택하지 않는 경우 모든 상태의 저장소를 검색
+          items:
+            properties:
+              type: string
+              description: 저장소 상태
+              enum:
+                - CONNECTED
+                - DISCONNECTED
+                - ERROR
+      example:
+        name: Mobigen-IRIS
+        storageType:
+          - IRIS
+          - HDFS
+        status:
+          - CONNECTED
+          - DISCONNECTED
+    DataType:
+      description: 데이터 타입
+      type: string
+      enum:
+        - STRUCTURED
+        - UNSTRUCTURED
+        - SEMI_STRUCTURED
+    DataFormat:
+      description: 데이터 포맷
+      type: string
+      enum:
+        - TABLE
+        - VIEW
+        - CSV
+        - EXCEL
+        - WORD
+        - HWP
+        - PDF
+        - PPT
+        - JPG
+        - PNG
+        - MP3
+        - MP4
+        - MPEG
+        - JSON
+        - YAML
+        - HTML
+    DataCatalog:
+      type: object
+      description: 가상화된 데이터(메타 데이터 집합)
+      properties:
+        id:
+          type: string
+          description: 데이터 ID
+          format: uuid
+        name:
+          type: string
+          description: 데이터 이름
+        description:
+          type: string
+          description: 데이터 설명
+        status:
+          type: string
+          description: 데이터 상태
+          enum:
+            - CONNECTED
+            - DISCONNECTED
+            - ERROR
+          example: CONNECTED
+        dataType:
+          description: 데이터 타입
+          $ref: '#/components/schemas/DataType'
+        dataFormat:
+          description: 데이터 포맷
+          $ref: '#/components/schemas/DataFormat'
+        row:
+          type: number
+          description: 테이블 형태 데이터의 라인 수
+          format: long
+        size:
+          type: number
+          description: '테이블 데이터(Row), 파일 데이터(byte)'
+          format: long
+        systemMeta:
+          $ref: '#/components/schemas/Meta'
+        userMeta:
+          $ref: '#/components/schemas/Meta'
+        tags:
+          $ref: '#/components/schemas/Tag'
+        dataStructure:
+          description: 데이터 구조 정보
+          $ref: '#/components/schemas/DataStructure'
+        category:
+          type: array
+          description: 데이터 카테고리
+          items:
+            type: object
+            description: 소속 카테고리 정보
+            properties:
+              id:
+                type: string
+                description: 카테고리 ID
+                format: uuid
+              name:
+                type: string
+                description: 카테고리 이름
+              description:
+                type: string
+                description: 카테고리 설명
+        dataLocations:
+          type: array
+          description: 데이터 위치 정보(융합 시 다중 위치 정보를 위해 배열로 정의)
+          items:
+            type: object
+            description: 데이터 위치 정보
+            properties:
+              storageId:
+                type: string
+                description: 저장소 ID
+                format: uuid
+              path:
+                type: string
+                description: |
+                  데이터 베이스이름 or 경로(Absolute Path)
+              name:
+                type: string
+                description: 테이블 or 파일 이름
+              sheetName:
+                type: string
+                description: 시트 이름(For Excel File)
+              cellRange:
+                type: string
+                description: 셀 범위(For Excel File)
+              separator:
+                type: string
+                description: 구분자(For CSV File)
+        dataRefine:
+          type: object
+          description: 데이터 융합 정제 정보
+          properties:
+            sql:
+              type: string
+              description: |
+                데이터 융합/정제를 위한 쿼리로 생성 과정은 2가지가 있을 수 있음 CMD 환경에서 사용자가 작성한 쿼리 or  UI 환경에서 생성된 JSON 형태 데이터를 변환
+            json:
+              type: string
+              description: |
+                데이터 편집(융합/정제) 화면에서 데이터 융합/정제 과정을 설명하는 JSON 형태의 데이터
+        permission:
+          type: object
+          description: 접근 권한 정보
+          properties:
+            read:
+              type: boolean
+              description: '읽기 권한 - 샘플 데이터, 다운로드 가능'
+            write:
+              type: boolean
+              description: '쓰기 권한 - 이름, 설명, 메타 데이터, 태그 등 수정 가능'
+        downloadInfo:
+          type: object
+          description: '데이터 다운로드 정보 '
+          properties:
+            status:
+              type: integer
+              description: |
+                "다운로드 상태 정보" * `0` - 다운로드 요청 필요 * `1` - 다운로드 중 * `2` - 다운로드 가능
+              enum:
+                - 0
+                - 1
+                - 2
+            link:
+              type: string
+              description: 데이터 다운로드 링크
+        ratingAndComments:
+          type: object
+          description: 평가 및 코멘트 정보
+          properties:
+            avgRating:
+              type: number
+              description: 평균 평가 점수(소수점 아래 1자리까지)
+              format: double
+            ratingAndComment:
+              type: array
+              items:
+                $ref: '#/components/schemas/RatingAndComment'
+        statistics:
+          $ref: '#/components/schemas/DataCatalogStatistics'
+          description: '누적 통계 정보(조회, 북마크)'
+        createdBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        lastModifiedBy:
+          $ref: '#/components/schemas/User'
+        lastModifiedAt:
+          $ref: '#/components/schemas/DateTime'
+    DataCatalogStatistics:
+      type: object
+      description: 데이터 통계 정보
+      properties:
+        time:
+          $ref: '#/components/schemas/DateTime'
+          description: 통계 수집(저장) 시간
+        id:
+          type: string
+          description: 데이터 ID
+          format: uuid
+        name:
+          type: string
+          description: 데이터 이름
+        accessCount:
+          type: number
+          description: 데이터 조회 수
+          format: long
+        bookMarkCount:
+          type: number
+          description: 사용자 북마크(카테고리) 등록 수
+          format: long
+        downloadCount:
+          type: number
+          description: 다운로드 수
+          format: long
+        avgResponseTime:
+          type: number
+          description: 데이터 평균 응답 시간(초)
+          format: double
+    DataStructure:
+      type: array
+      description: 데이터 구조 정보
+      items:
+        type: object
+        properties:
+          order:
+            type: number
+            description: 컬럼 순서
+            format: int32
+          name:
+            type: string
+            description: 컬럼 이름
+          columnType:
+            type: string
+            description: 컬럼 타입
+            enum:
+              - STRING
+              - NUMBER
+              - TIMESTAMP
+              - BOOLEAN
+          length:
+            type: number
+            description: 컬럼 길이
+            format: int32
+          defaultValue:
+            type: string
+            description: 컬럼 기본값
+          description:
+            type: string
+            description: 컬럼 설명
+    RatingAndComment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 평가 및 코멘트 ID
+          format: uuid
+        time:
+          $ref: '#/components/schemas/DateTime'
+          description: 평가 및 코멘트 작성 시간(수정 시간)
+        user:
+          $ref: '#/components/schemas/User'
+        rating:
+          type: number
+          description: 평가 점수
+          format: integer
+          minimum: 1
+          maximum: 10
+        comment:
+          type: string
+          description: 코멘트
+          maxLength: 1000
+    Sort:
+      type: object
+      description: 정렬 정보
+      properties:
+        order:
+          type: integer
+          minimum: 0
+          description: 정렬 순서
+        field:
+          type: string
+          description: 정렬 대상
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
+          default: ASC
+          description: 정렬 방향
+      example:
+        order: 1
+        field: name
+        direction: ASC
+    Page:
+      type: object
+      description: 페이지 정보
+      properties:
+        size:
+          type: integer
+          default: 20
+          description: 페이지 크기
+        totalSize:
+          type: integer
+          nullable: true
+          description: 전체 컨텐츠 수(응답 메시지에 포함)
+        selectPage:
+          type: integer
+          description: 페이지 번호
+          minimum: 1
+        totalPage:
+          type: integer
+          nullable: true
+          description: 전체 페이지 수(응답 메시지에 포함)
+      example:
+        size: 20
+        totalSize: 100
+        selectPage: 1
+        totalPage: 5
+    Pageable:
+      type: object
+      description: 정렬 & 페이지 정보
+      properties:
+        sort:
+          type: array
+          description: 정렬 정보
+          items:
+            $ref: '#/components/schemas/Sort'
+        page:
+          $ref: '#/components/schemas/Page'
+          description: 페이지 정보
+      example:
+        sort:
+          - order: 1
+            field: createdAt
+            direction: ASC
+          - order: 2
+            field: name
+            direction: ASC
+        page:
+          size: 20
+          totalSize: 100
+          selectPage: 1
+          totalPage: 5
+    Meta:
+      type: array
+      description: 메타 데이터
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+          value:
+            type: string
+      example:
+        - key: 소유자
+          value: 모비젠
+        - key: 프로젝트
+          value: 데이터패브릭
+        - key: 저장소종류
+          value: IRIS
+    Tag:
+      type: array
+      description: 사용자가 입력한 태그
+      items:
+        type: string
+      example:
+        - IT
+        - 데이터패브릭
+        - 설계
+    DateTime:
+      type: object
+      description: '날짜 시간 정보(헤더의 시간대역 정보를 바탕으로 작성, 1차에서는 Asia/Seoul 기준)'
+      properties:
+        strDateTime:
+          type: string
+          description: '날짜 시간 문자열(format : yyyy-MM-dd HH:mm:ss.SSS)'
+        utcTime:
+          type: number
+          description: UTC EPOCH Time MilliSecond
+          format: long
+      example:
+        strDateTime: '2021-01-01 00:00:00.000'
+        utcTime: 1609459200000
+    Organization:
+      type: object
+      description: '회사, 조직 정보'
+      properties:
+        id:
+          type: string
+          description: '회사, 조직 ID'
+          format: uuid
+        name:
+          type: string
+          description: '회사, 조직 이름'
+    Group:
+      type: object
+      description: 그룹 정보
+      properties:
+        id:
+          type: string
+          description: 그룹 ID
+          format: uuid
+        name:
+          type: string
+          description: 그룹 이름
+        description:
+          type: string
+          description: 그룹 설명
+        groups:
+          type: array
+          description: 그룹에 속한 하위 그룹 목록
+          items:
+            $ref: '#/components/schemas/Group'
+        users:
+          type: array
+          description: 그룹에 속한 사용자 목록
+          items:
+            $ref: '#/components/schemas/User'
+    User:
+      type: object
+      description: 사용자 정보
+      properties:
+        id:
+          type: string
+          description: 사용자 ID
+          format: uuid
+        name:
+          type: string
+          description: 사용자 이름

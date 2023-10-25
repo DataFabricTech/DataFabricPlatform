@@ -1,0 +1,86 @@
+SearchRequestDetail:
+  $ref: "./search.yaml#/SearchRequestDetail"
+SearchRequestFilter:
+  $ref: "./search.yaml#/SearchRequestFilter"
+SearchResponse:
+  $ref: "./search.yaml#/SearchResponse"
+SearchResponseFilter:
+  $ref: "./search.yaml#/SearchResponseFilter"
+SearchResponseContent:
+  $ref: "./search.yaml#/SearchResponseContent"
+RecentSearchesResponse:
+  $ref: "./search.yaml#/RecentSearchesResponse"
+
+SupportedStorageType:
+  $ref: "./supported-storage.yaml#/SupportedStorageType"
+StorageBasicInputOption:
+  $ref: "./supported-storage.yaml#/StorageBasicInputOption"
+
+AdaptorBasicOption:
+  $ref: "./adaptor.yaml#/AdaptorBasicOption"
+AdaptorAdditionalOption:
+  $ref: "./adaptor.yaml#/AdaptorAdditionalOption"
+Adaptor:
+  $ref: "./adaptor.yaml#/Adaptor"
+
+ConnectTestRequest:
+  $ref: "./storage-management.yaml#/ConnectTestRequest"
+
+StorageOverview:
+  $ref: "./storage.yaml#/StorageOverview"
+StorageBrowse:
+  $ref: "./storage.yaml#/StorageBrowse"
+StorageDataDefault:
+  $ref: "./storage.yaml#/StorageDataDefault"
+AutoAddSetting:
+  $ref: "./storage.yaml#/AutoAddSetting"
+SyncSetting:
+  $ref: "./storage.yaml#/SyncSetting"
+StorageMonitoringSetting:
+  $ref: "./storage.yaml#/StorageMonitoringSetting"
+StorageSetting:
+  $ref: "./storage.yaml#/StorageSetting"
+StorageStatistics:
+  $ref: "./storage.yaml#/StorageStatistics"
+StorageHistory:
+  $ref: "./storage.yaml#/StorageHistory"
+StorageEvent:
+  $ref: "./storage.yaml#/StorageEvent"
+Storage:
+  $ref: "./storage.yaml#/Storage"
+StorageSearchFilter:
+  $ref: "./storage.yaml#/StorageSearchFilter"
+
+DataType:
+  $ref: "./data-catalog.yaml#/DataType"
+DataFormat:
+  $ref: "./data-catalog.yaml#/DataFormat"
+DataCatalog:
+  $ref: "./data-catalog.yaml#/DataCatalog"
+DataCatalogStatistics:
+  $ref: "./data-catalog.yaml#/DataCatalogStatistics"
+DataStructure:
+  $ref: "./data-catalog.yaml#/DataStructure"
+RatingAndComment:
+  $ref: "./data-catalog.yaml#/RatingAndComment"
+
+Sort:
+  $ref: "./utilities.yaml#/Sort"
+Page:
+  $ref: "./utilities.yaml#/Page"
+Pageable:
+  $ref: "./utilities.yaml#/Pageable"
+Meta:
+  $ref: "./utilities.yaml#/Meta"
+Tag:
+  $ref: "./utilities.yaml#/Tag"
+DateTime:
+  $ref: "./utilities.yaml#/DateTime"
+
+Organization:
+  $ref: "./user.yaml#/Organization"
+Group:
+  $ref: "./user.yaml#/Group"
+User:
+  $ref: "./user.yaml#/User"
+

@@ -1,0 +1,139 @@
+Sort:
+  type: object
+  description: 정렬 정보
+  properties:
+    order:
+      type: integer
+      minimum: 0
+      description: 정렬 순서
+    field:
+      type: string
+      description: 정렬 대상
+    direction:
+      type: string
+      enum:
+        - ASC
+        - DESC
+      default: ASC
+      description: 정렬 방향
+  example:
+    order: 1
+    field: "name"
+    direction: "ASC"
+Page:
+  type: object
+  description: 페이지 정보
+  properties:
+    size:
+      type: integer
+      default: 20
+      description: 페이지 크기
+    totalSize:
+      type: integer
+      nullable: true
+      description: 전체 컨텐츠 수(응답 메시지에 포함)
+    selectPage:
+      type: integer
+      description: 페이지 번호
+      minimum: 1
+    totalPage:
+      type: integer
+      nullable: true
+      description: 전체 페이지 수(응답 메시지에 포함)
+  example:
+    size: 20
+    totalSize: 100
+    selectPage: 1
+    totalPage: 5
+Pageable:
+  type: object
+  description: 정렬 & 페이지 정보
+  properties:
+    sort:
+      type: array
+      description: 정렬 정보
+      items:
+        $ref: "#/Sort"
+    page:
+      $ref: "#/Page"
+      description: 페이지 정보
+  example:
+    sort:
+      - order: 1
+        field: "createdAt"
+        direction: "ASC"
+      - order: 2
+        field: "name"
+        direction: "ASC"
+    page:
+      size: 20
+      totalSize: 100
+      selectPage: 1
+      totalPage: 5
+Meta:
+  type: array
+  description: 메타 데이터
+  items:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  example:
+    - key: "소유자"
+      value: "모비젠"
+    - key: "프로젝트"
+      value: "데이터패브릭"
+    - key: "저장소종류"
+      value: "IRIS"
+Tag:
+  type: array
+  description: 사용자가 입력한 태그
+  items:
+    type: string
+  example:
+    - "IT"
+    - "데이터패브릭"
+    - "설계"
+DateTime:
+  type: object
+  description: 날짜 시간 정보(헤더의 시간대역 정보를 바탕으로 작성, 1차에서는 Asia/Seoul 기준)
+  properties:
+    strDateTime:
+      type: string
+      description: "날짜 시간 문자열(format : yyyy-MM-dd HH:mm:ss.SSS)"
+    utcTime:
+      type: number
+      description: "UTC EPOCH Time MilliSecond"
+      format: long
+  example:
+    strDateTime: "2021-01-01 00:00:00.000"
+    utcTime: 1609459200000
+DataType:
+  description: 데이터 타입
+  type: string
+  enum:
+    - "STRUCTURED"
+    - "UNSTRUCTURED"
+    - "SEMI_STRUCTURED"
+DataFormat:
+  description: 데이터 포맷
+  type: string
+  enum:
+    - "TABLE"
+    - "VIEW"
+    - "CSV"
+    - "EXCEL"
+    - "WORD"
+    - "HWP"
+    - "PDF"
+    - "PPT"
+    - "JPG"
+    - "PNG"
+    - "MP3"
+    - "MP4"
+    - "MPEG"
+    - "JSON"
+    - "YAML"
+    - "HTML"

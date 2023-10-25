@@ -1,0 +1,282 @@
+DataType:
+  description: 데이터 타입
+  type: string
+  enum:
+    - "STRUCTURED"
+    - "UNSTRUCTURED"
+    - "SEMI_STRUCTURED"
+DataFormat:
+  description: 데이터 포맷
+  type: string
+  enum:
+    - "TABLE"
+    - "VIEW"
+    - "CSV"
+    - "EXCEL"
+    - "WORD"
+    - "HWP"
+    - "PDF"
+    - "PPT"
+    - "JPG"
+    - "PNG"
+    - "MP3"
+    - "MP4"
+    - "MPEG"
+    - "JSON"
+    - "YAML"
+    - "HTML"
+## 데이터 위치와 데이터 생성 과정 정보(융합/정제)
+DataLocations:
+  type: array
+  description: 데이터 위치 정보(융합 시 다중 위치 정보를 위해 배열로 정의)
+  items:
+    type: object
+    description: 데이터 위치 정보
+    properties:
+      storageId:
+        type: string
+        description: 저장소 ID
+        format: uuid
+      path:
+        type: string
+        description: >
+          데이터 베이스이름 or 경로(Absolute Path)
+      name:
+        type: string
+        description: 테이블 or 파일 이름
+      sheetName:
+        type: string
+        description: 시트 이름(For Excel File)
+      cellRange:
+        type: string
+        description: 셀 범위(For Excel File)
+      separator:
+        type: string
+        description: 구분자(For CSV File)
+DataRefine:
+  type: object
+  description: 데이터 융합 정제 정보
+  properties:
+    sql:
+      type: string
+      description: >
+        데이터 융합/정제를 위한 쿼리로 생성 과정은 2가지가 있을 수 있음
+        CMD 환경에서 사용자가 작성한 쿼리 or 
+        UI 환경에서 생성된 JSON 형태 데이터를 변환
+    json:
+      type: string
+      description: >
+        데이터 편집(융합/정제) 화면에서 데이터 융합/정제 과정을 설명하는 JSON 형태의 데이터
+DataStructure:
+  type: array
+  description: 데이터 구조 정보
+  items:
+    type: object
+    properties:
+      order:
+        type: number
+        description: 컬럼 순서
+        format: int32
+      name:
+        type: string
+        description: 컬럼 이름
+      columnType:
+        type: string
+        description: 컬럼 타입
+        enum:
+          - "STRING"
+          - "NUMBER"
+          - "TIMESTAMP"
+          - "BOOLEAN"
+      length:
+        type: number
+        description: 컬럼 길이
+        format: int32
+      defaultValue:
+        type: string
+        description: 컬럼 기본값
+      description:
+        type: string
+        description: 컬럼 설명
+Permission:
+  type: object
+  description: 접근 권한 정보
+  properties:
+    read:
+      type: boolean
+      description: 읽기 권한 - 샘플 데이터, 다운로드 가능
+    write:
+      type: boolean
+      description: 쓰기 권한 - 이름, 설명, 메타 데이터, 태그 등 수정 가능
+
+DownloadInfo:
+  type: object
+  description: "데이터 다운로드 정보 "
+  properties:
+    status:
+      type: integer
+      description: >
+        "다운로드 상태 정보"
+        * `0` - 다운로드 요청 필요
+        * `1` - 다운로드 중
+        * `2` - 다운로드 가능
+      enum:
+        - 0
+        - 1
+        - 2
+    link:
+      type: string
+      description: "데이터 다운로드 링크"
+
+RatingAndComments:
+  type: object
+  description: 평가 및 코멘트 정보
+  properties:
+    avgRating:
+      type: number
+      description: 평균 평가 점수(소수점 아래 1자리까지)
+      format: double
+    ratingAndComment:
+      type: array
+      items:
+        $ref: "#/RatingAndComment"
+
+RatingAndComment:
+  type: object
+  properties:
+    id:
+      type: string
+      description: 평가 및 코멘트 ID
+      format: uuid
+    time:
+      $ref: "./__index.yaml#/DateTime"
+      description: 평가 및 코멘트 작성 시간(수정 시간)
+    user:
+      $ref: "./__index.yaml#/User"
+    rating:
+      type: number
+      description: 평가 점수
+      format: integer
+      minimum: 1
+      maximum: 10
+    comment:
+      type: string
+      description: 코멘트
+      maxLength: 1000
+
+DataCatalogStatistics:
+  type: object
+  description: 데이터 통계 정보
+  properties:
+    time:
+      $ref: "./__index.yaml#/DateTime"
+      description: 통계 수집(저장) 시간
+    id:
+      type: string
+      description: 데이터 ID
+      format: uuid
+    name:
+      type: string
+      description: 데이터 이름
+    accessCount:
+      type: number
+      description: 데이터 조회 수
+      format: long
+    bookMarkCount:
+      type: number
+      description: 사용자 북마크(카테고리) 등록 수
+      format: long
+    downloadCount:
+      type: number
+      description: 다운로드 수
+      format: long
+    avgResponseTime:
+      type: number
+      description: 데이터 평균 응답 시간(초)
+      format: double
+
+
+DataCatalog:
+  type: object
+  description: 가상화된 데이터(메타 데이터 집합)
+  properties:
+    id:
+      type: string
+      description: 데이터 ID
+      format: uuid
+    name:
+      type: string
+      description: 데이터 이름
+    description:
+      type: string
+      description: 데이터 설명
+    status:
+      type: string
+      description: 데이터 상태
+      enum:
+        - "CONNECTED"
+        - "DISCONNECTED"
+        - "ERROR"
+      example: "CONNECTED"
+    dataType:
+      description: 데이터 타입
+      $ref: "#/DataType"
+    dataFormat:
+      description: 데이터 포맷
+      $ref: "#/DataFormat"
+    row:
+      type: number
+      description: 테이블 형태 데이터의 라인 수
+      format: long
+    size:
+      type: number
+      description: "테이블 데이터(Row), 파일 데이터(byte)"
+      format: long
+    systemMeta:
+      $ref: "./__index.yaml#/Meta"
+    userMeta:
+      $ref: "./__index.yaml#/Meta"
+    tags:
+      $ref: "./__index.yaml#/Tag"
+    dataStructure:
+      description: 데이터 구조 정보
+      $ref: "#/DataStructure"
+    category:
+      type: array
+      description: 데이터 카테고리
+      items:
+        type: object
+        description: 소속 카테고리 정보
+        properties:
+          id:
+            type: string
+            description: 카테고리 ID
+            format: uuid
+          name:
+            type: string
+            description: 카테고리 이름
+          description:
+            type: string
+            description: 카테고리 설명
+    dataLocations:
+      $ref: "#/DataLocations"
+    dataRefine:
+      $ref: "#/DataRefine"
+    permission:
+      $ref: "#/Permission"
+    downloadInfo:
+      $ref: "#/DownloadInfo"
+    ratingAndComments:
+      $ref: "#/RatingAndComments"
+    statistics:
+      $ref: "#/DataCatalogStatistics"
+      description: 누적 통계 정보(조회, 북마크)
+    createdBy:
+      $ref: "./__index.yaml#/User"
+    createdAt:
+      $ref: "./__index.yaml#/DateTime"
+    lastModifiedBy:
+      $ref: "./__index.yaml#/User"
+    lastModifiedAt:
+      $ref: "./__index.yaml#/DateTime"
+
