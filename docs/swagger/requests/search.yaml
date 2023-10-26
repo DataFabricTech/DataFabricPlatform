@@ -1,4 +1,4 @@
-SearchRequest:
+Search:
   description: "검색 요청 메시지"
   content:
     application/json:

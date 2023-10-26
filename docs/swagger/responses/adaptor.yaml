@@ -1,0 +1,163 @@
+SupportedStorageType:
+  description: "연결 지원 저장소 타입 목록"
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: "../schemas/__index.yaml#/CommonResponse"
+          - type: object
+            properties:
+              data:
+                properties:
+                  supportedStorageTypes:
+                    type: array
+                    items:
+                      $ref: "../schemas/__index.yaml#/SupportedStorageType"
+      examples:
+        success:
+          value:
+            code: "200"
+            data:
+              supportedStorageTypes:
+                - name: "IRIS"
+                  icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
+                  connSchema:
+                    - key: "HOST"
+                      required: true
+                      valueType: "string"
+                      default: "localhost"
+                      description: "Host name"
+                    - key: "PORT"
+                      required: true
+                      valueType: "integer"
+                      default: "3300"
+                      description: "Port"
+                    - key: "DATABASE"
+                      required: true
+                      valueType: "string"
+                      default: ""
+                      description: "Database Name"
+                  authSchema:
+                    - authType: "USER&PASSWORD"
+                      authInputFields:
+                        - key: "USERNAME"
+                          required: true
+                          valueType: "STRING"
+                          default: "user-id"
+                          description: "사용자 아이디"
+                        - key: "PASSWORD"
+                          required: true
+                          valueType: "STRING"
+                          default: "pa2sW0rd"
+                          description: "비밀번호"
+                    - authType: "NONE"
+                      authInputFields: []
+                - name: "PostgreSQL"
+                  icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
+                  connSchema:
+                    - key: "HOST"
+                      required: true
+                      valueType: "string"
+                      default: "localhost"
+                      description: "Host name"
+                    - key: "PORT"
+                      required: true
+                      valueType: "integer"
+                      default: "3300"
+                      description: "Port"
+                    - key: "DATABASE"
+                      required: true
+                      valueType: "string"
+                      default: ""
+                      description: "Database Name"
+                  authSchema:
+                    - authType: "USER&PASSWORD"
+                      authInputFields:
+                        - key: "USERNAME"
+                          required: true
+                          valueType: "STRING"
+                          default: "user-id"
+                          description: "사용자 아이디"
+                        - key: "PASSWORD"
+                          required: true
+                          valueType: "STRING"
+                          default: "pa2sW0rd"
+                          description: "비밀번호"
+                    - authType: "NONE"
+                      authInputFields: []
+        error:
+          value:
+            code: "400"
+            errMsg: "잘못된 요청입니다"
+            data: null
+Adaptor:
+  description: "저장소 연결 어댑터(드라이버) 목록과 연결에 필요한 입력 필드 정보"
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: "../schemas/__index.yaml#/CommonResponse"
+          - type: object
+            properties:
+              data:
+                properties:
+                  adaptors:
+                    type: array
+                    items:
+                      $ref: "../schemas/__index.yaml#/Adaptor"
+      examples:
+        success:
+          value:
+            code: "200"
+            data:
+              adaptors:
+                - id: "adaptor-id01"
+                  name: "Mobigen-IRIS"
+                  storageType: "IRIS"
+                  version: "1.0.0"
+                  class: "com.mobigen.iris.jdbc.Iris"
+                  basicOptions:
+                    - key: "HOST"
+                      valueType: "STRING"
+                      required: true
+                      default: "STRING"
+                      value: "localhost"
+                      description: "호스트"
+                    - key: "PORT"
+                      required: true
+                      valueType: "NUMBER"
+                      value: "1234"
+                      description: "포트"
+                    - key: "TARGETS"
+                      required: true
+                      valueType: "STRING"
+                      value: "datafabric"
+                      description: "타겟(데이터베이스, 경로)"
+                    - key: "ID"
+                      valueType: "STRING"
+                      value: "mobigen-user"
+                      description: "사용자 아이디"
+                    - key: "PASSWORD"
+                      valueType: "STRING"
+                      value: "user-password"
+                      description: "사용자 패스워드"
+#                  authOptions:
+#                    - authType: "USER&PASSWORD"
+#                      authInputFields:
+#                        - key: "USERNAME"
+#                          required: true
+#                          valueType: "STRING"
+#                          default: "user-id"
+#                          description: "사용자 아이디"
+#                        - key: "PASSWORD"
+#                          required: true
+#                          valueType: "STRING"
+#                          default: "pa2sW0rd"
+#                          description: "비밀번호"
+#                    - authType: "NONE"
+#                      authInputFields: []
+        error:
+          value:
+            code: "400"
+            errMsg: "잘못된 요청입니다"
+            data: null

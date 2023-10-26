@@ -1,4 +1,4 @@
-StorageSearchRequest:
+StorageSearch:
   description: "저장소 검색(조회) 요청"
   content:
     application/json:
@@ -76,3 +76,71 @@ StorageSearchRequest:
               - order: 1
                 field: "name"
                 direction: "DESC"
+StorageId:
+  description: "저장소 정보 요청 메시지(저장소 아이디)"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          id:
+            type: string
+            description: "저장소 ID"
+            format: uuid
+      examples:
+        sample_01:
+          summary: "Sample01"
+          description: "Sample01"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+StorageBrowse:
+  description: "저장소 탐색 요청 메시지(저장소 아이디와 경로)"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          id:
+            type: string
+            description: "저장소 ID"
+            format: uuid
+          path:
+            type: string
+            description: "탐색 요청 경로(데이터 베이스 이름 or 디렉토리 경로)"
+          depth:
+            type: integer
+            description: "탐색 깊이"
+            default: 1
+          name:
+            type: string
+            description: "데이터 이름(테이블, 파일)"
+      examples:
+        sample_01:
+          description: "RDBMS Sample01 - 데이터 베이스 내 테이블 조회"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/IRIS_DB"
+            depth: 1
+            name: ""
+        sample_02:
+          description: "RDBMS Sample02 - 데이터 베이스 내 테이블 정보 요청"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/RIS_DB"
+            depth: 1
+            name: "TABLE"
+        sample_03:
+          description: "HDFS Sample01 - 디렉토리 내 파일 조회(Depth 2)"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/home/mobigen/data-platform"
+            depth: 2
+            name: ""
+        sample_04:
+          description: "HDFS Sample01 - 디렉토리 내 파일 정보 요청"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/home/mobigen/data-platform"
+            depth: 1
+            name: "test.csv"
+

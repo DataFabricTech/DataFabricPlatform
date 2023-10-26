@@ -25,6 +25,7 @@ DataFormat:
     - "JSON"
     - "YAML"
     - "HTML"
+
 ## 데이터 위치와 데이터 생성 과정 정보(융합/정제)
 DataLocations:
   type: array
@@ -53,6 +54,7 @@ DataLocations:
       separator:
         type: string
         description: 구분자(For CSV File)
+
 DataRefine:
   type: object
   description: 데이터 융합 정제 정보
@@ -67,37 +69,39 @@ DataRefine:
       type: string
       description: >
         데이터 편집(융합/정제) 화면에서 데이터 융합/정제 과정을 설명하는 JSON 형태의 데이터
-DataStructure:
-  type: array
-  description: 데이터 구조 정보
-  items:
-    type: object
-    properties:
-      order:
-        type: number
-        description: 컬럼 순서
-        format: int32
-      name:
-        type: string
-        description: 컬럼 이름
-      columnType:
-        type: string
-        description: 컬럼 타입
-        enum:
-          - "STRING"
-          - "NUMBER"
-          - "TIMESTAMP"
-          - "BOOLEAN"
-      length:
-        type: number
-        description: 컬럼 길이
-        format: int32
-      defaultValue:
-        type: string
-        description: 컬럼 기본값
-      description:
-        type: string
-        description: 컬럼 설명
+
+#DataStructure:
+#  type: array
+#  description: 데이터 구조 정보
+#  items:
+#    type: object
+#    properties:
+#      order:
+#        type: number
+#        description: 컬럼 순서
+#        format: int32
+#      name:
+#        type: string
+#        description: 컬럼 이름
+#      columnType:
+#        type: string
+#        description: 컬럼 타입
+#        enum:
+#          - "STRING"
+#          - "NUMBER"
+#          - "TIMESTAMP"
+#          - "BOOLEAN"
+#      length:
+#        type: number
+#        description: 컬럼 길이
+#        format: int32
+#      defaultValue:
+#        type: string
+#        description: 컬럼 기본값
+#      description:
+#        type: string
+#        description: 컬럼 설명
+
 Permission:
   type: object
   description: 접근 권한 정보
@@ -195,7 +199,6 @@ DataCatalogStatistics:
       description: 데이터 평균 응답 시간(초)
       format: double
 
-
 DataCatalog:
   type: object
   description: 가상화된 데이터(메타 데이터 집합)
@@ -239,8 +242,7 @@ DataCatalog:
     tags:
       $ref: "./__index.yaml#/Tag"
     dataStructure:
-      description: 데이터 구조 정보
-      $ref: "#/DataStructure"
+      $ref: "./__index.yaml#/GridData"
     category:
       type: array
       description: 데이터 카테고리
@@ -280,3 +282,42 @@ DataCatalog:
     lastModifiedAt:
       $ref: "./__index.yaml#/DateTime"
 
+DataPreview:
+  type: object
+  properties:
+    id:
+      type: string
+      description: "데이터 아이디(UUID)"
+      format: uuid
+    name:
+      type: string
+      description: "데이터 이름"
+    description:
+      type: string
+      description: "데이터 설명"
+    dataType:
+      $ref: "../schemas/__index.yaml#/DataType"
+    dataFormat:
+      $ref: "../schemas/__index.yaml#/DataFormat"
+    row:
+      type: integer
+      description: "라인 수"
+    size:
+      type: number
+      description: "파일 사이즈(byte)"
+      format: long
+    status:
+      type: string
+      description: "데이터 상태"
+      enum:
+        - CONNECTED
+        - DISCONNECTED
+        - ERROR
+    dataStructure:
+      $ref: "./__index.yaml#/GridData"
+    systemMeta:
+      $ref: "./__index.yaml#/Meta"
+    userMeta:
+      $ref: "./__index.yaml#/Meta"
+    tags:
+      $ref: "./__index.yaml#/Tag"
