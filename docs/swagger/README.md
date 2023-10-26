@@ -14,6 +14,17 @@
 4. Request, Response 정의
 5. Example 
 
+### 문서 작성 시 유의 사항
+현재 parameter를 추가하고자 하는 경우 문서 상 parameter 를 정의하고 있는 곳은 api.yaml 이다.
+따라서 foo 라는 이름으로 파라미터를 정의하고자 하는 경우
+1. api.yaml 의 component/parameters 에서 foo 를 선언
+2. parameters/__index.yaml 에서 foo 내용을 작성 
+3. api.yaml 의 parameter 선언 부 #/component/parameters/foo 에 ref 추가
+
+그리고 현재 구성 방법이 parameter와 다른 방식인 schema를 살펴보면
+api.yaml 의 schemas 는 schemas/__index.yaml를 레퍼런스로 보고 있음
+따라서 api.yaml이 아닌 schemas/__index.yaml 에 선언하고 다른 파일에 추가하는 방법으로 진행해야 한다.
+
 ### 최종 문서 통합
 여러개의 문서를 하나의 문서로 통합하는 방법은 다음과 같습니다.
 1. swagger-cli 설치

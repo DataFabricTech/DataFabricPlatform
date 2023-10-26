@@ -1,21 +1,7 @@
-#SupportedStorageType:
-#  type: object
-#  description: 시스템에서 연결을 지원하는 저장소 타입
-#  properties:
-#    name:
-#      type: string
-#      description: 저장소 타입 이름(Unique)
-#    icon:
-#      type: string
-#      description: 저장소 타입 아이콘(추가될 수 있는 데이터의 예시)
-#      format: byte
-#  example:
-#    name: "IRIS"
-#    icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
-StorageBasicInputOption:
+
+InputField:
   type: object
-  description: >
-    저장소 유형에 따른 필수(선택) 입력 정보
+  description: 사용자 입력을 받기 위한 데이터 정의
   properties:
     key:
       type: string
@@ -26,12 +12,38 @@ StorageBasicInputOption:
     valueType:
       type: string
       description: 입력 필드 타입
+#    minimum:
+#      type: integer
+#      description: 최소값
+#    maximum:
+#      type: integer
+#      description: 최대값
+#    length:
+#      type: integer
+#      description: 최대 길이
     default:
       type: string
       description: 기본값(예시)
+    description:
+      type: string
+      description: 설명
     value:
-      type: object
+      type: string
       description: 사용자가 입력한 값
+
+AuthSchema:
+  type: object
+  description: 인증 종류와 인증 종류에 따라 필요한 데이터 정보
+  properties:
+    authType:
+      type: string
+      description: 인증 종류
+    authInputFields:
+      type: array
+      description: 인증 종류에 따라 필요한 데이터 정보
+      items:
+        $ref: "#/InputField"
+
 SupportedStorageType:
   type: object
   description: 시스템에서 연결을 지원하는 저장소 타입
@@ -43,60 +55,44 @@ SupportedStorageType:
       type: string
       description: 저장소 타입 아이콘(추가될 수 있는 데이터의 예시)
       format: byte
-    schema:
-      type: object
+    connSchema:
       description: 저장소 연결에 필요한 인자 목록
-      properties:
-        key:
-          type: string
-          description: 인자 키
-        valueType:
-          type: string
-          description: 값의 타입
-        required:
-          type: boolean
-          description: 필수 요구
-        desc:
-          type: string
-          description: 설명
+      $ref: "#/InputField"
     authSchema:
-      type: object
-      description: 인증에 사용될 필요한 인자 목록
-      properties:
-        authType:
-          type: string
-          description: 인증 종류
-        key:
-          type: string
-          description: 해당 인증에 사용될 옵션 이름
-        type:
-          type: string
-          description: 해당 인증에 사용된 옵션 값의 타입
-        required:
-          type: boolean
-          description: 옵션의 필수 여부
+      type: array
+      items:
+        $ref: "#/AuthSchema"
   example:
     name: "IRIS"
     icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCA"
-    schema:
+    connSchema:
       - key: "HOST"
+        required: true
         valueType: "string"
-        required: true
-        desc: "Host name"
+        default: "localhost"
+        description: "Host name"
       - key: "PORT"
-        valueType: "integer"
         required: true
-        desc: "Port"
+        valueType: "integer"
+        default: "3300"
+        description: "Port"
+      - key: "DATABASE"
+        required: true
+        valueType: "string"
+        default: ""
+        description: "Database Name"
     authSchema:
       - authType: "USER&PASSWORD"
-        key: "USERNAME"
-        type: "STRING"
-        required: true
-      - authType: "USER&PASSWORD"
-        key: "PASSWORD"
-        type: "STRING"
-        required: true
-      - authType: "CERT"
-        key: "CERTIFICATE"
-        type: "bytes"
-        required: true
+        authInputFields:
+          - key: "USERNAME"
+            required: true
+            valueType: "STRING"
+            default: "user-id"
+            description: "사용자 아이디"
+          - key: "PASSWORD"
+            required: true
+            valueType: "STRING"
+            default: "pa2sW0rd"
+            description: "비밀번호"
+      - authType: "NONE"
+        authInputFields: []

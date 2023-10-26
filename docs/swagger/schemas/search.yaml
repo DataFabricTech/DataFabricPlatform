@@ -6,7 +6,7 @@ SearchRequest:
       type: string
       description: "검색 키워드"
     pageable:
-      $ref: "./utilities.yaml#/Pageable"
+      $ref: "./__index.yaml#/Pageable"
       description: 정렬 & 페이지 정보
     detailSearch:
       $ref: "#/SearchRequestDetail"
@@ -149,7 +149,7 @@ SearchResponse:
   description: 검색 결과
   properties:
     pageable:
-      $ref: "./utilities.yaml#/Pageable"
+      $ref: "./__index.yaml#/Pageable"
     filters:
       $ref: "#/SearchResponseFilter"
     contents:
@@ -223,12 +223,12 @@ SearchResponseContent:
       type: array
       description: "데이터 목록"
       items:
-        $ref: "./data-catalog.yaml#/DataCatalog"
+        $ref: "./__index.yaml#/DataCatalog"
     storages:
       type: array
       description: "저장소 목록"
       items:
-        $ref: "./storage.yaml#/Storage"
+        $ref: "./__index.yaml#/Storage"
 RecentSearchesResponse:
   type: object
   description: 최근 검색어 목록

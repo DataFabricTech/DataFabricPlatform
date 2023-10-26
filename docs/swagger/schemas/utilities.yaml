@@ -137,3 +137,131 @@ DataFormat:
     - "JSON"
     - "YAML"
     - "HTML"
+
+MapStrAndAny:
+  type: object
+  description: Map<String, ?> 형태 데이터 정의
+  additionalProperties:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: object
+  example:
+    "key1": "value1"
+    "key2": true
+    "key3": 123
+
+GridData:
+  type: object
+  description: 표 데이터
+  properties:
+    colDefs:
+      type: array
+      description: 컬럼 정보
+      items:
+        $ref: "#/MapStrAndAny"
+    rowData:
+      type: array
+      description: 로우 데이터
+      items:
+        $ref: "#/MapStrAndAny"
+  example:
+    colDefs:
+      - filed: "name"
+        headerName: "이름"
+      - filed: "age"
+        headerName: "나이"
+    rowData:
+      - name: "홍길동"
+        age: 20
+      - name: "김철수"
+        age: 30
+      - name: "이영희"
+        age: 40
+
+PieChartData:
+  type: object
+  description: 파이 차트 데이터
+  properties:
+    data:
+      type: array
+      properties:
+        name:
+          type: string
+          description: 이름
+        y:
+          type: number
+          description: 값
+          format: double
+  example:
+    data:
+      - name: "서초1동"
+        y: 20543
+      - name: "서초2동"
+        y: 19406
+BarChartData:
+  type: object
+  description: 바 차트 데이터
+  properties:
+    categories:
+      type: array
+      description: 카테고리
+      items:
+        type: string
+    series:
+      type: array
+      description: 시리즈
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: 이름
+          data:
+            type: array
+            description: 데이터
+            items:
+              type: number
+              format: double
+StackChartData:
+  type: object
+  description: 스택 차트 데이터
+  properties:
+    categories:
+      type: array
+      description: 데이터 항목(나타내고자하는 데이터 값의 이름)
+      items:
+        type: string
+    series:
+      type: array
+      description: 시리즈
+      items:
+        type: object
+        properties:
+        name:
+          type: string
+          description: 이름
+        data:
+          type: array
+          description: 데이터
+          items:
+            type: number
+            format: double
+  example:
+    categories:
+      - "iris"
+      - "hdfs"
+      - "postgre"
+    series:
+      - name: "total"
+        data:
+          - 2000
+          - 1500
+          - 500
+      - name: "registered"
+        data:
+          - 1000
+          - 900
+          - 100

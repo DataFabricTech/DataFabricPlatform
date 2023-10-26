@@ -1,9 +1,9 @@
-ConnectTestRequest:
+ConnectTest:
   description: "연결 테스트 요청 메시지"
   content:
     application/json:
       schema:
-        $ref: "../schemas/__index.yaml#/ConnectTestRequest"
+        $ref: "../schemas/__index.yaml#/ConnectTest"
       examples:
         postgresql:
           value:
@@ -12,16 +12,18 @@ ConnectTestRequest:
               - key: "HOST"
                 value: "localhost"
               - key: "PORT"
-                value: 1234
+                value: "1234"
               - key: "TARGETS"
-                value: [ "target01" ]
+                value: "target01"
               - key: "ID"
                 value: "mobigen-user"
               - key: "PASSWORD"
                 value: "mobigen-password"
             additionalOptions:
-              charset: "utf-8"
-              timezone: "asia/seoul"
+              - key: "charset"
+                value: "utf-8"
+              - key: "timezone"
+                value: "asia/seoul"
         iris:
           value:
             adaptorId: "iris-adaptor-001"
@@ -29,17 +31,20 @@ ConnectTestRequest:
               - key: "HOST"
                 value: "localhost"
               - key: "PORT"
-                value: 1234
+                value: "1234"
               - key: "TARGETS"
-                value: [ "target01" ]
+                value: "target01"
               - key: "ID"
                 value: "mobigen-user"
               - key: "PASSWORD"
                 value: "mobigen-password"
             additionalOptions:
-              charset: "utf-8"
-              timezone: "asia/seoul"
-StorageAddRequest:
+              - key: "charset"
+                value: "utf-8"
+              - key: "timezone"
+                value: "asia/seoul"
+
+AddStorage:
   description: "연결정보(저장소) 저장 요청 메시지"
   content:
     application/json:
@@ -63,16 +68,18 @@ StorageAddRequest:
               - key: "HOST"
                 value: "localhost"
               - key: "PORT"
-                value: 1234
+                value: "1234"
               - key: "TARGETS"
-                value: [ "DATA_FABRIC" ]
+                value: "DATA_FABRIC"
               - key: "ID"
                 value: "mobigen-user"
               - key: "PASSWORD"
                 value: "mobigen-password"
             additionalOptions:
-              charset: "utf-8"
-              timezone: "asia/seoul"
+              - key: "charset"
+                value: "utf-8"
+              - key: "timezone"
+                value: "asia/seoul"
             settings:
               autoAddSetting:
                 enable: true
@@ -106,7 +113,7 @@ StorageAddRequest:
                 timeout: 30
                 successThreshold: 1
                 failThreshold: 2
-StorageModifyRequest:
+ModifyStorage:
   description: "연결정보(저장소) 수정 요청 메시지"
   content:
     application/json:
@@ -131,16 +138,18 @@ StorageModifyRequest:
               - key: "HOST"
                 value: "localhost"
               - key: "PORT"
-                value: 1234
+                value: "1234"
               - key: "TARGETS"
-                value: [ "DATA_FABRIC" ]
+                value: "DATA_FABRIC"
               - key: "ID"
                 value: "mobigen-user"
               - key: "PASSWORD"
                 value: "mobigen-password"
             additionalOptions:
-              charset: "utf-8"
-              timezone: "asia/seoul"
+              - key: "charset"
+                value: "utf-8"
+              - key: "timezone"
+                value: "asia/seoul"
             settings:
               autoAddSetting:
                 enable: true
