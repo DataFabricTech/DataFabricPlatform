@@ -7,6 +7,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Where 절을 만들기 위한 값을 빌드하는 클래스
+ * statement provider 를 생성 한다.
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class WhereMaker implements MakerInterface {
     private final MakerInterface maker;
     private final List<Condition> conditions;

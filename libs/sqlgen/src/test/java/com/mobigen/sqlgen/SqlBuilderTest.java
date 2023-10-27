@@ -1,11 +1,8 @@
 package com.mobigen.sqlgen;
 
-import com.mobigen.sqlgen.model.JoinHow;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.conditions.Equal;
-import com.mobigen.sqlgen.where.conditions.GreaterThan;
-import com.mobigen.sqlgen.where.conditions.Or;
 import org.junit.jupiter.api.Test;
 
 import java.sql.JDBCType;
@@ -59,6 +56,7 @@ class SqlBuilderTest {
                 .generate();
         System.out.println(statementProvider.getStatement());
     }
+
     @Test
     void drop() {
         var table1 = SqlTable.of("test1");

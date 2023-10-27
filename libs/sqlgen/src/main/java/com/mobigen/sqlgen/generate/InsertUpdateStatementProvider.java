@@ -9,6 +9,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * SQL 의 insert into ... value ... / update ... set ... 을 생성하는 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class InsertUpdateStatementProvider implements StatementProvider {
     private final Boolean isInsert;
     private final String tableStatement;

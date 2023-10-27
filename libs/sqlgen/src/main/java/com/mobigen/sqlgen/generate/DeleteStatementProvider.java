@@ -3,6 +3,14 @@ package com.mobigen.sqlgen.generate;
 
 import com.mobigen.sqlgen.model.SqlTable;
 
+/**
+ * SQL 의 delete from ... 을 생성하는 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class DeleteStatementProvider implements StatementProvider {
     private final String tableStatement;
 

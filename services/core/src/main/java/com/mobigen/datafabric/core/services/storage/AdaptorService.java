@@ -12,6 +12,14 @@ import java.util.List;
 
 import static com.mobigen.sqlgen.SqlBuilder.select;
 
+/**
+ * Adaptor Service
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 @Slf4j
 public class AdaptorService {
 

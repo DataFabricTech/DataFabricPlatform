@@ -2,13 +2,9 @@ package com.mobigen.datafabric.core.services.storage.direct;
 
 import com.google.protobuf.ByteString;
 import com.mobigen.datafabric.core.model.DataStorageTypeTable;
-import com.mobigen.datafabric.share.protobuf.AdaptorOuterClass;
 import com.mobigen.libs.grpc.Storage.StorageTypeModel;
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +13,17 @@ import static com.mobigen.datafabric.core.util.DataLayerConnection.getDataDB;
 import static com.mobigen.sqlgen.SqlBuilder.select;
 
 
+/**
+ * StorageType 서비스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ * @deprecated
+ */
 @Slf4j
+@Deprecated
 public class StorageTypeService {
     DataStorageTypeTable table = new DataStorageTypeTable();
 

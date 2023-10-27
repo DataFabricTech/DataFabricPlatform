@@ -6,6 +6,14 @@ import lombok.Getter;
 
 import java.sql.JDBCType;
 
+/**
+ * 실제 Table 의 구조를 정의하는 모델 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 @Getter
 public class AuthSchemaTable {
     SqlTable table = SqlTable.of("AuthSchema");

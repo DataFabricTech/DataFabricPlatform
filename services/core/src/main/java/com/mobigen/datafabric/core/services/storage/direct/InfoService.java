@@ -5,7 +5,7 @@ import com.mobigen.datafabric.core.model.ConnectionSchemaTable;
 import com.mobigen.datafabric.core.model.DataStorageTable;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.libs.grpc.Storage;
-import com.mobigen.sqlgen.model.JoinHow;
+import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.where.conditions.Equal;
 
 import java.sql.SQLException;
@@ -14,6 +14,16 @@ import java.util.*;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
 import static com.mobigen.sqlgen.SqlBuilder.select;
 
+/**
+ * DataStorage 서비스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ * @deprecated
+ */
+@Deprecated
 public class InfoService {
     DataStorageTable dataStorageTable = new DataStorageTable();
     ConnInfoTable connInfoTable = new ConnInfoTable();
@@ -29,7 +39,7 @@ public class InfoService {
                 connInfoTable.getTypeCol(),
                 connInfoTable.getValueCol())
                 .from(dataStorageTable.getTable())
-                .join(connInfoTable.getTable(), JoinHow.LEFT, Equal.of(dataStorageTable.getIdCol(), connInfoTable.getDatastorageIdCol()))
+                .join(connInfoTable.getTable(), JoinMethod.LEFT, Equal.of(dataStorageTable.getIdCol(), connInfoTable.getDatastorageIdCol()))
                 .generate().getStatement();
         var result = DataLayerConnection.getDataDB(sql);
         List<Storage.InfoModel> models = new ArrayList<>();

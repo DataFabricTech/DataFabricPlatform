@@ -2,6 +2,14 @@ package com.mobigen.sqlgen.model;
 
 import java.util.Objects;
 
+/**
+ * SQL 생성시 table 지정
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class SqlTable {
     private final String name;
     private String alias;

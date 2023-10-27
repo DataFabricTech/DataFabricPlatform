@@ -5,6 +5,14 @@ import com.mobigen.sqlgen.where.Condition;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * SQL 의 where ... 을 생성하는 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class WhereStatementProvider implements StatementProvider {
     private final StatementProvider statementProvider;
     private final String whereStatement;

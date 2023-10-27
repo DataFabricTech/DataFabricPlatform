@@ -5,6 +5,15 @@ import com.mobigen.datafabric.core.services.storage.AdaptorService;
 import com.mobigen.datafabric.share.protobuf.AdaptorOuterClass;
 import com.mobigen.libs.grpc.AdaptorServiceCallBack;
 
+/**
+ * gRPC 의 request 를 받아 response 를 생성하는 콜백 클래스의 구현부
+ * Adaptor 관련 서비스 제공
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class AdaptorServiceImpl implements AdaptorServiceCallBack {
     AdaptorService service = new AdaptorService();
 

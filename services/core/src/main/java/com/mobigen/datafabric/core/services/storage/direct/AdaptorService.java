@@ -7,7 +7,7 @@ import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.libs.grpc.Storage;
 import com.mobigen.sqlgen.maker.JoinMaker;
 import com.mobigen.sqlgen.maker.MakerInterface;
-import com.mobigen.sqlgen.model.JoinHow;
+import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.where.conditions.Equal;
 
 import javax.annotation.Nullable;
@@ -18,6 +18,16 @@ import java.util.*;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
 import static com.mobigen.sqlgen.SqlBuilder.select;
 
+/**
+ * Adaptor 서비스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ * @deprecated
+ */
+@Deprecated
 public class AdaptorService {
     DataStorageAdaptorTable adaptorTable = new DataStorageAdaptorTable();
 
@@ -94,8 +104,8 @@ public class AdaptorService {
                 adaptorUsableAuthTable.getAuthTypeCol()
         )
                 .from(adaptorTable.getTable())
-                .join(connectionSchemaTable.getTable(), JoinHow.LEFT, Equal.of(adaptorTable.getIdCol(), connectionSchemaTable.getAdaptorIdCol()))
-                .join(adaptorUsableAuthTable.getTable(), JoinHow.LEFT, Equal.of(adaptorTable.getIdCol(), adaptorUsableAuthTable.getAdaptorIdCol()));
+                .join(connectionSchemaTable.getTable(), JoinMethod.LEFT, Equal.of(adaptorTable.getIdCol(), connectionSchemaTable.getAdaptorIdCol()))
+                .join(adaptorUsableAuthTable.getTable(), JoinMethod.LEFT, Equal.of(adaptorTable.getIdCol(), adaptorUsableAuthTable.getAdaptorIdCol()));
     }
 
     public Storage.AdaptorModel getAdaptor(String adaptorId) {

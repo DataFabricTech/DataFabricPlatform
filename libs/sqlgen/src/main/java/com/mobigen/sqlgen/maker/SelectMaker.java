@@ -2,7 +2,7 @@ package com.mobigen.sqlgen.maker;
 
 
 import com.mobigen.sqlgen.generate.SelectStatementProvider;
-import com.mobigen.sqlgen.model.JoinHow;
+import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.Condition;
@@ -12,6 +12,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Select 절을 만들기 위한 값을 빌드하는 클래스
+ * statement provider 를 생성 한다.
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class SelectMaker implements MakerInterface {
     private final SqlTable table;
     private final List<SqlColumn> selectColumns;
@@ -22,7 +31,7 @@ public class SelectMaker implements MakerInterface {
         this.table = Objects.requireNonNull(builder.table);
     }
 
-    public JoinMaker join(SqlTable rightTable, JoinHow how, Condition... conditions) {
+    public JoinMaker join(SqlTable rightTable, JoinMethod how, Condition... conditions) {
         return new JoinMaker.Builder()
                 .withMaker(this)
                 .withTable(rightTable)
@@ -32,11 +41,11 @@ public class SelectMaker implements MakerInterface {
     }
 
     public JoinMaker join(SqlTable rightTable, Condition... conditions) {
-        return join(rightTable, JoinHow.INNER, conditions);
+        return join(rightTable, JoinMethod.INNER, conditions);
     }
 
     public JoinMaker join(SqlTable rightTable) {
-        return join(rightTable, JoinHow.INNER);
+        return join(rightTable, JoinMethod.INNER);
     }
 
     public WhereMaker where(Condition... conditions) {

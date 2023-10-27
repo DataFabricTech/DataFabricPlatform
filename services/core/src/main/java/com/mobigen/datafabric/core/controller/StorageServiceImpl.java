@@ -14,7 +14,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * gRPC 의 request 를 받아 response 를 생성하는 콜백 클래스의 구현부
+ * Storage 관련 서비스 제공
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ * @deprecated
+ */
 @Slf4j
+@Deprecated
 public class StorageServiceImpl implements StorageServiceCallBack {
 
     @Override

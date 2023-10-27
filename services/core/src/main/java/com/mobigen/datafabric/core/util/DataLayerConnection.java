@@ -11,6 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DataLayer 서비스와 통신 하기 위한 정의부
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 @Slf4j
 public class DataLayerConnection {
 

@@ -1,6 +1,6 @@
 package com.mobigen.sqlgen.generate;
 
-import com.mobigen.sqlgen.model.JoinHow;
+import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.Condition;
 
@@ -8,6 +8,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * SQL 의 join ... (on ...)? 을 생성하는 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class JoinStatementProvider implements StatementProvider {
     private final StatementProvider statementProvider;
     private final String rightTable;
@@ -49,7 +57,7 @@ public class JoinStatementProvider implements StatementProvider {
             return this;
         }
 
-        public Builder withHow(JoinHow how) {
+        public Builder withHow(JoinMethod how) {
             this.how = how.getValue();
             return this;
         }

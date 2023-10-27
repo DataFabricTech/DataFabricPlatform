@@ -7,6 +7,14 @@ import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * 저장소로 등록된 외부 저장소에 JDBC 를 이용하여 연결하기 위한 Connector 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 @Slf4j
 public class JdbcConnector implements AutoCloseable {
     private String url;

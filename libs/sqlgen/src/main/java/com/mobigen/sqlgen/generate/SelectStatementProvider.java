@@ -8,13 +8,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * SQL 의 select ... (from ...)? 을 생성하는 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class SelectStatementProvider implements StatementProvider {
     private final String selectStatement;
     private final String tableStatement;
 
     private SelectStatementProvider(Builder builder) {
         this.selectStatement = Objects.requireNonNull(builder.selectStatement);
-        this.tableStatement =builder.tableStatement;
+        this.tableStatement = builder.tableStatement;
     }
 
     @Override

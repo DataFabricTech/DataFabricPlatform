@@ -5,6 +5,14 @@ import com.mobigen.sqlgen.where.Condition;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * value 의 타입에 맞게 SQL string 으로 변환 하기 위한 클래스
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class SqlValue<T> {
     T value;
 

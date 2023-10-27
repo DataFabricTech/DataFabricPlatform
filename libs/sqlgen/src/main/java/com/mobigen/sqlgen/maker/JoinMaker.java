@@ -2,7 +2,7 @@ package com.mobigen.sqlgen.maker;
 
 import com.mobigen.sqlgen.generate.JoinStatementProvider;
 import com.mobigen.sqlgen.generate.StatementProvider;
-import com.mobigen.sqlgen.model.JoinHow;
+import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.where.Condition;
 
@@ -11,10 +11,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Join 절을 만들기 위한 값을 빌드하는 클래스
+ * statement provider 를 생성 한다.
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class JoinMaker implements MakerInterface {
     private final MakerInterface maker;
     private final SqlTable rightTable;
-    private JoinHow how;
+    private JoinMethod how;
     private final List<Condition> conditions;
 
     private JoinMaker(Builder builder) {
@@ -22,12 +31,12 @@ public class JoinMaker implements MakerInterface {
         rightTable = Objects.requireNonNull(builder.rightTable);
         how = builder.how;
         if (how == null) {
-            how = JoinHow.INNER;
+            how = JoinMethod.INNER;
         }
         conditions = builder.conditions;
     }
 
-    public JoinMaker join(SqlTable rightTable, JoinHow how, Condition... conditions) {
+    public JoinMaker join(SqlTable rightTable, JoinMethod how, Condition... conditions) {
         return new JoinMaker.Builder()
                 .withMaker(this)
                 .withTable(rightTable)
@@ -37,11 +46,11 @@ public class JoinMaker implements MakerInterface {
     }
 
     public JoinMaker join(SqlTable rightTable, Condition... conditions) {
-        return join(rightTable, JoinHow.INNER, conditions);
+        return join(rightTable, JoinMethod.INNER, conditions);
     }
 
     public JoinMaker join(SqlTable rightTable) {
-        return join(rightTable, JoinHow.INNER);
+        return join(rightTable, JoinMethod.INNER);
     }
 
     public WhereMaker where(Condition... conditions) {
@@ -64,7 +73,7 @@ public class JoinMaker implements MakerInterface {
     protected static class Builder {
         private MakerInterface maker;
         private SqlTable rightTable;
-        private JoinHow how;
+        private JoinMethod how;
         private final List<Condition> conditions = new ArrayList<>();
 
         protected Builder withMaker(MakerInterface maker) {
@@ -77,7 +86,7 @@ public class JoinMaker implements MakerInterface {
             return this;
         }
 
-        protected Builder withHow(JoinHow how) {
+        protected Builder withHow(JoinMethod how) {
             this.how = how;
             return this;
         }
