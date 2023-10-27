@@ -7,6 +7,14 @@ import com.mobigen.libs.grpc.aop.MethodMonitor;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * gRPC AdaptorService 구현부
+ * <p>
+ * Created by fwani.
+ *
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 @Slf4j
 public final class AdaptorService extends AdaptorServiceGrpc.AdaptorServiceImplBase {
 
