@@ -1,9 +1,9 @@
 package com.mobigen.datafabric.core.controller;
 
 import com.mobigen.datafabric.core.JdbcConnector;
-import com.mobigen.datafabric.core.services.storage.AdaptorService;
-import com.mobigen.datafabric.core.services.storage.InfoService;
-import com.mobigen.datafabric.core.services.storage.StorageTypeService;
+import com.mobigen.datafabric.core.services.storage.direct.AdaptorService;
+import com.mobigen.datafabric.core.services.storage.direct.InfoService;
+import com.mobigen.datafabric.core.services.storage.direct.StorageTypeService;
 import com.mobigen.libs.grpc.Method;
 import com.mobigen.libs.grpc.Storage.*;
 import com.mobigen.libs.grpc.StorageServiceCallBack;

@@ -1,7 +1,8 @@
-package com.mobigen.datafabric.core.services.storage;
+package com.mobigen.datafabric.core.services.storage.direct;
 
 import com.google.protobuf.ByteString;
 import com.mobigen.datafabric.core.model.DataStorageTypeTable;
+import com.mobigen.datafabric.share.protobuf.AdaptorOuterClass;
 import com.mobigen.libs.grpc.Storage.StorageTypeModel;
 import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.model.SqlTable;

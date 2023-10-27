@@ -1,4 +1,4 @@
-package com.mobigen.datafabric.core.services.storage;
+package com.mobigen.datafabric.core.services.storage.direct;
 
 import com.mobigen.datafabric.core.model.ConnInfoTable;
 import com.mobigen.datafabric.core.model.ConnectionSchemaTable;

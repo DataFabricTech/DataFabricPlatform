@@ -1,9 +1,8 @@
 package com.mobigen.datafabric.core;
 
-import com.mobigen.datafabric.core.controller.StorageServiceImpl;
+import com.mobigen.datafabric.core.controller.AdaptorServiceImpl;
+import com.mobigen.libs.grpc.AdaptorService;
 import com.mobigen.libs.grpc.GRPCServer;
-import com.mobigen.libs.grpc.StorageService;
-import com.mobigen.libs.grpc.StorageServiceCallBack;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -22,8 +21,7 @@ public class Main {
     }
 
     private static void initService(GRPCServer server) throws IOException {
-        StorageServiceCallBack cb = new StorageServiceImpl();
-        StorageService service = new StorageService(cb);
-        server.addService(service);
+        server.addService(new AdaptorService(new AdaptorServiceImpl()));
+//        server.addService(new StorageService(new StorageServiceImpl()));
     }
 }
