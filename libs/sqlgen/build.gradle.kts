@@ -5,5 +5,4 @@ plugins {
 }
 
 dependencies {
-    implementation("org.mybatis.dynamic-sql:mybatis-dynamic-sql:1.5.0")
 }
