@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+// StorageTypeManagement :  지원하는 저장소 종류 관리를 위한 서비스( 제공 대상 : 시스템 관리자 )
+
+
+// AdaptorService   :  저장소 유형 정보 제공과 어댑터 관리를 위한 서비스( 제공 대상 : 일반 사용자와 관리자 )
+service AdaptorService {
+  // GET /storage/v1/storage-type
+  rpc GetStorageType(google.protobuf.Empty) returns (ResSupportedStorageType) {}
+  // GET /storage/v1/adaptors?storageType=xxx
+  rpc GetAdaptors(ReqAdaptors) returns (ResAdaptors) {}
+}
+
+// AuthType : 저장소 연결시 인증 종류
+enum AuthType {
+  NONE = 0;
+  USER_PASSWORD = 1;
+}
+
+// InputField : 사용자 입력을 받기 위한 기본 데이터 구조 구조
+message InputField {
+  string key = 1;                       // 입력 받을 데이터의 이름
+  bool required = 2;                    // 필수 / 선택 정보
+  string valueType = 3;                 // 입력 받을 데이터의 타입
+  string default = 4;                   // 기본값 or 예시
+  string description = 5;               // 설명
+  string value = 6;                     // 사용자가 입력한 데이터
+}
+
+// SupportedStorageType    : 시스템에서 지원하는 저장소 유형과 저장소 유형 별 설정 정보
+message SupportedStorageType {
+  string name = 1;                              // 기본 정보(이름, 아이콘, 기타 등등)
+  bytes icon = 2;
+
+  repeated InputField connSchema = 10;          // 최소한(필수)으로 필요한 연결 설정 정보 리스트 ( HOST, PORT, DBNAME 등 )
+
+  message AuthSchema {
+    AuthType authType = 1;                      // 인증 종류 ( NONE, USER_PASSWORD 등 )
+    repeated InputField authSchema = 2;         // 인증 종류에 따라 필요한 데이터
+  }
+  repeated AuthSchema authSchema = 20;          // 지원하는 인증 리스트
+  // SSL
+}
+
+// Adaptor 저장소 연결용 JDBC 드라이버
+message Adaptor {
+  string id = 1;                                // 아이디
+  string name = 2;                              // 이름
+  string storageType = 3;                       // 저장소 유형 이름
+  string version = 4;                           // 버전
+  string path = 6;                              // JDBC 드라이버 경로
+  string class = 7;                             // Class 이름
+  repeated string url = 5;                      // 드라이버 연결에 사용되는 URL 리스트
+  repeated InputField basicOptions = 8;         // 저장소 유형에서 요구하는 입력 정보 + 어댑터에서 요구하는 입력 정보
+  repeated InputField additionalOptions = 9;    // 저장소 유형에서 요구하는 입력 정보 + 어댑터에서 요구하는 입력 정보
+}
+
+message ResSupportedStorageType{
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    repeated SupportedStorageType supportedStorageType = 1;
+  }
+  Data data = 3;
+}
+
+message ReqAdaptors {
+  string storageType = 1;
+}
+
+message ResAdaptors {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    repeated Adaptor adaptors = 1;
+  }
+  Data data = 3;
+}
