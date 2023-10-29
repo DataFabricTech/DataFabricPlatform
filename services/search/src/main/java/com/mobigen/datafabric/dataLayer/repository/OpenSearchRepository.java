@@ -1,14 +1,17 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
 import com.mobigen.datafabric.dataLayer.config.OpenSearchConfig;
-import com.mobigen.datafabric.dataLayer.model.OpenSearchModel;
+import com.mobigen.datafabric.dataLayer.model.DataSetModel;
 import com.mobigen.datafabric.dataLayer.model.RecentSearchesModel;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.datafabric.dataLayer.model.StorageModel;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.HttpHost;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.ErrorResponse;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TextProperty;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
@@ -22,78 +25,158 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+@Slf4j
 public class OpenSearchRepository {
-    private final OpenSearchClient client = getClient();
+    private final OpenSearchClient client;
     private final OpenSearchConfig openSearchConfig;
 
     public OpenSearchRepository(OpenSearchConfig openSearchConfig) {
         this.openSearchConfig = openSearchConfig;
+        this.client = getClient();
     }
 
-    public OpenSearchClient getClient() {
-        final HttpHost[] hosts = new HttpHost[]{ // TODO change using config
-                new HttpHost("http", "192.168.107.28", 35000)
-        };
 
-        final OpenSearchTransport transport = ApacheHttpClient5TransportBuilder
-                .builder(hosts)
-                .setMapper(new JacksonJsonpMapper())
-                .build();
-        return new OpenSearchClient(transport);
-    }
-
-    public LinkedList<String> search(List mustQueryArray, List<Query> shouldQueryArray) {
-        var dataModelIds = new LinkedList<String>();
+    public OpenSearchClient getClient() throws OpenSearchException, NullPointerException {
         try {
-            // TODO must가 List여야만 가능했던 걸로 기억이 나는데, List<Query>를 다시 Test해보자.
+            log.info("OpenSearch Server: {}:{}", openSearchConfig.getHost(), openSearchConfig.getPort());
+
+            final HttpHost[] hosts = new HttpHost[]{
+                    new HttpHost("http", openSearchConfig.getHost(), openSearchConfig.getPort())
+            };
+
+            final OpenSearchTransport transport = ApacheHttpClient5TransportBuilder
+                    .builder(hosts)
+                    .setMapper(new JacksonJsonpMapper())
+                    .build();
+            return new OpenSearchClient(transport);
+        } catch (OpenSearchException e) {
+            log.error("[getClient] cause : {}, message : {}", e.getCause(), e.getMessage());
+            throw e;
+        } catch (NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public LinkedList<String> search(List<Query> mustQueryArray, List<Query> shouldQueryArray)
+            throws OpenSearchException, IOException {
+        log.info("[search] start");
+        var ids = new LinkedList<String>();
+        try {
             var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
-                            .query(q -> q.bool(b -> b.minimumShouldMatch("1")
+                            .query(q -> q.bool(b -> b.minimumShouldMatch("1") // minimum을 이용해서 should를 or처럼 사용한다.
                                     .must(mustQueryArray)
                                     .should(shouldQueryArray)))
-                    , OpenSearchModel.class).hits().hits();
-            hits.forEach(hit -> dataModelIds.add(hit.source().getId()));
-        } catch (Exception e) { // TODO
-            e.printStackTrace();
+                    , DataSetModel.class).hits().hits();
+            hits.forEach(hit -> {
+                var id = hit.source().getId();
+                ids.add(id.substring(1, id.length() - 1));
+            });
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
         }
 
-        return dataModelIds;
+        return ids;
     }
 
-    public Hit<RecentSearchesModel> search(String userId) {
+    /**
+     *
+     * @param shouldQueryArray
+     * @return
+     * @throws OpenSearchException
+     * @throws IOException
+     */
+    public LinkedList<String> search(List<Query> shouldQueryArray) throws OpenSearchException, IOException {
+        log.info("[search] start");
+        var ids = new LinkedList<String>();
+        try {
+            var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+                            .size(10000)
+                            .query(q -> q.bool(b -> b.minimumShouldMatch("1").should(shouldQueryArray)))
+                    , StorageModel.class).hits().hits();
+            hits.forEach(hit -> {
+                var id = hit.source().getId();
+                ids.add(id.substring(1, id.length() - 1));
+            });
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+        return ids;
+    }
+
+    public LinkedList<String> search() throws OpenSearchException, IOException {
+        log.info("[search] start");
+        var ids = new LinkedList<String>();
+        try {
+            var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+                            .size(10000)
+                    , DataSetModel.class).hits().hits();
+            hits.forEach(hit -> {
+                var id = hit.source().getId();
+                ids.add(id.substring(1, id.length() - 1));
+            });
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+        return ids;
+    }
+
+    public Hit<DataSetModel> searchId(String id)
+            throws OpenSearchException, IOException, IndexOutOfBoundsException {
+        log.info("[searchId] start");
+        try {
+            return client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+                            .query(q -> q.match(
+                                    m -> m.field("id").query(FieldValue.of(id))
+                            ))
+                    , DataSetModel.class).hits().hits().get(0);
+        } catch (OpenSearchException | IOException | IndexOutOfBoundsException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public Hit<RecentSearchesModel> searchRecent(String userId) throws OpenSearchException, IOException {
+        log.info("[searchRecent] start");
+        try {
+            var hits = client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
+                            .query(q -> q.match(
+                                    m -> m.field("userId").query(FieldValue.of(userId))
+                            )),
+                    RecentSearchesModel.class).hits().hits();
+            return !hits.isEmpty() ? hits.get(0) : null;
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+
+    public String[] getResentSearches(String userId)
+            throws OpenSearchException, IOException, IndexOutOfBoundsException {
+        log.info("[getResentSearches] start");
         try {
             return client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
                             .query(q -> q.match(
                                     m -> m.field("userId").query(FieldValue.of(userId))
                             )),
-                    RecentSearchesModel.class).hits().hits().get(0);
-        } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public String[] getResentSearches(String userId) {
-        try {
-            return client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
-                    .query(q -> q.match(
-                            m -> m.field("userId").query(FieldValue.of(userId))
-                    )),
                     RecentSearchesModel.class).hits().hits().get(0).source().getRecentSearches();
-        } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
+        } catch (OpenSearchException | IOException | IndexOutOfBoundsException e) {
+            log.error(e.getMessage());
+            throw e;
         }
-
-        return null;
     }
 
-    public void createIndex() {
+    public void createIndex() throws OpenSearchException, IOException {
         try {
+            log.info("[createIndex] Create data model index");
             if (checkIndex(openSearchConfig.getDataModelIndex())) {
-                // todo log start check datamodelindex create datamodelindex
                 var properties = new HashMap<String, Property>();
                 // todo properties -> meta는 필요 없음?
-                for (var field : OpenSearchModel.class.getDeclaredFields()) {
+                for (var field : DataSetModel.class.getDeclaredFields()) {
                     if (field.getType() == String.class) {
                         properties.put(field.getName(), new Property.Builder()
                                 .text(new TextProperty.Builder().fielddata(true).build()).build());
@@ -105,76 +188,162 @@ public class OpenSearchRepository {
                 client.indices().create(c -> c.index(openSearchConfig.getDataModelIndex()).mappings(mappings));
             }
 
-            // todo log start check recentSearches create recentSearches
+            if (checkIndex(openSearchConfig.getStorageIndex())) {
+                client.indices().create(c -> c.index(openSearchConfig.getStorageIndex()));
+            }
+
+            if (checkIndex(openSearchConfig.getRecentSearchesIndex())) {
+                client.indices().create(c -> c.index(openSearchConfig.getRecentSearchesIndex()));
+            }
+
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+
+        try {
+            log.info("[createIndex] Create recent searches index");
             if (checkIndex(openSearchConfig.getRecentSearchesIndex()))
-                // todo log
-                // todo recentsearches's schema 상관 없나? test 해볼것
                 client.indices().create(c -> c.index(openSearchConfig.getRecentSearchesIndex()));
         } catch (OpenSearchException | IOException e) {
-            // todo
-            e.printStackTrace();
+            log.error("[createIndex] Create recent search index Error, cause : {}, message : {}",
+                    e.getCause(), e.getMessage());
         }
     }
 
-    public boolean checkIndex(String indexName) {
+    public boolean checkIndex(String indexName) throws IOException {
         try {
-            return !client.indices().get(i -> i.index(indexName)).result().isEmpty();
+            return !client.indices().exists(e -> e.index(indexName)).value();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+
+    public void insertDocument(DataSetModel dataSetModel) throws OpenSearchException, IOException {
+        log.info("[insertDocument] start");
+        try {
+            var response = client.index(i -> i.index(openSearchConfig.getDataModelIndex())
+                    .document(dataSetModel));
+            if (response.result() != Result.Created) {
+                log.error(String.format("Client Create Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Insert Fail")
+                                        .type("INSERT")).status(500).build());
+            }
         } catch (OpenSearchException | IOException e) {
-            return false;
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
-
-    public void insertDocument(OpenSearchModel openSearchModel) {
+    public void insertDocument(RecentSearchesModel recentSearchesModel) throws OpenSearchException, IOException {
         try {
-            client.index(i -> i.index(openSearchConfig.getDataModelIndex()).document(openSearchModel));
+            var response = client.index(i -> i.index(openSearchConfig.getRecentSearchesIndex())
+                    .document(recentSearchesModel));
+            if (response.result() != Result.Created) {
+                log.error(String.format("Client Create Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Insert Fail")
+                                        .type("INSERT")).status(500).build());
+            }
         } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
-    public void insertDocument(RecentSearchesModel recentSearchesModel) {
+    /**
+     * @param dataSetModel update document
+     * @param id           document's id
+     */
+    public void updateDocument(DataSetModel dataSetModel, String id) throws OpenSearchException, IOException {
+        log.info("[updateDocument] start");
         try {
-            client.index(i -> i.index(openSearchConfig.getRecentSearchesIndex()).document(recentSearchesModel));
+            var docId = getDocumentId(id);
+
+            var response = client.update(u -> u.index(openSearchConfig.getDataModelIndex())
+                            .id(docId)
+                            .doc(dataSetModel)
+                    , DataSetModel.class);
+            if (response.result() != Result.Updated && response.result() != Result.NoOp) {
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("Client Update fail, because of same document update twice")
+                                        .type("UPDATE")).status(500).build());
+            }
         } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
-    public void updateDocument(OpenSearchModel openSearchModel, String id) {
+    /**
+     * @param recentSearchesModel update document
+     * @param docId               document's id
+     */
+    public void updateDocument(RecentSearchesModel recentSearchesModel, String docId) throws OpenSearchException, IOException {
         try {
-            client.update(u -> u.index(openSearchConfig.getDataModelIndex())
-                            .id(id)
-                            .doc(openSearchModel)
-                    , RecentSearchesModel.class);
-        } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void updateDocument(RecentSearchesModel recentSearchesModel, String id) {
-        try {
-            client.update(u -> u.index(openSearchConfig.getRecentSearchesIndex())
-                            .id(id)
+            var response = client.update(u -> u.index(openSearchConfig.getRecentSearchesIndex())
+                            .id(docId)
                             .doc(recentSearchesModel)
                     , RecentSearchesModel.class);
+            if (response.result() != Result.Updated && response.result() != Result.NoOp) {
+                log.error(String.format("Client Update Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("Client Update fail, because of same document update twice")
+                                        .type("UPDATE")).status(500).build());
+            }
         } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
+            log.error("[updateDocument] cause : {}, message : {}", e.getCause(), e.getMessage());
+            throw e;
         }
     }
 
-    public void deleteDocument(String id) {
+    public void deleteDocument(String id) throws OpenSearchException, IOException {
+        log.info("[deleteDocument] start");
         try {
-            var docId = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+            var docId = getDocumentId(id);
+            var response = client.delete(d -> d.index(openSearchConfig.getDataModelIndex()).id(docId));
+            if (response.result() != Result.Deleted) {
+                log.error(String.format("Client Delete Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Delete Fail")
+                                        .type("DELETE")).status(500).build());
+            }
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public String getDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
+        try {
+            return client.search(s -> s.index(openSearchConfig.getDataModelIndex())
                     .query(q -> q.match(
                             m -> m.field("id").query(FieldValue.of(id))
-                    )), OpenSearchModel.class).hits().hits().get(0).id();
-
-            client.delete(d -> d.index(openSearchConfig.getDataModelIndex()).id(docId));
-        } catch (OpenSearchException | IOException e) {
-            e.printStackTrace();
+                    )), DataSetModel.class).hits().hits().get(0).id();
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
         }
+    }
 
+    public String getRecentDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
+        try {
+            return client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
+                    .query(q -> q.match(
+                            m -> m.field("id").query(FieldValue.of(id))
+                    )), RecentSearchesModel.class).hits().hits().get(0).id();
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
     }
 }
 

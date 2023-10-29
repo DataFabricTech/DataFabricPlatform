@@ -11,20 +11,26 @@ option optimize_for = SPEED;
 import "google/protobuf/empty.proto";
 
 service DataLayerGRPCService {
-  rpc receiver(QueryRequestMessage) returns (QueryResponseMessage);
-  rpc search(SearchRequestMessage) returns (SearchResponseMessage);
-  rpc recentSearch(RecentSearchesRequestMessage) returns (RecentSearchesResponseMessage);
-  rpc healthCheck(google.protobuf.Empty) returns (HealthCheckResponseMessage);
+  rpc execute(QueryRequest) returns (QueryResponse);
+  rpc executeBatch(BatchRequest) returns (BatchResponse);
+  rpc search(SearchRequest) returns (SearchResponse);
+  rpc recentSearch(RecentSearchesRequest) returns (RecentSearchesResponse);
+  rpc healthCheck(google.protobuf.Empty) returns (HealthCheckResponse);
 }
 
-message QueryRequestMessage {
-  string query = 1;
+message QueryRequest {
+  string sql = 1;
 }
 
-message QueryResponseMessage {
-  bool success = 1;
-  repeated Column column = 2;
-  repeated Rows rows = 3;
+message QueryResponse {
+  bool status = 1;
+  Table table = 2;
+  string errorMessage = 3;
+}
+
+message Table {
+  repeated Column column = 1;
+  repeated Rows rows = 2;
 }
 
 message Column {
@@ -50,27 +56,40 @@ message Rows {
   repeated Row row = 1;
 }
 
-message SearchRequestMessage {
+message BatchRequest {
+  repeated string sql = 1;
+}
+
+message BatchResponse {
+  bool status = 1;
+  string errorMessage = 2;
+}
+
+message SearchRequest {
   string input = 1;
   DataModel detailSearch = 2;
   Filter filterSearch = 3;
   string userId = 4;
 }
 
-message Filter{
-  repeated string types = 1;
-  repeated string formats = 2;
-  repeated string knowledgeGraphs = 3;
-  repeated string categoryNames = 4;
-  repeated string tagNames = 5;
-  repeated string connectorNames = 6;
-  repeated string connectorTypes = 7;
-  repeated string creatorIDs = 8;
+message SearchResponse{
+  bool statue = 1;
+  repeated Table dataSet = 2;
+  repeated Table storage = 3;
+  FiltersResponse filters = 4;
+  string errorMessage = 5;
 }
 
-message SearchResponseMessage{
-  repeated DataModel dataModel = 1;
-  FiltersResponse filters = 2;
+message RecentSearchesRequest{
+  string userId = 1;
+}
+
+message RecentSearchesResponse{
+  repeated string searched = 1;
+}
+
+message HealthCheckResponse{
+  bool status = 1;
 }
 
 message DataModel{
@@ -91,15 +110,26 @@ message DataModel{
   Time createdAt = 15;
 }
 
+message Meta {
+  string key = 1;
+  string value = 2;
+}
+
 message Time {
   string time = 1;
   string format = 2;
   string timeOperator = 16;
 }
 
-message Meta {
-  string key = 1;
-  string value = 2;
+message Filter{
+  repeated string types = 1;
+  repeated string formats = 2;
+  repeated string knowledgeGraphs = 3;
+  repeated string categoryNames = 4;
+  repeated string tagNames = 5;
+  repeated string connectorNames = 6;
+  repeated string connectorTypes = 7;
+  repeated string creatorIDs = 8;
 }
 
 message FiltersResponse {
@@ -124,17 +154,3 @@ message CreatorResponse {
   int64 count = 3;
 }
 
-message RecentSearchesRequestMessage{
-  string userId = 1;
-}
-
-message RecentSearchesResponseMessage{
-  repeated string searched = 1;
-}
-
-message HealthCheckRequestMessage{
-}
-
-message HealthCheckResponseMessage{
-  bool status = 1;
-}

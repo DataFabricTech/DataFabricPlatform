@@ -55,6 +55,7 @@ public class Config {
         } catch (Exception e) {
             return null;
         }
+
         return config;
     }
 

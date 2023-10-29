@@ -7,7 +7,9 @@ import org.apache.commons.configuration.Configuration;
 @Getter
 public class DBConfig {
     private final Configuration config;
-    private final String tableName;
+    private final String dataSet;
+    private final String storage;
+    private final String dataTag;
     private final String url;
     private final String username;
     private final String password;
@@ -15,7 +17,9 @@ public class DBConfig {
 
     public DBConfig(Configuration config) {
         this.config = config;
-        this.tableName = config.getString("datasource.table_name");
+        this.dataSet = config.getString("datasource.table_name.data_set");
+        this.storage = config.getString("datasource.table_name.storage");
+        this.dataTag = config.getString("datasource.table_name.data_tag");
         this.url = config.getString("datasource.url");
         this.username = config.getString("datasource.username");
         this.password = config.getString("datasource.password");

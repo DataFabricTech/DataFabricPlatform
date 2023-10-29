@@ -2,11 +2,13 @@ package com.mobigen.libs.grpc;
 
 
 public interface DataLayerCallBack {
-    QueryResponseMessage query(String query);
+    QueryResponse execute(String sql);
 
-    SearchResponseMessage search(String input, DataModel detailSearch, Filter filterSearch, String userId);
+    BatchResponse executeBatch(String[] sql);
 
-    RecentSearchesResponseMessage recentSearch(String userId);
+    SearchResponse search(String input, DataModel detailSearch, Filter filterSearch, String userId);
 
-    HealthCheckResponseMessage healthCheck();
+    RecentSearchesResponse recentSearch(String userId);
+
+    HealthCheckResponse healthCheck();
 }

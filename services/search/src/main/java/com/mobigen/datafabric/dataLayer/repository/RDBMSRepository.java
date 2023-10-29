@@ -5,6 +5,7 @@ import com.mobigen.datafabric.dataLayer.config.DBConfig;
 import com.mobigen.libs.grpc.Time;
 import com.mobigen.libs.grpc.*;
 import lombok.extern.slf4j.Slf4j;
+import org.opensearch.client.json.JsonpUtils;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -17,149 +18,150 @@ public class RDBMSRepository {
         this.dbConfig = dbConfig;
     }
 
-
-    public QueryResponseMessage insertQuery(String query) {
-        try (var rs = executeQuery(query)) {
-            return QueryResponseMessage.newBuilder().setSuccess(true).build();
-        } catch (SQLException e) {
-            // todo 여기에 실패 이유에 대한 log 필요 아마 e를 이용하면 될 듯 하다.
-            return QueryResponseMessage.newBuilder().setSuccess(false).build();
+    public void executeUpdate(String sql) throws SQLException, ClassNotFoundException {
+        log.info("[executeUpdate] start");
+        // TODO insert/update의 경우 update_at 같은 것을 넣어줘야 한다.
+        try (
+                Connection conn = getConnection();
+                Statement stmt = conn.createStatement()
+        ) {
+            stmt.executeUpdate(sql); // todo 보안 취약점 발생
+            conn.commit();
+        } catch (SQLException | ClassNotFoundException e) {
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
-    public QueryResponseMessage execute(String query) {
-        try (var rs = executeQuery(query)) {
-            return QueryResponseMessage.newBuilder().setSuccess(true).build();
-        } catch (SQLException e) {
-            log.error("Query Execute Fail");
-            return QueryResponseMessage.newBuilder().setSuccess(false).build();
+    public void executeBatchUpdate(String[] sqls) throws SQLException, ClassNotFoundException {
+        log.info("[executeBatchUpdate] start");
+        try (
+                var conn = getConnection();
+                var stmt = conn.createStatement();
+        ) {
+            for (var sql : sqls)
+                stmt.addBatch(sql);
+            stmt.executeBatch();
+            conn.commit();
+        } catch (SQLException | ClassNotFoundException e) {
+            log.error("[executeBatchUpdate] cause : {}, message : {}", e.getCause(), e.getMessage());
+            throw e;
         }
     }
 
-    public QueryResponseMessage deleteQuery(String query) {
-        try (var rs = executeQuery(query)) {
-            return QueryResponseMessage.newBuilder().setSuccess(true).build();
-        } catch (SQLException e) {
-            // todo 여기에 실패 이유에 대한 log 필요 아마 e를 이용하면 될 듯 하다.
-            return QueryResponseMessage.newBuilder().setSuccess(false).build();
-        }
-    }
-
-    public QueryResponseMessage updateQuery(String query) {
-        try (ResultSet rs = executeQuery(query)) {
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-
-    }
-
-    public QueryResponseMessage selectQuery(String query) {
+    public Table executeQuery(String sql) throws SQLException, ClassNotFoundException {
+        log.info("[executeQuery] start");
         Column column;
         Row row;
         Time time;
-        Rows.Builder rowsBuilder = Rows.newBuilder();
-        QueryResponseMessage.Builder queryResponseMessageBuilder = QueryResponseMessage.newBuilder();
+        Table.Builder tableBuilder = Table.newBuilder();
+        try (
+                Connection conn = getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql); // todo 보안 취약점 발생으로 인한 처리 필요
+        ) {
+            /*
+              reference
+              https://documentation.softwareag.com/webmethods/adapters_estandards/Adapters/JDBC/JDBC_10-3/10-3_Adapter_for_JDBC_webhelp/index.html#page/jdbc-webhelp/co-jdbc_data_type_to_java_data_type.html
+             */
 
-        try (ResultSet rs = executeQuery(query)) {
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 column = Column.newBuilder().setColumnName(rs.getMetaData().getColumnName(i))
                         .setType(setColumnType(rs.getMetaData().getColumnType(i)))
                         .build();
-                queryResponseMessageBuilder.addColumn(column);
+                tableBuilder.addColumn(column);
             }
 
-            /**
-             * reference
-             * https://documentation.softwareag.com/webmethods/adapters_estandards/Adapters/JDBC/JDBC_10-3/10-3_Adapter_for_JDBC_webhelp/index.html#page/jdbc-webhelp/co-jdbc_data_type_to_java_data_type.html
-             */
             while (rs.next()) {
+                Rows.Builder rowsBuilder = Rows.newBuilder();
                 for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                    switch (rs.getMetaData().getColumnType(i)) {
-                        case 4, 5: // INTEGER, SMALLINT
-                            row = Row.newBuilder()
-                                    .setInt32Value(rs.getInt(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case 6, 7: // FLOAT, REAL
-                            row = Row.newBuilder()
-                                    .setFloatValue(rs.getFloat(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case 8, 3, 2: // DOUBLE, NUMERIC, DECIMAL
-                            row = Row.newBuilder()
-                                    .setDoubleValue(rs.getDouble(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case -2, -3, 2004: // BINARY, VARBINARY, BLOB
-                            row = Row.newBuilder()
-                                    .setBytesValue(ByteString.copyFrom(rs.getBytes(i)))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case 91: // DATE
+                    row = switch (rs.getMetaData().getColumnType(i)) {
+                        case 4, 5 -> // INTEGER, SMALLINT
+                                Row.newBuilder()
+                                        .setInt32Value(rs.getInt(i))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        case 6, 7 -> // FLOAT, REAL
+                                Row.newBuilder()
+                                        .setFloatValue(rs.getFloat(i))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        case 8, 3, 2 -> // DOUBLE, NUMERIC, DECIMAL
+                                Row.newBuilder()
+                                        .setDoubleValue(rs.getDouble(i))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        case -2, -3, 2004 -> // BINARY, VARBINARY, BLOB
+                                Row.newBuilder()
+                                        .setBytesValue(ByteString.copyFrom(rs.getBytes(i)))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        case 91 -> { // DATE
                             time = Time.newBuilder()
                                     .setTime(rs.getDate(i).toString())
                                     .setFormat("yyyy-mm-dd")
                                     .build();
-
-                            row = Row.newBuilder()
+                            yield Row.newBuilder()
                                     .setTimeValue(time)
                                     .setColumnName(rs.getMetaData().getColumnName(i))
                                     .build();
-                            break;
-                        case 92: // Time
+                        }
+                        case 92 -> { // Time
                             time = Time.newBuilder()
                                     .setTime(rs.getTime(i).toString())
                                     .setFormat("HH:MM:ss")
                                     .build();
-                            row = Row.newBuilder()
+                            yield Row.newBuilder()
                                     .setTimeValue(time)
                                     .setColumnName(rs.getMetaData().getColumnName(i))
                                     .build();
-                            break;
-                        case 93: // TIMESTAMP
-                            time = Time.newBuilder()
-                                    .setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").format(rs.getTimestamp(i)))
-                                    .setFormat("yyyy-MM-dd HH:mm:ss.sss")
-                                    .build();
+                        }
+                        case 93 -> { // TIMESTAMP
+                            if (rs.getTimestamp(i) != null) {
+                                time = Time.newBuilder()
+                                        .setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").format(rs.getTimestamp(i)))
+                                        .setFormat("yyyy-MM-dd HH:mm:ss.sss")
+                                        .build();
+                                yield Row.newBuilder()
+                                        .setTimeValue(time)
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                            } else {
+                                yield Row.newBuilder().build();
+                            }
+                        }
+                        case 16, -6 -> // BOOLEAN, TINYINT
+                                Row.newBuilder()
+                                        .setBoolValue(rs.getBoolean(i))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        case -5 -> // BIGINT
+                                Row.newBuilder()
+                                        .setInt64Value(rs.getLong(i))
+                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .build();
+                        default -> // Others
+                                rs.getString(i) != null ?
+                                        Row.newBuilder()
+                                                .setStringValue(rs.getString(i))
+                                                .setColumnName(rs.getMetaData().getColumnName(i))
+                                                .build()
+                                        :
+                                        Row.newBuilder()
+                                                .setStringValue("")
+                                                .setColumnName(rs.getMetaData().getColumnName(i))
+                                                .build();
 
-                            row = Row.newBuilder()
-                                    .setTimeValue(time)
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case 16, -6: // BOOLEAN, TINYINT
-                            row = Row.newBuilder()
-                                    .setBoolValue(rs.getBoolean(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        case -5: // BIGINT
-                            row = Row.newBuilder()
-                                    .setInt64Value(rs.getLong(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                        default: // Others
-                            row = Row.newBuilder()
-                                    .setStringValue(rs.getString(i))
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                            break;
-                    }
+                    };
                     rowsBuilder.addRow(row);
                 }
-                queryResponseMessageBuilder.addRows(rowsBuilder.build());
+                tableBuilder.addRows(rowsBuilder.build());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+            throw e;
         }
-        return queryResponseMessageBuilder.build();
+        return tableBuilder.build();
     }
 
     public String setColumnType(int columTypeEnum) {
@@ -184,15 +186,19 @@ public class RDBMSRepository {
         };
     }
 
-    private ResultSet executeQuery(String query) throws SQLException {
+    private Connection getConnection() throws ClassNotFoundException, SQLException {
         String url = dbConfig.getUrl();
         String user = dbConfig.getUsername();
         String pw = dbConfig.getPassword();
 
-        try (Connection conn = DriverManager.getConnection(url, user, pw);
-             Statement stmt = conn.createStatement();
-        ) {
-            return stmt.executeQuery(query);
+        try {
+            Class.forName("org.postgresql.Driver");
+            var conn = DriverManager.getConnection(url, user, pw);
+            conn.setAutoCommit(false);
+            return conn;
+        } catch (ClassNotFoundException | SQLException e) {
+            log.error("[getConnection] cause : {}, message : {}", e.getCause(), e.getMessage());
+            throw e;
         }
     }
 }

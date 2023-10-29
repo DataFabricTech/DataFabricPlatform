@@ -1,12 +1,17 @@
 open_search:
+  host: 192.168.107.28
+  port: 35000
   index:
     data_model: dataModelIndex
-    recent_searches: recentSearches
+    recent_searches: recentSearchesIndex
+    storage: storageIndex
   recent_count: 5
 
 datasource:
   url: jdbc:postgresql://192.168.106.104:5432/testdb
   username: testuser
   password: testUser
-  table_name: data_model
+  table:
+    data_set_name: data_set
+    storage_name: storage
 

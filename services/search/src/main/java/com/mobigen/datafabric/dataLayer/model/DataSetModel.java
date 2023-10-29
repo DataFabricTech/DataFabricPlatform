@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 
 @Getter
 @Setter
-public class OpenSearchModel {
+public class DataSetModel {
     @Nullable
     private String id;
     @Nullable
