@@ -60,4 +60,5 @@ do
 done
 
 # Copy Generated Files To ../../services/gateway/protobuf
+mkdir -p "$current_path"/../../services/gateway/protobuf
 cp -r "$current_path"/src/main/golang/* "$current_path"/../../services/gateway/protobuf

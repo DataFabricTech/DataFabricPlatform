@@ -29,13 +29,28 @@ func (h *Injector) Init() error {
 	ver := Version{}.Init(h)
 	h.Router.GET("/version", ver.GetVersion)
 
-	// Grouping
-	portalGroup := h.Router.Group("/portal/v1")
-
-	// Sample
+	// Portal : Grouping
 	h.Log.Errorf("[ PATH ] /portal/v1 ............................................................... [ OK ]")
+	portalGroup := h.Router.Group("/portal/v1")
 	portal := PortalInjector{}.Init(h)
 	portalGroup.POST("/search", portal.Search)
 	portalGroup.GET("/recent-searches", portal.RecentSearches)
+
+	// Data Catalog : Grouping
+	// Data Catalog Detail
+
+	// Data Catalog Browser
+
+	// Storage : Grouping
+	h.Log.Errorf("[ PATH ] /storage/v1 .............................................................. [ OK ]")
+	storageGroup := h.Router.Group("/storage/v1")
+	// Adaptor
+	adaptor := AdaptorInjector{}.Init(h)
+	storageGroup.GET("/storage-type", adaptor.SupportedStorageType)
+	storageGroup.GET("/adaptors", adaptor.GetAdaptors)
+	// Storage Management
+
+	// Storage Browser
+
 	return nil
 }

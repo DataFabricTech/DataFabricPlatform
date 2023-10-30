@@ -52,3 +52,4 @@ gradle/wrapper/
 /share/models/src/main/golang/
 /services/gateway/protobuf/
 /services/gateway/.cache/
+/services/gateway/Library/Caches/go-build/
