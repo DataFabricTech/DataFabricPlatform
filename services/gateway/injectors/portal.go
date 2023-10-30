@@ -9,10 +9,10 @@ import (
 type PortalInjector struct{}
 
 // Init for interconnection [ controller(App) - Service(Repository) - repository - datastore ] : Dependency Injection
-func (PortalInjector) Init(in *Injector) *controllers.Portal {
-	svc, err := services.PortalService{}.Initialize(in.Log.Logger, "localhost", 9360)
+func (PortalInjector) Init(in *Injector) *controllers.PortalController {
+	svc, err := services.PortalServiceInitialize(in.Log.Logger, "localhost", 9360)
 	if err != nil {
 		return nil
 	}
-	return controllers.Portal{}.New(svc)
+	return controllers.PortalControllerInitialize(svc)
 }

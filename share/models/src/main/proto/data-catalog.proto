@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package com.mobigen.datafabric.share.protobuf;
 
-option go_package= "github.com/mobigen/datafabric/protobuf";
+option go_package = "github.com/mobigen/datafabric/protobuf";
 
 import "utilities.proto";
 import "user.proto";
@@ -59,7 +59,7 @@ message DataCatalog {
   repeated string tag = 17;
 
   Permission permission = 18;
-//  SampleData sampleData = 19;
+  //  SampleData sampleData = 19;
   DownloadInfo downloadInfo = 20;
 
   // 사용자들의 평가 정보
@@ -94,11 +94,12 @@ message DataRefine {
 }
 
 message DataStructure {
-  string name = 1;
-  string colType = 2;
-  int32 length = 3;
-  string defaultValue = 4;
-  string desc = 5;
+  int32 order = 1;
+  string name = 2;
+  string colType = 3;
+  int32 length = 4;
+  string defaultValue = 5;
+  string description = 6;
 }
 
 message Category {
@@ -129,7 +130,7 @@ message DownloadInfo {
 }
 
 message RatingAndComment {
-//  string id = 1;
+  //  string id = 1;
   User user = 1;
   DateTime lastModifiedAt = 2;
   int32 rating = 3;
@@ -187,18 +188,18 @@ message ReqRatingAndComment {
 }
 
 message DataCatalogSearch {
-    message DataCatalogSearchFilter {
-      string keyword = 1;
-      message DateRange {
-        string from = 1;
-        string to = 2;
-      }
-      DateRange dateRange = 2;
-      string dataType = 3;
-      string dataFormat = 4;
+  message DataCatalogSearchFilter {
+    string keyword = 1;
+    message DateRange {
+      string from = 1;
+      string to = 2;
     }
-    DataCatalogSearchFilter filter = 1;
-    Pageable pageable = 2;
+    DateRange dateRange = 2;
+    string dataType = 3;
+    string dataFormat = 4;
+  }
+  DataCatalogSearchFilter filter = 1;
+  Pageable pageable = 2;
 }
 
 message ResDataCatalogs {

@@ -3,7 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
-	pbPortal "github.com/datafabric/gateway/proto/datamodel"
+	pbPortal "github.com/datafabric/gateway/protobuf"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -12,15 +13,17 @@ import (
 	"time"
 )
 
+const ServiceName = "PORTAL"
+
 // PortalService portal service struct
 type PortalService struct {
-	log           *logrus.Logger
-	conn          *grpc.ClientConn
-	serviceClient pbPortal.HelloServiceClient
+	log    *logrus.Logger
+	conn   *grpc.ClientConn
+	client pbPortal.PortalServiceClient
 }
 
-// Initialize dsl parser client 초기화
-func (PortalService) Initialize(log *logrus.Logger, host string, port int) (*PortalService, error) {
+// PortalServiceInitialize Portal Service 초기화
+func PortalServiceInitialize(log *logrus.Logger, host string, port int) (*PortalService, error) {
 	service := new(PortalService)
 	service.log = log
 
@@ -28,15 +31,14 @@ func (PortalService) Initialize(log *logrus.Logger, host string, port int) (*Por
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock())
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("can't connect DSL Parser[ %s ][ %v ]", address, err)
+		return nil, fmt.Errorf("can't connect Data Fabric Portal Service[ %s ][ %v ]", address, err)
 	}
 	service.conn = conn
-	service.serviceClient = pbPortal.NewHelloServiceClient(conn)
+	service.client = pbPortal.NewPortalServiceClient(conn)
 
-	service.log.Errorf("[ Portal Service Client ] Start ................................................... [ OK ]")
+	service.log.Errorf("[ Portal Service ] Start .......................................................... [ OK ]")
 	return service, nil
 }
 
@@ -45,23 +47,38 @@ func (service *PortalService) Destroy() {
 	_ = service.conn.Close()
 }
 
-func (service *PortalService) Hello(request *pbPortal.HelloRequest) (*pbPortal.HelloResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (service *PortalService) Search(request *pbPortal.ReqSearch) (*pbPortal.ResSearch, error) {
+	service.log.Infof("[%-10s] >> Search : Server", ServiceName)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
-	service.log.Infof("[Portal Service] >> Send Search")
-	res, err := service.serviceClient.Hello(ctx, request)
+	res, err := service.client.Search(ctx, request)
 	if err != nil {
 		errStatus, _ := status.FromError(err)
-		service.log.Errorf("[Portal Service] !! Error while Search. code[ %d ], msg[ %s ]", errStatus.Code(), errStatus.Message())
+		service.log.Errorf("[%-10s] !! Error while Search. Code[ %d ], MSG[ %s ]", ServiceName, errStatus.Code(), errStatus.Message())
 		switch errStatus.Code() {
 		case codes.DeadlineExceeded, codes.Unavailable:
 			_ = service.conn.Close()
-			// atomic.StoreInt32(&dslParserClient.state, models.GrpcDisconnected)
-			// common.Sentry{}.CaptureException(fmt.Errorf("DSL Parser Err[ %s ]", errStatus.Message()))
 		}
-		// dslParserClient.statManager.Add(stat.DslParseFail)
 		return nil, err
 	}
-	service.log.Infof("[Portal Service] << Receive Search")
+	service.log.Infof("[%-10s] << Search : Success", ServiceName)
+	return res, nil
+}
+
+func (service *PortalService) RecentSearches() (*pbPortal.ResRecentSearches, error) {
+	service.log.Infof("[%-10s] >> Recent Searches : Server", ServiceName)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	res, err := service.client.RecentSearches(ctx, &empty.Empty{})
+	if err != nil {
+		errStatus, _ := status.FromError(err)
+		service.log.Errorf("[%10s] !! Error while Recent Searches. Code[ %d ], MSG[ %s ]", ServiceName, errStatus.Code(), errStatus.Message())
+		switch errStatus.Code() {
+		case codes.DeadlineExceeded, codes.Unavailable:
+			_ = service.conn.Close()
+		}
+		return nil, err
+	}
+	service.log.Infof("[%-10s] << Recent Searches : Success", ServiceName)
 	return res, nil
 }

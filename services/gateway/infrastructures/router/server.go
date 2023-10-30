@@ -24,7 +24,7 @@ func Init(log *logrus.Logger, debug bool) (r *Router, err error) {
 
 	// Recover returns a middleware which recovers from panics anywhere in the chain
 	// and handles the control to the centralized HTTPErrorHandler.
-	r.Use(middleware.Recover())
+	// r.Use(middleware.Recover())
 
 	// CORS default
 	// 모든 원격지에서 오는 모든 메서드를 허용합니다.

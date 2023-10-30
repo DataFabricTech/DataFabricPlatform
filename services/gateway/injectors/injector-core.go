@@ -36,5 +36,6 @@ func (h *Injector) Init() error {
 	h.Log.Errorf("[ PATH ] /portal/v1 ............................................................... [ OK ]")
 	portal := PortalInjector{}.Init(h)
 	portalGroup.POST("/search", portal.Search)
+	portalGroup.GET("/recent-searches", portal.RecentSearches)
 	return nil
 }
