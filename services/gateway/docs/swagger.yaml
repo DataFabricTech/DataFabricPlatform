@@ -1,0 +1,52 @@
+definitions:
+  appdata.VersionInfo:
+    type: object
+    properties:
+      buildHash:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+  controllers.HTTPResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+      result:
+        type: string
+host: localhost:8080
+info:
+  contact:
+    email: irisdev@mobigen.com
+    name: API Support
+    url: http://mobigen.com
+  description: This is a golang web template server.
+  title: Golang Web Template API
+  version: 1.0.0
+paths:
+  /version:
+    get:
+      consumes:
+      - application/json
+      description: get server version info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: app info(name, version, hash)
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.HTTPResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/appdata.VersionInfo'
+              type: object
+      summary: Get Server Version
+      tags:
+      - version
+swagger: "2.0"
