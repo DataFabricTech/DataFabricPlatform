@@ -10,7 +10,7 @@ Sort:
       type: string
       description: 정렬 대상
     direction:
-      type: string
+      type: integer
       enum:
         - ASC
         - DESC
@@ -19,7 +19,7 @@ Sort:
   example:
     order: 1
     field: "name"
-    direction: "ASC"
+    direction: 0
 Page:
   type: object
   description: 페이지 정보
@@ -185,22 +185,26 @@ PieChartData:
   type: object
   description: 파이 차트 데이터
   properties:
-    data:
+    series:
       type: array
-      properties:
-        name:
-          type: string
-          description: 이름
-        y:
-          type: number
-          description: 값
-          format: double
+      items:
+        data:
+          type: array
+          properties:
+            name:
+              type: string
+              description: 이름
+            y:
+              type: number
+              description: 값
+              format: double
   example:
-    data:
-      - name: "서초1동"
-        y: 20543
-      - name: "서초2동"
-        y: 19406
+    series:
+      - data:
+        - name: "서초1동"
+          y: 20543
+        - name: "서초2동"
+          y: 19406
 BarChartData:
   type: object
   description: 바 차트 데이터

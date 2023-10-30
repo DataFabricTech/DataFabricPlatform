@@ -295,6 +295,8 @@ DataBrowser:
           - $ref: "../schemas/__index.yaml#/CommonResponse"
           - type: object
             properties:
+              pageable:
+                $ref: "../schemas/__index.yaml#/Pageable"
               dataCatalogs:
                 type: array
                 items:
@@ -305,6 +307,16 @@ DataBrowser:
           value:
             code: '200'
             data:
+              pageable:
+                page:
+                  size: 100
+                  totalSize: 1000
+                  selectPage: 1
+                  totalPage: 100
+                sort:
+                  - order: 1
+                    field: name
+                    direction: ASC
               dataCatalogs:
                 - id: data-catalog-id01
                   name: 데이터 이름
