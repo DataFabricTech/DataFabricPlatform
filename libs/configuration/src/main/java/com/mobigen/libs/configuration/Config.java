@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
 public class Config {
@@ -37,15 +39,15 @@ public class Config {
 
 
             if (type) { // yml
-                var yaml = new Yaml();
-                File tempFile = File.createTempFile("temp",".properties");
+                var yml = new Yaml();
                 InputStream in = resourceFile.openStream();
 
-                TreeMap<String, Map<String, Object>> ymlConfig = yaml.loadAs(in, TreeMap.class);
+                Map<String, Object> ymlConfig = yml.load(in);
+                var properties = new Properties();
 
-                FileWriter writer = new FileWriter(tempFile);
-                writer.write(toProperties(ymlConfig));
-                writer.close();
+                toProperties("", ymlConfig, properties);
+                File tempFile = File.createTempFile("temp",".properties");
+                properties.store(new FileWriter(tempFile), "Converted form YAML");
 
                 config.load(tempFile);
                 tempFile.delete();
@@ -55,8 +57,27 @@ public class Config {
         } catch (Exception e) {
             return null;
         }
+
         return config;
     }
+
+    private void toProperties(String prefix, Map<String, Object> map, Properties properties) {
+        for (Map.Entry<String, Object> entry: map.entrySet()) {
+            var key = prefix.isEmpty() ? entry.getKey(): String.format("%s.%s", prefix, entry.getKey());
+            var value = entry.getValue();
+            if (value instanceof Map) {
+                toProperties(key, (Map<String, Object>) value, properties);
+            } else if (value instanceof List){
+                var list = (List<Object>) value;
+                for (int i = 0; i < list.size(); i++) {
+                    properties.put(key + "[" + i + "]", list.get(i).toString());
+                }
+            } else {
+                properties.put(key, value.toString());
+            }
+        }
+    }
+
 
     private String toProperties(TreeMap<String, Map<String, Object>> config) {
         StringBuilder sb = new StringBuilder();
