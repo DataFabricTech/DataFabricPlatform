@@ -24,7 +24,6 @@ paths:
         - "portal"
       responses:
         '200':
-          description: OK
           $ref: "./responses/__index.yaml#/RecentSearches"
   ## 데이터 카탈로그 - 미리보기
   /data/v1/preview:

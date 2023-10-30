@@ -20,24 +20,26 @@ StorageOverview:
               storageOverview:
 #                Pie Chart
                 storageTypeCount:
-                  data:
-                    - name: "IRIS"
-                      y: 100
-                    - name: "HDFS"
-                      y: 200
-                    - name: "MySQL"
-                      y: 300
-                    - name: "PostgreSQL"
-                      y: 400
+                  series:
+                    - data:
+                      - name: "IRIS"
+                        y: 100
+                      - name: "HDFS"
+                        y: 200
+                      - name: "MySQL"
+                        y: 300
+                      - name: "PostgreSQL"
+                        y: 400
 #                    Pie Chart
                 storageStatusCount:
-                  data:
-                    - name: "CONNECTED"
-                      y: 1000
-                    - name: "DISCONNECTED"
-                      y: 20
-                    - name: "ERROR"
-                      y: 3
+                  series:
+                    - data:
+                      - name: "CONNECTED"
+                        y: 1000
+                      - name: "DISCONNECTED"
+                        y: 20
+                      - name: "ERROR"
+                        y: 3
 #                    Bar Chart
                 storageStatistics:
                   categories:
