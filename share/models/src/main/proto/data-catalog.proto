@@ -2,8 +2,35 @@ syntax = "proto3";
 
 package com.mobigen.datafabric.share.protobuf;
 
-import "meta.proto";
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
 import "utilities.proto";
+import "user.proto";
+
+service DataCatalogService {
+  //  POST /data/v1/preview - 미리보기
+  rpc Preview(ReqId) returns (DataCatalogPreview);
+  //  POST /data/v1/default - 데이터 상세 보기 - 기본 정보
+  rpc Default(ReqId) returns (DataCatalogDefault);
+  //  POST /data/v1/metadata - 사용자 설정 메타 데이터 업데이트
+  rpc UserMetadata(ReqMetaUpdate) returns (CommonResponse);
+  //  POST /data/v1/tag - 데이터 태그 업데이트
+  rpc Tag(ReqTagUpdate) returns (CommonResponse);
+  //  POST /data/v1/download-request - 다운로드 요청
+  rpc DownloadRequest(ReqId) returns (CommonResponse);
+
+  //  POST /data/v1/comment/add - 데이터 평가와 댓글 추가
+  rpc AddComment(ReqRatingAndComment) returns (CommonResponse);
+  //  POST /data/v1/comment/update - 데이터 평가와 댓글 업데이트
+  rpc UpdateComment(ReqRatingAndComment) returns (CommonResponse);
+  //  POST /data/v1/comment/delete - 데이터 평가와 댓글 삭제
+  rpc DelComment(ReqId) returns (CommonResponse);
+
+  //  POST /data/v1/all-data/summary - 데이터 평가와 댓글 삭제
+  rpc AllDataSummary(DataCatalogSearch) returns (ResDataCatalogs);
+  //  POST /data/v1/all-data          - 데이터 평가와 댓글 삭제
+  rpc AllData(DataCatalogSearch) returns (ResDataCatalogs);
+}
 
 // DataCatalog 검색 결과, 미리보기, 기본 정보를 위한 데이터
 message DataCatalog {
@@ -13,64 +40,57 @@ message DataCatalog {
 
   string status = 4;
 
-  optional string dataType = 5;
-  optional string dataFormat = 6;
+  string dataType = 5;
+  string dataFormat = 6;
 
-  optional int32 row = 7;
-  optional int32 size = 9;
+  int32 row = 7;
+  int32 size = 9;
 
   // 저장소 정보와 원본 데이터로부터 가상화 설정 정보
   repeated DataLocation dataLocation = 11;
-  optional DataRefine dataRefine = 12;
+  DataRefine dataRefine = 12;
   // 전처리 후 가상화된 최종 데이터 구조
-  optional DataStructure dataStructure = 13;
+  repeated DataStructure dataStructure = 13;
 
   // 카테고리, 메타 데이터, 태그
   repeated Category category = 14;
-  Meta systemMeta = 15;
-  Meta userMeta = 16;
+  repeated Meta systemMeta = 15;
+  repeated Meta userMeta = 16;
   repeated string tag = 17;
 
-  optional Permission permission = 18;
-  optional SampleData sampleData = 19;
-  optional DownloadInfo downloadInfo = 20;
+  Permission permission = 18;
+//  SampleData sampleData = 19;
+  DownloadInfo downloadInfo = 20;
 
   // 사용자들의 평가 정보
   repeated RatingAndComment ratingAndComment = 21;
 
-  optional Statistics statistics = 22;
+  DataCatalogStatistics statistics = 22;
 
-  optional UserShortInfo creator = 23;
-  optional DateTime createdAt = 24;
-  optional UserShortInfo lastModifier = 25;
-  optional DateTime lastModifiedAt = 26;
-}
-
-message StorageInfo {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  string storageType = 4;
+  User creator = 23;
+  DateTime createdAt = 24;
+  User lastModifier = 25;
+  DateTime lastModifiedAt = 26;
 }
 
 message DataLocation {
   string storageId = 1;
-  optional string databaseName = 2;
-  optional string dataPath = 3;
-  optional string tableName = 4;
-  optional string fileName = 5;
+  string databaseName = 2;
+  string dataPath = 3;
+  string tableName = 4;
+  string fileName = 5;
 
-  optional string scope = 6;
-  optional string sheetName = 7;
-  optional string callRange = 8;
-  optional string separator = 9;
-  optional string beginTime = 10;
-  optional string endTime = 11;
+  string scope = 6;
+  string sheetName = 7;
+  string callRange = 8;
+  string separator = 9;
+  string beginTime = 10;
+  string endTime = 11;
 }
 
 message DataRefine {
-  optional string json = 1;
-  optional string query = 2;
+  string json = 1;
+  string query = 2;
 }
 
 message DataStructure {
@@ -92,40 +112,101 @@ message Category {
 message Permission {
   bool read = 1;
   bool write = 2;
-  bool share = 3;
-  bool execute = 4;
 }
 
-message SampleData {
-  string url = 1;
-}
+//message SampleData {
+//  string url = 1;
+//}
 
 message DownloadInfo {
-  bool status = 1;
+  enum DownloadStatus {
+    READY = 0;
+    DOWNLOADING = 1;
+    DOWNLOADED = 2;
+  }
+  DownloadStatus status = 1;
   string url = 2;
 }
 
 message RatingAndComment {
-  UserShortInfo user = 1;
-  int32 rating = 4;
-  string comment = 5;
-  optional DateTime lastModifiedAt = 26;
+//  string id = 1;
+  User user = 1;
+  DateTime lastModifiedAt = 2;
+  int32 rating = 3;
+  string comment = 4;
 }
 
-message Statistics {
-  int64 access = 1;
-  int64 bookmark = 2;
-  int64 download = 3;
-  double rating = 4;
+// DataCatalogStatistics 데이터 카탈로그 통계
+message DataCatalogStatistics {
+  string time = 1;                    // 통계 시간
+  string id = 2;                      // 데이터 아이디
+  string name = 3;                    // 데이터 이름
+
+  int64 access = 4;                   // 조회 수
+  int64 bookmark = 5;                 // 사용자 개인 카테고리 추가 수
+  int64 download = 6;                 // 다운로드 수
+  double rating = 7;                  // 데이터 평가 평균
+  double avgResponseTime = 8;         // 데이터 조회 평균 응답 시간
 }
 
-message UserShortInfo {
+// DataCatalog Preview
+message DataCatalogPreview {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    DataCatalog dataPreview = 1;
+  }
+  Data data = 3;
+}
+
+// DataCatalog Default
+message DataCatalogDefault {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    DataCatalog dataCatalog = 1;
+  }
+  Data data = 3;
+}
+
+// Update Metadata
+message ReqMetaUpdate {
   string id = 1;
-  string name = 2;
-  optional string alias = 3;
+  Meta userMeta = 2;
 }
 
-message DateTime {
-  string strDateTime = 1;
-  int64 utcTime = 2;
+// Update Tag
+message ReqTagUpdate {
+  string id = 1;              // 데이터 아이디
+  repeated string tag = 2;
+}
+
+message ReqRatingAndComment {
+  string id = 1;              // 데이터 아이디
+  RatingAndComment ratingAndComment = 2;
+}
+
+message DataCatalogSearch {
+    message DataCatalogSearchFilter {
+      string keyword = 1;
+      message DateRange {
+        string from = 1;
+        string to = 2;
+      }
+      DateRange dateRange = 2;
+      string dataType = 3;
+      string dataFormat = 4;
+    }
+    DataCatalogSearchFilter filter = 1;
+    Pageable pageable = 2;
+}
+
+message ResDataCatalogs {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    Pageable pageable = 1;
+    repeated DataCatalog dataCatalogs = 2;
+  }
+  Data data = 3;
 }

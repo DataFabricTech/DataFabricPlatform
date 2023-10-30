@@ -3,8 +3,6 @@ syntax = "proto3";
 package com.mobigen.datafabric.share.protobuf;
 option go_package= "github.com/mobigen/datafabric/protobuf";
 
-import "utilities.proto";
-
 // User 사용자 정보
 message User {
   string id = 1;
@@ -16,4 +14,3 @@ message User {
 //  DateTime updateAt = 7;
 //  DateTime deleteAt = 8;
 }
-

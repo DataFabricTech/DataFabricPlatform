@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Delete Old Generated Files
+rm -rf src/main/golang/* 2> /dev/null
+
 # Protobuf generation for Golang
 
 # Check Go installation
@@ -55,3 +58,6 @@ do
     exit 1
   fi
 done
+
+# Copy Generated Files To ../../services/gateway/protobuf
+cp -r "$current_path"/src/main/golang/* "$current_path"/../../services/gateway/protobuf

@@ -5,39 +5,63 @@ option go_package= "github.com/mobigen/datafabric/protobuf";
 
 // Page 페이지, 데이터 개수 정보
 message Page {
-  optional int32 size = 1;                // 페이지당 데이터 수
-  optional int32 totalSize = 2;           // 전체 데이터 수
-  optional int32 selectPage = 3;          // 선택 페이지
-  optional int32 totalPage = 4;           // 전체 페이지 수
+  int32 size = 1;                // 페이지당 데이터 수
+  int32 totalSize = 2;           // 전체 데이터 수
+  int32 selectPage = 3;          // 선택 페이지
+  int32 totalPage = 4;           // 전체 페이지 수
+}
+
+enum Direction {
+  ASC = 0;
+  DESC = 1;
 }
 
 // Sort 정렬 정보, 다중 정렬을 위해 order 필드 추가
 message Sort {
-  optional int32 order = 1;               // 정렬 순서
-  optional string field = 2;              // 정렬 대상
-  optional string direction = 3;          // 정렬 방향(ASC, DESC)
+  int32 order = 1;               // 정렬 순서
+  string field = 2;              // 정렬 대상
+  Direction direction = 3;       // 정렬 방향(ASC, DESC)
 }
 
 // Pageable 페이지 & 정렬 정보
 message Pageable {
-  optional Page page = 1;                 // 페이지 정보
+  Page page = 1;                 // 페이지 정보
   repeated Sort sort = 2;                 // 정렬 정보
 }
 
+// Meta 메타 데이터
 message Meta {
-  optional string key = 1;                // 메타 데이터 키
-  optional string value = 2;              // 메타 데이터 값
+  string key = 1;                         // 메타 데이터 키
+  string value = 2;                       // 메타 데이터 값
 }
 
 // DateTime 시간 데이터
 message DateTime {
-  optional string strDateTime = 1;        // 문자형 시간 정보 yyyy-MM-dd HH:mm:ss.SSS ( Asia/Seoul )
-  optional int64 utcTime = 2;             // UTC EPOCH MilliSecond
+  string strDateTime = 1;        // 문자형 시간 정보 yyyy-MM-dd HH:mm:ss.SSS ( Asia/Seoul )
+  int64 utcTime = 2;             // UTC EPOCH MilliSecond
 }
 
 // DateTimeRange 시간 범위
 message DateTimeRange {
-  optional string timeZone = 1;           // TimeZone Default Asia/Seoul
-  optional DateTime startDateTime = 2;    // 시작 시간
-  optional DateTime endDateTime = 3;      // 종료 시간
+  DateTime startDateTime = 1;    // 시작 시간
+  DateTime endDateTime = 2;      // 종료 시간
 }
+
+// 데이터가 없는 응답 메시지
+message CommonResponse {
+  string code = 1;
+  string errMsg = 2;
+}
+
+// Data, Storage 상태
+enum Status {
+  CONNECTED = 0;
+  DISCONNECTED = 1;
+  ERROR = 2;
+  SYNC = 3;
+}
+
+message ReqId {
+  string id = 1;
+}
+

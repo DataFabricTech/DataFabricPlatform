@@ -5,35 +5,58 @@ option go_package= "github.com/mobigen/datafabric/protobuf";
 
 import "google/protobuf/empty.proto";
 import "data-catalog.proto";
+import "storage.proto";
 import "utilities.proto";
 
-message SearchRequest {
-  string input = 1;
-  Sort sort = 2;
-  Page page = 3;
+service PortalService {
+  rpc Search(ReqSearch) returns (ResSearch);
+  rpc RecentSearches(google.protobuf.Empty) returns (ResRecentSearches);
+}
+
+message ReqSearch {
+  string keyword = 1;
+  Pageable pageable = 2;
+  map<string, string> detailSearch = 3;
+  map<string, ListString> filterSearch = 4;
+}
+
+message ResSearch {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    SearchResponse searchResponse = 1;
+  }
+  Data data = 3;
+}
+
+message ListString {
+  repeated string value = 1;
 }
 
 message SearchResponse {
+  Pageable pageable = 1;
+  map<string, ListMapStrNumber> filters = 2;
+  SearchContent contents = 3;
+}
+
+message ListMapStrNumber {
+  message MapStrNumber {
+    string key = 1;
+    int32 value = 2;
+  }
+  repeated MapStrNumber value = 1;
+}
+
+message SearchContent {
+  repeated DataCatalog dataCatalogs = 1;
+  repeated Storage storages = 2;
+}
+
+message ResRecentSearches{
   string code = 1;
   string errMsg = 2;
   message Data {
-    repeated DataCatalog dataCatalogs = 1;
+    repeated string recentSearches = 1;
   }
   Data data = 3;
 }
-
-message RecentSearchesResponse {
-  string code = 1;
-  string errMsg = 2;
-  message Data {
-    repeated string words = 1;
-  }
-  Data data = 3;
-}
-
-service PortalService {
-  rpc Search(SearchRequest) returns (SearchRequest);
-  rpc RecentSearches(google.protobuf.Empty) returns (RecentSearchesResponse);
-}
-
-
