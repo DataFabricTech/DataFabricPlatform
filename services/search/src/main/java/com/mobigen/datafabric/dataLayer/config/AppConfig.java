@@ -16,12 +16,12 @@ public class AppConfig {
     }
 
     public DataLayerServiceImpl dataLayerServiceImpl() throws SQLException, ClassNotFoundException {
-        return new DataLayerServiceImpl(openSearchService(), rdbmsService(), dbConfig());
+        return new DataLayerServiceImpl(openSearchService(), rdbmsService(), dbConfig(), openSearchConfig());
     }
 
 
     public OpenSearchService openSearchService() {
-        return new OpenSearchService(openSearchRepository(), dbConfig());
+        return new OpenSearchService(openSearchRepository(), dbConfig(), openSearchConfig());
     }
 
     public RDBMSService rdbmsService() throws SQLException, ClassNotFoundException {

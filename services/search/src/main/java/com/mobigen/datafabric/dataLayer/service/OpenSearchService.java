@@ -1,11 +1,13 @@
 package com.mobigen.datafabric.dataLayer.service;
 
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
+import com.mobigen.datafabric.dataLayer.config.OpenSearchConfig;
 import com.mobigen.datafabric.dataLayer.model.DataSetModel;
 import com.mobigen.datafabric.dataLayer.model.RecentSearchesModel;
+import com.mobigen.datafabric.dataLayer.model.StorageModel;
 import com.mobigen.datafabric.dataLayer.repository.OpenSearchRepository;
 import com.mobigen.libs.configuration.Config;
-import com.mobigen.libs.grpc.DataModel;
+import com.mobigen.libs.grpc.DataSet;
 import com.mobigen.libs.grpc.Filter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 
@@ -31,10 +34,12 @@ import java.util.*;
 public class OpenSearchService {
     private final OpenSearchRepository openSearchRepository;
     private final DBConfig dbConfig;
+    private final OpenSearchConfig openSearchConfig;
 
-    public OpenSearchService(OpenSearchRepository openSearchRepository, DBConfig dbConfig) {
+    public OpenSearchService(OpenSearchRepository openSearchRepository, DBConfig dbConfig, OpenSearchConfig openSearchConfig) {
         this.openSearchRepository = openSearchRepository;
         this.dbConfig = dbConfig;
+        this.openSearchConfig = openSearchConfig;
     }
 
     /**
@@ -46,26 +51,14 @@ public class OpenSearchService {
      * @throws OpenSearchException
      * @throws IOException
      */
-    public List<String> search(String input, DataModel detailSearch, Filter filterSearch, String userId)
+    public List<String> search(String input, DataSet detailSearch, Filter filterSearch, String userId)
             throws OpenSearchException, IOException {
-        List<Query> mustQuery = new ArrayList<>();
-        List<Query> shouldQuery = new ArrayList<>();
-        shouldQuery = mainQueryBuilder(input);
-
-        // TODO detailSearch가 null일 때 이게 체크 되는지에 대한 Test필요
-        if (detailSearch != null)
-            mustQuery = mustQueryBuilder(detailSearch);
-
-        if (filterSearch != null)
-            shouldQuery = shouldQueryBuilder(shouldQuery, filterSearch);
-
-        var searchResposne = new LinkedList<String>();
-
         insertDocuemnt(input, userId); // for recentSearch
-
-        searchResposne = openSearchRepository.search(mustQuery, shouldQuery);
-
-        return searchResposne;
+        return openSearchRepository.search(
+                dataSetMainQueryBuilder(input),
+                detailSearch == null ? null : mustQueryBuilder(detailSearch),
+                filterSearch == null ? null : shouldQueryBuilder(filterSearch)
+        );
     }
 
     /**
@@ -73,12 +66,20 @@ public class OpenSearchService {
      * @return Storage's ids
      */
     public List<String> search(String input) throws IOException, OpenSearchException {
-        var query = mainQueryBuilder(input);
+        var query = storageMainQueryBuilder(input);
         return openSearchRepository.search(query);
     }
 
     public List<String> search() throws IOException, OpenSearchException {
         return openSearchRepository.search();
+    }
+
+    public Map<String, Aggregate> getFacet(String input, DataSet detailSearch, Filter filterSearch)
+            throws IOException, OpenSearchException {
+        return openSearchRepository.getFacet(
+                dataSetMainQueryBuilder(input),
+                detailSearch == null ? null : mustQueryBuilder(detailSearch),
+                filterSearch == null ? null : shouldQueryBuilder(filterSearch));
     }
 
     public void insertDocument(Insert insertStatement) throws OpenSearchException, IOException {
@@ -93,7 +94,6 @@ public class OpenSearchService {
      */
     public void insertDocuemnt(String input, String userId) throws OpenSearchException, IOException {
         var recentSearch = openSearchRepository.searchRecent(userId);
-        // todo -> if null -> error가 뜨나 안뜨나 확인할 것
 
         if (recentSearch == null) {
             var arr = new LinkedList<String>();
@@ -111,7 +111,7 @@ public class OpenSearchService {
                     new LinkedList<String>() :
                     new LinkedList<String>(List.of(recentSearch.source().getRecentSearches()));
 
-            if (arr.size() < new Config().getConfig().getInt("open_search.recent_count")) {
+            if (arr.size() < openSearchConfig.getNumberOfSaveRecentSearches()) {
                 arr.addLast(input);
             } else {
                 arr.pollFirst();
@@ -126,11 +126,10 @@ public class OpenSearchService {
     }
 
     /**
-     *
      * @param input
      * @return
      */
-    public List<Query> mainQueryBuilder(String input) {
+    public List<Query> dataSetMainQueryBuilder(String input) {
         var shouldQuery = new LinkedList<Query>();
         for (var field : DataSetModel.class.getDeclaredFields()) {
             if (field.getType() == String.class || field.getType() == String[].class)
@@ -143,12 +142,23 @@ public class OpenSearchService {
         return shouldQuery;
     }
 
-    public List<Query> mustQueryBuilder(DataModel detailSearch) {
+    public List<Query> storageMainQueryBuilder(String input) {
+        var shouldQuery = new LinkedList<Query>();
+        for (var field : StorageModel.class.getDeclaredFields()) {
+            if (field.getType() == String.class || field.getType() == String[].class)
+                shouldQuery.add(new MatchQuery.Builder().field(field.getName()).query(FieldValue.of(input)).build()._toQuery());
+        }
+
+        return shouldQuery;
+    }
+
+    public List<Query> mustQueryBuilder(DataSet detailSearch) {
         var mustQuery = new ArrayList<Query>();
         for (var field : detailSearch.getDescriptorForType().getFields()) {
             if (!detailSearch.getField(field).toString().isEmpty()) {
                 var name = field.getName();
                 var fieldValue = detailSearch.getField(field);
+
                 switch (fieldValue.getClass().getSimpleName()) { // TODO meta 관련 검색이 되는지에 대한 확인 필요
                     case "EmptyList":
                         break;
@@ -165,6 +175,7 @@ public class OpenSearchService {
 //                        }
                         break;
                     case "UnmodifiableRandomAccessList":
+                    case "LazyStringArrayList":
                         for (var value : (List) fieldValue)
                             mustQuery.add(new MatchQuery.Builder().field(name)
                                     .query(FieldValue.of(value.toString())).build()._toQuery());
@@ -179,7 +190,8 @@ public class OpenSearchService {
         return mustQuery;
     }
 
-    public List<Query> shouldQueryBuilder(List<Query> shouldQuery, Filter filterSearch) {
+    public List<Query> shouldQueryBuilder(Filter filterSearch) {
+        List<Query> shouldQuery = new ArrayList<>();
         for (var field : filterSearch.getDescriptorForType().getFields()) {
             if (!filterSearch.getField(field).toString().isEmpty()) {
                 var name = field.getName(); // todo name으로 해도 되는건가?
@@ -206,7 +218,7 @@ public class OpenSearchService {
         openSearchRepository.createIndex();
     }
 
-    public void searchDocument(String[] dataModelIds) {
+    public void searchDocument(String[] dataSetIds) {
         // TODO getDocument to RDBMS
     }
 
@@ -220,6 +232,7 @@ public class OpenSearchService {
     }
 
     public void deleteDocument(Delete deleteStatement) throws OpenSearchException, IOException {
+        log.info("[deleteDocument] start");
         var id = ((EqualsTo) deleteStatement.getWhere()).getRightExpression().toString();
         openSearchRepository.deleteDocument(id);
     }
@@ -227,7 +240,7 @@ public class OpenSearchService {
     public void SyncDocument() {
     }
 
-    public DataSetModel queryToModel(Insert insertStatement) {
+    private DataSetModel queryToModel(Insert insertStatement) {
         var columns = insertStatement.getColumns();
         var values = insertStatement.getValues().getExpressions();
         var dataSetModel = new DataSetModel();
@@ -242,7 +255,7 @@ public class OpenSearchService {
      * @return dataSetModel -> updateDocument
      * String -> target Document's id
      */
-    public DataSetModel queryToModel(Update updateStatement) throws OpenSearchException, IOException, IndexOutOfBoundsException {
+    private DataSetModel queryToModel(Update updateStatement) throws OpenSearchException, IOException, IndexOutOfBoundsException {
         log.info("[queryToModel] start");
 
         var dataSetModel = openSearchRepository.searchId(updateStatement.getWhere().toString()).source();
@@ -260,6 +273,7 @@ public class OpenSearchService {
 
     private void setDataSetModel(DataSetModel dataSetModel,
                                  ExpressionList<Column> columns, ExpressionList<?> values) {
+        // todo 여기 나중에 setting 필요
         for (int i = 0; i < values.size(); i++) {
             // todo meta, tags, createdAt
             switch (columns.get(i).toString()) {

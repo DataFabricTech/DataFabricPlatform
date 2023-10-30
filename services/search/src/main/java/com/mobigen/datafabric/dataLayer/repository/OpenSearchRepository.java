@@ -12,9 +12,13 @@ import org.opensearch.client.opensearch._types.ErrorResponse;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.Result;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.Aggregation;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TextProperty;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
+import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.transport.OpenSearchTransport;
@@ -24,6 +28,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class OpenSearchRepository {
@@ -58,15 +63,20 @@ public class OpenSearchRepository {
         }
     }
 
-    public LinkedList<String> search(List<Query> mustQueryArray, List<Query> shouldQueryArray)
+    public LinkedList<String> search(List<Query> mainQuery, List<Query> mustQuery, List<Query> shouldQuery)
             throws OpenSearchException, IOException {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
-                            .query(q -> q.bool(b -> b.minimumShouldMatch("1") // minimum을 이용해서 should를 or처럼 사용한다.
-                                    .must(mustQueryArray)
-                                    .should(shouldQueryArray)))
+            var boolQuery = new BoolQuery.Builder();
+            if (mainQuery != null && !mainQuery.isEmpty()) boolQuery.should(mainQuery);
+            if (mustQuery != null && !mustQuery.isEmpty()) boolQuery.must(mustQuery);
+            if (shouldQuery != null && !shouldQuery.isEmpty()) boolQuery.should(shouldQuery).minimumShouldMatch("2");
+            else boolQuery.minimumShouldMatch("1");
+
+
+            var hits = client.search(s -> s.index(openSearchConfig.getDataSetIndex())
+                            .query(q -> q.bool(boolQuery.build()))
                     , DataSetModel.class).hits().hits();
             hits.forEach(hit -> {
                 var id = hit.source().getId();
@@ -80,8 +90,35 @@ public class OpenSearchRepository {
         return ids;
     }
 
+    public Map<String, Aggregate> getFacet(List<Query> mainQuery, List<Query> mustQuery, List<Query> shouldQuery)
+            throws OpenSearchException, IOException {
+        log.info("[getFacet] start");
+        try {
+            var map = new HashMap<String, Aggregation>();
+            for (var field : DataSetModel.class.getDeclaredFields()) {
+                if (field.getType() == String.class) {
+                    map.put(field.getName(),
+                            new Aggregation.Builder().terms(t -> t.field(field.getName())).build());
+                }
+            }
+
+            var boolQuery = new BoolQuery.Builder();
+            if (mainQuery != null && !mainQuery.isEmpty()) boolQuery.should(mainQuery);
+            if (mustQuery != null && !mustQuery.isEmpty()) boolQuery.must(mustQuery);
+            if (shouldQuery != null && !shouldQuery.isEmpty()) boolQuery.should(shouldQuery).minimumShouldMatch("2");
+            else boolQuery.minimumShouldMatch("1");
+
+            return client.search(s -> s.index(openSearchConfig.getDataSetIndex()).size(1000)
+                            .aggregations(map)
+                            .query(q -> q.bool(boolQuery.build()))
+                    , DataSetModel.class).aggregations();
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
     /**
-     *
      * @param shouldQueryArray
      * @return
      * @throws OpenSearchException
@@ -91,7 +128,7 @@ public class OpenSearchRepository {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+            var hits = client.search(s -> s.index(openSearchConfig.getStorageIndex())
                             .size(10000)
                             .query(q -> q.bool(b -> b.minimumShouldMatch("1").should(shouldQueryArray)))
                     , StorageModel.class).hits().hits();
@@ -110,7 +147,8 @@ public class OpenSearchRepository {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            var hits = client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+            // todo size -> config
+            var hits = client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                             .size(10000)
                     , DataSetModel.class).hits().hits();
             hits.forEach(hit -> {
@@ -128,7 +166,7 @@ public class OpenSearchRepository {
             throws OpenSearchException, IOException, IndexOutOfBoundsException {
         log.info("[searchId] start");
         try {
-            return client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+            return client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                             .query(q -> q.match(
                                     m -> m.field("id").query(FieldValue.of(id))
                             ))
@@ -147,6 +185,7 @@ public class OpenSearchRepository {
                                     m -> m.field("userId").query(FieldValue.of(userId))
                             )),
                     RecentSearchesModel.class).hits().hits();
+
             return !hits.isEmpty() ? hits.get(0) : null;
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
@@ -160,6 +199,7 @@ public class OpenSearchRepository {
         log.info("[getResentSearches] start");
         try {
             return client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
+                            .size(openSearchConfig.getNumberOfRecentSearches())
                             .query(q -> q.match(
                                     m -> m.field("userId").query(FieldValue.of(userId))
                             )),
@@ -173,7 +213,7 @@ public class OpenSearchRepository {
     public void createIndex() throws OpenSearchException, IOException {
         try {
             log.info("[createIndex] Create data model index");
-            if (checkIndex(openSearchConfig.getDataModelIndex())) {
+            if (checkIndex(openSearchConfig.getDataSetIndex())) {
                 var properties = new HashMap<String, Property>();
                 // todo properties -> meta는 필요 없음?
                 for (var field : DataSetModel.class.getDeclaredFields()) {
@@ -185,7 +225,7 @@ public class OpenSearchRepository {
 
                 var mappings = new TypeMapping.Builder().properties(properties).build();
 
-                client.indices().create(c -> c.index(openSearchConfig.getDataModelIndex()).mappings(mappings));
+                client.indices().create(c -> c.index(openSearchConfig.getDataSetIndex()).mappings(mappings));
             }
 
             if (checkIndex(openSearchConfig.getStorageIndex())) {
@@ -224,7 +264,7 @@ public class OpenSearchRepository {
     public void insertDocument(DataSetModel dataSetModel) throws OpenSearchException, IOException {
         log.info("[insertDocument] start");
         try {
-            var response = client.index(i -> i.index(openSearchConfig.getDataModelIndex())
+            var response = client.index(i -> i.index(openSearchConfig.getDataSetIndex())
                     .document(dataSetModel));
             if (response.result() != Result.Created) {
                 log.error(String.format("Client Create Fail, result %s", response.result()));
@@ -265,7 +305,7 @@ public class OpenSearchRepository {
         try {
             var docId = getDocumentId(id);
 
-            var response = client.update(u -> u.index(openSearchConfig.getDataModelIndex())
+            var response = client.update(u -> u.index(openSearchConfig.getDataSetIndex())
                             .id(docId)
                             .doc(dataSetModel)
                     , DataSetModel.class);
@@ -308,7 +348,25 @@ public class OpenSearchRepository {
         log.info("[deleteDocument] start");
         try {
             var docId = getDocumentId(id);
-            var response = client.delete(d -> d.index(openSearchConfig.getDataModelIndex()).id(docId));
+            var response = client.delete(d -> d.index(openSearchConfig.getDataSetIndex()).id(docId));
+            if (response.result() != Result.Deleted) {
+                log.error(String.format("Client Delete Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Delete Fail")
+                                        .type("DELETE")).status(500).build());
+            }
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public void deleteSearchesDocument(String id) throws OpenSearchException, IOException {
+        log.info("[deleteSearchesDocument] start");
+        try {
+            var docId = getRecentDocumentId(id);
+            var response = client.delete(d -> d.index(openSearchConfig.getRecentSearchesIndex()).id(docId));
             if (response.result() != Result.Deleted) {
                 log.error(String.format("Client Delete Fail, result %s", response.result()));
                 throw new OpenSearchException(
@@ -324,7 +382,7 @@ public class OpenSearchRepository {
 
     public String getDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
         try {
-            return client.search(s -> s.index(openSearchConfig.getDataModelIndex())
+            return client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                     .query(q -> q.match(
                             m -> m.field("id").query(FieldValue.of(id))
                     )), DataSetModel.class).hits().hits().get(0).id();
@@ -338,7 +396,7 @@ public class OpenSearchRepository {
         try {
             return client.search(s -> s.index(openSearchConfig.getRecentSearchesIndex())
                     .query(q -> q.match(
-                            m -> m.field("id").query(FieldValue.of(id))
+                            m -> m.field("userId").query(FieldValue.of(id))
                     )), RecentSearchesModel.class).hits().hits().get(0).id();
         } catch (OpenSearchException | IOException | NullPointerException e) {
             log.error(e.getMessage());

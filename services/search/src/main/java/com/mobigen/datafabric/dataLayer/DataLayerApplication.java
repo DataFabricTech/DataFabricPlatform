@@ -19,7 +19,7 @@ public class DataLayerApplication {
         var appConfig = new AppConfig();
         DataLayerCallBack cb;
         try {
-            cb = new DataLayerServiceImpl(appConfig.openSearchService(), appConfig.rdbmsService(), appConfig.dbConfig());
+            cb = new DataLayerServiceImpl(appConfig.openSearchService(), appConfig.rdbmsService(), appConfig.dbConfig(), appConfig.openSearchConfig());
         } catch (SQLException | ClassNotFoundException e) {
             // todo connect error
             throw new RuntimeException(e);

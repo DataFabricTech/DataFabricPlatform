@@ -1,6 +1,7 @@
 package com.mobigen.datafabric.dataLayer.service;
 
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
+import com.mobigen.datafabric.dataLayer.config.OpenSearchConfig;
 import com.mobigen.libs.grpc.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -11,23 +12,24 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.insert.Insert;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class DataLayerServiceImpl implements DataLayerCallBack {
     private final OpenSearchService openSearchService;
     private final RDBMSService rdbmsService;
     private final DBConfig dbConfig;
+    private final OpenSearchConfig openSearchConfig;
 
-    public DataLayerServiceImpl(OpenSearchService openSearchService, RDBMSService rdbmsService, DBConfig dbConfig) {
+    public DataLayerServiceImpl(OpenSearchService openSearchService, RDBMSService rdbmsService, DBConfig dbConfig, OpenSearchConfig openSearchConfig) {
         this.openSearchService = openSearchService;
         this.rdbmsService = rdbmsService;
         this.dbConfig = dbConfig;
+        this.openSearchConfig = openSearchConfig;
     }
 
     @Override
@@ -105,43 +107,55 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
     }
 
     @Override
-    public SearchResponse search(String input, DataModel detailSearch, Filter filterSearch, String userId) {
+    public SearchResponse search(String input, DataSet detailSearch, Filter filterSearch, String userId) {
         var searchResponse = SearchResponse.newBuilder();
         try {
-            // todo 여기에 filter관련 정보를 안줬네
-
             var searchResponseBuilder = SearchResponse.newBuilder();
-            var dataModelIds = openSearchService.search(input, detailSearch, filterSearch, userId);
+            var dataSetIds = openSearchService.search(input, detailSearch, filterSearch, userId);
             var storageIds = openSearchService.search(input);
-            // dataModelIds와 stroageIds를 가져왔다.
+
             var sql = "select * from %s where id = '%s'";
-            for (var dataModelId : dataModelIds) {
-                searchResponseBuilder
-                        .addDataSet(
-                                rdbmsService.executeQuery(String.format(sql, dbConfig.getDataSet(), dataModelId)));
+            if (!dataSetIds.isEmpty()) {
+                var tableBuilder = Table.newBuilder();
+
+                var tempTable = rdbmsService.executeQuery(String.format(sql, dbConfig.getDataSet(), dataSetIds.get(0)));
+                tableBuilder.setColumns(tempTable.getColumns());
+
+                for (var dataSetId : dataSetIds) {
+                    var table = rdbmsService.executeQuery(String.format(sql, dbConfig.getDataSet(), dataSetId));
+                    tableBuilder.addRows(table.getRows(0));
+                }
+
+                searchResponseBuilder.addDataSet(tableBuilder.build());
             }
 
-            for (var storageId: storageIds) {
-                searchResponseBuilder
-                        .addStorage(
-                                rdbmsService.executeQuery(String.format(sql, dbConfig.getStorage(), storageId)));
+            if (!storageIds.isEmpty()) {
+                var tableBuilder = Table.newBuilder();
+
+                var tempTable = rdbmsService.executeQuery(String.format(sql, dbConfig.getDataSet(), storageIds.get(0)));
+                tableBuilder.setColumns(tempTable.getColumns());
+
+                for (var storageId : storageIds) {
+                    var table = rdbmsService.executeQuery(String.format(sql, dbConfig.getStorage(), storageId));
+                    tableBuilder.addRows(table.getRows(0));
+                }
+
+                searchResponseBuilder.addStorage(tableBuilder.build());
             }
-            // TODO! !!!!!!!!!!!!!!!!!!!!!  여기에 table을 분석해서 filter 조건을 넣는 방법을 생성
-            var dataSetTable = rdbmsService.executeQuery(String.format(sql, dbConfig.getDataSet()));
-//            var rdbmsService.executeQuery(String.format(sql, dbConfig.getStorage()));
+
+            var aggregations = openSearchService.getFacet(input, detailSearch, filterSearch);
+
+            // todo  creator에 관한 것 추가 하기
+            searchResponseBuilder.setFilters(filterBuilder(aggregations));
+            return searchResponseBuilder.build();
         } catch (ClassNotFoundException | SQLException | OpenSearchException | IOException e) {
             return searchResponse.setErrorMessage(e.getMessage()).setStatue(false).build();
         }
-        return SearchResponse.newBuilder().build();
     }
 
     @Override
     public RecentSearchesResponse recentSearch(String userId) {
-/*
-        TODO List;
-        1. config에서 개수 만큼만 가져오게 config 설정할 필요가 있다.
-        2. 시간을 넘었을 시 삭제하는 로직 필요 -> 우선 순위 낮음
-*/
+        // todo 시간에 따른 recentsearch제거 로직
         var searches = openSearchService.getRecentSearch(userId);
         if (searches != null) {
             return RecentSearchesResponse.newBuilder()
@@ -171,5 +185,66 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
             log.error(e.getMessage());
             throw e;
         }
+    }
+
+    private FiltersResponse filterBuilder(Map<String, Aggregate> aggregations) {
+        var fields = openSearchConfig.getFilters();
+        var filters = FiltersResponse.newBuilder();
+
+        for (var field: fields) {
+            if (aggregations.get(field) != null) {
+                var bucket = aggregations.get(field)._get()._toAggregate().sterms().buckets().array();
+                bucket.forEach(b -> {
+                    var filterResponse = FilterResponse.newBuilder();
+                    filterResponse.setCount(b.docCount());
+                    filterResponse.setName(b.key());
+                    switch (field) {
+                        case "name":
+                            filters.addNameFilter(filterResponse);
+                            break;
+                        case "type":
+                            filters.addTypeFilter(filterResponse);
+                            break;
+                        case "format":
+                            filters.addFormatFilter(filterResponse);
+                            break;
+                        case "knowledgeGraph":
+                            filters.addKnowledgeGraphFilter(filterResponse);
+                            break;
+                        case "categories":
+                            filters.addCategoryFilter(filterResponse);
+                            break;
+                        case "tag":
+                            filters.addTagFilter(filterResponse);
+                            break;
+                        case "connectorType":
+                            filters.addConnectorTypeFilter(filterResponse);
+                            break;
+                        case "connectorName":
+                            filters.addConnectorNameFilter(filterResponse);
+                            break;
+//                        case "creator":
+//                            break;
+                    }
+                });
+            }
+        }
+
+        return filters.build();
+    }
+
+    private FilterResponse buildFilter(String target, Map<String, Aggregate> aggregations) {
+        if (aggregations.get(target) == null)
+            return FilterResponse.newBuilder().build();
+
+        var bucket = aggregations.get(target)._get()._toAggregate().sterms().buckets().array();
+        var filtersResponse = FiltersResponse.newBuilder();
+
+        var builder = FilterResponse.newBuilder();
+        bucket.forEach(b -> {
+            builder.setCount(b.docCount());
+            builder.setName(b.key());
+        });
+        return builder.build();
     }
 }

@@ -6,7 +6,7 @@ public interface DataLayerCallBack {
 
     BatchResponse executeBatch(String[] sql);
 
-    SearchResponse search(String input, DataModel detailSearch, Filter filterSearch, String userId);
+    SearchResponse search(String input, DataSet detailSearch, Filter filterSearch, String userId);
 
     RecentSearchesResponse recentSearch(String userId);
 

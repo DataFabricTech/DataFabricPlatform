@@ -2,17 +2,10 @@ package com.mobigen.datafabric.dataLayer.service;
 
 import com.mobigen.datafabric.dataLayer.config.AppConfig;
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
-import com.mobigen.datafabric.dataLayer.model.DataSetModel;
-import com.mobigen.libs.grpc.DataModel;
+import com.mobigen.datafabric.dataLayer.repository.OpenSearchRepository;
+import com.mobigen.libs.grpc.DataSet;
 import com.mobigen.libs.grpc.Filter;
-import com.mobigen.libs.grpc.SearchResponse;
-import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.*;
-import org.opensearch.client.json.jackson.JacksonJsonpMapper;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.FieldValue;
-import org.opensearch.client.transport.OpenSearchTransport;
-import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -27,6 +20,7 @@ class DataLayerServiceImplTest {
     DBConfig dbConfig;
     DataLayerServiceImpl dataLayerService;
     OpenSearchService openSearchService;
+    OpenSearchRepository openSearchRepository;
     String preInserted;
 
 
@@ -38,10 +32,11 @@ class DataLayerServiceImplTest {
             appConfig.openSearchService().createIndex();
             dataLayerService = appConfig.dataLayerServiceImpl();
             openSearchService = appConfig.openSearchService();
+            openSearchRepository = appConfig.openSearchRepository();
         } catch (ClassNotFoundException | SQLException e) {
-            fail("Postgres Connection fail");
+            fail(e.getMessage());
         } catch (IOException e) {
-            fail("Create OpenSearch's Index fail");
+            fail(e.getMessage());
         }
     }
 
@@ -52,11 +47,18 @@ class DataLayerServiceImplTest {
             var ids = openSearchService.search();
             var q = "delete from %s where id = '%s'";
             for (var id : ids) {
-                var deleteQuery = String.format(q, dbConfig.getDataSet(), id);
-                dataLayerService.execute(deleteQuery);
+                var deleteSql = String.format(q, dbConfig.getDataSet(), id);
+                dataLayerService.execute(deleteSql);
             }
+
         } catch (Exception e) {
             fail(e.getMessage());
+        }
+
+        try {
+            openSearchRepository.deleteSearchesDocument("testUser");
+        } catch (Exception e) {
+            // pass
         }
     }
 
@@ -73,7 +75,15 @@ class DataLayerServiceImplTest {
                 "(name, description, type, format, size, sample_data_id ,status, " +
                 "cache_enable, cache_status, created_by, updated_by)" +
                 " values ('" + name + "', 'insert_description', '" + type + "', 'insert_format', 1000, " +
-                "'insert_sampledata_id','success', true, 'fail', '" + created_by + "', '%s')";
+                "'insert_sampledata_id','success', false, 'fail', '" + created_by + "', '%s')";
+    }
+
+    String insertSql2(String name, String type, String format) {
+        return "insert into %s " +
+                "(name, description, type, format, size, sample_data_id ,status, " +
+                "cache_enable, cache_status, created_by, updated_by)" +
+                " values ('" + name + "', 'insert_description', '" + type + "', '" + format + "', 1000, " +
+                "'insert_sampledata_id','success', false, 'fail', 'created_by', '%s')";
     }
 
     String deleteSql() {
@@ -335,6 +345,7 @@ class DataLayerServiceImplTest {
             var sqls = new LinkedList<String>();
             sqls.add(String.format(insertSql(), dbConfig.getDataSet(), id, id, id));
             var ids = openSearchService.search();
+            sleep();
             sqls.add(String.format(updateSql(), dbConfig.getDataSet(), ids.get(0)));
             sqls.add(String.format(deleteSql(), dbConfig.getDataSet(), ids.get(0)));
 
@@ -397,30 +408,104 @@ class DataLayerServiceImplTest {
         insertDocuemt(insertSql(out, one, B));
         insertDocuemt(insertSql(out, two, A));
         insertDocuemt(insertSql(out, two, B));
+        sleep();
 
-        var a = dataLayerService.search("in", null, null, "testUser");
-        System.out.println(a);
+        var filter = dataLayerService.search("in", null, null, "testUser").getFilters();
+
+        assertEquals(2, filter.getTypeFilter(0).getCount());
+        assertEquals(4, filter.getNameFilter(0).getCount());
     }
 
     @Test
     void searchWithInputADetail() {
+        var in = "in";
+        var out = "out";
+        var one = "1";
+        var two = "2";
+        var A = "a";
+        var B = "b";
 
+        insertDocuemt(insertSql(in, one, A));
+        insertDocuemt(insertSql(in, one, B));
+        insertDocuemt(insertSql(in, two, A));
+        insertDocuemt(insertSql(in, two, B));
+        insertDocuemt(insertSql(out, one, A));
+        insertDocuemt(insertSql(out, one, B));
+        insertDocuemt(insertSql(out, two, A));
+        insertDocuemt(insertSql(out, two, B));
+
+        var detail = DataSet.newBuilder().setType("1").build();
+
+        var filter = dataLayerService.search("in", detail, null, "testUser").getFilters();
+
+        assertEquals(2, filter.getTypeFilter(0).getCount());
+        assertEquals(2, filter.getNameFilter(0).getCount());
     }
 
     @Test
     void searchWithInputADetailAFilter() {
+        var in = "in";
+        var out = "out";
+        var one = "1";
+        var two = "2";
+        var A = "a";
+        var B = "b";
+        var C = "zxcv";
+
+        insertDocuemt(insertSql2(in, one, A));
+        insertDocuemt(insertSql2(in, one, B));
+        insertDocuemt(insertSql2(in, one, C));
+        insertDocuemt(insertSql2(in, two, A));
+        insertDocuemt(insertSql2(in, two, B));
+        insertDocuemt(insertSql2(out, one, A));
+        insertDocuemt(insertSql2(out, one, B));
+        insertDocuemt(insertSql2(out, two, A));
+        insertDocuemt(insertSql2(out, two, B));
+        sleep();
+
+        var detail = DataSet.newBuilder().setType("1").build();
+        var filter = Filter.newBuilder().addFormat("a").addFormat("zxcv").build();
+
+        var filters = dataLayerService.search("in", detail, filter, "testUser").getFilters();
+
+        assertEquals(2, filters.getNameFilter(0).getCount());
+        assertEquals(2, filters.getTypeFilter(0).getCount());
+        assertEquals(1, filters.getFormatFilter(0).getCount());
+        assertEquals(1, filters.getFormatFilter(1).getCount());
     }
 
-    /**
-     * openSearchSelect
-     * config 5, 10
-     */
+    @DisplayName("recent Search success test")
     @Test
     void recentSearch() {
+        dataLayerService.search("a", null, null, "testUser");
+        sleep();
+        dataLayerService.search("b", null, null, "testUser");
+        sleep();
+        dataLayerService.search("c", null, null, "testUser");
+        sleep();
+        dataLayerService.search("d", null, null, "testUser");
+        sleep();
+        dataLayerService.search("e", null, null, "testUser");
+        sleep();
+        dataLayerService.search("f", null, null, "testUser");
+        sleep();
+        dataLayerService.search("g", null, null, "testUser");
+        sleep();
+        dataLayerService.search("h", null, null, "testUser");
+        sleep();
+        dataLayerService.search("i", null, null, "testUser");
+        sleep();
+        dataLayerService.search("j", null, null, "testUser");
+        sleep();
+        dataLayerService.search("k", null, null, "testUser");
+        sleep();
+        var recent = dataLayerService.recentSearch("testUser");
+        assertEquals(11, recent.getSearchedCount());
     }
 
     @Test
     void healthCheck() {
+        assertTrue(dataLayerService.healthCheck().getStatus());
     }
 
     void insertDocument() {

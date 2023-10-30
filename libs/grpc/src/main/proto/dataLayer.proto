@@ -29,8 +29,12 @@ message QueryResponse {
 }
 
 message Table {
-  repeated Column column = 1;
+  Columns columns = 1;
   repeated Rows rows = 2;
+}
+
+message Columns {
+  repeated Column column = 1;
 }
 
 message Column {
@@ -67,7 +71,7 @@ message BatchResponse {
 
 message SearchRequest {
   string input = 1;
-  DataModel detailSearch = 2;
+  DataSet detailSearch = 2;
   Filter filterSearch = 3;
   string userId = 4;
 }
@@ -92,7 +96,7 @@ message HealthCheckResponse{
   bool status = 1;
 }
 
-message DataModel{
+message DataSet{
   string id = 1;
   string name = 2;
   string description = 3;
@@ -122,25 +126,26 @@ message Time {
 }
 
 message Filter{
-  repeated string types = 1;
-  repeated string formats = 2;
-  repeated string knowledgeGraphs = 3;
-  repeated string categoryNames = 4;
-  repeated string tagNames = 5;
-  repeated string connectorNames = 6;
-  repeated string connectorTypes = 7;
-  repeated string creatorIDs = 8;
+  repeated string type = 1;
+  repeated string format = 2;
+  repeated string knowledgeGraph = 3;
+  repeated string categoryName = 4;
+  repeated string tagName = 5;
+  repeated string connectorName = 6;
+  repeated string connectorType = 7;
+  repeated string creatorID = 8;
 }
 
 message FiltersResponse {
-  FilterResponse typeFilter = 1;
-  FilterResponse formatFilter = 2;
-  FilterResponse knowledgeGraphFilter = 3;
-  FilterResponse categoryFilter = 4;
-  FilterResponse tagFilter = 5;
-  FilterResponse connectorTypeFilter = 6;
-  FilterResponse connectorNameFilter = 7;
-  CreatorResponse creatorFilter = 8;
+  repeated FilterResponse nameFilter = 1;
+  repeated FilterResponse typeFilter = 2;
+  repeated FilterResponse formatFilter = 3;
+  repeated FilterResponse knowledgeGraphFilter = 4;
+  repeated FilterResponse categoryFilter = 5;
+  repeated FilterResponse tagFilter = 6;
+  repeated FilterResponse connectorTypeFilter = 7;
+  repeated FilterResponse connectorNameFilter = 8;
+  CreatorResponse creatorFilter = 9;
 }
 
 message FilterResponse {

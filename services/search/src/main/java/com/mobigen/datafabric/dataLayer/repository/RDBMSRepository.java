@@ -64,13 +64,15 @@ public class RDBMSRepository {
               reference
               https://documentation.softwareag.com/webmethods/adapters_estandards/Adapters/JDBC/JDBC_10-3/10-3_Adapter_for_JDBC_webhelp/index.html#page/jdbc-webhelp/co-jdbc_data_type_to_java_data_type.html
              */
+            var columnsBuilder = Columns.newBuilder();
 
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 column = Column.newBuilder().setColumnName(rs.getMetaData().getColumnName(i))
                         .setType(setColumnType(rs.getMetaData().getColumnType(i)))
                         .build();
-                tableBuilder.addColumn(column);
+                columnsBuilder.addColumn(column);
             }
+            tableBuilder.setColumns(columnsBuilder.build());
 
             while (rs.next()) {
                 Rows.Builder rowsBuilder = Rows.newBuilder();

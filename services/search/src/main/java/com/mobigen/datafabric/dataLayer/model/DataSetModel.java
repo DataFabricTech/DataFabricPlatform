@@ -14,7 +14,7 @@ public class DataSetModel {
     private String name;
     private String description;
     private String type;
-    private Meta[] metas;
+    private Meta[] meta;
     private String format;
     private String knowledgeGraph;
     private boolean status;
