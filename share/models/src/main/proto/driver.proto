@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+// Driver 저장소 연결용 드라이버
+message Driver {
+  string id = 1;
+  string storageType = 2;
+  string name = 3;
+  string version = 4;
+  string url = 5;
+  string path = 6;
+  string driver = 7;
+  repeated AdaptorSchema schema = 8;
+}
+
+message AdaptorSchema {
+  string key = 1;
+  string type = 2;
+  bool required = 3;
+}
+
