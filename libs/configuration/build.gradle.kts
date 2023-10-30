@@ -5,5 +5,5 @@ plugins {
 group = "com.mobigen.libs"
 
 dependencies {
-    implementation("commons-configuration:commons-configuration:1.6")
+    api("commons-configuration:commons-configuration:1.7")
 }
