@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package com.mobigen.datafabric.share.protobuf;
+option go_package= "github.com/mobigen/datafabric/protobuf";
+
+// User 사용자 정보
+message User {
+  string id = 1;
+  string name = 2;
+  string nickname = 3;
+  string phone = 4;
+  string email = 5;
+//  DateTime createdAt = 6;
+//  DateTime updateAt = 7;
+//  DateTime deleteAt = 8;
+}
