@@ -7,19 +7,23 @@ import javax.annotation.Nullable;
 
 @Getter
 @Setter
-public class DataSetModel {
+public class DataCatalogModel {
     @Nullable
     private String id;
+
     @Nullable
     private String name;
     private String description;
-    private String type;
-    private Meta[] meta;
-    private String format;
-    private String knowledgeGraph;
     private boolean status;
+
+    private String dataType;
+    private String dataFormat;
+
+    private Meta[] userMeta;
+    private Meta[] systemMeta;
     private String[] categories;
     private String[] tags;
+    private String knowledgeGraph;
     private String connectorType;
     private String connectorName;
     @Nullable

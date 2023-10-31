@@ -2,47 +2,50 @@ package com.mobigen.datafabric.dataLayer.repository;
 
 import com.google.protobuf.ByteString;
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
-import com.mobigen.libs.grpc.Time;
-import com.mobigen.libs.grpc.*;
+import com.mobigen.datafabric.share.protobuf.DataLayer.*;
 import lombok.extern.slf4j.Slf4j;
-import org.opensearch.client.json.JsonpUtils;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 
 @Slf4j
-public class RDBMSRepository {
+public class DataLayerRepository {
     private final DBConfig dbConfig;
 
-    public RDBMSRepository(DBConfig dbConfig) {
+    public DataLayerRepository(DBConfig dbConfig) {
         this.dbConfig = dbConfig;
     }
 
-    public void executeUpdate(String sql) throws SQLException, ClassNotFoundException {
+    public int executeUpdate(String sql) throws SQLException, ClassNotFoundException {
         log.info("[executeUpdate] start");
         // TODO insert/update의 경우 update_at 같은 것을 넣어줘야 한다.
         try (
                 Connection conn = getConnection();
                 Statement stmt = conn.createStatement()
         ) {
-            stmt.executeUpdate(sql); // todo 보안 취약점 발생
+            var rs = stmt.executeUpdate(sql); // todo 보안 취약점 발생
+
             conn.commit();
+            return rs;
         } catch (SQLException | ClassNotFoundException e) {
             log.error(e.getMessage());
             throw e;
         }
+
+
     }
 
-    public void executeBatchUpdate(String[] sqls) throws SQLException, ClassNotFoundException {
+    public int[] executeBatchUpdate(String[] sqls) throws SQLException, ClassNotFoundException {
         log.info("[executeBatchUpdate] start");
+
         try (
                 var conn = getConnection();
                 var stmt = conn.createStatement();
         ) {
             for (var sql : sqls)
                 stmt.addBatch(sql);
-            stmt.executeBatch();
+            var rs = stmt.executeBatch();
             conn.commit();
+            return rs;
         } catch (SQLException | ClassNotFoundException e) {
             log.error("[executeBatchUpdate] cause : {}, message : {}", e.getCause(), e.getMessage());
             throw e;
@@ -52,7 +55,7 @@ public class RDBMSRepository {
     public Table executeQuery(String sql) throws SQLException, ClassNotFoundException {
         log.info("[executeQuery] start");
         Column column;
-        Row row;
+        Cell cell;
         Time time;
         Table.Builder tableBuilder = Table.newBuilder();
         try (
@@ -64,98 +67,96 @@ public class RDBMSRepository {
               reference
               https://documentation.softwareag.com/webmethods/adapters_estandards/Adapters/JDBC/JDBC_10-3/10-3_Adapter_for_JDBC_webhelp/index.html#page/jdbc-webhelp/co-jdbc_data_type_to_java_data_type.html
              */
-            var columnsBuilder = Columns.newBuilder();
-
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                column = Column.newBuilder().setColumnName(rs.getMetaData().getColumnName(i))
-                        .setType(setColumnType(rs.getMetaData().getColumnType(i)))
+                column = Column.newBuilder()
+                        .setColumnName(rs.getMetaData().getColumnName(i))
+                        .setType(DataType.STRING)
                         .build();
-                columnsBuilder.addColumn(column);
+                tableBuilder.addColumns(column);
             }
-            tableBuilder.setColumns(columnsBuilder.build());
 
             while (rs.next()) {
-                Rows.Builder rowsBuilder = Rows.newBuilder();
+                Row.Builder rowsBuilder = Row.newBuilder();
                 for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                    row = switch (rs.getMetaData().getColumnType(i)) {
+                    cell = switch (rs.getMetaData().getColumnType(i)) {
                         case 4, 5 -> // INTEGER, SMALLINT
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setInt32Value(rs.getInt(i))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
                         case 6, 7 -> // FLOAT, REAL
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setFloatValue(rs.getFloat(i))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
                         case 8, 3, 2 -> // DOUBLE, NUMERIC, DECIMAL
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setDoubleValue(rs.getDouble(i))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
                         case -2, -3, 2004 -> // BINARY, VARBINARY, BLOB
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setBytesValue(ByteString.copyFrom(rs.getBytes(i)))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
-                        case 91 -> { // DATE
-                            time = Time.newBuilder()
-                                    .setTime(rs.getDate(i).toString())
-                                    .setFormat("yyyy-mm-dd")
-                                    .build();
-                            yield Row.newBuilder()
-                                    .setTimeValue(time)
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                        }
-                        case 92 -> { // Time
-                            time = Time.newBuilder()
-                                    .setTime(rs.getTime(i).toString())
-                                    .setFormat("HH:MM:ss")
-                                    .build();
-                            yield Row.newBuilder()
-                                    .setTimeValue(time)
-                                    .setColumnName(rs.getMetaData().getColumnName(i))
-                                    .build();
-                        }
-                        case 93 -> { // TIMESTAMP
-                            if (rs.getTimestamp(i) != null) {
-                                time = Time.newBuilder()
-                                        .setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").format(rs.getTimestamp(i)))
-                                        .setFormat("yyyy-MM-dd HH:mm:ss.sss")
-                                        .build();
-                                yield Row.newBuilder()
-                                        .setTimeValue(time)
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
-                                        .build();
-                            } else {
-                                yield Row.newBuilder().build();
-                            }
-                        }
+//                        case 91 -> { // DATE todo
+//                            time = Time.newBuilder()
+//                                    .setTime(rs.getDate(i).toString())
+//                                    .setFormat("yyyy-mm-dd")
+//                                    .build();
+//                            yield Cell.newBuilder()
+//                                    .setTimeValue(time)
+//                                    .setColumnIndex(i)
+//                                    .build();
+//                        }
+//                        case 92 -> { // Time
+//                            time = Utilities.DateTime.newBuilder()
+//                                    .setTime(rs.getTime(i).toString())
+//                                    .setFormat("HH:MM:ss")
+//                                    .build();
+//                            yield Cell.newBuilder()
+//                                    .setTimeValue(time)
+//                                    .setColumnIndex(i)
+//                                    .build();
+//                        }
+//                        case 93 -> { // TIMESTAMP
+//                            if (rs.getTimestamp(i) != null) {
+//                                time = Time.newBuilder()
+//                                        .setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss").format(rs.getTimestamp(i)))
+//                                        .setFormat("yyyy-MM-dd HH:mm:ss.sss")
+//                                        .build();
+//                                yield Cell.newBuilder()
+//                                        .setTimeValue(time)
+//                                        .setColumnIndex(i)
+//                                        .build();
+//                            } else {
+//                                yield Cell.newBuilder().build();
+//                            }
+//                        }
                         case 16, -6 -> // BOOLEAN, TINYINT
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setBoolValue(rs.getBoolean(i))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
                         case -5 -> // BIGINT
-                                Row.newBuilder()
+                                Cell.newBuilder()
                                         .setInt64Value(rs.getLong(i))
-                                        .setColumnName(rs.getMetaData().getColumnName(i))
+                                        .setColumnIndex(i)
                                         .build();
                         default -> // Others
                                 rs.getString(i) != null ?
-                                        Row.newBuilder()
+                                        Cell.newBuilder()
                                                 .setStringValue(rs.getString(i))
-                                                .setColumnName(rs.getMetaData().getColumnName(i))
+                                                .setColumnIndex(i)
                                                 .build()
                                         :
-                                        Row.newBuilder()
+                                        Cell.newBuilder()
                                                 .setStringValue("")
-                                                .setColumnName(rs.getMetaData().getColumnName(i))
+                                                .setColumnIndex(i)
                                                 .build();
 
                     };
-                    rowsBuilder.addRow(row);
+                    rowsBuilder.addCell(cell);
                 }
                 tableBuilder.addRows(rowsBuilder.build());
             }

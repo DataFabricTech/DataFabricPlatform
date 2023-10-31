@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
 import com.mobigen.datafabric.dataLayer.config.OpenSearchConfig;
-import com.mobigen.datafabric.dataLayer.model.DataSetModel;
+import com.mobigen.datafabric.dataLayer.model.DataCatalogModel;
 import com.mobigen.datafabric.dataLayer.model.RecentSearchesModel;
 import com.mobigen.datafabric.dataLayer.model.StorageModel;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,6 @@ import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TextProperty;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
-import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.transport.OpenSearchTransport;
@@ -30,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 @Slf4j
 public class OpenSearchRepository {
     private final OpenSearchClient client;
@@ -77,7 +77,7 @@ public class OpenSearchRepository {
 
             var hits = client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                             .query(q -> q.bool(boolQuery.build()))
-                    , DataSetModel.class).hits().hits();
+                    , DataCatalogModel.class).hits().hits();
             hits.forEach(hit -> {
                 var id = hit.source().getId();
                 ids.add(id.substring(1, id.length() - 1));
@@ -95,7 +95,7 @@ public class OpenSearchRepository {
         log.info("[getFacet] start");
         try {
             var map = new HashMap<String, Aggregation>();
-            for (var field : DataSetModel.class.getDeclaredFields()) {
+            for (var field : DataCatalogModel.class.getDeclaredFields()) {
                 if (field.getType() == String.class) {
                     map.put(field.getName(),
                             new Aggregation.Builder().terms(t -> t.field(field.getName())).build());
@@ -111,7 +111,7 @@ public class OpenSearchRepository {
             return client.search(s -> s.index(openSearchConfig.getDataSetIndex()).size(1000)
                             .aggregations(map)
                             .query(q -> q.bool(boolQuery.build()))
-                    , DataSetModel.class).aggregations();
+                    , DataCatalogModel.class).aggregations();
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
             throw e;
@@ -150,7 +150,7 @@ public class OpenSearchRepository {
             // todo size -> config
             var hits = client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                             .size(10000)
-                    , DataSetModel.class).hits().hits();
+                    , DataCatalogModel.class).hits().hits();
             hits.forEach(hit -> {
                 var id = hit.source().getId();
                 ids.add(id.substring(1, id.length() - 1));
@@ -162,7 +162,7 @@ public class OpenSearchRepository {
         return ids;
     }
 
-    public Hit<DataSetModel> searchId(String id)
+    public Hit<DataCatalogModel> searchId(String id)
             throws OpenSearchException, IOException, IndexOutOfBoundsException {
         log.info("[searchId] start");
         try {
@@ -170,7 +170,7 @@ public class OpenSearchRepository {
                             .query(q -> q.match(
                                     m -> m.field("id").query(FieldValue.of(id))
                             ))
-                    , DataSetModel.class).hits().hits().get(0);
+                    , DataCatalogModel.class).hits().hits().get(0);
         } catch (OpenSearchException | IOException | IndexOutOfBoundsException e) {
             log.error(e.getMessage());
             throw e;
@@ -216,7 +216,7 @@ public class OpenSearchRepository {
             if (checkIndex(openSearchConfig.getDataSetIndex())) {
                 var properties = new HashMap<String, Property>();
                 // todo properties -> meta는 필요 없음?
-                for (var field : DataSetModel.class.getDeclaredFields()) {
+                for (var field : DataCatalogModel.class.getDeclaredFields()) {
                     if (field.getType() == String.class) {
                         properties.put(field.getName(), new Property.Builder()
                                 .text(new TextProperty.Builder().fielddata(true).build()).build());
@@ -261,11 +261,11 @@ public class OpenSearchRepository {
     }
 
 
-    public void insertDocument(DataSetModel dataSetModel) throws OpenSearchException, IOException {
+    public void insertDocument(DataCatalogModel dataCatalogModel) throws OpenSearchException, IOException {
         log.info("[insertDocument] start");
         try {
             var response = client.index(i -> i.index(openSearchConfig.getDataSetIndex())
-                    .document(dataSetModel));
+                    .document(dataCatalogModel));
             if (response.result() != Result.Created) {
                 log.error(String.format("Client Create Fail, result %s", response.result()));
                 throw new OpenSearchException(
@@ -297,18 +297,18 @@ public class OpenSearchRepository {
     }
 
     /**
-     * @param dataSetModel update document
+     * @param dataCatalogModel update document
      * @param id           document's id
      */
-    public void updateDocument(DataSetModel dataSetModel, String id) throws OpenSearchException, IOException {
+    public void updateDocument(DataCatalogModel dataCatalogModel, String id) throws OpenSearchException, IOException {
         log.info("[updateDocument] start");
         try {
             var docId = getDocumentId(id);
 
             var response = client.update(u -> u.index(openSearchConfig.getDataSetIndex())
                             .id(docId)
-                            .doc(dataSetModel)
-                    , DataSetModel.class);
+                            .doc(dataCatalogModel)
+                    , DataCatalogModel.class);
             if (response.result() != Result.Updated && response.result() != Result.NoOp) {
                 throw new OpenSearchException(
                         new ErrorResponse.Builder().error(
@@ -385,7 +385,7 @@ public class OpenSearchRepository {
             return client.search(s -> s.index(openSearchConfig.getDataSetIndex())
                     .query(q -> q.match(
                             m -> m.field("id").query(FieldValue.of(id))
-                    )), DataSetModel.class).hits().hits().get(0).id();
+                    )), DataCatalogModel.class).hits().hits().get(0).id();
         } catch (OpenSearchException | IOException | NullPointerException e) {
             log.error(e.getMessage());
             throw e;

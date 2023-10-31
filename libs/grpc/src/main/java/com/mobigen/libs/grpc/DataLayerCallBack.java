@@ -1,14 +1,10 @@
 package com.mobigen.libs.grpc;
 
 
+import com.mobigen.datafabric.share.protobuf.DataLayer.*;
+
 public interface DataLayerCallBack {
-    QueryResponse execute(String sql);
+    ResExecute execute(ReqExecute sql);
 
-    BatchResponse executeBatch(String[] sql);
-
-    SearchResponse search(String input, DataSet detailSearch, Filter filterSearch, String userId);
-
-    RecentSearchesResponse recentSearch(String userId);
-
-    HealthCheckResponse healthCheck();
+    ResBatchExecute executeBatch(ReqBatchExecute sql);
 }

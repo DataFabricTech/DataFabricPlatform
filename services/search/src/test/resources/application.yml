@@ -2,7 +2,7 @@ open_search:
   host: 192.168.107.28
   port: 35000
   index:
-    data_set: dataSetTestIndex
+    data_catalog: dataCatalogTestIndex
     recent_searches: recentSearchesTestIndex
     storage: storageIndex
   number_of_save_recent_searches: 100
@@ -10,10 +10,10 @@ open_search:
   filters: name, type, format, knowledgeGraph, categories, tag, connectorType, connectorName
 
 datasource:
-  url: jdbc:postgresql://192.168.106.104:5432/testdb
-  username: testuser
+  url: jdbc:postgresql://192.168.107.28:14632/testdb
+  username: testUser
   password: testUser
   table_name:
-    data_set: data_set_test
+    data_catalog: data_catalog_test
     storage: storage_test
     data_tag: data_tag_test
