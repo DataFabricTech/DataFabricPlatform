@@ -1,4 +1,4 @@
-package com.mobigen.datafabric.core;
+package com.mobigen.datafabric.core.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
@@ -21,22 +21,17 @@ public class JdbcConnector implements AutoCloseable {
     private Connection connection;
     private Cursor cursor;
 
-    public JdbcConnector(String urlFormat, Map<String, String> basicOptions) {
+    public JdbcConnector(String urlFormat, Map<String, Object> basicOptions) {
         url = StringSubstitutor.replace(urlFormat, basicOptions, "{", "}");
     }
 
-    public JdbcConnector connect(Properties options) {
-        try {
-            connection = DriverManager.getConnection(url, options);
-        } catch (SQLException e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
+    public JdbcConnector connect(Properties options) throws SQLException {
+        connection = DriverManager.getConnection(url, options);
         return this;
     }
 
 
-    public JdbcConnector connect() {
+    public JdbcConnector connect() throws SQLException {
         return connect(null);
     }
 

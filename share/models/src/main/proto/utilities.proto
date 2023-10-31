@@ -65,3 +65,13 @@ message ReqId {
   string id = 1;
 }
 
+enum DataType {
+  STRING = 0;
+  INT32 = 1;
+  INT64 = 2;
+  BOOL = 3;
+  BYTES = 4;
+  FLOAT = 5;
+  DOUBLE = 6;
+  DATETIME = 7;
+}

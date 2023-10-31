@@ -1,5 +1,7 @@
 package com.mobigen.sqlgen.model;
 
+import lombok.Getter;
+
 import java.sql.JDBCType;
 import java.util.Objects;
 
@@ -12,6 +14,7 @@ import java.util.Objects;
  * @since 0.0.1
  */
 public class SqlColumn {
+    @Getter
     private final String name;
     private final SqlTable table;
     private final JDBCType type;

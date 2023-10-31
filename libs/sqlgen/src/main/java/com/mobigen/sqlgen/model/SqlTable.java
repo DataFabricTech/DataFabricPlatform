@@ -13,6 +13,7 @@ import java.util.Objects;
 public class SqlTable {
     private final String name;
     private String alias;
+    private final Boolean caseSensitive;
     private final Character stringSpecialChar = '"';
 
     public String getAlias() {
@@ -20,10 +21,16 @@ public class SqlTable {
     }
 
     public String getTotalName() {
-        if (name.equals(alias)) {
-            return stringSpecialChar + name + stringSpecialChar;
+        String tableName;
+        if (!caseSensitive) {
+            tableName = name;
+        } else {
+            tableName = stringSpecialChar + name + stringSpecialChar;
         }
-        return stringSpecialChar + name + stringSpecialChar + " as " + getAlias();
+        if (name.equals(alias)) {
+            return tableName;
+        }
+        return tableName + " as " + getAlias();
     }
 
     private SqlTable(Builder builder) {
@@ -32,7 +39,7 @@ public class SqlTable {
         if (alias == null) {
             alias = name;
         }
-
+        caseSensitive = Objects.requireNonNull(builder.caseSensitive);
     }
 
     public static SqlTable of(String name) {
@@ -48,9 +55,18 @@ public class SqlTable {
                 .build();
     }
 
+    public static SqlTable of(String name, String alias, Boolean caseSensitive) {
+        return new Builder()
+                .withName(name)
+                .withAlias(alias)
+                .withCaseSensitive(caseSensitive)
+                .build();
+    }
+
     private static class Builder {
         private String name;
         private String alias;
+        private Boolean caseSensitive = false;
 
         private Builder withName(String name) {
             this.name = name;
@@ -59,6 +75,10 @@ public class SqlTable {
 
         private Builder withAlias(String alias) {
             this.alias = alias;
+            return this;
+        }
+        private Builder withCaseSensitive(Boolean caseSensitive) {
+            this.caseSensitive = caseSensitive;
             return this;
         }
 

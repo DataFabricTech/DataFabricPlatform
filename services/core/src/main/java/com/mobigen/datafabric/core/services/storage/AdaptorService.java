@@ -6,6 +6,8 @@ import com.mobigen.datafabric.core.model.DataStorageAdaptorTable;
 import com.mobigen.datafabric.core.model.DataStorageTypeTable;
 import com.mobigen.datafabric.core.model.UrlFormatTable;
 import com.mobigen.datafabric.share.protobuf.AdaptorOuterClass;
+import com.mobigen.datafabric.share.protobuf.StorageCommon;
+import com.mobigen.datafabric.share.protobuf.Utilities;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -84,47 +86,47 @@ public class AdaptorService {
                         .setVersion("16.1-fwani")
                         .setPath("/tmp/postgresql-16.1.jar")
                         .setClass_("org.postgresql.Driver")
-                        .addAllUrl(List.of(
+                        .addAllSupportedURL(List.of(
                                 "jdbc:postgresql://{host}:{port}/{database}"
                         ))
                         .addAllBasicOptions(List.of(
-                                AdaptorOuterClass.InputField.newBuilder()
+                                StorageCommon.InputField.newBuilder()
                                         .setKey("host")
                                         .setRequired(true)
-                                        .setValueType("string")
+                                        .setValueType(Utilities.DataType.STRING)
                                         .setDefault("localhost")
                                         .setDescription("host name")
                                         .setValue("localhost")
                                         .build(),
-                                AdaptorOuterClass.InputField.newBuilder()
+                                StorageCommon.InputField.newBuilder()
                                         .setKey("port")
                                         .setRequired(true)
-                                        .setValueType("integer")
+                                        .setValueType(Utilities.DataType.INT32)
                                         .setDefault("5432")
                                         .setDescription("port")
                                         .setValue("5432")
                                         .build(),
-                                AdaptorOuterClass.InputField.newBuilder()
+                                StorageCommon.InputField.newBuilder()
                                         .setKey("database")
                                         .setRequired(true)
-                                        .setValueType("string")
+                                        .setValueType(Utilities.DataType.STRING)
                                         .setDefault("postgres")
                                         .setDescription("host name")
                                         .setValue("postgres")
                                         .build()
                         ))
                         .addAllAdditionalOptions(List.of(
-                                AdaptorOuterClass.InputField.newBuilder()
+                                StorageCommon.InputField.newBuilder()
                                         .setKey("user")
                                         .setRequired(true)
-                                        .setValueType("string")
+                                        .setValueType(Utilities.DataType.STRING)
                                         .setDescription("user name")
                                         .setValue("postgres")
                                         .build(),
-                                AdaptorOuterClass.InputField.newBuilder()
+                                StorageCommon.InputField.newBuilder()
                                         .setKey("password")
                                         .setRequired(true)
-                                        .setValueType("string")
+                                        .setValueType(Utilities.DataType.STRING)
                                         .setDescription("password")
                                         .setValue("test")
                                         .build()

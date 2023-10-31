@@ -39,9 +39,13 @@ public class SelectStatementProvider implements StatementProvider {
         private String tableStatement;
 
         public Builder withSelectColumns(List<SqlColumn> selectColumns) {
-            this.selectStatement = selectColumns.stream()
-                    .map(SqlColumn::getNameWithTable)
-                    .collect(Collectors.joining(", "));
+            if (selectColumns.isEmpty()) {
+                this.selectStatement = "*";
+            } else {
+                this.selectStatement = selectColumns.stream()
+                        .map(SqlColumn::getNameWithTable)
+                        .collect(Collectors.joining(", "));
+            }
             return this;
         }
 
