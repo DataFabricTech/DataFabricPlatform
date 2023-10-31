@@ -36,7 +36,7 @@ service StorageService {
   rpc AddStorage(Storage) returns (CommonResponse);           // 원천 데이터 저장소 추가
   // POST   : /storage/v1/modify
   rpc UpdateStorage(Storage) returns (CommonResponse);        // 원천 데이터 저장소 수정
-  // POST   : /storage/v1/connected-data
+  // GET    : /storage/v1/connected-data/{storage-id}
   rpc ConnectedData(ReqId) returns (ResConnectedData);        // 저장소 연결 데이터 수 확인
   // POST   : /storage/v1/delete
   rpc DeleteStorage(ReqId) returns (CommonResponse);          // 원천 데이터 저장소 삭제

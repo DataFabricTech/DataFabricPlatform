@@ -70,9 +70,17 @@ func (ctrl *StorageController) Overview(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Overview : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
-	// TODO : 대시 보드용으로 데이터 가공
+	// 화면 출력용으로 데이터 가공
+	overview := &models.StorageOverview{}
+	overview.Convert(res)
+	resOverview := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storageOverview": overview,
+		},
+	}
 	ctrl.log.Infof("[%-10s] << Overview", "storage")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resOverview)
 }
 
 // Search 			POST   : /storage/v1/search
@@ -111,9 +119,16 @@ func (ctrl *StorageController) Status(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Status : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
-	// TODO : 데이터 가공
+	storage := &models.Storage{}
+	storage.Convert(res.Data.Storage)
+	resStatus := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storage": storage,
+		},
+	}
 	ctrl.log.Infof("[%-10s] << Status ", "storage")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resStatus)
 }
 
 // Default 			POST   : /storage/v1/default
@@ -132,9 +147,16 @@ func (ctrl *StorageController) Default(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Default : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
-	// TODO : 데이터 가공
+	storage := &models.Storage{}
+	storage.Convert(res.Data.Storage)
+	resStatus := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storage": storage,
+		},
+	}
 	ctrl.log.Infof("[%-10s] << Default ", "storage")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resStatus)
 }
 
 // Advanced			POST   : /storage/v1/advanced
@@ -153,9 +175,16 @@ func (ctrl *StorageController) Advanced(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Advanced : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
-	// TODO : 데이터 가공
+	storage := &models.Storage{}
+	storage.Convert(res.Data.Storage)
+	resStatus := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storage": storage,
+		},
+	}
 	ctrl.log.Infof("[%-10s] << Advanced ", "storage")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resStatus)
 }
 
 // Browse			POST   : /storage/v1/browse

@@ -75,6 +75,14 @@ Accept: application/json
 <> 2023-10-30T164312.200.json
 
 ###
+GET http://localhost:8080/storage/v1/storage-type
+Accept: application/json
+
+###
+GET http://localhost:8080/storage/v1/adaptors?storage-type=iris
+Accept: application/json
+
+###
 GET http://localhost:8080/storage/v1/overview
 Accept: application/json
 

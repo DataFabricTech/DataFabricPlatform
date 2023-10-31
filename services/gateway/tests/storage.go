@@ -73,8 +73,14 @@ func (service *StorageService) Overview(ctx context.Context, in *empty.Empty) (*
 			},
 			StorageDataCount: []*protobuf.StorageDataCount{
 				{
-					Id:         "",
-					Name:       "",
+					Id:         "IRIS",
+					Name:       "IRIS",
+					Total:      100,
+					Registered: 10,
+				},
+				{
+					Id:         "MySQL",
+					Name:       "MySQL",
 					Total:      0,
 					Registered: 0,
 				},

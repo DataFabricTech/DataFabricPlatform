@@ -42,8 +42,19 @@ func (ctrl *AdaptorController) SupportedStorageType(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Supported Storage Type : Error   [ %4s ]/[ %s ]", "ADAPTOR", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
+	//adaptors := &models.Adaptors{}
+	//adaptors.Convert(res.Data)
+	storageTypes := &models.SupportedStorageTypes{}
+	storageTypes.Convert(res.Data.SupportedStorageType)
+	resStorageTypes := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"supportedStorageType": storageTypes,
+		},
+	}
+
 	ctrl.log.Infof("[%-10s] << Supported Storage Type", "ADAPTOR")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resStorageTypes)
 }
 
 // GetAdaptors Get Adaptor From Query Param(storage-type)
@@ -65,6 +76,18 @@ func (ctrl *AdaptorController) GetAdaptors(c echo.Context) error {
 			ErrMsg: err.Error(),
 		})
 	}
+	if res.Code != "200" {
+		ctrl.log.Errorf("[%-10s] << GetAdaptor : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
+		return c.JSON(http.StatusOK, res)
+	}
+	//adaptors := &models.Adaptors{}
+	//adaptors.Convert(res.Data)
+	//resAdaptor := &models.CommonResponse{
+	//	Code: res.Code,
+	//	Data: map[string]interface{}{
+	//		"adaptors": adaptors,
+	//	},
+	//}
 	ctrl.log.Infof("[%-10s] << GetAdaptor", "ADAPTOR")
 	return c.JSON(http.StatusOK, res)
 }

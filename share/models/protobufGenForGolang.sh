@@ -22,6 +22,13 @@ then
     exit 1
 fi
 
+# Check protoc-gen-go-grpc installation
+if ! command -v protoc-gen-go-grpc &> /dev/null
+then
+    echo "protoc-gen-go-grpc could not be found"
+    echo "install cmd : go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest"
+    exit 1
+fi
 # Check protoc-gen-go installation
 if ! command -v protoc-gen-go &> /dev/null
 then
