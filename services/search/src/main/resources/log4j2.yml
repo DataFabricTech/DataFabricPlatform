@@ -1,0 +1,31 @@
+Configuration:
+  status: warn
+
+  appender:
+    Console:
+      name: LogToConsole
+      PatternLayout:
+        Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5.-5level] %C [%-24.24replace{%F}{[.java]}{}:%4L] : %msg%n"
+
+    #File:
+    #  name: File
+    #  fileName: logs/app.log
+    #  PatternLayout:
+    #    Pattern: "%d %p %C{1.} [%t] %m%n"
+
+    RollingFile:
+      - name: LogToRollingFile
+        fileName: logs/app.log
+        filePattern: "logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz"
+        PatternLayout:
+          Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5.-5level] [%-24.24replace{%F}{[.java]}{}:%4L] : %msg%n"
+        Policies:
+          SizeBasedTriggeringPolicy:
+            size: 10MB
+        DefaultRolloverStrategy:
+          max: 10
+    loggers:
+      Root:
+        level: debug
+        AppenderRef:
+          ref: LogToConsole
