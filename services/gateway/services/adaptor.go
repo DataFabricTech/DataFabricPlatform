@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// AdaptorService portal service struct
+// AdaptorService adaptor service struct
 type AdaptorService struct {
 	log    *logrus.Logger
 	conn   *grpc.ClientConn

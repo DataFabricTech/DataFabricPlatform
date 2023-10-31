@@ -1,0 +1,144 @@
+###
+POST http://localhost:8080/portal/v1/search
+Content-Type: application/json
+
+{
+  "keyword": "test",
+  "pageable": {
+    "page": {
+      "size": 10,
+      "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "name",
+        "direction": 0
+      }
+    ]
+  },
+  "filters": {
+    "DATA_TYPE": [
+      "STRUCTURED",
+      "SSEMI_STRUCTURED"
+    ],
+    "DATA_FORMAT": [
+      "CSV",
+      "JSON"
+    ],
+    "CATEGORY": [
+      "FINANCE",
+      "HEALTHCARE"
+    ],
+    "TAG": [
+      "TAG1",
+      "TAG2"
+    ],
+    "STORAGE_TYPE": [
+      "HDFS",
+      "S3"
+    ],
+    "CONNECTOR_ID": [
+      "CONNECTOR_ID1",
+      "CONNECTOR_ID2"
+    ],
+    "CREATOR_ID": [
+      "CREATOR_ID1",
+      "CREATOR_ID2"
+    ]
+  },
+  "detailSearch": {
+    "DATA_NAME": "test",
+    "DATA_TYPE": "STRUCTURED",
+    "DATA_FORMAT": "CSV",
+    "CATEGORY": "FINANCE",
+    "TAG": "TAG1",
+    "STORAGE_TYPE": "HDFS",
+    "CONNECTOR_NAME": "CONNECTOR_NAME1",
+    "CREATOR": "CREATOR1",
+    "START_DATE": "2021-10-30 12:23:34.200",
+    "END_DATE": "2021-10-30 12:23:34.200"
+  }
+}
+
+<> 2023-10-30T194100.200.json
+
+###
+GET http://localhost:8080/portal/v1/recent-searches
+Accept: application/json
+
+<> 2023-10-30T164312.200.json
+
+###
+GET http://localhost:8080/storage/v1/overview
+Accept: application/json
+
+<> 2023-10-31T205239.200.json
+
+###
+POST http://localhost:8080/storage/v1/search
+Content-Type: application/json
+
+{
+  "filter": {
+    "name": "test",
+    "storageType": [
+      "IRIS",
+      "HDFS"
+    ],
+    "status": [
+      0,
+      1
+    ]
+  },
+  "sort": [
+    {
+      "order": 1,
+      "field": "id",
+      "direction": 1
+    },
+    {
+      "order": 2,
+      "field": "name",
+      "direction": 0
+    }
+  ]
+}
+
+<> 2023-10-31T205515.200.json
+<> 2023-10-31T205458.200.json
+
+###
+POST http://localhost:8080/storage/v1/status
+Content-Type: application/json
+
+{
+    "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205629.200.json
+
+###
+POST http://localhost:8080/storage/v1/default
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205625.200.json
+
+###
+POST http://localhost:8080/storage/v1/advanced
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205627.200.json

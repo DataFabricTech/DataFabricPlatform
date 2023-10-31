@@ -48,9 +48,23 @@ func (h *Injector) Init() error {
 	adaptor := AdaptorInjector{}.Init(h)
 	storageGroup.GET("/storage-type", adaptor.SupportedStorageType)
 	storageGroup.GET("/adaptors", adaptor.GetAdaptors)
+
+	// Storage
+	storage := StorageInjector{}.Init(h)
 	// Storage Management
+	storageGroup.POST("/connect-test", storage.ConnectTest)
+	storageGroup.POST("/add", storage.AddStorage)
+	storageGroup.POST("/modify", storage.UpdateStorage)
+	storageGroup.GET("/connected-data/:storage-id", storage.ConnectedData)
+	storageGroup.POST("/delete", storage.DeleteStorage)
 
 	// Storage Browser
-
+	storageGroup.GET("/overview", storage.Overview)
+	storageGroup.POST("/search", storage.Search)
+	storageGroup.POST("/status", storage.Status)
+	storageGroup.POST("/default", storage.Default)
+	storageGroup.POST("/advanced", storage.Advanced)
+	storageGroup.POST("/browse", storage.Browse)
+	storageGroup.POST("/browse/default", storage.BrowseDefault)
 	return nil
 }
