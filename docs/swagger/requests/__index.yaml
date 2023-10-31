@@ -1,0 +1,35 @@
+# For Portal
+Search:
+  $ref: "./search.yaml#/Search"
+
+# DataCatalog
+DataCatalogId:
+  $ref: "./data-catalog.yaml#/DataCatalogId"
+DataMetaUpdate:
+  $ref: "./data-catalog.yaml#/DataMetaUpdate"
+DataTagUpdate:
+  $ref: "./data-catalog.yaml#/DataTagUpdate"
+DataRatingAndComment:
+  $ref: "./data-catalog.yaml#/DataRatingAndComment"
+
+# For Data Catalog Browser
+DataCatalogSearch:
+  $ref: "./data-catalog.yaml#/DataCatalogSearch"
+
+# For Storage Management
+ConnectTest:
+  $ref: "./storage-management.yaml#/ConnectTest"
+AddStorage:
+  $ref: "./storage-management.yaml#/AddStorage"
+ModifyStorage:
+  $ref: "./storage-management.yaml#/ModifyStorage"
+
+# For Storage Browser
+StorageSearch:
+  $ref: "./storage.yaml#/StorageSearch"
+StorageId:
+  $ref: "./storage.yaml#/StorageId"
+StorageBrowse:
+  $ref: "./storage.yaml#/StorageBrowse"
+
+

@@ -1,0 +1,57 @@
+#DataCatalogId:
+#  $ref: "./parameters/__index.yaml#/DataId"
+#StorageId:
+#  $ref: "./parameters/__index.yaml#/StorageId"
+#StoragePath:
+#  $ref: "./parameters/__index.yaml#/StoragePath"
+#StorageDataName:
+#  $ref: "./parameters/__index.yaml#/StorageDataName"
+
+#DataCatalogId:
+#  name: dataCatalogId
+#  in: path
+#  description: "데이터 아이디(UUID)"
+#  required: true
+#  schema:
+#    type: string
+#    format: uuid
+#DataId:
+#  name: data-id
+#  in: query
+#  description: "데이터 아이디(UUID)"
+#  required: true
+#  schema:
+#    type: string
+#    format: uuid
+#StorageId:
+#  name: storageId
+#  in: path
+#  description: "저장소 ID"
+#  required: true
+#  schema:
+#    type: string
+#    format: uuid
+#StoragePath:
+#  name: path
+#  in: query
+#  description: "테이블(파일) 경로"
+#  required: true
+#  schema:
+#    type: string
+#  examples:
+#    database:
+#      value: "DATABASE_NAME"
+#    directory:
+#      value: "/home/mobigen/data-platform"
+#StorageDataName:
+#  name: name
+#  in: query
+#  description: "테이블(파일) 이름"
+#  required: true
+#  schema:
+#    type: string
+#  examples:
+#    table:
+#      value: "TABLE_NAME"
+#    file:
+#      value: "FILE_NAME.csv"

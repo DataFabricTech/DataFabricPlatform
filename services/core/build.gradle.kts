@@ -1,4 +1,3 @@
-
 plugins {
     id("com.mobigen.java-application")
 }
@@ -9,11 +8,11 @@ val protobufVersion = "3.24.3"
 
 dependencies {
     implementation("com.mobigen.libs:grpc")
+    implementation("com.mobigen.libs:sqlgen")
 
-// protobuf
-//    implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")
-//    instrumentedClasspath(project(mapOf("com.mobigen.libs:grpc"), path" to ":producer",
-//        "configuration" to "instrumentedJars")))
+    // jdbc
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.apache.commons:commons-text:1.10.0")
 }
 
 application {

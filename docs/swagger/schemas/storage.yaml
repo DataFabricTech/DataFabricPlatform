@@ -1,0 +1,702 @@
+## Storage Management
+### 1. Add Storage > Get Supported Storage Type > Select Adaptor > Connect Test > .... > Add Storage
+### Connect Test
+ConnectTest:
+  type: object
+  description: 연결 테스트 요청 메시지
+  properties:
+    adaptorId:
+      type: string
+      description: 어댑터 ID(드라이버? 어댑터?)
+      format: uuid
+    basicOptions:
+      type: array
+      description: 저장소 연결에 필요한 설정 정보
+      items:
+        $ref: "./__index.yaml#/InputField"
+    additionalOptions:
+      type: array
+      description: 사용자가 추가한 옵션 / 드라이버 옵션
+      items:
+        $ref: "./__index.yaml#/InputField"
+  example:
+    adaptorId: "adaptor-id01"
+    basicOptions:
+      - key: "HOST"
+        value: "localhost"
+      - key: "PORT"
+        value: "1234"
+      - key: "DATABASE"
+        value: "DATABASE_NAME"
+      - key: "USER"
+        value: "user-id"
+      - key: "PASSWORD"
+        value: "password"
+    additionalOptions:
+      - key: "charset"
+        value: "utf-8"
+      - key: "timezone"
+        value: "Asia/Seoul"
+### 2. Update Storage
+### Use Storage Structure
+### 3. Delete Storage > Get Connected Data Count > Delete Storage
+### Use Storage Structure
+
+## Storage Browser
+StorageOverview:
+  type: object
+  description: 저장소 개요 정보
+  properties:
+    storageTypeCount:
+      $ref: "./__index.yaml#/PieChartData"
+      description: 저장소 유형별 개수
+#      type: array
+#      description: 저장소 유형별 개수
+#      items:
+#        type: object
+#        properties:
+#          storageType:
+#            type: string
+#            description: 저장소 유형
+#            enum:
+#              - "IRIS"
+#              - "HDFS"
+#              - "MySQL"
+#              - "PostgreSQL"
+#          count:
+#            type: integer
+#            description: 저장소 개수
+#            format: integer
+    storageStatusCount:
+      $ref: "./__index.yaml#/PieChartData"
+      description: 저장소 상태별 개수
+#      type: array
+#      items:
+#        type: object
+#        properties:
+#          status:
+#            type: string
+#            description: 저장소 상태
+#            enum:
+#              - "CONNECTED"
+#              - "DISCONNECTED"
+#              - "ERROR"
+#          count:
+#            type: integer
+#            description: 저장소 개수
+#            format: integer
+    storageStatistics:
+      $ref: "./__index.yaml#/BarChartData"
+#      type: array
+#      description: 저장소 통계 정보 - 최근 1주일 기준
+#      items:
+#        type: object
+#        properties:
+#          id:
+#            type: string
+#            description: 저장소 아이디
+#          name:
+#            type: string
+#            description: 저장소 이름
+#          access:
+#            type: number
+#            description: 조회 수
+#            format: long
+    storageDataCount:
+      $ref: "./__index.yaml#/StackChartData"
+#      type: array
+#      description: 저장소 데이터 개수 정보
+#      items:
+#        type: object
+#        properties:
+#          id:
+#            type: string
+#            description: 저장소 아이디
+#          name:
+#            type: string
+#            description: 저장소 이름
+#          total:
+#            type: number
+#            description: 확인 가능한 전체 데이터 수
+#            format: integer
+#          registered:
+#            type: number
+#            description: 등록 데이터 수
+#            format: integer
+    storageResponseTime:
+      type: array
+      description: 저장소 응답 시간 통계 정보 - 최근 1주일 기준
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: 저장소 아이디
+          name:
+            type: string
+            description: 저장소 이름
+          responseTime:
+            type: number
+            description: 평균 응답 시간(쿼리, 데이터 조회)
+            format: double
+    history:
+      $ref: "./__index.yaml#/GridData"
+#      type: array
+#      description: 저장소 변경 이력
+#      items:
+#        $ref: "#/StorageHistory"
+    event:
+      $ref: "./__index.yaml#/GridData"
+#      type: array
+#      description: 연결정보(저장소) 이벤트
+#      items:
+#        $ref: "#/StorageEvent"
+
+StorageSearchFilter:
+  type: object
+  description: 저장소 검색 필터
+  properties:
+    name:
+      type: string
+      description: 저장소 이름
+    storageType:
+      type: array
+      description: 저장소 유형. 선택하지 않는 경우 모든 유형의 저장소를 검색
+      items:
+        type: string
+        description: 저장소 유형
+        enum:
+          - "IRIS"
+          - "HDFS"
+          - "MySQL"
+          - "PostgreSQL"
+    status:
+      type: array
+      description: >
+        저장소 상태
+        CONNECTED - 정상, DISCONNECTED - 연결 끊김 / 연결 실패, ERROR - 인증 오류 / 데이터 베이스 찾을 수 없음
+        선택하지 않는 경우 모든 상태의 저장소를 검색
+      items:
+        type: string
+        description: 저장소 상태
+        enum:
+          - "CONNECTED"
+          - "DISCONNECTED"
+          - "ERROR"
+  example:
+    name: "Mobigen-IRIS"
+    storageType: ["IRIS", "HDFS"]
+    status: ["CONNECTED", "DISCONNECTED"]
+
+StorageBrowse:
+  type: object
+  description: 연결정보(저장소) 내부 탐색
+  properties:
+    id:
+      type: string
+      description: 연결정보(저장소) ID
+      format: uuid
+    path:
+      type: string
+      description: 탐색 경로(Database or Path'/a/b')
+    data:
+      type: array
+      description: 경로 내 데이터(테이블, 폴더/파일) 정보
+      items:
+        $ref: "#/StorageBrowserDataDefine"
+  example:
+    id: "storage-id01"
+    path: "/"
+    data:
+      - name: "data-name01"
+        type: 0
+        children:
+          - name: "data-name02"
+            type: 1
+            dataFormat: "TABLE"
+            status: 1
+          - name: "data-name03"
+            type: 1
+            dataFormat: "TABLE"
+            status: 0
+      - name: "data-name04"
+        type: 0
+        children:
+          - name: "data-name05"
+            type: 1
+            dataFormat: "TABLE"
+            status: 1
+          - name: "data-name06"
+            type: 1
+            dataFormat: "TABLE"
+            status: 1
+
+StorageBrowserDataDefine:
+  type: object
+  description: 디렉토리 트리구조를 출력하기 위한 데이터 정의
+  properties:
+    name:
+      type: string
+      description: 데이터 이름
+    type:
+      type: integer
+      description: >
+        데이터의 종류 ( 데이터베이스,폴더 : 0, 테이블, 파일 : 1 )
+      enum:
+        - 0
+        - 1
+    dataFormat:
+      type: string
+      description: 데이터 포맷
+      $ref: "./__index.yaml#/DataFormat"
+    status:
+      type: integer
+      description: >
+        데이터 동록 상태
+        0 : 미등록
+        1 : 등록
+    children:
+      type: array
+      description: 하위 데이터 목록
+      items:
+        $ref: "#/StorageBrowserDataDefine"
+
+StorageDataDefault:
+  type: object
+  properties:
+    storageId:
+      type: string
+      description: "저장소 아이디"
+      format: uuid
+    path:
+      type: string
+      description: "데이터 경로"
+    name:
+      type: string
+      description: "데이터 이름(테이블이름, 파일이름)"
+    dataFormat:
+      $ref: "./__index.yaml#/DataFormat"
+    dataInfo:
+      type: object
+      description: "데이터 정보(사이즈(row, byte), 연결 데이터 개수 등"
+      properties:
+        rows:
+          type: number
+          description: "데이터 크기(row)"
+          format: long
+        size:
+          type: number
+          description: "데이터 크기(byte)"
+          format: long
+        columns:
+          type: number
+          description: "컬럼 수"
+          format: integer
+        owner:
+          type: string
+          description: "데이터 소유자"
+        description:
+          type: string
+          description: "데이터 설명(테이블 생성 스크립트의 코멘트)"
+        createdAt:
+          $ref: "./__index.yaml#/DateTime"
+        lastModifiedAt:
+          $ref: "./__index.yaml#/DateTime"
+    connectedDataCount:
+      type: integer
+      description: "데이터와 연결된 데이터 개수"
+    connectedData:
+      type: array
+      description: "원본 데이터기반으로 생성(가상화)된 데이터 목록"
+      items:
+        $ref: "./__index.yaml#/DataCatalog"
+    dataStructure:
+      $ref: "./__index.yaml#/GridData"
+
+
+## Storage
+AutoAddSetting:
+  type: object
+  description: 데이터 자동 추가 설정 정보
+  properties:
+    regex:
+      type: string
+      description: 테이블, 파일 이름 정규식
+      default: "*"
+    dataType:
+      type: string
+      description: 데이터 타입
+      enum:
+        - "STRUCTURED"
+        - "UNSTRUCTURED"
+        - "SEMI_STRUCTURED"
+        - "ALL"
+      default: "ALL"
+    dataFormat:
+      type: string
+      description: 데이터 포맷
+      enum:
+        - "TABLE"
+        - "VIEW"
+        - "CSV"
+        - "EXCEL"
+        - "WORD"
+        - "HWP"
+        - "PDF"
+        - "PPT"
+        - "JPG"
+        - "PNG"
+        - "MP3"
+        - "MP4"
+        - "MPEG"
+        - "JSON"
+        - "YAML"
+        - "HTML"
+        - "ALL"
+      default: "ALL"
+    minSize:
+      type: number
+      description: >
+        최소 크기(row, byte)
+        -1 : 최소 조건 없음
+      format: long
+      default: -1
+    maxSize:
+      type: number
+      description: >
+        최대 크기(row, byte)
+        -1 : 최대 조건 없음
+      format: long
+      default: -1
+    startDate:
+      type: string
+      description: >
+        데이터 자동 추가 조건(마지막 수정일(수정일이 없는 경우 생성일) 기준)
+        format: yyyy-MM-dd
+        null or 공백 : 조건 없음
+      default: ""
+    endDate:
+      type: string
+      description: >
+        데이터 자동 추가 조건(마지막 수정일(수정일이 없는 경우 생성일) 기준)
+        format: yyyy-MM-dd
+        null or 공백 : 조건 없음
+      default: ""
+SyncSetting:
+  type: object
+  description: 데이터 동기화 설정 정보
+  properties:
+    enable:
+      type: boolean
+      description: 동기화 사용 여부
+      default: false
+    syncType:
+      type: integer
+      description: >
+        동기화 동작 방법
+        0 : 일정 주기
+        1 : 요일
+      enum:
+        - 0
+        - 1
+    period:
+      type: integer
+      description: >
+        동기화 주기(분)
+        syncType이 0인 경우에만 사용
+      format: long
+      minimum: 120
+    week:
+      type: integer
+      description: >
+        동기화 동작 요일
+        syncType이 1인 경우에만 사용
+        0x01 : 일요일
+        0x02 : 월요일
+        0x04 : 화요일
+        0x08 : 수요일
+        0x10 : 목요일
+        0x20 : 금요일
+        0x40 : 토요일
+        월요일, 수요일 : 0x02 | 0x08 = 0x0A
+    runTime:
+      type: string
+      description: >
+        동기화 동작 시간
+        syncType이 1인 경우에만 사용
+        format: HH:mm
+      default: "02:00"
+StorageMonitoringSetting:
+  type: object
+  description: 저장소 모니터링(연결 상태 검사) 설정 정보
+  properties:
+    enable:
+      type: boolean
+      description: 모니터링 사용 여부
+      default: false
+    protocol:
+      type: string
+      description: >
+        모니터링 프로토콜
+      enum:
+        - "TCP"
+        - "UDP"
+        - "ICMP"
+        - "SQL"
+    host:
+      type: string
+      description: IP 주소 or 도메인
+    port:
+      type: integer
+      description: 포트
+    period:
+      type: integer
+      description: 모니터링(연결 상태 검사) 주기(초)
+      default: 5
+      minimum: 5
+      maximum: 300
+    sql:
+      type: string
+      description: 모니터링 SQL
+      default: "SELECT 1"
+    timeout:
+      type: integer
+      description: 타임아웃(초)
+      default: 5
+      minimum: 5
+      maximum: 30
+    successThreshold:
+      type: integer
+      description: 정상으로 판정하는 기준 임계치
+      default: 1
+      minimum: 1
+      maximum: 5
+    failThreshold:
+      type: integer
+      description: 비정상으로 판정하는 기준 임계치
+      default: 3
+      minimum: 3
+      maximum: 5
+StorageSetting:
+  type: object
+  description: 저장소 고급(수집) 설정 정보
+  properties:
+    autoAddSetting:
+      type: object
+      properties:
+        enable:
+          type: boolean
+          description: 데이터 자동 추가 사용 여부
+        options:
+          type: array
+          description: 데이터 자동 추가 설정 정보 리스트
+          items:
+            $ref: "#/AutoAddSetting"
+    syncSetting:
+      $ref: "#/SyncSetting"
+    monitoringSetting:
+      $ref: "#/StorageMonitoringSetting"
+StorageStatistics:
+  type: object
+  description: 연결정보(저장소) 통계 정보
+  properties:
+    totalData:
+      type: number
+      description: 연결정보(저장소) 내 탐색 가능한 전체 데이터 개수
+      format: long
+    registeredData:
+      type: number
+      description: 데이터 패브릭 시스템에 등록된 데이터 개수
+      format: long
+    access:
+      type: number
+      description: 연결정보(저장소) 조회 수
+      format: long
+    avgResponseTime:
+      type: number
+      description: 연결정보(저장소) 평균 응답 시간(초)
+      format: double
+StorageHistory:
+  type: object
+  description: 연결정보(저장소) 변경 이력
+  properties:
+    time:
+      $ref: "./__index.yaml#/DateTime"
+      description: "시간"
+    id:
+      type: string
+      description: 연결정보(저장소) ID
+      format: uuid
+    name:
+      type: string
+      description: 연결정보(저장소) 이름
+    modifiedBy:
+      $ref: "./__index.yaml#/User"
+      description: 정보를 변경한 사용자 정보
+    modifiedInfos:
+      type: array
+      description: 변경된 정보 목록
+      items:
+        type: object
+        properties:
+          cmd:
+            type: string
+            description: >
+              변경된 정보
+              CREATE : 생성
+              UPDATE : 수정
+              DELETE : 삭제
+          key:
+            type: string
+            description: >
+              키 정보를 .을 이용해 표현 (depth01.depth02.key)
+              ex : basicOptions.HOST, additionalOptions.xxx, userMeta.소유자
+          oldValue:
+            type: object
+            description: 변경 전 값
+          newValue:
+            type: object
+            description: 변경 후 값
+  example:
+    id: "storage-id01"
+    name: "IRIS"
+    modifiedBy:
+      id: "user-id01"
+      name: "mobigen-user"
+    modifiedInfos:
+      - cmd: "CREATE"
+        key: "additionalOptions.TimeZone"
+        newValue: "Asia/Seoul"
+      - cmd: "UPDATE"
+        key: "name"
+        oldValue: "IRIS"
+        newValue: "IRIS-TEST"
+      - cmd: "UPDATE"
+        key: "description"
+        oldValue: "IRIS 연결정보"
+        newValue: "IRIS 연결정보(테스트)"
+      - cmd: "DELETE"
+        key: "additionalOptions.Encoding"
+StorageEvent:
+  type: object
+  description: 연결정보(저장소) 이벤트
+  properties:
+    time:
+      $ref: "./__index.yaml#/DateTime"
+      description: 이벤트 발생 시간
+    id:
+      type: string
+      description: 연결정보(저장소) ID
+      format: uuid
+    name:
+      type: string
+      description: 이벤트 이름
+    eventType:
+      type: string
+      description: 이벤트 타입
+      enum:
+        - "CONNECTED"
+        - "DISCONNECTED"
+        - "ERROR"
+    description:
+      type: string
+      description: 이벤트 설명
+  example:
+    time:
+      strDateTime: "2021-01-01 00:00:00.000"
+      utcTime: 1609459200000
+    id: "storage-id01"
+    name: "IRIS"
+    eventType: "CONNECTED"
+    description: "저장소 연결 성공"
+Storage:
+  type: object
+  description: 원천 데이터 저장소 연결 정보
+  properties:
+    id:
+      type: string
+      description: ID
+      format: uuid
+    name:
+      type: string
+      description: 이름
+    description:
+      type: string
+      description: 설명
+    systemMeta:
+      $ref: "./__index.yaml#/Meta"
+      description: 시스템에의해 자동으로 생성된 메타 정보
+    userMeta:
+      $ref: "./__index.yaml#/Meta"
+      description: 사용자가 추가한 메타 정보
+    tag:
+      $ref: "./__index.yaml#/Tag"
+    storageType:
+      type: string
+      description: >
+        저장소 타입
+        시스템 연결 지원 저장소 리스트에 이름과 동일
+    adaptorId:
+      type: string
+      description: 어댑터 ID(드라이버? 어댑터?)
+      format: uuid
+    basicOptions:
+      type: array
+      description: 저장소 연결에 필요한 설정 정보
+      items:
+        $ref: "./__index.yaml#/InputField"
+    additionalOptions:
+      type: array
+      description: 사용자가 추가로 설정한 정보 / 드라이버 옵션
+      items:
+        $ref: "./__index.yaml#/InputField"
+    settings:
+      $ref: "#/StorageSetting"
+    status:
+      type: string
+      description: 상태
+      enum:
+        - "CONNECTED"
+        - "DISCONNECTED"
+        - "ERROR"
+    statistics:
+      #      $ref: "#/StorageStatistics"
+      $ref: "./__index.yaml#/PieChartData"
+      description: 저장소 통계 정보
+    dataStatistics:
+      $ref: "./__index.yaml#/BarChartData"
+#      type: array
+#      description: 저장소 내 데이터 통계 정보
+#      items:
+#        $ref: "./__index.yaml#/DataCatalogStatistics"
+#      example:
+#        - id: "data-uuid01"
+#          name: "data-name01"
+#          access: 10
+#        - id: "data-uuid02"
+#          name: "data-name02"
+#          access: 20
+    history:
+      $ref: "./__index.yaml#/GridData"
+#      type: array
+#      description: 저장소 변경 이력
+#      items:
+#        $ref: "#/StorageHistory"
+    event:
+      $ref: "./__index.yaml#/GridData"
+#      type: array
+#      description: 연결정보(저장소) 이벤트
+#      items:
+#        $ref: "#/StorageEvent"
+    createdBy:
+      $ref: "./__index.yaml#/User"
+      description: 연결정보(저장소) 등록 사용자 정보
+    createdAt:
+      $ref: "./__index.yaml#/DateTime"
+      description: 생성일
+    lastModifiedBy:
+      $ref: "./__index.yaml#/User"
+      description: 마지막 수정한 사용자 정보
+    lastModifiedAt:
+      $ref: "./__index.yaml#/DateTime"
+      description: 최종 수정일

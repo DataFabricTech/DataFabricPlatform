@@ -1,0 +1,62 @@
+## Search(Portal)
+Search:
+  $ref: "./search.yaml#/Search"
+RecentSearches:
+  $ref: "./search.yaml#/RecentSearches"
+
+## DataCatalog
+DataPreview:
+  $ref: "./data-catalog.yaml#/DataPreview"
+DataDefault:
+  $ref: "./data-catalog.yaml#/DataDefault"
+DataMetaUpdate:
+  $ref: "./data-catalog.yaml#/DataMetaUpdate"
+DataTagUpdate:
+  $ref: "./data-catalog.yaml#/DataTagUpdate"
+DataDownloadRequest:
+  $ref: "./data-catalog.yaml#/DataDownloadRequest"
+RatingAndComment:
+  $ref: "./data-catalog.yaml#/RatingAndComment"
+
+## DataCatalog Browser
+DataBrowserAllDataSummary:
+  $ref: "./data-catalog.yaml#/DataBrowserAllDataSummary"
+DataBrowser:
+  $ref: "./data-catalog.yaml#/DataBrowser"
+
+
+## Storage Browser
+StorageOverview:
+  $ref: "./storage.yaml#/StorageOverview"
+StorageSearch:
+  $ref: "./storage.yaml#/StorageSearch"
+StorageStatus:
+  $ref: "./storage.yaml#/StorageStatus"
+StorageDefault:
+  $ref: "./storage.yaml#/StorageDefault"
+StorageAdvanced:
+  $ref: "./storage.yaml#/StorageAdvanced"
+StorageBrowse:
+  $ref: "./storage.yaml#/StorageBrowse"
+StorageDataDefault:
+  $ref: "./storage.yaml#/StorageDataDefault"
+
+# Storage Management
+ConnectTest:
+  $ref: "./storage-management.yaml#/ConnectTest"
+AddStorage:
+  $ref: "./storage-management.yaml#/AddStorage"
+ModifyStorage:
+  $ref: "./storage-management.yaml#/ModifyStorage"
+ConnectedData:
+  $ref: "./storage-management.yaml#/ConnectedData"
+DeleteStorage:
+  $ref: "./storage-management.yaml#/DeleteStorage"
+
+## Supported Storage And Adaptor
+SupportedStorageType:
+  $ref: "./adaptor.yaml#/SupportedStorageType"
+# 어댑터 관리
+Adaptor:
+  $ref: "./adaptor.yaml#/Adaptor"
+

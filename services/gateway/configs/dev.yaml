@@ -1,0 +1,30 @@
+log:
+  output: "stdout" # stdout, file
+  level: "debug" # debug, info, warn, error
+  # savePath: "log path( logs )"
+  # sizePerFileMb: "max size of log file( ex : 100 )"
+  # maxOfDay: "max number of log file in 1 day( ex : 100 )"
+  # maxAge: "max age( ex : 7 )"
+  # compress: "compress(true/false)"
+datastore:
+  enabled: false
+#  database: "sqlite3" # mysql, postgres, sqlite3
+#  endPoint:
+#    # host: "1.2.3.4"
+#    # port: 80
+#    path: "db/store.db"  # $HOME을 기준으로 위치가 정해진다.
+#    # user: "database user"
+#    # pass: "database password of user"
+#    # dbName: "database name"
+#    # option: "database connect option"
+#  connPool:
+#    maxIdleConns: 1
+#    maxOpenConns: 2
+#  debug:
+#    logLevel: "info" # silent, error, warn, info
+#    slowThreshold : "1sec" # 1min(minute), 1sec(second), 1ms(1millisecond)
+server:
+  debug: true
+  host: "0.0.0.0"
+  port: 8080
+

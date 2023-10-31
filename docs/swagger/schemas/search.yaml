@@ -1,0 +1,239 @@
+SearchRequest:
+  type: object
+  description: "데이터 패브릭 검색 요청 메시지"
+  properties:
+    keyword:
+      type: string
+      description: "검색 키워드"
+    pageable:
+      $ref: "./__index.yaml#/Pageable"
+      description: 정렬 & 페이지 정보
+    detailSearch:
+      $ref: "#/SearchRequestDetail"
+    filterSearch:
+      $ref: "#/SearchRequestFilter"
+  example:
+    keyword: "data fabric"
+    pageable:
+      sort:
+        - order: 1
+          field: "createdAt"
+          direction: "ASC"
+        - order: 2
+          field: "name"
+          direction: "ASC"
+      page:
+        size: 20
+        selectPage: 1
+    detailSearch:
+      DATA_NAME : "data fabric"
+      DATA_TYPE : "STRUCTURED"
+      DATA_FORMAT : "TABLE"
+      CATEGORY : "IT"
+      TAG : "IT"
+      STORAGE_TYPE : "PostgreSQL"
+      CONNECTOR_NAME : "Mobigen-PostgreSQL"
+      CREATOR : "mobigen-user"
+      START_DATE : "2021-01-01"
+      END_DATE : "2021-01-31"
+    filterSearch:
+      DATA_TYPE:
+        - "STRUCTURED"
+        - "SEMI_STRUCTURED"
+      DATA_FORMAT:
+        - "TABLE"
+        - "CSV"
+        - "JSON"
+      CATEGORY:
+        - "IT"
+        - "데이터"
+      TAG:
+        - "IT"
+        - "데이터패브릭"
+        - "설계"
+      STORAGE_TYPE:
+        - "IRIS"
+        - "Tibero"
+        - "HDFS"
+        - "MySQL"
+        - "PostgreSQL"
+      CONNECTOR_NAME:
+        - "Mobigen-IRIS"
+        - "Mobigen-MySQL"
+        - "Mobigen-PostgreSQL"
+      CREATOR:
+        - "mobigen-user"
+        - "mobigen-admin"
+SearchRequestDetail:
+  type: object
+  description: 상세 검색 조건
+  additionalProperties:
+    type: object
+    properties:
+      key:
+        type: string
+        enum:
+          - "DATA_NAME"
+          - "DATA_TYPE"
+          - "DATA_FORMAT"
+          - "CATEGORY"
+          - "TAG"
+          - "STORAGE_TYPE"
+          - "CONNECTOR_NAME"
+          - "CREATOR"
+          - "START_DATE"
+          - "END_DATE"
+      value:
+        type: string
+    example:
+      DATA_NAME : "data fabric"
+      DATA_TYPE : "STRUCTURED"
+      DATA_FORMAT : "TABLE"
+      CATEGORY : "IT"
+      TAG : "IT"
+      STORAGE_TYPE : "PostgreSQL"
+      CONNECTOR_NAME : "Mobigen-PostgreSQL"
+      CREATOR : "mobigen-user"
+      START_DATE : "2021-01-01"
+      END_DATE : "2021-01-31"
+SearchRequestFilter:
+  type: object
+  description: "필터링 검색 조건(1차 검색(검색어 검색) 후 추가 필터링 목적)"
+  additionalProperties:
+    type: object
+    properties:
+      key:
+        type: string
+        enum:
+          - "DATA_TYPE"
+          - "DATA_FORMAT"
+          - "CATEGORY"
+          - "TAG"
+          - "STORAGE_TYPE"
+          - "CONNECTOR_ID"
+          - "CREATOR_ID"
+      value:
+        type: array
+        items:
+          type: string
+    example:
+      DATA_TYPE:
+        - "STRUCTURED"
+        - "SEMI_STRUCTURED"
+      DATA_FORMAT:
+        - "TABLE"
+        - "CSV"
+        - "JSON"
+      CATEGORY:
+        - "IT"
+        - "데이터"
+      TAG:
+        - "IT"
+        - "데이터패브릭"
+        - "설계"
+      STORAGE_TYPE:
+        - "IRIS"
+        - "Tibero"
+        - "HDFS"
+        - "MySQL"
+        - "PostgreSQL"
+      CONNECTOR_NAME:
+        - "Mobigen-IRIS"
+        - "Mobigen-MySQL"
+        - "Mobigen-PostgreSQL"
+      CREATOR:
+        - "mobigen-user"
+        - "mobigen-admin"
+SearchResponse:
+  type: object
+  description: 검색 결과
+  properties:
+    pageable:
+      $ref: "./__index.yaml#/Pageable"
+    filters:
+      $ref: "#/SearchResponseFilter"
+    contents:
+      $ref: "#/SearchResponseContent"
+SearchResponseFilter:
+  type: object
+  description: 필터 별 데이터 개수 정보
+  additionalProperties:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: object
+  example:
+    DATA_TYPE:
+      STRUCTURED : 10
+      UNSTRUCTURED : 20
+      SEMI_STRUCTURED : 30
+    DATA_FORMAT:
+      TABLE: 10
+      VIEW: 20
+      CSV: 30
+      EXCEL: 40
+      WORD: 50
+      HWP: 60
+      PDF: 70
+      PPT: 80
+      IMAGE: 90
+      AUDIO: 100
+      VIDEO: 110
+      JSON: 120
+      YAML: 130
+      HTML: 140
+    CATEGORY:
+      IT: 10
+      데이터: 20
+    TAG:
+      모비젠: 10
+      데이터: 20
+    STORAGE_TYPE:
+      IRIS: 10
+      HDFS: 20
+      MySQL: 30
+      PostgreSQL: 40
+    CONNECTOR_NAME:
+      Mobigen-IRIS:
+        ID: "connector-id01"
+        Count: 10
+      Mobigen-HDFS:
+        ID: "connector-id02"
+        Count: 20
+      Mobigen-MySQL:
+        ID: "connector-id03"
+        Count: 30
+      Mobigen-PostgreSQL:
+        ID: "connector-id04"
+        Count: 40
+    CREATOR:
+      mobigen-user:
+        ID: "user-01"
+        Count: 10
+      mobigen-admin:
+        ID: "user-02"
+        Count: 20
+SearchResponseContent:
+  type: object
+  description: "검색 결과 컨텐츠"
+  properties:
+    dataCatalogs:
+      type: array
+      description: "데이터 목록"
+      items:
+        $ref: "./__index.yaml#/DataCatalog"
+    storages:
+      type: array
+      description: "저장소 목록"
+      items:
+        $ref: "./__index.yaml#/Storage"
+RecentSearchesResponse:
+  type: object
+  description: 최근 검색어 목록
+  properties:
+    recentSearches:
+      type: array
+      items:
+        type: string

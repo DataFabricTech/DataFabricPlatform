@@ -1,9 +1,10 @@
-import com.google.protobuf.gradle.*
+import com.google.protobuf.gradle.id
 
 plugins {
     id("com.mobigen.java-library")
     // Protobuf Gradle Plugin
     id("com.google.protobuf") version "0.9.4"
+    id("io.freefair.aspectj.post-compile-weaving") version "6.4.1"
 }
 
 group = "com.mobigen.libs"
@@ -13,6 +14,10 @@ val protocVersion = protobufVersion
 val grpcVersion = "1.56.1"
 
 dependencies {
+    api("com.mobigen.share:models")
+    implementation("org.aspectj:aspectjrt:1.9.8")
+    implementation("org.aspectj:aspectjweaver:1.9.8")
+//    implementation("org.codehaus.mojo:aspectj-maven-plugin:1.8")
     // gRPC
     api("io.grpc:grpc-stub:${grpcVersion}")
     api("io.grpc:grpc-protobuf:${grpcVersion}")
@@ -41,7 +46,7 @@ protobuf {
 //                artifact = "com.google.protobuf:protoc:${protocVersion}:osx-x86_64"
 //            }
 //        } else {
-            artifact = "com.google.protobuf:protoc:${protocVersion}"
+        artifact = "com.google.protobuf:protoc:${protocVersion}"
 //        }
     }
     plugins {
@@ -53,7 +58,7 @@ protobuf {
 //                    artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}:osx-x86_64"
 //                }
 //            } else {
-                artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
 //            }
         }
     }
@@ -74,15 +79,17 @@ protobuf {
 // IntelliJ 인식 용
 idea {
     module {
-        generatedSourceDirs.addAll(listOf(
-            file("build/generated/source/main/grpc"),
-            file("build/generated/source/main/java"),
-        ))
+        generatedSourceDirs.addAll(
+            listOf(
+                file("build/generated/source/main/grpc"),
+                file("build/generated/source/main/java"),
+            )
+        )
     }
 }
 
 // 타 모듈(서비스)에서 gRPC Generated Source Directory 인식을 위해 추가
-sourceSets{
+sourceSets {
     main {
         java {
             srcDirs("build/generated/source/main/java")
@@ -90,5 +97,6 @@ sourceSets{
 //        resources {
 //            srcDirs("src/main/resources", "build/generated/source/main/resources")
 //        }
+
     }
 }

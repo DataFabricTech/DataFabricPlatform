@@ -1,0 +1,146 @@
+StorageSearch:
+  description: "저장소 검색(조회) 요청"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          filter:
+            $ref: "../schemas/__index.yaml#/StorageSearchFilter"
+          sorts:
+            type: array
+            description: 정렬 정보
+            items:
+              $ref: "../schemas/__index.yaml#/Sort"
+      examples:
+        All:
+          summary: "연결정보(저장소) 전체 조회"
+          description: "필터, 정렬 정보 없이 전체 조회"
+          value:
+            filter:
+              name: ""
+              storageType: [""]
+              status: [""]
+            sorts:
+              - order: 1
+                field: "name"
+                direction: "ASC"
+        NameSearch:
+          summary: "연결정보(저장소) 이름 검색"
+          description: "연결정보(저장소) 이름 검색"
+          value:
+            filter:
+              name: "data fabric"
+              storageType: [""]
+              status: [""]
+            sorts:
+              - order: 1
+                field: "name"
+                direction: "ASC"
+        StorageTypeSearch:
+          summary: "저장소 유형 검색"
+          description: "저장소 유형을 선택하여 연결정보 필터링 검색"
+          value:
+            filter:
+              name: ""
+              storageType: ["IRIS", "HDFS", "MariaDB"]
+              status: [""]
+            sorts:
+              - order: 1
+                field: "name"
+                direction: "ASC"
+        StatusSearch:
+          summary: "연결 상태 검색"
+          description: "연결 상태를 선택하여 연결정보 필터링 검색"
+          value:
+            filter:
+              name: ""
+              storageType: [""]
+              status: ["CONNECTED", "ERROR"]
+            sorts:
+              - order: 1
+                field: "name"
+                direction: "ASC"
+        Sort:
+          summary: "정렬"
+          description: "저장소 유형 오름차순 > 이름 내림차순"
+          value:
+            filter:
+              name: ""
+              storageType: [""]
+              status: [""]
+            sorts:
+              - order: 1
+                field: "storageType"
+                direction: "ASC"
+              - order: 1
+                field: "name"
+                direction: "DESC"
+StorageId:
+  description: "저장소 정보 요청 메시지(저장소 아이디)"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          id:
+            type: string
+            description: "저장소 ID"
+            format: uuid
+      examples:
+        sample_01:
+          summary: "Sample01"
+          description: "Sample01"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+StorageBrowse:
+  description: "저장소 탐색 요청 메시지(저장소 아이디와 경로)"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          id:
+            type: string
+            description: "저장소 ID"
+            format: uuid
+          path:
+            type: string
+            description: "탐색 요청 경로(데이터 베이스 이름 or 디렉토리 경로)"
+          depth:
+            type: integer
+            description: "탐색 깊이"
+            default: 1
+          name:
+            type: string
+            description: "데이터 이름(테이블, 파일)"
+      examples:
+        sample_01:
+          description: "RDBMS Sample01 - 데이터 베이스 내 테이블 조회"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/IRIS_DB"
+            depth: 1
+            name: ""
+        sample_02:
+          description: "RDBMS Sample02 - 데이터 베이스 내 테이블 정보 요청"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/RIS_DB"
+            depth: 1
+            name: "TABLE"
+        sample_03:
+          description: "HDFS Sample01 - 디렉토리 내 파일 조회(Depth 2)"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/home/mobigen/data-platform"
+            depth: 2
+            name: ""
+        sample_04:
+          description: "HDFS Sample01 - 디렉토리 내 파일 정보 요청"
+          value:
+            id: "00000000-0000-0000-0000-000000000000"
+            path: "/home/mobigen/data-platform"
+            depth: 1
+            name: "test.csv"
+

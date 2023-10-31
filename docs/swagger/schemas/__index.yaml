@@ -1,0 +1,126 @@
+## 공통응답메시지
+CommonResponse:
+  type: object
+  description: 응답 메시지
+  properties:
+    code:
+      type: string
+      description: >
+        응답 코드
+        200: 성공
+        4XX: 클라이언트 요청 오류
+        5xx: 서버 오류 
+        xxxx: 서비스 별 정의된 에러
+    errMsg:
+      type: string
+      description: 에러 메시지
+    data:
+      type: object
+      description: 응답 데이터
+
+SearchRequestDetail:
+  $ref: "./search.yaml#/SearchRequestDetail"
+SearchRequestFilter:
+  $ref: "./search.yaml#/SearchRequestFilter"
+SearchResponse:
+  $ref: "./search.yaml#/SearchResponse"
+SearchResponseFilter:
+  $ref: "./search.yaml#/SearchResponseFilter"
+SearchResponseContent:
+  $ref: "./search.yaml#/SearchResponseContent"
+RecentSearchesResponse:
+  $ref: "./search.yaml#/RecentSearchesResponse"
+
+
+## Supported Storage Type
+InputField:
+  $ref: "./supported-storage.yaml#/InputField"
+AuthSchema:
+  $ref: "./supported-storage.yaml#/AuthSchema"
+SupportedStorageType:
+  $ref: "./supported-storage.yaml#/SupportedStorageType"
+
+## Adaptor
+Adaptor:
+  $ref: "./adaptor.yaml#/Adaptor"
+## Storage Management
+ConnectTest:
+  $ref: "./storage.yaml#/ConnectTest"
+
+## Storage Browser
+StorageOverview:
+  $ref: "./storage.yaml#/StorageOverview"
+StorageBrowse:
+  $ref: "./storage.yaml#/StorageBrowse"
+StorageBrowserDataDefine:
+  $ref: "./storage.yaml#/StorageBrowserDataDefine"
+StorageDataDefault:
+  $ref: "./storage.yaml#/StorageDataDefault"
+
+## Storage
+AutoAddSetting:
+  $ref: "./storage.yaml#/AutoAddSetting"
+SyncSetting:
+  $ref: "./storage.yaml#/SyncSetting"
+StorageMonitoringSetting:
+  $ref: "./storage.yaml#/StorageMonitoringSetting"
+StorageSetting:
+  $ref: "./storage.yaml#/StorageSetting"
+StorageStatistics:
+  $ref: "./storage.yaml#/StorageStatistics"
+StorageHistory:
+  $ref: "./storage.yaml#/StorageHistory"
+StorageEvent:
+  $ref: "./storage.yaml#/StorageEvent"
+Storage:
+  $ref: "./storage.yaml#/Storage"
+StorageSearchFilter:
+  $ref: "./storage.yaml#/StorageSearchFilter"
+
+DataType:
+  $ref: "./data-catalog.yaml#/DataType"
+DataFormat:
+  $ref: "./data-catalog.yaml#/DataFormat"
+DataCatalog:
+  $ref: "./data-catalog.yaml#/DataCatalog"
+DataCatalogStatistics:
+  $ref: "./data-catalog.yaml#/DataCatalogStatistics"
+#DataStructure:
+#  $ref: "./data-catalog.yaml#/DataStructure"
+RatingAndComment:
+  $ref: "./data-catalog.yaml#/RatingAndComment"
+
+DataPreview:
+  $ref: "./data-catalog.yaml#/DataPreview"
+
+Sort:
+  $ref: "./utilities.yaml#/Sort"
+Page:
+  $ref: "./utilities.yaml#/Page"
+Pageable:
+  $ref: "./utilities.yaml#/Pageable"
+Meta:
+  $ref: "./utilities.yaml#/Meta"
+Tag:
+  $ref: "./utilities.yaml#/Tag"
+DateTime:
+  $ref: "./utilities.yaml#/DateTime"
+
+MapStrAndAny:
+  $ref: "./utilities.yaml#/MapStrAndAny"
+GridData:
+  $ref: "./utilities.yaml#/GridData"
+PieChartData:
+  $ref: "./utilities.yaml#/PieChartData"
+BarChartData:
+  $ref: "./utilities.yaml#/BarChartData"
+StackChartData:
+  $ref: "./__index.yaml#/StackChartData"
+
+Organization:
+  $ref: "./user.yaml#/Organization"
+Group:
+  $ref: "./user.yaml#/Group"
+User:
+  $ref: "./user.yaml#/User"
+

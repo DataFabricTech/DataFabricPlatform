@@ -1,0 +1,16 @@
+#ConnectTestRequest:
+#  type: object
+#  description: 연결 테스트 요청 메시지
+#  properties:
+#    adaptorId:
+#      type: string
+#      description: 어댑터 ID(드라이버? 어댑터?)
+#      format: uuid
+#    basicOptions:
+#      type: array
+#      description: 저장소 연결에 필요한 설정 정보
+#      items:
+#        $ref: "./adaptor.yaml#/AdaptorBasicOption"
+#    additionalOptions:
+#      $ref: "./adaptor.yaml#/AdaptorAdditionalOption"
+#      description: 사용자가 추가한 옵션 / 드라이버 옵션
