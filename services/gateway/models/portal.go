@@ -19,7 +19,7 @@ func (res *ResSearch) Convert(input *protobuf.SearchResponse) (*CommonResponse, 
 	res.ConvertSearchFilter(input.Filters)
 
 	return &CommonResponse{
-		Code:   200,
+		Code:   "200",
 		ErrMsg: "",
 		Data:   res,
 	}, nil

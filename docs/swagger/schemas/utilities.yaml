@@ -188,16 +188,20 @@ PieChartData:
     series:
       type: array
       items:
-        data:
-          type: array
-          properties:
-            name:
-              type: string
-              description: 이름
-            y:
-              type: number
-              description: 값
-              format: double
+        type: object
+        properties:
+          data:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 이름
+                'y':
+                  type: number
+                  description: 값
+                  format: double
   example:
     series:
       - data:

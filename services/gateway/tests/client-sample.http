@@ -1,0 +1,407 @@
+###
+POST http://localhost:8080/portal/v1/search
+Content-Type: application/json
+
+{
+  "keyword": "test",
+  "pageable": {
+    "page": {
+      "size": 10,
+      "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "name",
+        "direction": 0
+      }
+    ]
+  },
+  "filters": {
+    "DATA_TYPE": [
+      "STRUCTURED",
+      "SSEMI_STRUCTURED"
+    ],
+    "DATA_FORMAT": [
+      "CSV",
+      "JSON"
+    ],
+    "CATEGORY": [
+      "FINANCE",
+      "HEALTHCARE"
+    ],
+    "TAG": [
+      "TAG1",
+      "TAG2"
+    ],
+    "STORAGE_TYPE": [
+      "HDFS",
+      "S3"
+    ],
+    "CONNECTOR_ID": [
+      "CONNECTOR_ID1",
+      "CONNECTOR_ID2"
+    ],
+    "CREATOR_ID": [
+      "CREATOR_ID1",
+      "CREATOR_ID2"
+    ]
+  },
+  "detailSearch": {
+    "DATA_NAME": "test",
+    "DATA_TYPE": "STRUCTURED",
+    "DATA_FORMAT": "CSV",
+    "CATEGORY": "FINANCE",
+    "TAG": "TAG1",
+    "STORAGE_TYPE": "HDFS",
+    "CONNECTOR_NAME": "CONNECTOR_NAME1",
+    "CREATOR": "CREATOR1",
+    "START_DATE": "2021-10-30 12:23:34.200",
+    "END_DATE": "2021-10-30 12:23:34.200"
+  }
+}
+
+<> 2023-10-30T194100.200.json
+
+###
+GET http://localhost:8080/portal/v1/recent-searches
+Accept: application/json
+
+<> 2023-10-30T164312.200.json
+
+###
+GET http://localhost:8080/storage/v1/storage-type
+Accept: application/json
+
+###
+GET http://localhost:8080/storage/v1/adaptors?storage-type=iris
+Accept: application/json
+
+###
+GET http://localhost:8080/storage/v1/overview
+Accept: application/json
+
+<> 2023-10-31T205239.200.json
+
+###
+POST http://localhost:8080/storage/v1/search
+Content-Type: application/json
+
+{
+  "filter": {
+    "name": "test",
+    "storageType": [
+      "IRIS",
+      "HDFS"
+    ],
+    "status": [
+      0,
+      1
+    ]
+  },
+  "sort": [
+    {
+      "order": 1,
+      "field": "id",
+      "direction": 1
+    },
+    {
+      "order": 2,
+      "field": "name",
+      "direction": 0
+    }
+  ]
+}
+
+<> 2023-10-31T205515.200.json
+<> 2023-10-31T205458.200.json
+
+###
+POST http://localhost:8080/storage/v1/status
+Content-Type: application/json
+
+{
+    "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205629.200.json
+
+###
+POST http://localhost:8080/storage/v1/default
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205625.200.json
+
+###
+POST http://localhost:8080/storage/v1/advanced
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1"
+}
+
+<> 2023-10-31T205627.200.json
+
+
+### preview error
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "err-id"
+}
+
+
+### preview success
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "datacatalog-id"
+}
+
+### data detail / default error
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "err-id"
+}
+
+### data detail / default success
+POST http://localhost:8080/data/v1/default
+Content-Type: application/json
+
+{
+  "id": "datacatalog-id"
+}
+
+
+### datacatalog - user metadata update - err
+POST http://localhost:8080/data/v1/metadata
+Content-Type: application/json
+
+{
+  "id": "0",
+  "userMeta": [
+    {
+      "key": "key1",
+      "value": "value1"
+    },
+    {
+      "key": "key2",
+      "value": "value2"
+    },
+    {
+      "key": "key3",
+      "value": "value3"
+    }
+  ]
+}
+
+### datacatalog - user metadata update - success
+POST http://localhost:8080/data/v1/metadata
+Content-Type: application/json
+
+{
+  "id": "data-id",
+  "userMeta": [
+    {
+      "key": "key1",
+      "value": "value1"
+    },
+    {
+      "key": "key2",
+      "value": "value2"
+    },
+    {
+      "key": "key3",
+      "value": "value3"
+    }
+  ]
+}
+
+
+### datacatalog - tag update - err
+POST http://localhost:8080/data/v1/tag
+Content-Type: application/json
+
+{
+  "id": "0",
+  "tag": ["tag1", "tag2", "tag3"]
+}
+
+### datacatalog - tag update - success
+POST http://localhost:8080/data/v1/tag
+Content-Type: application/json
+
+{
+  "id": "data-id",
+  "tag": [ "tag1", "tag2", "tag3" ]
+}
+
+
+### datacatalog - download request - err
+POST http://localhost:8080/data/v1/download-request
+Content-Type: application/json
+
+{
+  "id": "0"
+}
+
+### datacatalog - download request - success
+POST http://localhost:8080/data/v1/download-request
+Content-Type: application/json
+
+{
+  "id": "data-id"
+}
+
+
+### datacatalog - comment add - err
+POST http://localhost:8080/data/v1/comment/add
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "rating": 7,
+    "comment": "좋아요"
+  }
+}
+
+### datacatalog - comment add - success
+POST http://localhost:8080/data/v1/comment/add
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "rating": 4,
+    "comment": "좋아요"
+  }
+}
+### datacatalog - comment update - err
+POST http://localhost:8080/data/v1/comment/update
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "id": "comment id",
+    "rating": 4,
+    "comment": "좋아요"
+  }
+}
+
+### datacatalog - comment update - success
+POST http://localhost:8080/data/v1/comment/update
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "id": "comment id",
+    "rating": 2,
+    "comment": "좋아요"
+  }
+}
+### datacatalog - comment delete - err
+POST http://localhost:8080/data/v1/comment/delete
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "id": "comment id"
+  }
+}
+
+### datacatalog - comment delete - success
+POST http://localhost:8080/data/v1/comment/delete
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "id": "comment id"
+  }
+}
+
+
+### datacatalog - all data summary
+POST http://localhost:8080/data/v1/all-data/summary
+Content-Type: application/json
+
+{
+  "filter": {
+    "keyword": "test",
+    "dateRange": {
+        "from": "2021-10-30 12:23:34.200",
+        "to": "2021-10-30 12:23:34.200"
+    },
+    "dataType": "STRUCTURED",
+    "dataFormat": "CSV"
+  },
+  "pageable": {
+    "page": {
+        "size": 10,
+        "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "createdAt",
+        "direction": 1
+      }
+    ]
+  }
+}
+
+### datacatalog - all data
+POST http://localhost:8080/data/v1/all-data/summary
+Content-Type: application/json
+
+{
+  "filter": {
+    "keyword": "test",
+    "dateRange": {
+      "from": "2021-10-30 12:23:34.200",
+      "to": "2021-10-30 12:23:34.200"
+    },
+    "dataType": "STRUCTURED",
+    "dataFormat": "CSV"
+  },
+  "pageable": {
+    "page": {
+      "size": 10,
+      "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "createdAt",
+        "direction": 1
+      }
+    ]
+  }
+}

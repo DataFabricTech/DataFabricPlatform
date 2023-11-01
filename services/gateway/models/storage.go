@@ -2,6 +2,32 @@ package models
 
 import "github.com/datafabric/gateway/protobuf"
 
+type StorageOverview struct {
+	StorageTypeCount    *PieChart                       `json:"storageTypeCount,omitempty"`
+	StorageStatusCount  *PieChart                       `json:"storageStatusCount,omitempty"`
+	StorageStatistics   *BarChart                       `json:"storageStatistics,omitempty"`
+	StorageDataCount    *StackBarChart                  `json:"storageDataCount,omitempty"`
+	StorageResponseTime []*protobuf.StorageResponseTime `json:"storageResponseTime,omitempty"`
+	History             *Grid                           `json:"history,omitempty"`
+	Event               *Grid                           `json:"event,omitempty"`
+}
+
+func (s *StorageOverview) Convert(in *protobuf.ResStorageOverview) {
+	s.StorageTypeCount = new(PieChart)
+	s.StorageTypeCount.StorageTypeCountConvert(in.Data.StorageTypeCount)
+	s.StorageStatusCount = new(PieChart)
+	s.StorageStatusCount.StorageStatusCountConvert(in.Data.StorageStatusCount)
+	s.StorageStatistics = new(BarChart)
+	s.StorageStatistics.StorageStatisticsConvert(in.Data.StorageStatistics)
+	s.StorageDataCount = new(StackBarChart)
+	s.StorageDataCount.StorageDataCountConvert(in.Data.StorageDataCount)
+	s.StorageResponseTime = in.Data.StorageResponseTime
+	s.History = new(Grid)
+	s.History.ConvertHistory(in.Data.History)
+	s.Event = new(Grid)
+	s.Event.ConvertEvent(in.Data.Event)
+}
+
 type Storage struct {
 	Id                string                   `json:"id,omitempty"`
 	Name              string                   `json:"name,omitempty"`
@@ -14,7 +40,7 @@ type Storage struct {
 	BasicOptions      []*protobuf.InputField   `json:"basicOptions,omitempty"`
 	AdditionalOptions []*protobuf.InputField   `json:"additionalOptions,omitempty"`
 	Settings          *protobuf.StorageSetting `json:"settings,omitempty"`
-	Status            protobuf.Status          `json:"status,omitempty"`
+	Status            string                   `json:"status,omitempty"`
 	Statistics        *PieChart                `json:"statistics,omitempty"`
 	DataStatistics    *BarChart                `json:"dataStatistics,omitempty"`
 	History           *Grid                    `json:"history,omitempty"`
@@ -24,13 +50,6 @@ type Storage struct {
 	LastModifiedBy    *protobuf.User           `json:"lastModifiedBy,omitempty"`
 	LastModifiedAt    *protobuf.DateTime       `json:"lastModifiedAt,omitempty"`
 }
-
-// type ResStorage struct {
-//
-// 	Storage *Storage `json:"storage"`
-// }
-//
-// func ( )
 
 func (s *Storage) Convert(input *protobuf.Storage) {
 
@@ -45,11 +64,13 @@ func (s *Storage) Convert(input *protobuf.Storage) {
 	s.BasicOptions = input.BasicOptions
 	s.AdditionalOptions = input.AdditionalOptions
 	s.Settings = input.Settings
-	s.Status = input.Status
+	s.Status = input.Status.String()
 	s.ConvertStatistics(input.Statistics)
 	s.ConvertDataStatistics(input.DataStatistics)
-	s.ConvertHistory(input.History)
-	s.ConvertEvent(input.Event)
+	s.History = new(Grid)
+	s.History.ConvertHistory(input.History)
+	s.Event = new(Grid)
+	s.Event.ConvertEvent(input.Event)
 	s.CreatedBy = input.CreatedBy
 	s.CreatedAt = input.CreatedAt
 	s.LastModifiedBy = input.LastModifiedBy
@@ -96,83 +117,5 @@ func (s *Storage) ConvertDataStatistics(input []*protobuf.DataCatalogStatistics)
 	for _, v := range input {
 		s.DataStatistics.Categories = append(s.DataStatistics.Categories, v.Name)
 		s.DataStatistics.Series[0].Data = append(s.DataStatistics.Series[0].Data, float64(v.Access))
-	}
-}
-
-func (s *Storage) ConvertHistory(input []*protobuf.StorageHistory) {
-	s.History = &Grid{
-		ColumnDefine: []*ColumnDefine{
-			{
-				HeaderName: "시간",
-				Field:      "time",
-			},
-			{
-				HeaderName: "사용자",
-				Field:      "user",
-			},
-			{
-				HeaderName: "작업종류",
-				Field:      "cmd",
-			},
-			{
-				HeaderName: "작업내용",
-				Field:      "modifiedInfo",
-			},
-		},
-		RowData: []map[string]interface{}{},
-	}
-	for _, v := range input {
-		row := map[string]interface{}{}
-		row["time"] = v.Time.StrDateTime
-		row["user"] = v.ModifiedBy.Name
-		var strModifyInfo string
-		for _, modifiedInfo := range v.GetModifiedInfos() {
-			switch modifiedInfo.Cmd {
-			case protobuf.StorageModifiedInfo_CREATE:
-				strModifyInfo += modifiedInfo.Key + " : " + modifiedInfo.NewValue + "\n"
-				break
-			case protobuf.StorageModifiedInfo_UPDATE:
-				strModifyInfo += modifiedInfo.Key + " : " + modifiedInfo.OldValue + " -> " + modifiedInfo.NewValue + "\n"
-				break
-			case protobuf.StorageModifiedInfo_DELETE:
-				strModifyInfo += modifiedInfo.Key + " : Delete \n"
-				break
-			}
-		}
-		row["cmd"] = "수정"
-		row["modifiedInfo"] = strModifyInfo
-		s.History.RowData = append(s.History.RowData, row)
-	}
-}
-
-func (s *Storage) ConvertEvent(input []*protobuf.StorageEvent) {
-	s.Event = &Grid{
-		ColumnDefine: []*ColumnDefine{
-			{
-				HeaderName: "시간",
-				Field:      "time",
-			},
-			{
-				HeaderName: "저장소이름",
-				Field:      "name",
-			},
-			{
-				HeaderName: "이벤트",
-				Field:      "event",
-			},
-			{
-				HeaderName: "내용",
-				Field:      "desc",
-			},
-		},
-		RowData: []map[string]interface{}{},
-	}
-	for _, v := range input {
-		row := map[string]interface{}{}
-		row["time"] = v.Time.StrDateTime
-		row["name"] = v.Name
-		row["event"] = v.GetEventType().String()
-		row["desc"] = v.GetDescription()
-		s.Event.RowData = append(s.Event.RowData, row)
 	}
 }

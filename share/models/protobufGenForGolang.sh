@@ -22,6 +22,13 @@ then
     exit 1
 fi
 
+# Check protoc-gen-go-grpc installation
+if ! command -v protoc-gen-go-grpc &> /dev/null
+then
+    echo "protoc-gen-go-grpc could not be found"
+    echo "install cmd : go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest"
+    exit 1
+fi
 # Check protoc-gen-go installation
 if ! command -v protoc-gen-go &> /dev/null
 then
@@ -60,4 +67,5 @@ do
 done
 
 # Copy Generated Files To ../../services/gateway/protobuf
+mkdir -p "$current_path"/../../services/gateway/protobuf
 cp -r "$current_path"/src/main/golang/* "$current_path"/../../services/gateway/protobuf

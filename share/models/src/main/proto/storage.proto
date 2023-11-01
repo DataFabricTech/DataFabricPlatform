@@ -16,7 +16,7 @@ service StorageService {
   // GET    : /storage/v1/overview
   rpc Overview(google.protobuf.Empty) returns (ResStorageOverview);
   // POST   : /storage/v1/search
-  rpc Search(ReqStorageSearch) returns (ResStorage);
+  rpc Search(ReqStorageSearch) returns (ResStorages);
   // POST   : /storage/v1/status
   rpc Status(ReqId) returns (ResStorage);
   // POST   : /storage/v1/default
@@ -36,7 +36,7 @@ service StorageService {
   rpc AddStorage(Storage) returns (CommonResponse);           // 원천 데이터 저장소 추가
   // POST   : /storage/v1/modify
   rpc UpdateStorage(Storage) returns (CommonResponse);        // 원천 데이터 저장소 수정
-  // POST   : /storage/v1/connected-data/{storage-id}
+  // GET    : /storage/v1/connected-data/{storage-id}
   rpc ConnectedData(ReqId) returns (ResConnectedData);        // 저장소 연결 데이터 수 확인
   // POST   : /storage/v1/delete
   rpc DeleteStorage(ReqId) returns (CommonResponse);          // 원천 데이터 저장소 삭제
@@ -179,6 +179,7 @@ message ResConnectedData {
     int32 connectedDataCount = 1;
     int32 correlationDataCount = 2;
   }
+  Data data = 3;
 }
 
 // ReqStorageSearch 원천 데이터 저장소 필터링
@@ -194,12 +195,22 @@ message ReqStorageSearch {
   repeated Sort sorts = 2;
 }
 
+// ResStorages 저장소 여러개 정보 전달
+message ResStorages {
+  string code = 1;
+  string errMsg = 2;
+  message Data {
+    repeated  Storage storages = 1;
+  }
+  Data data = 3;
+}
+
 // ResStorage 저장소 정보 전달(상태, 기본, 상세(수집정보)
 message ResStorage {
   string code = 1;
   string errMsg = 2;
   message Data {
-    repeated Storage storage = 1;
+    Storage storage = 1;
   }
   Data data = 3;
 }
@@ -267,7 +278,7 @@ message StorageBrowseDefault {
   DataInfo dataInfo = 6;
   int32 connectedDataCount = 7;               // 연결된 데이터 수
   repeated DataCatalog connectedData = 8;     // 연결된 데이터
-  DataStructure dataStructure = 9;            // 데이터 구조
+  repeated DataStructure dataStructure = 9;   // 데이터 구조
 }
 
 // ResStorageOverview 시스템의 전체적인 정보 전달

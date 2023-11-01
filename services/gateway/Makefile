@@ -90,6 +90,11 @@ build: ## Build binary
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 $(GO) build -ldflags "$(LDFLAGS)" -gcflags all=-trimpath=$(PWD) -asmflags all=-trimpath=$(PWD) \
 	     -a -installsuffix cgo -o build/bin/$(TARGET) main.go
 
+debug-build: ## Build binary
+	@echo Building $(TARGET)
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 $(GO) build -ldflags "$(LDFLAGS)" -gcflags all="-trimpath=$(PWD) -N -l" -asmflags all=-trimpath=$(PWD) \
+	     -a -installsuffix cgo -o build/bin/$(TARGET) main.go
+
 build-image:  ## Build the docker image 
 	@echo Building $(TARGET) Docker Image
 	docker build \
@@ -130,11 +135,11 @@ check-modules: $(OUTDATED_GEN) ## Check outdated modules
 	@echo Checking outdated modules
 	$(GO) list -u -m -json all | $(OUTDATED_GEN) -update -direct
 
-
 ## Clean Cache
 .PHONY: clean
 clean: 
 	go clean -i -cache -testcache
+
 
 ## --------------------------------------
 ## Tooling Binaries
