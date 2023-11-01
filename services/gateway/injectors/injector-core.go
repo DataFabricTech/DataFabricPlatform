@@ -37,9 +37,21 @@ func (h *Injector) Init() error {
 	portalGroup.GET("/recent-searches", portal.RecentSearches)
 
 	// Data Catalog : Grouping
-	// Data Catalog Detail
-
-	// Data Catalog Browser
+	h.Log.Errorf("[ PATH ] /data/v1 ................................................................. [ OK ]")
+	dataCatalogGroup := h.Router.Group("/data/v1")
+	dataCatalog := DataCatalogInjector{}.Init(h)
+	// Data Catalog Detail And Management
+	dataCatalogGroup.POST("/preview", dataCatalog.Preview)
+	dataCatalogGroup.POST("/default", dataCatalog.Default)
+	dataCatalogGroup.POST("/metadata", dataCatalog.UserMetadata)
+	dataCatalogGroup.POST("/tag", dataCatalog.Tag)
+	dataCatalogGroup.POST("/download-request", dataCatalog.DownloadRequest)
+	dataCatalogGroup.POST("/comment/add", dataCatalog.AddComment)
+	dataCatalogGroup.POST("/comment/update", dataCatalog.UpdateComment)
+	dataCatalogGroup.POST("/comment/delete", dataCatalog.DelComment)
+	// DCatalogGta Catalog Browser
+	dataCatalogGroup.POST("/all-data/summary", dataCatalog.AllDataSummary)
+	dataCatalogGroup.POST("/all-data", dataCatalog.AllData)
 
 	// Storage : Grouping
 	h.Log.Errorf("[ PATH ] /storage/v1 .............................................................. [ OK ]")

@@ -1,12 +1,9 @@
-package main
+package service
 
 import (
 	"context"
 	"github.com/datafabric/gateway/protobuf"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/labstack/gommon/log"
-	"google.golang.org/grpc"
-	"net"
 )
 
 type StorageService struct {
@@ -1162,23 +1159,4 @@ func (service *StorageService) DeleteStorage(ctx context.Context, in *protobuf.R
 		Code: "200",
 	}
 	return res, nil
-}
-
-func main() {
-	lis, err := net.Listen("tcp", ":9360")
-	if err != nil {
-		log.Printf("failed to listen: %v", err)
-	}
-	defer func(lis net.Listener) {
-		err := lis.Close()
-		if err != nil {
-			log.Printf("failed to close: %v", err)
-		}
-	}(lis)
-	server := grpc.NewServer()
-	protobuf.RegisterStorageServiceServer(server, &StorageService{})
-	log.Printf("storage server listening at %v", lis.Addr())
-	if err := server.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
 }

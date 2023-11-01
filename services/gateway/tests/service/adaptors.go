@@ -1,12 +1,9 @@
-package main
+package service
 
 import (
 	"context"
 	"github.com/datafabric/gateway/protobuf"
-	"github.com/labstack/gommon/log"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"net"
 )
 
 type AdaptorService struct {
@@ -400,23 +397,4 @@ func (service *AdaptorService) GetAdaptors(ctx context.Context, req *protobuf.Re
 		},
 	}
 	return res, nil
-}
-
-func main() {
-	lis, err := net.Listen("tcp", ":9360")
-	if err != nil {
-		log.Printf("failed to listen: %v", err)
-	}
-	defer func(lis net.Listener) {
-		err := lis.Close()
-		if err != nil {
-			log.Printf("failed to close: %v", err)
-		}
-	}(lis)
-	server := grpc.NewServer()
-	protobuf.RegisterAdaptorServiceServer(server, &AdaptorService{})
-	log.Printf("adaptor server listening at %v", lis.Addr())
-	if err := server.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
 }

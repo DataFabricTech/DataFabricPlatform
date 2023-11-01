@@ -36,7 +36,7 @@ func AdaptorServiceInitialize(log *logrus.Logger, host string, port int) (*Adapt
 	service.conn = conn
 	service.client = protobuf.NewAdaptorServiceClient(conn)
 
-	service.log.Errorf("[ Adaptor Service ] Start .......................................................... [ OK ]")
+	service.log.Errorf("[ Adaptor Service ] Start ......................................................... [ OK ]")
 	return service, nil
 }
 

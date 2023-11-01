@@ -173,7 +173,7 @@ message DataCatalogDefault {
 // Update Metadata
 message ReqMetaUpdate {
   string id = 1;
-  Meta userMeta = 2;
+  repeated Meta userMeta = 2;
 }
 
 // Update Tag

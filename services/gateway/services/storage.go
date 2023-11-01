@@ -36,7 +36,7 @@ func StorageServiceInitialize(log *logrus.Logger, host string, port int) (*Stora
 	service.conn = conn
 	service.client = protobuf.NewStorageServiceClient(conn)
 
-	service.log.Errorf("[ Storage Service ] Start .......................................................... [ OK ]")
+	service.log.Errorf("[ Storage Service ] Start ......................................................... [ OK ]")
 	return service, nil
 }
 

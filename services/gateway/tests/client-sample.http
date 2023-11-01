@@ -150,3 +150,258 @@ Content-Type: application/json
 }
 
 <> 2023-10-31T205627.200.json
+
+
+### preview error
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "err-id"
+}
+
+
+### preview success
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "datacatalog-id"
+}
+
+### data detail / default error
+POST http://localhost:8080/data/v1/preview
+Content-Type: application/json
+
+{
+  "id": "err-id"
+}
+
+### data detail / default success
+POST http://localhost:8080/data/v1/default
+Content-Type: application/json
+
+{
+  "id": "datacatalog-id"
+}
+
+
+### datacatalog - user metadata update - err
+POST http://localhost:8080/data/v1/metadata
+Content-Type: application/json
+
+{
+  "id": "0",
+  "userMeta": [
+    {
+      "key": "key1",
+      "value": "value1"
+    },
+    {
+      "key": "key2",
+      "value": "value2"
+    },
+    {
+      "key": "key3",
+      "value": "value3"
+    }
+  ]
+}
+
+### datacatalog - user metadata update - success
+POST http://localhost:8080/data/v1/metadata
+Content-Type: application/json
+
+{
+  "id": "data-id",
+  "userMeta": [
+    {
+      "key": "key1",
+      "value": "value1"
+    },
+    {
+      "key": "key2",
+      "value": "value2"
+    },
+    {
+      "key": "key3",
+      "value": "value3"
+    }
+  ]
+}
+
+
+### datacatalog - tag update - err
+POST http://localhost:8080/data/v1/tag
+Content-Type: application/json
+
+{
+  "id": "0",
+  "tag": ["tag1", "tag2", "tag3"]
+}
+
+### datacatalog - tag update - success
+POST http://localhost:8080/data/v1/tag
+Content-Type: application/json
+
+{
+  "id": "data-id",
+  "tag": [ "tag1", "tag2", "tag3" ]
+}
+
+
+### datacatalog - download request - err
+POST http://localhost:8080/data/v1/download-request
+Content-Type: application/json
+
+{
+  "id": "0"
+}
+
+### datacatalog - download request - success
+POST http://localhost:8080/data/v1/download-request
+Content-Type: application/json
+
+{
+  "id": "data-id"
+}
+
+
+### datacatalog - comment add - err
+POST http://localhost:8080/data/v1/comment/add
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "rating": 7,
+    "comment": "좋아요"
+  }
+}
+
+### datacatalog - comment add - success
+POST http://localhost:8080/data/v1/comment/add
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "rating": 4,
+    "comment": "좋아요"
+  }
+}
+### datacatalog - comment update - err
+POST http://localhost:8080/data/v1/comment/update
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "id": "comment id",
+    "rating": 4,
+    "comment": "좋아요"
+  }
+}
+
+### datacatalog - comment update - success
+POST http://localhost:8080/data/v1/comment/update
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "id": "comment id",
+    "rating": 2,
+    "comment": "좋아요"
+  }
+}
+### datacatalog - comment delete - err
+POST http://localhost:8080/data/v1/comment/delete
+Content-Type: application/json
+
+{
+  "id": "0",
+  "ratingAndComment": {
+    "id": "comment id"
+  }
+}
+
+### datacatalog - comment delete - success
+POST http://localhost:8080/data/v1/comment/delete
+Content-Type: application/json
+
+{
+  "id": "1",
+  "ratingAndComment": {
+    "id": "comment id"
+  }
+}
+
+
+### datacatalog - all data summary
+POST http://localhost:8080/data/v1/all-data/summary
+Content-Type: application/json
+
+{
+  "filter": {
+    "keyword": "test",
+    "dateRange": {
+        "from": "2021-10-30 12:23:34.200",
+        "to": "2021-10-30 12:23:34.200"
+    },
+    "dataType": "STRUCTURED",
+    "dataFormat": "CSV"
+  },
+  "pageable": {
+    "page": {
+        "size": 10,
+        "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "createdAt",
+        "direction": 1
+      }
+    ]
+  }
+}
+
+### datacatalog - all data
+POST http://localhost:8080/data/v1/all-data/summary
+Content-Type: application/json
+
+{
+  "filter": {
+    "keyword": "test",
+    "dateRange": {
+      "from": "2021-10-30 12:23:34.200",
+      "to": "2021-10-30 12:23:34.200"
+    },
+    "dataType": "STRUCTURED",
+    "dataFormat": "CSV"
+  },
+  "pageable": {
+    "page": {
+      "size": 10,
+      "selectPage": 0
+    },
+    "sort": [
+      {
+        "order": 1,
+        "field": "id",
+        "direction": 1
+      },
+      {
+        "order": 2,
+        "field": "createdAt",
+        "direction": 1
+      }
+    ]
+  }
+}
