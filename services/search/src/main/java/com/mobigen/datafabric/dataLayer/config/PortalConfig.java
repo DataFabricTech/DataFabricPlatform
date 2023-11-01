@@ -16,6 +16,8 @@ public class PortalConfig {
     private final int numberOfSaveRecentSearches;
     private final int numberOfRecentSearches;
     private final List<String> filters;
+    private final int limitSearchSize;
+    private final int defaultSearchSize;
 
     public PortalConfig(Configuration config) {
         this.config = config;
@@ -27,5 +29,7 @@ public class PortalConfig {
         this.numberOfSaveRecentSearches = config.getInt("open_search.number_of_save_recent_searches");
         this.numberOfRecentSearches = config.getInt("open_search.number_of_recent_searches");
         this.filters = config.getList("open_search.filters");
+        this.limitSearchSize = config.getInt("open_search.limit_search_size");
+        this.defaultSearchSize = config.getInt("open_search.default_search_size");
     }
 }
