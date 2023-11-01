@@ -87,7 +87,7 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
 
     @Override
     public void deleteStorage(Utilities.ReqId request, StreamObserver<Utilities.CommonResponse> responseObserver) {
-        responseObserver.onNext(callBack.deleteStorage());
+        responseObserver.onNext(callBack.deleteStorage(request));
         responseObserver.onCompleted();
     }
 //    @Override

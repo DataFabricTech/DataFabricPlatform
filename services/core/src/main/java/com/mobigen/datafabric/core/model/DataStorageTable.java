@@ -48,4 +48,6 @@ public class DataStorageTable {
     SqlColumn monitoringTimeout = SqlColumn.of("monitoring_timeout", table, JDBCType.INTEGER);
     SqlColumn monitoringSuccessThreshold = SqlColumn.of("monitoring_success_threshold", table, JDBCType.INTEGER);
     SqlColumn monitoringFailThreshold = SqlColumn.of("monitoring_fail_threshold", table, JDBCType.INTEGER);
+
+    SqlColumn autoAddSettingEnable = SqlColumn.of("auto_add_setting_enable", table, JDBCType.BOOLEAN);
 }

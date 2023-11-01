@@ -27,7 +27,7 @@ public interface StorageServiceCallBack {
 
     StorageOuterClass.ResConnectedData connectedData();
 
-    Utilities.CommonResponse deleteStorage();
+    Utilities.CommonResponse deleteStorage(Utilities.ReqId request);
 //
 //    StorageTypeResponse storageType(StorageTypeRequest request);
 //

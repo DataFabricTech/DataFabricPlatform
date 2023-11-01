@@ -68,6 +68,10 @@ public class DataLayerConnection {
                                         DataLayer.Column.newBuilder()
                                                 .setColumnName("status")
                                                 .setType(Utilities.DataType.STRING)
+                                                .build(),
+                                        DataLayer.Column.newBuilder()
+                                                .setColumnName("sync_enable")
+                                                .setType(Utilities.DataType.BOOL)
                                                 .build()
                                 ))
                                 .addAllRows(List.of(
@@ -92,6 +96,10 @@ public class DataLayerConnection {
                                                         DataLayer.Cell.newBuilder()
                                                                 .setColumnIndex(4)
                                                                 .setStringValue("CONNECTED")
+                                                                .build(),
+                                                        DataLayer.Cell.newBuilder()
+                                                                .setColumnIndex(5)
+                                                                .setBoolValue(true)
                                                                 .build()
                                                 ))
                                                 .build(),
@@ -116,6 +124,10 @@ public class DataLayerConnection {
                                                         DataLayer.Cell.newBuilder()
                                                                 .setColumnIndex(4)
                                                                 .setStringValue("DISCONNECTED")
+                                                                .build(),
+                                                        DataLayer.Cell.newBuilder()
+                                                                .setColumnIndex(5)
+                                                                .setBoolValue(false)
                                                                 .build()
                                                 ))
                                                 .build()
@@ -128,14 +140,14 @@ public class DataLayerConnection {
     public DataLayer.ResExecute execute(String sql) {
         log.info("sql: " + sql);
         if (test) {
-            return DataLayer.ResExecute.newBuilder().build();
+            return getStorage(sql);
         }
         return stub.execute(DataLayer.ReqExecute.newBuilder()
                 .setSql(sql)
                 .build());
     }
 
-    public DataLayer.ResBatchExecute executeBatch(String... sqlList) {
+    public DataLayer.ResBatchExecute executeBatch(List<String> sqlList) {
         log.info("sql list: " + String.join(";", sqlList));
         if (test) {
             return DataLayer.ResBatchExecute.newBuilder()
@@ -143,7 +155,7 @@ public class DataLayerConnection {
                     .build();
         }
         return stub.executeBatch(DataLayer.ReqBatchExecute.newBuilder()
-                .addAllSql(List.of(sqlList))
+                .addAllSql(sqlList)
                 .build());
     }
 

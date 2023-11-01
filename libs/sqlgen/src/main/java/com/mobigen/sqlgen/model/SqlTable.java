@@ -17,7 +17,13 @@ public class SqlTable {
     private final Character stringSpecialChar = '"';
 
     public String getAlias() {
-        return stringSpecialChar + alias + stringSpecialChar;
+        String tableAlias;
+        if (!caseSensitive) {
+            tableAlias = alias;
+        } else {
+            tableAlias = stringSpecialChar + alias + stringSpecialChar;
+        }
+        return tableAlias;
     }
 
     public String getTotalName() {

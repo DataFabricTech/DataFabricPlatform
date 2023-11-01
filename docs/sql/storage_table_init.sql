@@ -11,7 +11,7 @@ create table DefaultConnSchema
     "type"            text,
     "default"         text,
     required          bool,
-    foreign key (storage_type_name) references DataStorageType (name)
+    foreign key (storage_type_name) references DataStorageType (name) on delete cascade
 );
 
 create table AuthSchema
@@ -21,7 +21,7 @@ create table AuthSchema
     "key"             text,
     "type"            text,
     required          bool,
-    foreign key (storage_type_name) references DataStorageType (name)
+    foreign key (storage_type_name) references DataStorageType (name) on delete cascade
 );
 
 create table DataStorageAdaptor
@@ -45,14 +45,14 @@ create table UrlFormat
 (
     adaptor_id uuid not null,
     format     text,
-    foreign key (adaptor_id) references DataStorageAdaptor (id)
+    foreign key (adaptor_id) references DataStorageAdaptor (id) on delete cascade
 );
 
 create table AdaptorUsableAuth
 (
     adaptor_id uuid not null,
     auth_type  text,
-    foreign key (adaptor_id) references DataStorageAdaptor (id)
+    foreign key (adaptor_id) references DataStorageAdaptor (id) on delete cascade
 );
 
 create table ConnectionSchema
@@ -62,7 +62,7 @@ create table ConnectionSchema
     "type"     text,
     "default"  text,
     required   bool,
-    foreign key (adaptor_id) references DataStorageAdaptor (id)
+    foreign key (adaptor_id) references DataStorageAdaptor (id) on delete cascade
 );
 
 create table DataStorage
@@ -90,7 +90,7 @@ create table DataStorage
     sync_run_time                text,
 
     monitoring_enable            bool,
-    monitoring_protocol          int,
+    monitoring_protocol          text,
     monitoring_host              text,
     monitoring_port              text,
     monitoring_sql               text,
@@ -98,6 +98,8 @@ create table DataStorage
     monitoring_timeout           int,
     monitoring_success_threshold int,
     monitoring_fail_threshold    int,
+
+    auto_add_setting_enable      bool,
 
     foreign key (adaptor_id) references DataStorageAdaptor (id)
 );
@@ -112,7 +114,7 @@ create table StorageAutoAddSetting
     max_size       int,
     start_date     text,
     end_date       text,
-    foreign key (datastorage_id) references DataStorage (id)
+    foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );
 
 create table ConnInfo
@@ -121,7 +123,8 @@ create table ConnInfo
     "key"          text,
     "type"         text,
     "value"        text,
-    foreign key (datastorage_id) references DataStorage (id)
+    required       bool,
+    foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );
 
 create table DataStorageMetadata
@@ -129,7 +132,7 @@ create table DataStorageMetadata
     datastorage_id uuid not null,
     "key"          text,
     "value"        text,
-    foreign key (datastorage_id) references DataStorage (id)
+    foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );
 
 create table DataStorageTag
@@ -137,5 +140,5 @@ create table DataStorageTag
     datastorage_id uuid not null,
     user_id        uuid,
     tag            text,
-    foreign key (datastorage_id) references DataStorage (id)
+    foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );

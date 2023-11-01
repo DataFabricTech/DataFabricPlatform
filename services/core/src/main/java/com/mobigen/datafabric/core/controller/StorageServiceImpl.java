@@ -60,7 +60,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .addAllStorage(dataStorageService.getStorageList())
+                        .addAllStorage(dataStorageService.search())
                         .build())
                 .build();
     }
@@ -134,6 +134,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
                 return Utilities.CommonResponse.newBuilder().setCode("FAIL").build();
             }
         } catch (SQLException e) {
+            log.error(e.getMessage(), e);
             return Utilities.CommonResponse.newBuilder()
                     .setCode("FAIL")
                     .setErrMsg(e.getMessage())
@@ -149,6 +150,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
                     .setCode("OK")
                     .build();
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return Utilities.CommonResponse.newBuilder()
                     .setCode("FAIL")
                     .setErrMsg(e.getMessage())
@@ -167,7 +169,18 @@ public class StorageServiceImpl implements StorageServiceCallBack {
     }
 
     @Override
-    public Utilities.CommonResponse deleteStorage() {
-        return null;
+    public Utilities.CommonResponse deleteStorage(Utilities.ReqId request) {
+        try {
+            dataStorageService.deleteStorage(request.getId());
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("OK")
+                    .build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("FAIL")
+                    .setErrMsg(e.getMessage())
+                    .build();
+        }
     }
 }

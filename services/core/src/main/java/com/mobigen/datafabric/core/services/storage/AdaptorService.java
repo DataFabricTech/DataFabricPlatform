@@ -50,12 +50,12 @@ public class AdaptorService {
 
     public List<AdaptorOuterClass.Adaptor> getAdaptors() {
         var adaptorData = select(
-                adaptorTable.getIdCol(),
-                adaptorTable.getStorageTypeNameCol(),
-                adaptorTable.getNameCol(),
-                adaptorTable.getVersionCol(),
-                adaptorTable.getPathCol(),
-                adaptorTable.getDriverCol()
+                adaptorTable.getId(),
+                adaptorTable.getStorageTypeName(),
+                adaptorTable.getName(),
+                adaptorTable.getVersion(),
+                adaptorTable.getPath(),
+                adaptorTable.getDriver()
         )
                 .from(adaptorTable.getTable())
                 .generate()
