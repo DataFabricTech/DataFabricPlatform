@@ -23,7 +23,7 @@ public class DataLayerApplication {
 
     private static void initService(GRPCServer server) throws IOException {
         var appConfig = new AppConfig();
-        server.addService(new DataLayerService(new DataLayerServiceImpl(appConfig.dataLayerRepository(), appConfig.portalService(), appConfig.dbConfig())));
+        server.addService(new DataLayerService(new DataLayerServiceImpl(appConfig.dataLayerRepository(), appConfig.portalService())));
 //        server.addService(new PortalService()); todo 여기에 createIndex 박기
     }
 }

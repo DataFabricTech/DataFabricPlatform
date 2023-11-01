@@ -14,7 +14,7 @@ public class AppConfig {
     }
 
     public PortalServiceImpl portalService() {
-        return new PortalServiceImpl(portalRepository(), dbConfig());
+        return new PortalServiceImpl(portalRepository(), dataLayerRepository(), dbConfig(), portalConfig());
     }
 
     public PortalRepository portalRepository() {
@@ -25,8 +25,8 @@ public class AppConfig {
         return new PortalConfig(config());
     }
 
-    public DataLayerServiceImpl dataLayerServiceImpl() throws SQLException, ClassNotFoundException {
-        return new DataLayerServiceImpl(dataLayerRepository(), portalService(), dbConfig());
+    public DataLayerServiceImpl dataLayerServiceImpl() {
+        return new DataLayerServiceImpl(dataLayerRepository(), portalService());
     }
 
     public DataLayerRepository dataLayerRepository() {

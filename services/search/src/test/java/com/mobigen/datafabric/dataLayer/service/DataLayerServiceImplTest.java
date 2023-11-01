@@ -1,17 +1,17 @@
 package com.mobigen.datafabric.dataLayer.service;
 
+import com.google.protobuf.Empty;
 import com.mobigen.datafabric.dataLayer.config.AppConfig;
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
 import com.mobigen.datafabric.dataLayer.repository.DataLayerRepository;
 import com.mobigen.datafabric.share.protobuf.DataLayer;
+import com.mobigen.datafabric.share.protobuf.Portal;
+import com.mobigen.datafabric.share.protobuf.Utilities;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,8 +32,8 @@ class DataLayerServiceImplTest {
             portalService = appConfig.portalService();
             dataLayerRepository = appConfig.dataLayerRepository();
             dataLayerService = appConfig.dataLayerServiceImpl();
-        } catch (ClassNotFoundException | SQLException e) {
-            fail(e.getMessage());
+//        } catch (ClassNotFoundException | SQLException e) {
+//            fail(e.getMessage());
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -54,11 +54,11 @@ class DataLayerServiceImplTest {
             fail(e.getMessage());
         }
 
-//        try {
-//            openSearchRepository.deleteSearchesDocument("testUser");
-//        } catch (Exception e) {
-//            // pass
-//        }
+        try {
+            portalService.deleteSearchesDocument("testUser");
+        } catch (Exception e) {
+            // pass
+        }
     }
 
     String insertSql() {
@@ -69,22 +69,26 @@ class DataLayerServiceImplTest {
                 "'insert_sampledata_id','success', true, 'fail', '%s', '%s')";
     }
 
-    //
-//    String insertSql(String name, String type, String created_by) {
-//        return "insert into %s " +
-//                "(name, description, type, format, size, sample_data_id ,status, " +
-//                "cache_enable, cache_status, created_by, updated_by)" +
-//                " values ('" + name + "', 'insert_description', '" + type + "', 'insert_format', 1000, " +
-//                "'insert_sampledata_id','success', false, 'fail', '" + created_by + "', '%s')";
-//    }
-//
-//    String insertSql2(String name, String type, String format) {
-//        return "insert into %s " +
-//                "(name, description, type, format, size, sample_data_id ,status, " +
-//                "cache_enable, cache_status, created_by, updated_by)" +
-//                " values ('" + name + "', 'insert_description', '" + type + "', '" + format + "', 1000, " +
-//                "'insert_sampledata_id','success', false, 'fail', 'created_by', '%s')";
-//    }
+    String insertSql(String name, String type, String created_by) {
+        var id = UUID.randomUUID().toString();
+        var insertSql = "insert into %s " +
+                "(name, description, datatype, dataformat, size, sample_data_id ,status, " +
+                "cache_enable, cache_status, created_by, updated_by)" +
+                " values ('" + name + "', 'insert_description', '" + type + "', 'insert_format', 1000, " +
+                "'insert_sampledata_id','success', false, 'fail', '" + created_by + "', '%s')";
+        return String.format(insertSql, dbConfig.getDataCatalog(), id);
+    }
+
+
+    String insertSql2(String name, String type, String format) {
+        var id = UUID.randomUUID().toString();
+        var insertSql = "insert into %s " +
+                "(name, description, datatype, dataformat, size, sample_data_id ,status, " +
+                "cache_enable, cache_status, created_by, updated_by)" +
+                " values ('" + name + "', 'insert_description', '" + type + "', '"+format+"', 1000, " +
+                "'insert_sampledata_id','success', false, 'fail', 'created_by', '%s')";
+        return String.format(insertSql, dbConfig.getDataCatalog(), id);
+    }
 //
     String deleteSql() {
         return "delete from %s where id = '%s';";
@@ -291,7 +295,7 @@ class DataLayerServiceImplTest {
                 sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), id));
             }
 
-            assertEquals("200",dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
+            assertEquals("200", dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
 
         });
 
@@ -313,7 +317,7 @@ class DataLayerServiceImplTest {
             sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0)));
             sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), "asdf"));
 
-            assertEquals("404",dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
+            assertEquals("404", dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
     }
 
@@ -371,148 +375,172 @@ class DataLayerServiceImplTest {
             assertEquals("404", dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
     }
-//
-//    /**
-//     * name type    createdBy
-//     * in   1       a
-//     * in   1       b
-//     * in   2       a
-//     * in   2       b
-//     * out  1       a
-//     * out  1       b
-//     * out  2       a
-//     * out  2       b
-//     */
-//    @Test
-//    void searchWithInput() {
-//        var in = "in";
-//        var out = "out";
-//        var one = "1";
-//        var two = "2";
-//        var A = "a";
-//        var B = "b";
-//
-//        insertDocuemt(insertSql(in, one, A));
-//        insertDocuemt(insertSql(in, one, B));
-//        insertDocuemt(insertSql(in, two, A));
-//        insertDocuemt(insertSql(in, two, B));
-//        insertDocuemt(insertSql(out, one, A));
-//        insertDocuemt(insertSql(out, one, B));
-//        insertDocuemt(insertSql(out, two, A));
-//        insertDocuemt(insertSql(out, two, B));
-//        sleep();
-//
-//        var filter = dataLayerService.search("in", null, null, "testUser").getFilters();
-//
-//        assertEquals(2, filter.getTypeFilter(0).getCount());
-//        assertEquals(4, filter.getNameFilter(0).getCount());
-//    }
-//
-//    @Test
-//    void searchWithInputADetail() {
-//        var in = "in";
-//        var out = "out";
-//        var one = "1";
-//        var two = "2";
-//        var A = "a";
-//        var B = "b";
-//
-//        insertDocuemt(insertSql(in, one, A));
-//        insertDocuemt(insertSql(in, one, B));
-//        insertDocuemt(insertSql(in, two, A));
-//        insertDocuemt(insertSql(in, two, B));
-//        insertDocuemt(insertSql(out, one, A));
-//        insertDocuemt(insertSql(out, one, B));
-//        insertDocuemt(insertSql(out, two, A));
-//        insertDocuemt(insertSql(out, two, B));
-//
-//        var detail = DataSet.newBuilder().setType("1").build();
-//
-//        var filter = dataLayerService.search("in", detail, null, "testUser").getFilters();
-//
-//        assertEquals(2, filter.getTypeFilter(0).getCount());
-//        assertEquals(2, filter.getNameFilter(0).getCount());
-//    }
-//
-//    @Test
-//    void searchWithInputADetailAFilter() {
-//        var in = "in";
-//        var out = "out";
-//        var one = "1";
-//        var two = "2";
-//        var A = "a";
-//        var B = "b";
-//        var C = "zxcv";
-//
-//        insertDocuemt(insertSql2(in, one, A));
-//        insertDocuemt(insertSql2(in, one, B));
-//        insertDocuemt(insertSql2(in, one, C));
-//        insertDocuemt(insertSql2(in, two, A));
-//        insertDocuemt(insertSql2(in, two, B));
-//        insertDocuemt(insertSql2(out, one, A));
-//        insertDocuemt(insertSql2(out, one, B));
-//        insertDocuemt(insertSql2(out, two, A));
-//        insertDocuemt(insertSql2(out, two, B));
-//        sleep();
-//
-//        var detail = DataSet.newBuilder().setType("1").build();
-//        var filter = Filter.newBuilder().addFormat("a").addFormat("zxcv").build();
-//
-//        var filters = dataLayerService.search("in", detail, filter, "testUser").getFilters();
-//
-//        assertEquals(2, filters.getNameFilter(0).getCount());
-//        assertEquals(2, filters.getTypeFilter(0).getCount());
-//        assertEquals(1, filters.getFormatFilter(0).getCount());
-//        assertEquals(1, filters.getFormatFilter(1).getCount());
-//    }
-//
-//    @DisplayName("recent Search success test")
-//    @Test
-//    void recentSearch() {
-//        dataLayerService.search("a", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("b", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("c", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("d", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("e", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("f", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("g", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("h", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("i", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("j", null, null, "testUser");
-//        sleep();
-//        dataLayerService.search("k", null, null, "testUser");
-//        sleep();
-//        var recent = dataLayerService.recentSearch("testUser");
-//        assertEquals(11, recent.getSearchedCount());
-//    }
-//
-//    @Test
-//    void healthCheck() {
-//        assertTrue(dataLayerService.healthCheck().getStatus());
-//    }
-//
+
+    /**
+     * name type    createdBy
+     * in   1       a
+     * in   1       b
+     * in   2       a
+     * in   2       b
+     * out  1       a
+     * out  1       b
+     * out  2       a
+     * out  2       b
+     */
+    @Test
+    void searchWithInput() {
+        var in = "in";
+        var out = "out";
+        var one = "1";
+        var two = "2";
+        var A = "a";
+        var B = "b";
+
+        var sqls = new String[]{
+                insertSql(in, one, A),
+                insertSql(in, one, B),
+                insertSql(in, two, A),
+                insertSql(in, two, B),
+                insertSql(out, one, A),
+                insertSql(out, one, B),
+                insertSql(out, two, A),
+                insertSql(out, two, B),
+        };
+        insertDocuemt(sqls);
+
+        sleep();
+        var filter = portalService.search(makeReq("in", null, null, null))
+                .getData().getSearchResponse().getFiltersMap();
+
+        assertEquals(2, filter.get("dataType").getValueCount());
+        assertEquals("1", filter.get("dataType").getValue(0).getKey());
+        assertEquals(2, filter.get("dataType").getValue(0).getValue());
+        assertEquals("2", filter.get("dataType").getValue(1).getKey());
+        assertEquals(2, filter.get("dataType").getValue(1).getValue());
+    }
+
+
+    @Test
+    void searchWithInputADetail() {
+        var in = "in";
+        var out = "out";
+        var one = "1";
+        var two = "2";
+        var A = "a";
+        var B = "b";
+
+        var sqls = new String[]{
+                insertSql(in, one, A),
+                insertSql(in, one, B),
+                insertSql(in, two, A),
+                insertSql(in, two, B),
+                insertSql(out, one, A),
+                insertSql(out, one, B),
+                insertSql(out, two, A),
+                insertSql(out, two, B),
+        };
+        insertDocuemt(sqls);
+
+        var details = new HashMap<String, String>();
+        details.put("DATA_TYPE", "1");
+        var filter = portalService.search(makeReq("in", null, details, null))
+                .getData().getSearchResponse().getFiltersMap();
+
+        assertEquals(1, filter.get("dataType").getValueCount());
+        assertEquals("1", filter.get("dataType").getValue(0).getKey());
+        assertEquals(2, filter.get("dataType").getValue(0).getValue());
+    }
+
+
+    @Test
+    void searchWithInputADetailAFilter() {
+        var in = "in";
+        var out = "out";
+        var one = "1";
+        var two = "2";
+        var A = "a";
+        var B = "b";
+        var C = "zxcv";
+
+        var sqls = new String[]{
+                insertSql2(in, one, A),
+                insertSql2(in, one, B),
+                insertSql2(in, one, C),
+                insertSql2(in, two, A),
+                insertSql2(in, two, B),
+                insertSql2(out, one, A),
+                insertSql2(out, one, B),
+                insertSql2(out, two, A),
+                insertSql2(out, two, B),
+        };
+        sleep();
+
+        insertDocuemt(sqls);
+
+        var details = new HashMap<String, String>();
+        details.put("DATA_TYPE", "1");
+
+        var filter = new HashMap<String, Portal.ListString>();
+        filter.put("DATA_FORMAT", Portal.ListString.newBuilder().addValue("a").addValue("zxcv").build());
+
+        var filters = portalService.search(makeReq("in", null, details, filter))
+                .getData().getSearchResponse().getFiltersMap();
+
+        assertEquals(1, filters.get("name").getValueCount());
+        assertEquals(2, filters.get("dataFormat").getValueCount());
+        assertEquals(1, filters.get("dataFormat").getValue(0).getValue());
+        assertEquals(1, filters.get("dataFormat").getValue(1).getValue());
+    }
+
+
+    @DisplayName("recent Search success test")
+    @Test
+    void recentSearch() {
+        portalService.search(makeReq("a", null, null, null));
+        sleep();
+        portalService.search(makeReq("b", null, null, null));
+        sleep();
+        portalService.search(makeReq("c", null, null, null));
+        sleep();
+        portalService.search(makeReq("d", null, null, null));
+        sleep();
+        portalService.search(makeReq("e", null, null, null));
+        sleep();
+        portalService.search(makeReq("f", null, null, null));
+        sleep();
+        portalService.search(makeReq("g", null, null, null));
+        sleep();
+        portalService.search(makeReq("h", null, null, null));
+        sleep();
+        portalService.search(makeReq("i", null, null, null));
+        sleep();
+        portalService.search(makeReq("j", null, null, null));
+        sleep();
+        portalService.search(makeReq("k", null, null, null));
+        sleep();
+        var recent = portalService.recentSearches(Empty.newBuilder().build());
+        sleep();
+        assertEquals(11, recent.getData().getRecentSearchesCount());
+    }
+
     void insertDocument() {
         preInserted = UUID.randomUUID().toString();
         assertDoesNotThrow(() ->
                 dataLayerService.execute(makeReq(String.format(insertSql(), dbConfig.getDataCatalog(), preInserted, preInserted, preInserted))));
     }
 
-    //
-//    void insertDocuemt(String insertSql) {
-//        var id = UUID.randomUUID().toString();
-//        assertDoesNotThrow(() ->
-//                dataLayerService.execute(String.format(insertSql, dbConfig.getDataCatalog(), id, id, id)));
-//    }
-//
+
+    void insertDocuemt(String insertSql) {
+        var id = UUID.randomUUID().toString();
+        assertDoesNotThrow(() ->
+                dataLayerService.execute(makeReq(String.format(insertSql, dbConfig.getDataCatalog(), id, id, id))));
+    }
+
+    void insertDocuemt(String[] sqls) {
+        assertDoesNotThrow(() ->
+                dataLayerService.executeBatch(makeBatchReq(sqls)));
+    }
+
     void sleep() {
         try {
             Thread.sleep(1000);
@@ -526,8 +554,17 @@ class DataLayerServiceImplTest {
     }
 
     DataLayer.ReqBatchExecute makeBatchReq(String[] sqls) {
-//        var data = Arrays.stream(dataLayerRepository.executeBatchUpdate(sqls)).boxed().collect(Collectors.toList());
-//        List<String> newSqls = Arrays.stream(sqls)
         return DataLayer.ReqBatchExecute.newBuilder().addAllSql(Arrays.asList(sqls)).build();
+    }
+
+    Portal.ReqSearch makeReq(String input, Utilities.Pageable pageable, Map<String, String> details, Map<String, Portal.ListString> filters) {
+        var reqSearch = Portal.ReqSearch.newBuilder();
+        if (pageable != null) reqSearch.setPageable(pageable);
+        if (details != null) reqSearch.putAllDetailSearch(details);
+        if (filters != null) reqSearch.putAllFilterSearch(filters);
+
+        return reqSearch
+                .setKeyword(input)
+                .build();
     }
 }
