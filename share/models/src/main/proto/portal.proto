@@ -42,7 +42,7 @@ message SearchResponse {
 message ListMapStrNumber {
   message MapStrNumber {
     string key = 1;
-    int32 value = 2;
+    int64 value = 2;
   }
   repeated MapStrNumber value = 1;
 }

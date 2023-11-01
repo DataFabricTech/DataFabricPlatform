@@ -2,8 +2,10 @@ package com.mobigen.datafabric.dataLayer;
 
 import com.mobigen.datafabric.dataLayer.config.AppConfig;
 import com.mobigen.datafabric.dataLayer.service.DataLayerServiceImpl;
+import com.mobigen.datafabric.dataLayer.service.PortalServiceImpl;
 import com.mobigen.libs.grpc.DataLayerService;
 import com.mobigen.libs.grpc.GRPCServer;
+import com.mobigen.libs.grpc.PortalService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -23,7 +25,7 @@ public class DataLayerApplication {
 
     private static void initService(GRPCServer server) throws IOException {
         var appConfig = new AppConfig();
-        server.addService(new DataLayerService(new DataLayerServiceImpl(appConfig.dataLayerRepository(), appConfig.portalService(), appConfig.dbConfig())));
-//        server.addService(new PortalService()); todo 여기에 createIndex 박기
+        server.addService(new DataLayerService(new DataLayerServiceImpl(appConfig.dataLayerRepository(), appConfig.portalService())));
+        server.addService(new PortalService(new PortalServiceImpl(appConfig.portalRepository(), appConfig.dataLayerRepository(), appConfig.dbConfig(), appConfig.portalConfig())));
     }
 }
