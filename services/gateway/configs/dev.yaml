@@ -28,3 +28,11 @@ server:
   host: "0.0.0.0"
   port: 8080
 
+appConfig:
+  services:
+    core:
+      host: "localhost"
+      port: 9360
+    search:
+      host: "localhost"
+      port: 9360

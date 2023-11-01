@@ -4,6 +4,7 @@ import (
 	"github.com/datafabric/gateway/common"
 	"github.com/datafabric/gateway/infrastructures/datastore"
 	"github.com/datafabric/gateway/infrastructures/router"
+	"github.com/datafabric/gateway/models"
 )
 
 // Injector web-server layer initializer : Dependency Injection )
@@ -11,19 +12,20 @@ type Injector struct {
 	Router    *router.Router
 	Datastore *datastore.DataStore
 	Log       *common.Logger
+	AppConfig *models.Configuration
 }
 
-// New create Injector
-func (Injector) New(r *router.Router, d *datastore.DataStore,
-	l *common.Logger) *Injector {
+// NewInjector create Injector
+func NewInjector(r *router.Router, d *datastore.DataStore, l *common.Logger, config *models.Configuration) *Injector {
 	return &Injector{
 		Router:    r,
 		Datastore: d,
 		Log:       l,
+		AppConfig: config,
 	}
 }
 
-// Init init web-server layer interconnection create (web server layer init
+// Init web-server layer interconnection create (web server layer init
 func (h *Injector) Init() error {
 	// For Version
 	ver := Version{}.Init(h)
