@@ -1,7 +1,7 @@
 Configuration:
   status: warn
 
-  appender:
+  appenders:
     Console:
       name: LogToConsole
       PatternLayout:
@@ -24,8 +24,9 @@ Configuration:
             size: 10MB
         DefaultRolloverStrategy:
           max: 10
-    loggers:
-      Root:
-        level: debug
-        AppenderRef:
-          ref: LogToConsole
+
+  Loggers:
+    Root:
+      level: debug
+      AppenderRef:
+        ref: LogToConsole

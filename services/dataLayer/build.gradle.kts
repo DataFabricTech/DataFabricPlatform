@@ -18,6 +18,7 @@ dependencies {
     // openSearch
     implementation("org.opensearch.client:opensearch-java:2.6.0")
     implementation("org.apache.httpcomponents.core5:httpcore5:5.2.2")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.2.1")
 
     // sql parser
     implementation("com.github.jsqlparser:jsqlparser:4.7")
@@ -34,3 +35,10 @@ application {
     mainClass.set("com.mobigen.datafabric.dataLayer.DataLayerApplication") // <1>
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "com.mobigen.datafabric.dataLayer.DataLayerApplication"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+}
