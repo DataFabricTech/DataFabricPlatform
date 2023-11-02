@@ -31,6 +31,6 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.mobigen.datafabric.dataLayer.dataLayerApplication") // <1>
+    mainClass.set("com.mobigen.datafabric.dataLayer.DataLayerApplication") // <1>
 }
 
