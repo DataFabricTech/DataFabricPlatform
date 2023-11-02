@@ -2,6 +2,7 @@ package appdata
 
 import (
 	"fmt"
+	"github.com/datafabric/gateway/models"
 
 	"github.com/sirupsen/logrus"
 )
@@ -11,9 +12,7 @@ type Configuration struct {
 	Log       LogConfiguration       `yaml:"log" json:"log"`
 	Datastore DatastoreConfiguration `yaml:"datastore" json:"datastore"`
 	Server    ServerConfiguration    `yaml:"server" json:"server"`
-	// TODO : Need Config? Add User Definition Configuration
-	// yaml inline option not supported in viper...
-	// Config	  models.Configuration `yaml:"config" json:"config"`
+	AppConfig models.Configuration   `yaml:"appConfig" json:"appConfig"` // supported in viper... -> inline yaml struct
 }
 
 // LogConfiguration  로그 설정 정보

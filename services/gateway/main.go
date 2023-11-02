@@ -198,7 +198,7 @@ func Initialize() (*Context, error) {
 
 // InitDependencyInjection sub model Dependency injection and path regi to server
 func (c *Context) InitDependencyInjection() error {
-	injector := injectors.Injector{}.New(c.Router, c.Datastore, c.Log)
+	injector := injectors.NewInjector(c.Router, c.Datastore, c.Log, &c.Conf.AppConfig)
 	if err := injector.Init(); err != nil {
 		return err
 	}
@@ -255,7 +255,7 @@ func (c *Context) StopSubModules() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(15*time.Second))
 	defer cancel()
-	c.Router.Shutdown(ctx)
+	_ = c.Router.Shutdown(ctx)
 	c.Log.Errorf("[ Router ] Shutdown ............................................................... [ OK ]")
 
 	// Write Here : For 사용하는 서브 모듈(Goroutine)들이 안전하게 종료 될 수 있도록 종료 코드를 추가한다.
