@@ -12,9 +12,9 @@ public class Worker {
     ThreadPoolExecutor executor;
 
     public Worker( int maxThreadCount ) {
-        log.error( "[ Worker ] ThreadPool Core Size[ {} ] Max Size[ {} ]", CORE_POOL_SIZE, maxThreadCount );
+        log.error( "[ Worker-Pool ] Core Size[ {} ] Max Size[ {} ]", CORE_POOL_SIZE, maxThreadCount );
         this.executor = new ThreadPoolExecutor( CORE_POOL_SIZE, maxThreadCount, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>() );
-        log.error( "[ Worker ] Init : OK" );
+        log.error( "[ Worker-Pool ] Init : OK" );
     }
 
     public void runTask( Runnable task ) {

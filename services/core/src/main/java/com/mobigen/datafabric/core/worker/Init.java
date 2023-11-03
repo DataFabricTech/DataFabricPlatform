@@ -10,6 +10,9 @@ import java.util.Map;
 
 @Slf4j
 public class Init {
+
+    private static Init instance = null;
+
     private final Reader reader;
     private final Worker worker;
     private final int readerMaxThreadCount;
@@ -26,23 +29,44 @@ public class Init {
 
         // Set Reader
         reader = new Reader( queues, worker );
+
+        // Set Singleton Instance
+        instance = this;
+
+        log.error( "[ Worker ] Init : OK" );
+    }
+
+    public static Init getInstance() {
+        if(instance == null) {
+            log.error( "[ Worker ] Not Init" );
+            return null;
+        }
+        return instance;
     }
 
     public void Start() {
         this.reader.start( readerMaxThreadCount );
 
         // Worker Monitoring
-        Runnable monitoring = () -> {
-            while( true ) {
-                try {
-                    Thread.sleep( 1000 );
-                } catch ( InterruptedException e ) {
-                    log.error( "[ Worker ] Monitoring Thread Sleep Error[ {} ]", e.getMessage() );
-                }
-                worker.monitoring();
-            }
-        };
-        Thread t = new Thread( monitoring );
-        t.start();
+        // Use Timer
+//        Runnable monitoring = () -> {
+//            while( true ) {
+//                try {
+//                    Thread.sleep( 1000 );
+//                } catch ( InterruptedException e ) {
+//                    log.error( "[ Worker ] Monitoring Thread Sleep Error[ {} ]", e.getMessage() );
+//                }
+//                worker.monitoring();
+//            }
+//        };
+//        Thread t = new Thread( monitoring );
+//        t.start();
     }
+
+    public void destroy() {
+        this.reader.stop();
+        this.worker.shutdown();
+        log.error( "[ Worker ] Destroy : OK" );
+    }
+
 }
