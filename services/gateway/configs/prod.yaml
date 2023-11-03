@@ -28,10 +28,11 @@ server:
   host: "0.0.0.0"
   port: 8080
 
-services:
-  core:
-    host: "core-svc"
-    port: 9360
-  search:
-    host: "search-svc"
-    port: 9360
+appConfig:
+  services:
+    core:
+      host: "core-svc"
+      port: 9360
+    search:
+      host: "data-layer-svc"
+      port: 9360

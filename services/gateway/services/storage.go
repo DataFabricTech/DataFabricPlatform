@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -45,9 +46,25 @@ func (service *StorageService) Destroy() {
 	_ = service.conn.Close()
 }
 
+func (service *StorageService) Reconnect() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, service.conn.Target(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		service.log.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), err)
+		return
+	}
+	service.conn = conn
+	service.client = protobuf.NewStorageServiceClient(conn)
+}
+
 // Overview GET    : /storage/v1/overview
 func (service *StorageService) Overview() (*protobuf.ResStorageOverview, error) {
-	// Overview(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ResStorageOverview, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Overview : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -68,7 +85,10 @@ func (service *StorageService) Overview() (*protobuf.ResStorageOverview, error) 
 
 // Search POST   : /storage/v1/search
 func (service *StorageService) Search(in *protobuf.ReqStorageSearch) (*protobuf.ResStorages, error) {
-	// Search(ctx context.Context, in *ReqStorageSearch, opts ...grpc.CallOption) (*ResStorage, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Search : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -89,7 +109,10 @@ func (service *StorageService) Search(in *protobuf.ReqStorageSearch) (*protobuf.
 
 // Status POST   : /storage/v1/status
 func (service *StorageService) Status(in *protobuf.ReqId) (*protobuf.ResStorage, error) {
-	// Status(ctx context.Context, in *ReqId, opts ...grpc.CallOption) (*ResStorage, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Status : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -110,7 +133,10 @@ func (service *StorageService) Status(in *protobuf.ReqId) (*protobuf.ResStorage,
 
 // Default POST   : /storage/v1/default
 func (service *StorageService) Default(in *protobuf.ReqId) (*protobuf.ResStorage, error) {
-	// Default(ctx context.Context, in *ReqId, opts ...grpc.CallOption) (*ResStorage, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Default : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -131,7 +157,10 @@ func (service *StorageService) Default(in *protobuf.ReqId) (*protobuf.ResStorage
 
 // Advanced POST   : /storage/v1/advanced
 func (service *StorageService) Advanced(in *protobuf.ReqId) (*protobuf.ResStorage, error) {
-	// Advanced(ctx context.Context, in *ReqId, opts ...grpc.CallOption) (*ResStorage, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Advanced : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -152,7 +181,10 @@ func (service *StorageService) Advanced(in *protobuf.ReqId) (*protobuf.ResStorag
 
 // Browse POST   : /storage/v1/browse
 func (service *StorageService) Browse(in *protobuf.ReqStorageBrowse) (*protobuf.ResStorageBrowse, error) {
-	// Browse(ctx context.Context, in *ReqStorageBrowse, opts ...grpc.CallOption) (*ResStorageBrowse, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Browse : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -173,7 +205,10 @@ func (service *StorageService) Browse(in *protobuf.ReqStorageBrowse) (*protobuf.
 
 // BrowseDefault POST   : /storage/v1/browse/default
 func (service *StorageService) BrowseDefault(in *protobuf.ReqStorageBrowse) (*protobuf.ResStorageBrowseDefault, error) {
-	// BrowseDefault(ctx context.Context, in *ReqStorageBrowse, opts ...grpc.CallOption) (*ResStorageBrowseDefault, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Browse / Default : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -194,7 +229,10 @@ func (service *StorageService) BrowseDefault(in *protobuf.ReqStorageBrowse) (*pr
 
 // ConnectTest POST   : /storage/v1/connect-test
 func (service *StorageService) ConnectTest(in *protobuf.ConnInfo) (*protobuf.CommonResponse, error) {
-	// ConnectTest(ctx context.Context, in *ConnInfo, opts ...grpc.CallOption) (*CommonResponse, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Connect Test : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -215,7 +253,10 @@ func (service *StorageService) ConnectTest(in *protobuf.ConnInfo) (*protobuf.Com
 
 // AddStorage POST   : /storage/v1/add
 func (service *StorageService) AddStorage(in *protobuf.Storage) (*protobuf.CommonResponse, error) {
-	// AddStorage(ctx context.Context, in *Storage, opts ...grpc.CallOption) (*CommonResponse, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> AddStorage : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -236,7 +277,10 @@ func (service *StorageService) AddStorage(in *protobuf.Storage) (*protobuf.Commo
 
 // UpdateStorage POST   : /storage/v1/modify
 func (service *StorageService) UpdateStorage(in *protobuf.Storage) (*protobuf.CommonResponse, error) {
-	// UpdateStorage(ctx context.Context, in *Storage, opts ...grpc.CallOption) (*CommonResponse, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> UpdateStorage : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -257,7 +301,10 @@ func (service *StorageService) UpdateStorage(in *protobuf.Storage) (*protobuf.Co
 
 // ConnectedData POST   : /storage/v1/connected-data/{storage-id}
 func (service *StorageService) ConnectedData(in *protobuf.ReqId) (*protobuf.ResConnectedData, error) {
-	// ConnectedData(ctx context.Context, in *ReqId, opts ...grpc.CallOption) (*ResConnectedData, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Connected Data Count : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -278,7 +325,10 @@ func (service *StorageService) ConnectedData(in *protobuf.ReqId) (*protobuf.ResC
 
 // DeleteStorage POST   : /storage/v1/delete
 func (service *StorageService) DeleteStorage(in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
-	// DeleteStorage(ctx context.Context, in *ReqId, opts ...grpc.CallOption) (*CommonResponse, error)
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Storage Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> DeleteStorage : Server", "STORAGE")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

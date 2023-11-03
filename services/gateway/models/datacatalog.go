@@ -3,29 +3,29 @@ package models
 import "github.com/datafabric/gateway/protobuf"
 
 type DataCatalog struct {
-	Id               string                          `json:"id,omitempty"`
-	Name             string                          `json:"name,omitempty"`
-	Description      string                          `json:"description,omitempty"`
-	Status           string                          `json:"status,omitempty"`
-	DataType         string                          `json:"dataType,omitempty"`
-	DataFormat       string                          `json:"dataFormat,omitempty"`
-	Row              int32                           `json:"row,omitempty"`
-	Size             int32                           `json:"size,omitempty"`
-	DataLocation     []*protobuf.DataLocation        `json:"dataLocation,omitempty"`
-	DataRefine       *protobuf.DataRefine            `json:"dataRefine,omitempty"`
-	DataStructure    *Grid                           `json:"dataStructure,omitempty"`
-	Category         []*protobuf.Category            `json:"category,omitempty"`
-	SystemMeta       []*protobuf.Meta                `json:"systemMeta,omitempty"`
-	UserMeta         []*protobuf.Meta                `json:"userMeta,omitempty"`
-	Tag              []string                        `json:"tag,omitempty"`
-	Permission       *protobuf.Permission            `json:"permission,omitempty"`
-	DownloadInfo     *protobuf.DownloadInfo          `json:"downloadInfo,omitempty"`
-	RatingAndComment []*protobuf.RatingAndComment    `json:"ratingAndComment,omitempty"`
-	Statistics       *protobuf.DataCatalogStatistics `json:"statistics,omitempty"`
-	Creator          *protobuf.User                  `json:"creator,omitempty"`
-	CreatedAt        *protobuf.DateTime              `json:"createdAt,omitempty"`
-	LastModifier     *protobuf.User                  `json:"lastModifier,omitempty"`
-	LastModifiedAt   *protobuf.DateTime              `json:"lastModifiedAt,omitempty"`
+	Id                string                                  `json:"id,omitempty"`
+	Name              string                                  `json:"name,omitempty"`
+	Description       string                                  `json:"description,omitempty"`
+	Status            string                                  `json:"status,omitempty"`
+	DataType          string                                  `json:"dataType,omitempty"`
+	DataFormat        string                                  `json:"dataFormat,omitempty"`
+	Row               int32                                   `json:"row,omitempty"`
+	Size              int32                                   `json:"size,omitempty"`
+	DataLocation      []*protobuf.DataLocation                `json:"dataLocation,omitempty"`
+	DataRefine        *protobuf.DataRefine                    `json:"dataRefine,omitempty"`
+	DataStructure     *Grid                                   `json:"dataStructure,omitempty"`
+	Category          []*protobuf.Category                    `json:"category,omitempty"`
+	SystemMeta        []*protobuf.Meta                        `json:"systemMeta,omitempty"`
+	UserMeta          []*protobuf.Meta                        `json:"userMeta,omitempty"`
+	Tag               []string                                `json:"tag,omitempty"`
+	Permission        *protobuf.Permission                    `json:"permission,omitempty"`
+	DownloadInfo      *protobuf.DownloadInfo                  `json:"downloadInfo,omitempty"`
+	RatingAndComments *protobuf.DataCatalog_RatingAndComments `json:"ratingAndComments,omitempty"`
+	Statistics        *protobuf.DataCatalogStatistics         `json:"statistics,omitempty"`
+	Creator           *protobuf.User                          `json:"creator,omitempty"`
+	CreatedAt         *protobuf.DateTime                      `json:"createdAt,omitempty"`
+	LastModifier      *protobuf.User                          `json:"lastModifier,omitempty"`
+	LastModifiedAt    *protobuf.DateTime                      `json:"lastModifiedAt,omitempty"`
 }
 
 func (dc *DataCatalog) Convert(input *protobuf.DataCatalog) {
@@ -38,14 +38,16 @@ func (dc *DataCatalog) Convert(input *protobuf.DataCatalog) {
 	dc.Size = input.Size
 	dc.DataLocation = input.DataLocation
 	dc.DataRefine = input.DataRefine
-	dc.ConvertDataStructure(input.DataStructure)
+	if input.DataStructure != nil {
+		dc.ConvertDataStructure(input.DataStructure)
+	}
 	dc.Category = input.Category
 	dc.SystemMeta = input.SystemMeta
 	dc.UserMeta = input.UserMeta
 	dc.Tag = input.Tag
 	dc.Permission = input.Permission
 	dc.DownloadInfo = input.DownloadInfo
-	dc.RatingAndComment = input.RatingAndComment
+	dc.RatingAndComments = input.RatingAndComments
 	dc.Statistics = input.Statistics
 	dc.Creator = input.Creator
 	dc.CreatedAt = input.CreatedAt

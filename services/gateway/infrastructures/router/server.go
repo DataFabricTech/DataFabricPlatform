@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	// For Swagger
-	_ "github.com/datafabric/gateway/docs"
+	// _ "github.com/datafabric/gateway/docs"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 

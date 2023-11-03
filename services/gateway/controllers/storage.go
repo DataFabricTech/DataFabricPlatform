@@ -99,8 +99,21 @@ func (ctrl *StorageController) Search(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Search : Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
-	ctrl.log.Infof("[%-10s] << Search", "storage")
-	return c.JSON(http.StatusOK, res)
+	// 화면 출력용으로 데이터 가공
+	var storages []*models.Storage
+	for _, v := range res.Data.Storages {
+		storage := &models.Storage{}
+		storage.Convert(v)
+		storages = append(storages, storage)
+	}
+	resSearch := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storages": storages,
+		},
+	}
+	ctrl.log.Infof("[%-10s] << Search", "STORAGE")
+	return c.JSON(http.StatusOK, resSearch)
 }
 
 // Status			POST   : /storage/v1/status
@@ -203,8 +216,16 @@ func (ctrl *StorageController) Browse(c echo.Context) error {
 		ctrl.log.Errorf("[%-10s] << Browse: Error   [ %4s ]/[ %s ]", "storage", res.Code, res.ErrMsg)
 		return c.JSON(http.StatusOK, res)
 	}
+	browse := &models.StorageBrowseResponse{}
+	browse.Convert(res.Data.StorageBrowse)
+	resBrowse := &models.CommonResponse{
+		Code: res.Code,
+		Data: map[string]interface{}{
+			"storageBrowse": browse,
+		},
+	}
 	ctrl.log.Infof("[%-10s] << Browse", "storage")
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, resBrowse)
 }
 
 // BrowseDefault	POST   : /storage/v1/browse/default

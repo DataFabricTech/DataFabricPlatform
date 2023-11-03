@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -45,8 +46,25 @@ func (service *AdaptorService) Destroy() {
 	_ = service.conn.Close()
 }
 
+func (service *AdaptorService) Reconnect() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, service.conn.Target(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		service.log.Errorf("can't connect Data Fabric Adaptor Service[ %s ][ %v ]", service.conn.Target(), err)
+		return
+	}
+	service.conn = conn
+	service.client = protobuf.NewAdaptorServiceClient(conn)
+}
+
 // SupportedStorageType : GET /storage/v1/storage-type:
 func (service *AdaptorService) SupportedStorageType() (*protobuf.ResSupportedStorageType, error) {
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Supported Storage Type : Server", "ADAPTOR")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -67,6 +85,10 @@ func (service *AdaptorService) SupportedStorageType() (*protobuf.ResSupportedSto
 
 // GetAdaptors : GET /storage/v1/adaptors?storage-type=xxx
 func (service *AdaptorService) GetAdaptors(req *protobuf.ReqAdaptors) (*protobuf.ResAdaptors, error) {
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Get Adaptors : Server", "ADAPTOR")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

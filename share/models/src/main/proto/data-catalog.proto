@@ -63,7 +63,11 @@ message DataCatalog {
   DownloadInfo downloadInfo = 20;
 
   // 사용자들의 평가 정보
-  repeated RatingAndComment ratingAndComment = 21;
+  message RatingAndComments {
+    double avgRating = 1;
+    repeated RatingAndComment ratingAndComment = 2;
+  }
+  RatingAndComments ratingAndComments = 21;
 
   DataCatalogStatistics statistics = 22;
 

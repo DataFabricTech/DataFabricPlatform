@@ -107,21 +107,24 @@ func (s *DataCatalogService) Preview(ctx context.Context, in *protobuf.ReqId) (*
 					Status: 1,
 					Url:    "http://localhost:8080/download/wawawawaw",
 				},
-				RatingAndComment: []*protobuf.RatingAndComment{
-					{
-						User: &protobuf.User{
-							Id:       "id",
-							Name:     "name",
-							Nickname: "nickName",
-							Phone:    "012341234",
-							Email:    "01234@1234.123",
+				RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					AvgRating: 6.7,
+					RatingAndComment: []*protobuf.RatingAndComment{
+						{
+							User: &protobuf.User{
+								Id:       "id",
+								Name:     "name",
+								Nickname: "nickName",
+								Phone:    "012341234",
+								Email:    "01234@1234.123",
+							},
+							LastModifiedAt: &protobuf.DateTime{
+								StrDateTime: "2023-01-01 00:00:00.123",
+								UtcTime:     123456789123,
+							},
+							Rating:  10,
+							Comment: "comment good",
 						},
-						LastModifiedAt: &protobuf.DateTime{
-							StrDateTime: "2023-01-01 00:00:00.123",
-							UtcTime:     123456789123,
-						},
-						Rating:  10,
-						Comment: "comment good",
 					},
 				},
 				Statistics: &protobuf.DataCatalogStatistics{
@@ -260,21 +263,24 @@ func (s *DataCatalogService) Default(ctx context.Context, in *protobuf.ReqId) (*
 					Status: 1,
 					Url:    "http://localhost:8080/download/wawawawaw",
 				},
-				RatingAndComment: []*protobuf.RatingAndComment{
-					{
-						User: &protobuf.User{
-							Id:       "id",
-							Name:     "name",
-							Nickname: "nickName",
-							Phone:    "012341234",
-							Email:    "01234@1234.123",
+				RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					AvgRating: 6.7,
+					RatingAndComment: []*protobuf.RatingAndComment{
+						{
+							User: &protobuf.User{
+								Id:       "id",
+								Name:     "name",
+								Nickname: "nickName",
+								Phone:    "012341234",
+								Email:    "01234@1234.123",
+							},
+							LastModifiedAt: &protobuf.DateTime{
+								StrDateTime: "2023-01-01 00:00:00.123",
+								UtcTime:     123456789123,
+							},
+							Rating:  10,
+							Comment: "comment good",
 						},
-						LastModifiedAt: &protobuf.DateTime{
-							StrDateTime: "2023-01-01 00:00:00.123",
-							UtcTime:     123456789123,
-						},
-						Rating:  10,
-						Comment: "comment good",
 					},
 				},
 				Statistics: &protobuf.DataCatalogStatistics{
@@ -506,21 +512,24 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 						Status: 1,
 						Url:    "http://localhost:8080/download/wawawawaw",
 					},
-					RatingAndComment: []*protobuf.RatingAndComment{
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
+					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+						AvgRating: 4.5,
+						RatingAndComment: []*protobuf.RatingAndComment{
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
-							},
-							Rating:  10,
-							Comment: "comment good",
 						},
 					},
 					Statistics: &protobuf.DataCatalogStatistics{
@@ -622,36 +631,39 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 					DownloadInfo: &protobuf.DownloadInfo{
 						Status: protobuf.DownloadInfo_READY,
 					},
-					RatingAndComment: []*protobuf.RatingAndComment{
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
+					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+						AvgRating: 8.9,
+						RatingAndComment: []*protobuf.RatingAndComment{
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							Rating:  10,
-							Comment: "comment good",
-						},
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
-							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
-							},
-							Rating:  10,
-							Comment: "comment good",
 						},
 					},
 					Statistics: &protobuf.DataCatalogStatistics{
@@ -804,21 +816,24 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 						Status: 1,
 						Url:    "http://localhost:8080/download/wawawawaw",
 					},
-					RatingAndComment: []*protobuf.RatingAndComment{
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
+					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+						AvgRating: 4.5,
+						RatingAndComment: []*protobuf.RatingAndComment{
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
-							},
-							Rating:  10,
-							Comment: "comment good",
 						},
 					},
 					Statistics: &protobuf.DataCatalogStatistics{
@@ -920,36 +935,39 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 					DownloadInfo: &protobuf.DownloadInfo{
 						Status: protobuf.DownloadInfo_READY,
 					},
-					RatingAndComment: []*protobuf.RatingAndComment{
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
+					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+						AvgRating: 8.9,
+						RatingAndComment: []*protobuf.RatingAndComment{
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
+							{
+								User: &protobuf.User{
+									Id:       "id",
+									Name:     "name",
+									Nickname: "nickName",
+									Phone:    "012341234",
+									Email:    "01234@1234.123",
+								},
+								LastModifiedAt: &protobuf.DateTime{
+									StrDateTime: "2023-01-01 00:00:00.123",
+									UtcTime:     123456789123,
+								},
+								Rating:  10,
+								Comment: "comment good",
 							},
-							Rating:  10,
-							Comment: "comment good",
-						},
-						{
-							User: &protobuf.User{
-								Id:       "id",
-								Name:     "name",
-								Nickname: "nickName",
-								Phone:    "012341234",
-								Email:    "01234@1234.123",
-							},
-							LastModifiedAt: &protobuf.DateTime{
-								StrDateTime: "2023-01-01 00:00:00.123",
-								UtcTime:     123456789123,
-							},
-							Rating:  10,
-							Comment: "comment good",
 						},
 					},
 					Statistics: &protobuf.DataCatalogStatistics{

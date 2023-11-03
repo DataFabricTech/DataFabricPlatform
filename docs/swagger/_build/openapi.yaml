@@ -1121,12 +1121,17 @@ components:
                           name: IRIS
                           description: IRIS 연결정보
                           systemMeta:
-                            storageType: IRIS
-                            database: data-platform
-                            createdBy: admin
-                            modifiedBy: jblim
+                            - key: storageType
+                              value: IRIS
+                            - key: database
+                              value: data-platform
+                            - key: createdBy
+                              value: admin
+                            - key: modifiedBy
+                              value: jblim
                           userMeta:
-                            purpose: Data Fabric Test
+                            - key: purpose
+                              value: Data Fabric Test
                           tag:
                             - tag01
                             - tag02
@@ -1209,12 +1214,15 @@ components:
                     size: 123457
                     status: CONNECTED
                     systemMeta:
-                      storageType: IRIS
-                      database: data-platform
-                      createdBy: admin
-                      modifiedBy: jblim
+                      - key: storageType
+                        value: IRIS
+                      - key: database
+                        value: data-platform
+                      - key: admin
+                        value: jblim
                     userMeta:
-                      purpose: Data Fabric Test
+                      - key: purpose
+                        value: Data Fabric Test
                     tags:
                       - tag01
                       - tag02
@@ -1620,6 +1628,16 @@ components:
                             - 1800
                             - 2700
                             - 3600
+                    storageResponseTime:
+                      - id: storage-id-01
+                        name: IRIS
+                        responseTime: 0.1
+                      - id: storage-id-02
+                        name: MySQL
+                        responseTime: 0.2
+                      - id: storage-id-03
+                        name: Postgre
+                        responseTime: 0.3
                     history:
                       colDefs:
                         - headerName: 시간
@@ -1752,12 +1770,17 @@ components:
                     name: IRIS
                     description: IRIS 연결정보
                     systemMeta:
-                      storageType: IRIS
-                      database: data-platform
-                      createdBy: admin
-                      modifiedBy: jblim
+                      - key: storageType
+                        value: IRIS
+                      - key: database
+                        value: data-platform
+                      - key: createdBy
+                        value: admin
+                      - key: modifiedBy
+                        value: jblim
                     userMeta:
-                      purpose: Data Fabric Test
+                      - key: purpose
+                        value: Data Fabric Test
                     tag:
                       - tag01
                       - tag02
@@ -1891,12 +1914,17 @@ components:
                     name: IRIS
                     description: IRIS 연결정보
                     systemMeta:
-                      storageType: IRIS
-                      database: data-platform
-                      createdBy: admin
-                      modifiedBy: jblim
+                      - key: storageType
+                        value: IRIS
+                      - key: database
+                        value: data-platform
+                      - key: createdBy
+                        value: admin
+                      - key: modifiedBy
+                        value: jblim
                     userMeta:
-                      purpose: Data Fabric Test
+                      - key: purpose
+                        value: Data Fabric Test
                     tag:
                       - tag01
                       - tag02
@@ -1953,12 +1981,17 @@ components:
                     id: storage-id-01
                     name: IRIS
                     systemMeta:
-                      storageType: IRIS
-                      database: data-platform
-                      createdBy: admin
-                      modifiedBy: jblim
+                      - key: storageType
+                        value: IRIS
+                      - key: database
+                        value: data-platform
+                      - key: createdBy
+                        value: admin
+                      - key: modifiedBy
+                        value: jblim
                     userMeta:
-                      purpose: Data Fabric Test
+                      - key: purpose
+                        value: Data Fabric Test
                     tag:
                       - tag01
                       - tag02

@@ -29,6 +29,10 @@ func (service *StorageService) Overview(ctx context.Context, in *empty.Empty) (*
 					Status: int32(protobuf.Status_CONNECTED.Number()),
 					Count:  3,
 				},
+				{
+					Status: int32(protobuf.Status_DISCONNECTED.Number()),
+					Count:  10,
+				},
 			},
 			StorageStatistics: []*protobuf.StorageStatistics{
 				{
@@ -84,39 +88,39 @@ func (service *StorageService) Overview(ctx context.Context, in *empty.Empty) (*
 			},
 			StorageResponseTime: []*protobuf.StorageResponseTime{
 				{
-					Id:   "storage-id-01",
-					Name: "storage-name-01",
-					Time: 0.1,
+					Id:           "storage-id-01",
+					Name:         "storage-name-01",
+					ResponseTime: 0.1,
 				},
 				{
-					Id:   "storage-id-02",
-					Name: "storage-name-02",
-					Time: 0.2,
+					Id:           "storage-id-02",
+					Name:         "storage-name-02",
+					ResponseTime: 0.2,
 				},
 				{
-					Id:   "storage-id-03",
-					Name: "storage-name-03",
-					Time: 0.3,
+					Id:           "storage-id-03",
+					Name:         "storage-name-03",
+					ResponseTime: 0.3,
 				},
 				{
-					Id:   "storage-id-04",
-					Name: "storage-name-04",
-					Time: 0.4,
+					Id:           "storage-id-04",
+					Name:         "storage-name-04",
+					ResponseTime: 0.4,
 				},
 				{
-					Id:   "storage-id-05",
-					Name: "storage-name-05",
-					Time: 0.5,
+					Id:           "storage-id-05",
+					Name:         "storage-name-05",
+					ResponseTime: 0.5,
 				},
 				{
-					Id:   "storage-id-06",
-					Name: "storage-name-06",
-					Time: 0.6,
+					Id:           "storage-id-06",
+					Name:         "storage-name-06",
+					ResponseTime: 0.6,
 				},
 				{
-					Id:   "storage-id-07",
-					Name: "storage-name-07",
-					Time: 0.7,
+					Id:           "storage-id-07",
+					Name:         "storage-name-07",
+					ResponseTime: 0.7,
 				},
 			},
 			History: []*protobuf.StorageHistory{
