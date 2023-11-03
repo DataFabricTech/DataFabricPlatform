@@ -155,7 +155,7 @@ public class DataStorageService {
             } else if (colNameCaseIgnore.equals(dataStorageTable.getUserDesc().getName())) {
                 builder.setDescription((String) data);
             } else if (colNameCaseIgnore.equals(dataStorageTable.getStatus().getName())) {
-                if (data == null) {
+                if (data == "") {
                     data = "INIT";
                 }
                 builder.setStatus(Utilities.Status.valueOf((String) data));
