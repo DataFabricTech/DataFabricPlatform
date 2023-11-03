@@ -38,10 +38,18 @@ public class DataStorageService {
     DataStorageTagTable dataStorageTagTable = new DataStorageTagTable();
     DataStorageMetadataTable dataStorageMetadataTable = new DataStorageMetadataTable();
 
-    Config config = new Config();
-    DataLayerConnection dataLayerConnection = new DataLayerConnection(
-            config.getConfig().getBoolean("data-layer.test", false)
-    );
+    static Config config = new Config();
+    DataLayerConnection dataLayerConnection;
+
+    public DataStorageService() {
+        this(new DataLayerConnection(
+                config.getConfig().getBoolean("data-layer.test", false)
+        ));
+    }
+
+    public DataStorageService(DataLayerConnection dataLayerConnection) {
+        this.dataLayerConnection = dataLayerConnection;
+    }
 
     private JoinMaker getDataStorageStmt() {
         return select(
@@ -249,6 +257,7 @@ public class DataStorageService {
         List<StorageOuterClass.Storage> result = new ArrayList<>();
         for (var row : tableData.getRowsList()) {
             var storageBuilder = getStorageBuilder(tableData.getColumnsList(), row);
+            storageBuilder.setStorageType(row.getCell(3).getStringValue());
             result.add(storageBuilder.build());
         }
         return result;
