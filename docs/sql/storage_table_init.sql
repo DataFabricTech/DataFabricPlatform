@@ -80,7 +80,7 @@ create table DataStorage
     updated_at                   timestamp        default current_timestamp,
     deleted_by                   uuid,
     deleted_at                   timestamp,
-    status                       text,
+    status                       text             default 'INIT',
     last_connection_checked_at   timestamp,
     last_sync_at                 timestamp,
 
