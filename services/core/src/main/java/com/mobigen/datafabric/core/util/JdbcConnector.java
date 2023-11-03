@@ -26,6 +26,7 @@ public class JdbcConnector implements AutoCloseable {
     }
 
     public JdbcConnector connect(Properties options) throws SQLException {
+        // TODO: driver 받아서 연결해야함. 예외처리 필수
         connection = DriverManager.getConnection(url, options);
         return this;
     }
