@@ -9,6 +9,7 @@ val protobufVersion = "3.24.3"
 dependencies {
     implementation("com.mobigen.libs:grpc")
     implementation("com.mobigen.libs:sqlgen")
+    implementation("com.mobigen.libs:configuration")
 
     // jdbc
     implementation("org.postgresql:postgresql:42.6.0")

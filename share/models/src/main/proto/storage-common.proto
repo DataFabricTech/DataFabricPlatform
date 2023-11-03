@@ -4,11 +4,13 @@ package com.mobigen.datafabric.share.protobuf;
 
 option go_package= "github.com/mobigen/datafabric/protobuf";
 
+import "utilities.proto";
+
 // InputField : 사용자 입력을 받기 위한 기본 데이터 구조 구조
 message InputField {
   string key = 1;                       // 입력 받을 데이터의 이름
   bool required = 2;                    // 필수 / 선택 정보
-  string valueType = 3;                 // 입력 받을 데이터의 타입
+  DataType valueType = 3;                 // 입력 받을 데이터의 타입
   string default = 4;                   // 기본값 or 예시
   //  int32 minimum = 5;
   //  int32 viewType = 5;

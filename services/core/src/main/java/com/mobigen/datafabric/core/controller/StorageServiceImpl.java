@@ -1,18 +1,19 @@
 package com.mobigen.datafabric.core.controller;
 
-import com.mobigen.datafabric.core.JdbcConnector;
-import com.mobigen.datafabric.core.services.storage.direct.AdaptorService;
-import com.mobigen.datafabric.core.services.storage.direct.InfoService;
-import com.mobigen.datafabric.core.services.storage.direct.StorageTypeService;
-import com.mobigen.libs.grpc.Method;
-import com.mobigen.libs.grpc.Storage.*;
+import com.mobigen.datafabric.core.services.storage.DataStorageService;
+import com.mobigen.datafabric.core.util.JdbcConnector;
+import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
+import com.mobigen.datafabric.share.protobuf.Utilities;
 import com.mobigen.libs.grpc.StorageServiceCallBack;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertInputField;
 
 /**
  * gRPC 의 request 를 받아 response 를 생성하는 콜백 클래스의 구현부
@@ -22,95 +23,100 @@ import java.util.Properties;
  *
  * @version 0.0.1
  * @since 0.0.1
- * @deprecated
  */
 @Slf4j
-@Deprecated
 public class StorageServiceImpl implements StorageServiceCallBack {
+    DataStorageService dataStorageService = new DataStorageService();
 
     @Override
-    public OverviewResponse overview() {
-        return OverviewResponse.newBuilder().setTotalStorage(10).build();
+    public StorageOuterClass.ResStorageOverview overview() {
+        return StorageOuterClass.ResStorageOverview.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorageOverview.Data.newBuilder()
+                        .addAllStorageTypeCount(List.of(
+                                StorageOuterClass.StorageTypeCount.newBuilder()
+                                        .setCount(4)
+                                        .setStorageType("postgresql")
+                                        .build()
+                        ))
+                        .addAllStorageStatusCount(List.of(
+                                StorageOuterClass.StorageStatusCount.newBuilder()
+                                        .setCount(5)
+                                        .setStatus(1)
+                                        .build()
+                        ))
+                        .addAllStorageStatistics(List.of(
+                                StorageOuterClass.StorageStatistics.newBuilder()
+                                        .build()
+                        ))
+                        .build())
+                .build();
     }
 
     @Override
-    public StorageTypeResponse storageType(StorageTypeRequest request) {
-        if (request.getMethod().equals(Method.get)) {
-            return StorageTypeResponse.newBuilder()
-                    .addAllModels(new StorageTypeService().getStorageTypeModels())
-                    .build();
-        } else {
-            throw new RuntimeException("Not supported method");
-        }
+    public StorageOuterClass.ResStorage search(StorageOuterClass.ReqStorageSearch request) {
+        var filters = request.getFilter();
+        var sorts = request.getSortsList();
+        return StorageOuterClass.ResStorage.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorage.Data.newBuilder()
+                        .addAllStorage(dataStorageService.search())
+                        .build())
+                .build();
     }
 
     @Override
-    public AdaptorResponse adaptor(AdaptorRequest request) {
-        var service = new AdaptorService();
-        if (request.getMethod().equals(Method.get)) {
-            return AdaptorResponse.newBuilder()
-                    .addModels(service.getAdaptor(request.getModel().getId()))
-                    .build();
-        } else if (request.getMethod().equals(Method.list)) {
-            return AdaptorResponse.newBuilder()
-                    .addAllModels(service.getAdaptors(request.getModel().getStorageType()))
-                    .build();
-        } else if (request.getMethod().equals(Method.create)) {
-            try {
-                return AdaptorResponse.newBuilder().addModels(service.createAdaptor(request.getModel())).build();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (request.getMethod().equals(Method.update)) {
-            return AdaptorResponse.newBuilder().addModels(service.updateAdaptor(request.getModel())).build();
-        } else {
-            return null;
-
-        }
+    public StorageOuterClass.ResStorage status(Utilities.ReqId request) {
+        return StorageOuterClass.ResStorage.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorage.Data.newBuilder()
+                        .addAllStorage(List.of(dataStorageService.status(request.getId())))
+                        .build())
+                .build();
     }
 
     @Override
-    public InfoResponse info(InfoRequest request) {
-        var service = new InfoService();
-        if (request.getMethod().equals(Method.list)) {
-            return InfoResponse.newBuilder()
-                    .addAllModels(service.getInfos())
-                    .build();
-        } else if (request.getMethod().equals(Method.create)) {
-            try {
-                return InfoResponse.newBuilder()
-                        .addModels(service.createInfo(request.getModel()))
-                        .build();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (request.getMethod().equals(Method.update)) {
-            return InfoResponse.newBuilder()
-//                    .addModels(service.updateAdaptor(request.getModel()))
-                    .build();
-        } else {
-            return null;
-
-        }
+    public StorageOuterClass.ResStorage default_(Utilities.ReqId request) {
+        return StorageOuterClass.ResStorage.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorage.Data.newBuilder()
+                        .addAllStorage(List.of(dataStorageService.getStorage(request.getId())))
+                        .build())
+                .build();
     }
 
     @Override
-    public CommonResponse connectTest(ConnectTestRequest request) {
-        Map<String, String> basic = new HashMap<>();
+    public StorageOuterClass.ResStorage advanced(Utilities.ReqId request) {
+        return StorageOuterClass.ResStorage.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorage.Data.newBuilder()
+                        .addAllStorage(List.of(dataStorageService.getStorage(request.getId())))
+                        .build())
+                .build();
+    }
+
+    @Override
+    public StorageOuterClass.ResStorageBrowse browse() {
+        return null;
+    }
+
+    @Override
+    public StorageOuterClass.ResStorageBrowseDefault browseDefault() {
+        return null;
+    }
+
+    @Override
+    public Utilities.CommonResponse connectTest(StorageOuterClass.ConnInfo request) {
+        Map<String, Object> basic = new HashMap<>();
 
         for (var op : request.getBasicOptionsList()) {
-            var key = op.getKey();
-            var type = op.getValueType();
-            var value = op.getValue();
-            basic.put(key, value);
+            basic.put(op.getKey().toLowerCase(), convertInputField(op));
         }
 
         Properties addition = new Properties();
 
-        for (var op : request.getAdditionalOptionsList()) {
-            var key = op.getKey();
-            var value = op.getValue();
-            addition.setProperty(key, value);
+        for (var op : request.getAdvancedOptionsList()) {
+            addition.put(op.getKey().toLowerCase(), convertInputField(op));
         }
 
         var urlFormat = request.getUrlFormat();
@@ -123,12 +129,58 @@ public class StorageServiceImpl implements StorageServiceCallBack {
             result.next();
             var value = result.getString(1);
             if (value.equals("1")) {
-                return CommonResponse.newBuilder().setData("success").build();
+                return Utilities.CommonResponse.newBuilder().setCode("OK").build();
             } else {
-                return CommonResponse.newBuilder().setData("fail").build();
+                return Utilities.CommonResponse.newBuilder().setCode("FAIL").build();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("FAIL")
+                    .setErrMsg(e.getMessage())
+                    .build();
+        }
+    }
+
+    @Override
+    public Utilities.CommonResponse addStorage(StorageOuterClass.Storage request) {
+        try {
+            dataStorageService.addStorage(request);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("OK")
+                    .build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("FAIL")
+                    .setErrMsg(e.getMessage())
+                    .build();
+        }
+    }
+
+    @Override
+    public Utilities.CommonResponse updateStorage() {
+        return null;
+    }
+
+    @Override
+    public StorageOuterClass.ResConnectedData connectedData() {
+        return null;
+    }
+
+    @Override
+    public Utilities.CommonResponse deleteStorage(Utilities.ReqId request) {
+        try {
+            dataStorageService.deleteStorage(request.getId());
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("OK")
+                    .build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("FAIL")
+                    .setErrMsg(e.getMessage())
+                    .build();
         }
     }
 }

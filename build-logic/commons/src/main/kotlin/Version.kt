@@ -8,6 +8,7 @@ object Versions {
 
     const val junitVer = "5.9.3"
     const val junitPlatformVer = "1.9.3"
+    const val mockitoVer = "5.6.0"
 
     const val springGradlePluginVer = "3.1.4"
     const val springCloudVersion = "2022.0.4"

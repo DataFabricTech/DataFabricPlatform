@@ -15,11 +15,10 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 @Getter
-public class ConnInfoTable {
-    SqlTable table = SqlTable.of("ConnInfo");
-    SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR); // fk
+public class DataStorageMetadataTable {
+    SqlTable table = SqlTable.of("DataStorageMetadata");
+    SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
     SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
-    SqlColumn value = SqlColumn.of("value", table, JDBCType.BLOB);
-    SqlColumn required = SqlColumn.of("required", table, JDBCType.BLOB);
+    SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
+    SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
 }

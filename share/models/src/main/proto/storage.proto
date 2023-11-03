@@ -67,12 +67,14 @@ message Storage {
   StorageStatistics statistics = 13;
   repeated DataCatalogStatistics dataStatistics = 14;
 
-  repeated StorageHistory history = 15;
-  repeated StorageEvent event = 16;
-  User createdBy = 17;
-  DateTime createdAt = 18;
-  User lastModifiedBy = 19;
-  DateTime lastModifiedAt = 20;
+  repeated StorageHistory history = 16;
+  repeated StorageEvent event = 17;
+  User createdBy = 18;
+  DateTime createdAt = 19;
+  User lastModifiedBy = 20;
+  DateTime lastModifiedAt = 21;
+
+  string url = 22;
 }
 
 // StorageSetting 원천 데이터 저장소의 고급(수집) 설정 정보

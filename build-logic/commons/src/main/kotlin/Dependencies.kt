@@ -26,6 +26,7 @@ object Dependency {
     object junitTest {
         const val junitJupiter            = "org.junit.jupiter:junit-jupiter:${Versions.junitVer}"
         const val junitPlatformLauncher   = "org.junit.platform:junit-platform-launcher:${Versions.junitPlatformVer}"
+        const val mockito   = "org.mockito:mockito-core:${Versions.mockitoVer}"
     }
 
     const val springGradlePlugin = "org.springframework.boot:org.springframework.boot.gradle.plugin:${Versions.springGradlePluginVer}"

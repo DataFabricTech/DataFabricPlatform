@@ -17,20 +17,37 @@ import java.sql.JDBCType;
 @Getter
 public class DataStorageTable {
     SqlTable table = SqlTable.of("DataStorage");
-    SqlColumn idCol = SqlColumn.of("id", table, JDBCType.VARCHAR);
-    SqlColumn adaptorCol = SqlColumn.of("adaptor", table, JDBCType.VARCHAR);
-    SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);
-    SqlColumn userDescCol = SqlColumn.of("user_desc", table, JDBCType.VARCHAR);
-    SqlColumn totalDataCol = SqlColumn.of("total_data", table, JDBCType.INTEGER);
-    SqlColumn regiDataCol = SqlColumn.of("regi_data", table, JDBCType.INTEGER);
-    SqlColumn createdByCol = SqlColumn.of("created_by", table, JDBCType.VARCHAR);
-    SqlColumn createdAtCol = SqlColumn.of("created_at", table, JDBCType.TIMESTAMP);
-    SqlColumn updatedByCol = SqlColumn.of("updated_by", table, JDBCType.VARCHAR);
-    SqlColumn updatedAtCol = SqlColumn.of("updated_at", table, JDBCType.TIMESTAMP);
-    SqlColumn deletedByCol = SqlColumn.of("deleted_by", table, JDBCType.VARCHAR);
-    SqlColumn deletedAtCol = SqlColumn.of("deleted_at", table, JDBCType.TIMESTAMP);
-    SqlColumn statusCol = SqlColumn.of("status", table, JDBCType.INTEGER);
-    SqlColumn lastConnectionCheckedAtCol = SqlColumn.of("last_connection_checked_at", table, JDBCType.TIMESTAMP);
-    SqlColumn lastSyncAtCol = SqlColumn.of("last_sync_at", table, JDBCType.TIMESTAMP);
+    SqlColumn id = SqlColumn.of("id", table, JDBCType.VARCHAR);
+    SqlColumn adaptorId = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR);
+    SqlColumn name = SqlColumn.of("name", table, JDBCType.VARCHAR);
+    SqlColumn url = SqlColumn.of("url", table, JDBCType.VARCHAR);
+    SqlColumn userDesc = SqlColumn.of("user_desc", table, JDBCType.VARCHAR);
+    SqlColumn totalData = SqlColumn.of("total_data", table, JDBCType.INTEGER);
+    SqlColumn regiData = SqlColumn.of("regi_data", table, JDBCType.INTEGER);
+    SqlColumn createdBy = SqlColumn.of("created_by", table, JDBCType.VARCHAR);
+    SqlColumn createdAt = SqlColumn.of("created_at", table, JDBCType.TIMESTAMP);
+    SqlColumn updatedBy = SqlColumn.of("updated_by", table, JDBCType.VARCHAR);
+    SqlColumn updatedAt = SqlColumn.of("updated_at", table, JDBCType.TIMESTAMP);
+    SqlColumn deletedBy = SqlColumn.of("deleted_by", table, JDBCType.VARCHAR);
+    SqlColumn deletedAt = SqlColumn.of("deleted_at", table, JDBCType.TIMESTAMP);
+    SqlColumn status = SqlColumn.of("status", table, JDBCType.INTEGER);
+    SqlColumn lastConnectionCheckedAt = SqlColumn.of("last_connection_checked_at", table, JDBCType.TIMESTAMP);
+    SqlColumn lastSyncAt = SqlColumn.of("last_sync_at", table, JDBCType.TIMESTAMP);
 
+    SqlColumn syncEnable = SqlColumn.of("sync_enable", table, JDBCType.BOOLEAN);
+    SqlColumn syncType = SqlColumn.of("sync_type", table, JDBCType.INTEGER);
+    SqlColumn syncWeek = SqlColumn.of("sync_week", table, JDBCType.INTEGER);
+    SqlColumn syncRunTime = SqlColumn.of("sync_run_time", table, JDBCType.VARCHAR);
+
+    SqlColumn monitoringEnable = SqlColumn.of("monitoring_enable", table, JDBCType.BOOLEAN);
+    SqlColumn monitoringProtocol = SqlColumn.of("monitoring_protocol", table, JDBCType.VARCHAR);
+    SqlColumn monitoringHost = SqlColumn.of("monitoring_host", table, JDBCType.VARCHAR);
+    SqlColumn monitoringPort = SqlColumn.of("monitoring_port", table, JDBCType.VARCHAR);
+    SqlColumn monitoringSql = SqlColumn.of("monitoring_sql", table, JDBCType.VARCHAR);
+    SqlColumn monitoringPeriod = SqlColumn.of("monitoring_period", table, JDBCType.INTEGER);
+    SqlColumn monitoringTimeout = SqlColumn.of("monitoring_timeout", table, JDBCType.INTEGER);
+    SqlColumn monitoringSuccessThreshold = SqlColumn.of("monitoring_success_threshold", table, JDBCType.INTEGER);
+    SqlColumn monitoringFailThreshold = SqlColumn.of("monitoring_fail_threshold", table, JDBCType.INTEGER);
+
+    SqlColumn autoAddSettingEnable = SqlColumn.of("auto_add_setting_enable", table, JDBCType.BOOLEAN);
 }
