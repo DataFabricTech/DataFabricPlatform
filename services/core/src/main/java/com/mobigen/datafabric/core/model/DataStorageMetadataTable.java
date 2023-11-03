@@ -20,4 +20,5 @@ public class DataStorageMetadataTable {
     SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
     SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
     SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
+    SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
 }

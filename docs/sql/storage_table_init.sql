@@ -132,6 +132,7 @@ create table DataStorageMetadata
     datastorage_id uuid not null,
     "key"          text,
     "value"        text,
+    "is_system"    bool default true,
     foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );
 

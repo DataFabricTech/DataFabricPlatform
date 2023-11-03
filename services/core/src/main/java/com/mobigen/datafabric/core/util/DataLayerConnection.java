@@ -3,6 +3,7 @@ package com.mobigen.datafabric.core.util;
 import com.mobigen.datafabric.share.protobuf.DataLayer;
 import com.mobigen.datafabric.share.protobuf.DataLayerGRPCServiceGrpc;
 import com.mobigen.datafabric.share.protobuf.Utilities;
+import com.mobigen.libs.configuration.Config;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,8 @@ import java.util.List;
 @Slf4j
 public class DataLayerConnection {
     private final DataLayerGRPCServiceGrpc.DataLayerGRPCServiceBlockingStub stub;
-    private Boolean test;
+    private final Boolean test;
+    private final Config config = new Config();
 
     public DataLayerConnection() {
         this(false);
@@ -36,7 +38,9 @@ public class DataLayerConnection {
         if (this.test) {
             stub = null;
         } else {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress("192.168.107.28", 123)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(
+                            config.getConfig().getString("data-layer.host"),
+                            config.getConfig().getInt("data-layer.port"))
                     .usePlaintext()
                     .build();
             stub = DataLayerGRPCServiceGrpc.newBlockingStub(channel);
