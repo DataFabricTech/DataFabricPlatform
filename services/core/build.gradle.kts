@@ -25,3 +25,11 @@ sourceSets {
 
     }
 }
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "com.mobigen.datafabric.core.Main"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+}
