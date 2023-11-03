@@ -3,12 +3,12 @@ package com.mobigen.datafabric.core.worker.timer;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Builder
+@ToString
 public class TimerData {
     private final int id;
     private long runTime;
