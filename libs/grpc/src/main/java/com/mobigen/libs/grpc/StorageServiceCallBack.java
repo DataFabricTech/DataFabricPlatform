@@ -7,7 +7,7 @@ import com.mobigen.datafabric.share.protobuf.Utilities;
 public interface StorageServiceCallBack {
     StorageOuterClass.ResStorageOverview overview();
 
-    StorageOuterClass.ResStorage search(StorageOuterClass.ReqStorageSearch request);
+    StorageOuterClass.ResStorages search(StorageOuterClass.ReqStorageSearch request);
 
     StorageOuterClass.ResStorage status(Utilities.ReqId request);
 

@@ -25,7 +25,7 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
     }
 
     @Override
-    public void search(StorageOuterClass.ReqStorageSearch request, StreamObserver<StorageOuterClass.ResStorage> responseObserver) {
+    public void search(StorageOuterClass.ReqStorageSearch request, StreamObserver<StorageOuterClass.ResStorages> responseObserver) {
         responseObserver.onNext(callBack.search(request));
         responseObserver.onCompleted();
     }

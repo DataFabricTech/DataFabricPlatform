@@ -54,13 +54,13 @@ public class StorageServiceImpl implements StorageServiceCallBack {
     }
 
     @Override
-    public StorageOuterClass.ResStorage search(StorageOuterClass.ReqStorageSearch request) {
+    public StorageOuterClass.ResStorages search(StorageOuterClass.ReqStorageSearch request) {
         var filters = request.getFilter();
         var sorts = request.getSortsList();
-        return StorageOuterClass.ResStorage.newBuilder()
+        return StorageOuterClass.ResStorages.newBuilder()
                 .setCode("OK")
-                .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .addAllStorage(dataStorageService.search())
+                .setData(StorageOuterClass.ResStorages.Data.newBuilder()
+                        .addAllStorages(dataStorageService.search())
                         .build())
                 .build();
     }
@@ -70,7 +70,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .addAllStorage(List.of(dataStorageService.status(request.getId())))
+                        .setStorage(dataStorageService.status(request.getId()))
                         .build())
                 .build();
     }
@@ -80,7 +80,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .addAllStorage(List.of(dataStorageService.getStorage(request.getId())))
+                        .setStorage(dataStorageService.getStorage(request.getId()))
                         .build())
                 .build();
     }
@@ -90,7 +90,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .addAllStorage(List.of(dataStorageService.getStorage(request.getId())))
+                        .setStorage(dataStorageService.getStorage(request.getId()))
                         .build())
                 .build();
     }
