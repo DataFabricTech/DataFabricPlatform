@@ -15,8 +15,8 @@ val grpcVersion = "1.56.1"
 
 dependencies {
     api("com.mobigen.share:models")
-    implementation("org.aspectj:aspectjrt:1.9.8")
-    implementation("org.aspectj:aspectjweaver:1.9.8")
+    api("org.aspectj:aspectjrt:1.9.8")
+    api("org.aspectj:aspectjweaver:1.9.8")
 //    implementation("org.codehaus.mojo:aspectj-maven-plugin:1.8")
     // gRPC
     api("io.grpc:grpc-stub:${grpcVersion}")
@@ -24,6 +24,7 @@ dependencies {
     api("io.grpc:grpc-services:${grpcVersion}")
     api("io.grpc:grpc-netty:${grpcVersion}")
     api("io.grpc:grpc-testing:${grpcVersion}")
+    api("io.perfmark:perfmark-api:0.26.0")
 
     if (JavaVersion.current().isJava9Compatible()) {
         api("javax.annotation:javax.annotation-api:1.3.2")

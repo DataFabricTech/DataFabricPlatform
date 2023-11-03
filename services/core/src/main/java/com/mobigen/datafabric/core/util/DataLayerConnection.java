@@ -38,9 +38,10 @@ public class DataLayerConnection {
         if (this.test) {
             stub = null;
         } else {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(
-                            config.getConfig().getString("data-layer.host"),
-                            config.getConfig().getInt("data-layer.port"))
+            ManagedChannel channel = ManagedChannelBuilder.forTarget(
+                            config.getConfig().getString("data-layer.host") + ":" +
+                                    config.getConfig().getInt("data-layer.port")
+                    )
                     .usePlaintext()
                     .build();
             stub = DataLayerGRPCServiceGrpc.newBlockingStub(channel);
