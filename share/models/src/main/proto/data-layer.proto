@@ -39,17 +39,6 @@ message Table {
   repeated Row rows = 2;
 }
 
-enum DataType {
-  STRING = 0;
-  INT32 = 1;
-  INT64 = 2;
-  BOOL = 3;
-  BYTES = 4;
-  FLOAT = 5;
-  DOUBLE = 6;
-  DATETIME = 7;
-}
-
 message Column {
   string columnName = 1;
   DataType type = 2;
