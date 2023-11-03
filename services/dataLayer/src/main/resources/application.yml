@@ -1,0 +1,21 @@
+open_search:
+  host: 192.168.107.28
+  port: 35000
+  index:
+    data_catalog: dataCatalogIndex1
+    recent_searches: recentSearchesIndex1
+    storage: storageIndex1
+  number_of_save_recent_searches: 100
+  number_of_recent_searches: 10
+  limit_search_size: 10000
+  default_search_size: 10
+  filters: name, dataType, dataFormat, knowledgeGraph, categories, tag, connectorType, connectorName
+
+datasource:
+  url: jdbc:postgresql://192.168.107.28:14632/testdb
+  username: testUser
+  password: testUser
+  table:
+    data_catalog: data_catalog_test
+    storage: DataStorage, DataStorageTag, DataStorageAdaptor, DataStorageType
+    data_tag: data_tag_test
