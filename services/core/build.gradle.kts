@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("com.mobigen.java-application")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.mobigen.datafabric"
@@ -27,9 +30,13 @@ sourceSets {
 }
 
 tasks.withType<Jar> {
+    tasks.named("shadowJar", ShadowJar::class) {
+        mergeServiceFiles()
+    }
     manifest {
         attributes["Main-Class"] = "com.mobigen.datafabric.core.Main"
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }
