@@ -323,5 +323,5 @@ message StorageDataCount {
 message StorageResponseTime {
   string id = 1;
   string name = 2;
-  double time = 3;
+  double responseTime = 3;
 }

@@ -51,6 +51,7 @@ log:
   # maxAge: 7               # 로그 파일 보관 기간  
   # compress: true          # 로그 파일 보관 시 압축 여부 
 datastore:
+  enable: true              # true, false
   database: "sqlite3"       # mysql, postgres, sqlite3
   endPoint:
     path: "db/store.db"     # $HOME 기준 DB위치 정보(sqlite3)

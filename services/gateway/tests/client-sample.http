@@ -1,5 +1,6 @@
 ###
-POST http://localhost:8080/portal/v1/search
+###
+POST http://{{host}}:{{port}}/portal/v1/search
 Content-Type: application/json
 
 {
@@ -69,27 +70,242 @@ Content-Type: application/json
 <> 2023-10-30T194100.200.json
 
 ###
-GET http://localhost:8080/portal/v1/recent-searches
+GET http://{{host}}:{{port}}/portal/v1/recent-searches
 Accept: application/json
 
 <> 2023-10-30T164312.200.json
 
-###
-GET http://localhost:8080/storage/v1/storage-type
+### Supported Storage Type List
+GET http://{{host}}:{{port}}/storage/v1/storage-type
 Accept: application/json
 
-###
-GET http://localhost:8080/storage/v1/adaptors?storage-type=iris
+### Adaptor List And Input Field Options
+GET http://{{host}}:{{port}}/storage/v1/adaptors?storage-type=iris
 Accept: application/json
 
+### Connect Test - Auth Fail
+POST http://{{host}}:{{port}}/storage/v1/connect-test
+Content-Type: application/json
+
+{
+    "adaptorId": "244e4f0f-e3e5-4c54-a04b-61b83a1f09af",
+    "advancedOptions": [
+        {
+            "key": "user",
+            "value": "postgres"
+        },
+        {
+            "key": "password",
+            "value": "test"
+        },
+        {
+            "key": "test",
+            "value": "123"
+        }
+    ],
+    "basicOptions": [
+        {
+            "value": "postgres",
+            "key": "host"
+        },
+        {
+            "key": "port",
+            "value": "5432"
+        },
+        {
+            "key": "database",
+            "value": "postgres"
+        },
+        {
+            "key": "test",
+            "value": "postgres"
+        }
+    ],
+    "url_format": "jdbc:postgresql://{host}:{port}/{database}"
+}
+
+
+### Connect Test - Connection Refused
+POST http://{{host}}:{{port}}/storage/v1/connect-test
+Content-Type: application/json
+
+{
+  "adaptorId": "244e4f0f-e3e5-4c54-a04b-61b83a1f09af",
+  "advancedOptions": [
+    {
+      "key": "user",
+      "value": "postgres"
+    },
+    {
+      "key": "password",
+      "value": "test"
+    },
+    {
+      "key": "test",
+      "value": "123"
+    }
+  ],
+  "basicOptions": [
+    {
+      "value": "postgres",
+      "key": "host"
+    },
+    {
+      "key": "port",
+      "value": "5432"
+    },
+    {
+      "key": "database",
+      "value": "postgres"
+    },
+    {
+      "key": "test",
+      "value": "postgres"
+    }
+  ],
+  "url_format": "jdbc:postgresql://{host}:{port}/{database}"
+}
+
+
+### Connect Test
+POST http://{{host}}:{{port}}/storage/v1/connect-test
+Content-Type: application/json
+
+{
+  "adaptorId" : "ADAPTOR_ID1",
+  "url" : "ADAPTOR_ID1",
+  "basicOption": [
+    {
+      "key": "HOST",
+      "value": "192.168.100.180"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    }
+  ]
+}
+
+
+### Stroage Add
+POST http://{{host}}:{{port}}/storage/v1/connect-test
+Content-Type: application/json
+
+{
+  "name": "test-storage",
+  "description": "test-storage",
+  "userMeta": [
+    {
+      "key": "project",
+      "value": "data-fabric"
+    }
+  ],
+  "tag": [
+    "tag1",
+    "tag2"
+  ],
+  "storageType": "IRIS",
+  "adaptorId": "ADAPTOR_ID1",
+  "url": "jdbc://{host}:{port}/{database}?user={username}&password={password}",
+  "basicOptions": [
+    {
+      "key": "HOST",
+      "value": "1.2.3.4"
+    },
+    {
+      "key": "PORT",
+      "value": "12345"
+    },
+    {
+      "key": "DATABASE",
+      "value": "database"
+    },
+    {
+      "key": "USER",
+      "value": "12345"
+    },
+    {
+      "key": "PASSWORD",
+      "value": "12345"
+    }
+  ],
+  "settings": {
+    "authAddSetting": {
+      "enable": true,
+      "options": [
+        {
+          "regex": "*",
+          "dataType": "STRUCTURED",
+          "dataFormat": "TABLE"
+        }
+      ]
+    }
+  }
+}
+
+### Connected Data
+GET http://{{host}}:{{port}}/storage/v1/connected-data
+Accept: application/json
+
+### Stroage Delete
+POST http://{{host}}:{{port}}/storage/v1/delete
+Content-Type: application/json
+
+{
+  "id" : "Storage-id"
+}
+
 ###
-GET http://localhost:8080/storage/v1/overview
+POST http://{{host}}:{{port}}/storage/v1/connect-test
+Content-Type: application/json
+
+{
+  "adaptorId" : "ADAPTOR_ID1",
+  "url" : "ADAPTOR_ID1",
+  "basicOption": [
+    {
+      "key": "HOST",
+      "value": "192.168.100.180"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    },
+    {
+      "key": "PORT",
+      "value": "1234"
+    }
+  ]
+}
+
+###
+GET http://{{host}}:{{port}}/storage/v1/overview
 Accept: application/json
 
 <> 2023-10-31T205239.200.json
 
 ###
-POST http://localhost:8080/storage/v1/search
+POST http://{{host}}:{{port}}/storage/v1/search
 Content-Type: application/json
 
 {
@@ -118,11 +334,9 @@ Content-Type: application/json
   ]
 }
 
-<> 2023-10-31T205515.200.json
-<> 2023-10-31T205458.200.json
 
 ###
-POST http://localhost:8080/storage/v1/status
+POST http://{{host}}:{{port}}/storage/v1/status
 Content-Type: application/json
 
 {
@@ -132,7 +346,7 @@ Content-Type: application/json
 <> 2023-10-31T205629.200.json
 
 ###
-POST http://localhost:8080/storage/v1/default
+POST http://{{host}}:{{port}}/storage/v1/default
 Content-Type: application/json
 
 {
@@ -142,7 +356,7 @@ Content-Type: application/json
 <> 2023-10-31T205625.200.json
 
 ###
-POST http://localhost:8080/storage/v1/advanced
+POST http://{{host}}:{{port}}/storage/v1/advanced
 Content-Type: application/json
 
 {
@@ -152,8 +366,38 @@ Content-Type: application/json
 <> 2023-10-31T205627.200.json
 
 
+### Browse
+POST http://{{host}}:{{port}}/storage/v1/browse
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1",
+  "path": "/",
+  "depth": 2
+}
+
+### Browse
+POST http://{{host}}:{{port}}/storage/v1/browse
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1",
+  "path": "/database",
+  "depth": 1
+}
+
+### Browse / Default
+POST http://{{host}}:{{port}}/storage/v1/browse/default
+Content-Type: application/json
+
+{
+  "id": "STORAGE_ID1",
+  "path": "/database",
+  "name": "table-name"
+}
+
 ### preview error
-POST http://localhost:8080/data/v1/preview
+POST http://{{host}}:{{port}}/data/v1/preview
 Content-Type: application/json
 
 {
@@ -162,7 +406,7 @@ Content-Type: application/json
 
 
 ### preview success
-POST http://localhost:8080/data/v1/preview
+POST http://{{host}}:{{port}}/data/v1/preview
 Content-Type: application/json
 
 {
@@ -170,7 +414,7 @@ Content-Type: application/json
 }
 
 ### data detail / default error
-POST http://localhost:8080/data/v1/preview
+POST http://{{host}}:{{port}}/data/v1/preview
 Content-Type: application/json
 
 {
@@ -178,7 +422,7 @@ Content-Type: application/json
 }
 
 ### data detail / default success
-POST http://localhost:8080/data/v1/default
+POST http://{{host}}:{{port}}/data/v1/default
 Content-Type: application/json
 
 {
@@ -187,7 +431,7 @@ Content-Type: application/json
 
 
 ### datacatalog - user metadata update - err
-POST http://localhost:8080/data/v1/metadata
+POST http://{{host}}:{{port}}/data/v1/metadata
 Content-Type: application/json
 
 {
@@ -209,7 +453,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - user metadata update - success
-POST http://localhost:8080/data/v1/metadata
+POST http://{{host}}:{{port}}/data/v1/metadata
 Content-Type: application/json
 
 {
@@ -232,7 +476,7 @@ Content-Type: application/json
 
 
 ### datacatalog - tag update - err
-POST http://localhost:8080/data/v1/tag
+POST http://{{host}}:{{port}}/data/v1/tag
 Content-Type: application/json
 
 {
@@ -241,7 +485,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - tag update - success
-POST http://localhost:8080/data/v1/tag
+POST http://{{host}}:{{port}}/data/v1/tag
 Content-Type: application/json
 
 {
@@ -251,7 +495,7 @@ Content-Type: application/json
 
 
 ### datacatalog - download request - err
-POST http://localhost:8080/data/v1/download-request
+POST http://{{host}}:{{port}}/data/v1/download-request
 Content-Type: application/json
 
 {
@@ -259,7 +503,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - download request - success
-POST http://localhost:8080/data/v1/download-request
+POST http://{{host}}:{{port}}/data/v1/download-request
 Content-Type: application/json
 
 {
@@ -268,7 +512,7 @@ Content-Type: application/json
 
 
 ### datacatalog - comment add - err
-POST http://localhost:8080/data/v1/comment/add
+POST http://{{host}}:{{port}}/data/v1/comment/add
 Content-Type: application/json
 
 {
@@ -280,7 +524,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - comment add - success
-POST http://localhost:8080/data/v1/comment/add
+POST http://{{host}}:{{port}}/data/v1/comment/add
 Content-Type: application/json
 
 {
@@ -291,7 +535,7 @@ Content-Type: application/json
   }
 }
 ### datacatalog - comment update - err
-POST http://localhost:8080/data/v1/comment/update
+POST http://{{host}}:{{port}}/data/v1/comment/update
 Content-Type: application/json
 
 {
@@ -304,7 +548,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - comment update - success
-POST http://localhost:8080/data/v1/comment/update
+POST http://{{host}}:{{port}}/data/v1/comment/update
 Content-Type: application/json
 
 {
@@ -316,7 +560,7 @@ Content-Type: application/json
   }
 }
 ### datacatalog - comment delete - err
-POST http://localhost:8080/data/v1/comment/delete
+POST http://{{host}}:{{port}}/data/v1/comment/delete
 Content-Type: application/json
 
 {
@@ -327,7 +571,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - comment delete - success
-POST http://localhost:8080/data/v1/comment/delete
+POST http://{{host}}:{{port}}/data/v1/comment/delete
 Content-Type: application/json
 
 {
@@ -339,7 +583,7 @@ Content-Type: application/json
 
 
 ### datacatalog - all data summary
-POST http://localhost:8080/data/v1/all-data/summary
+POST http://{{host}}:{{port}}/data/v1/all-data/summary
 Content-Type: application/json
 
 {
@@ -373,7 +617,7 @@ Content-Type: application/json
 }
 
 ### datacatalog - all data
-POST http://localhost:8080/data/v1/all-data/summary
+POST http://{{host}}:{{port}}/data/v1/all-data/summary
 Content-Type: application/json
 
 {

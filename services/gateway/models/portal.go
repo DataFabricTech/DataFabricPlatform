@@ -15,8 +15,12 @@ type SearchContent struct {
 
 func (res *ResSearch) Convert(input *protobuf.SearchResponse) (*CommonResponse, error) {
 	res.Pageable = input.GetPageable()
-	res.ConvertSearchContent(input.Contents)
-	res.ConvertSearchFilter(input.Filters)
+	if input.Contents != nil {
+		res.ConvertSearchContent(input.Contents)
+	}
+	if input.Filters != nil {
+		res.ConvertSearchFilter(input.Filters)
+	}
 
 	return &CommonResponse{
 		Code:   "200",
@@ -28,7 +32,7 @@ func (res *ResSearch) Convert(input *protobuf.SearchResponse) (*CommonResponse, 
 func (res *ResSearch) ConvertSearchFilter(filters map[string]*protobuf.ListMapStrNumber) {
 	res.Filters = make(map[string]interface{})
 	for filterKey, filterValue := range filters {
-		tmp := make(map[string]int32)
+		tmp := make(map[string]int64)
 		for _, v := range filterValue.Value {
 			tmp[v.Key] = v.Value
 		}

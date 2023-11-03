@@ -152,12 +152,17 @@ Search:
                       name: "IRIS"
                       description: "IRIS 연결정보"
                       systemMeta:
-                        storageType: "IRIS"
-                        database: "data-platform"
-                        createdBy: "admin"
-                        modifiedBy: "jblim"
+                        - key: storageType
+                          value: "IRIS"
+                        - key: database
+                          value: "data-platform"
+                        - key: createdBy
+                          value: "admin"
+                        - key: modifiedBy
+                          value: "jblim"
                       userMeta:
-                        purpose: "Data Fabric Test"
+                        - key: purpose
+                          value: "Data Fabric Test"
                       tag:
                         - "tag01"
                         - "tag02"

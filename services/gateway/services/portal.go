@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"time"
@@ -45,7 +46,24 @@ func (service *PortalService) Destroy() {
 	_ = service.conn.Close()
 }
 
+func (service *PortalService) Reconnect() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, service.conn.Target(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		service.log.Errorf("can't connect Data Fabric Portal Service[ %s ][ %v ]", service.conn.Target(), err)
+		return
+	}
+	service.conn = conn
+	service.client = protobuf.NewPortalServiceClient(conn)
+}
+
 func (service *PortalService) Search(request *protobuf.ReqSearch) (*protobuf.ResSearch, error) {
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Portal Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Search : Server", "PORTAL")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -64,6 +82,10 @@ func (service *PortalService) Search(request *protobuf.ReqSearch) (*protobuf.Res
 }
 
 func (service *PortalService) RecentSearches() (*protobuf.ResRecentSearches, error) {
+	if service.conn.GetState() != connectivity.Ready {
+		service.Reconnect()
+		return nil, fmt.Errorf("can't connect Data Fabric Portal Service[ %s ][ %v ]", service.conn.Target(), "Not Ready")
+	}
 	service.log.Infof("[%-10s] >> Recent Searches : Server", "PORTAL")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

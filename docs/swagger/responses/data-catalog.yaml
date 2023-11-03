@@ -26,12 +26,15 @@ DataPreview:
                 size: 123457
                 status: "CONNECTED"
                 systemMeta:
-                  storageType: "IRIS"
-                  database: "data-platform"
-                  createdBy: "admin"
-                  modifiedBy: "jblim"
+                  - key : "storageType"
+                    value: "IRIS"
+                  - key: "database"
+                    value: "data-platform"
+                  - key: "admin"
+                    value: "jblim"
                 userMeta:
-                  purpose: "Data Fabric Test"
+                  - key: "purpose"
+                    value: "Data Fabric Test"
                 tags:
                   - "tag01"
                   - "tag02"

@@ -29,8 +29,12 @@ type AuthSchema struct {
 func (st *SupportedStorageType) Convert(input *protobuf.SupportedStorageType) {
 	st.Name = input.Name
 	st.Icon = input.Icon
-	st.ConvertConnSchema(input.ConnSchema)
-	st.ConvertAuthSchema(input.AuthSchema)
+	if input.ConnSchema != nil {
+		st.ConvertConnSchema(input.ConnSchema)
+	}
+	if input.AuthSchema != nil {
+		st.ConvertAuthSchema(input.AuthSchema)
+	}
 }
 
 func (st *SupportedStorageType) ConvertConnSchema(in []*protobuf.InputField) {
@@ -38,7 +42,7 @@ func (st *SupportedStorageType) ConvertConnSchema(in []*protobuf.InputField) {
 		tmp := InputField{}
 		tmp.Key = v.Key
 		tmp.Required = v.Required
-		tmp.ValueType = v.ValueType
+		tmp.ValueType = v.ValueType.String()
 		tmp.Default = v.Default
 		tmp.Description = v.Description
 		tmp.Value = v.Value
@@ -55,7 +59,7 @@ func (st *SupportedStorageType) ConvertAuthSchema(in []*protobuf.AuthSchema) {
 			authSchema := InputField{}
 			authSchema.Key = auth.Key
 			authSchema.Required = auth.Required
-			authSchema.ValueType = auth.ValueType
+			authSchema.ValueType = auth.ValueType.String()
 			authSchema.Default = auth.Default
 			authSchema.Description = auth.Description
 			authSchema.Value = auth.Value
@@ -101,8 +105,12 @@ func (a *Adaptor) Convert(input *protobuf.Adaptor) {
 	a.Class = input.Class
 	a.SupportedURL = input.SupportedURL
 	a.SelectURL = input.SelectURL
-	a.ConvertBasicOptions(input.BasicOptions)
-	a.ConvertAdditionalOptions(input.AdditionalOptions)
+	if input.BasicOptions != nil {
+		a.ConvertBasicOptions(input.BasicOptions)
+	}
+	if input.AdditionalOptions != nil {
+		a.ConvertAdditionalOptions(input.AdditionalOptions)
+	}
 }
 
 type InputField struct {
@@ -119,7 +127,7 @@ func (a *Adaptor) ConvertBasicOptions(in []*protobuf.InputField) {
 		tmp := InputField{}
 		tmp.Key = v.Key
 		tmp.Required = v.Required
-		tmp.ValueType = v.ValueType
+		tmp.ValueType = v.ValueType.String()
 		tmp.Default = v.Default
 		tmp.Description = v.Description
 		tmp.Value = v.Value
@@ -132,7 +140,7 @@ func (a *Adaptor) ConvertAdditionalOptions(in []*protobuf.InputField) {
 		tmp := InputField{}
 		tmp.Key = v.Key
 		tmp.Required = v.Required
-		tmp.ValueType = v.ValueType
+		tmp.ValueType = v.ValueType.String()
 		tmp.Default = v.Default
 		tmp.Description = v.Description
 		tmp.Value = v.Value
