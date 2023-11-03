@@ -59,6 +59,7 @@ enum Status {
   DISCONNECTED = 1;
   ERROR = 2;
   SYNC = 3;
+  INIT = 4;
 }
 
 message ReqId {
