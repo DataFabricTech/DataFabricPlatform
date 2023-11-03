@@ -3,6 +3,7 @@ package com.mobigen.datafabric.dataLayer.repository;
 import com.google.protobuf.ByteString;
 import com.mobigen.datafabric.dataLayer.config.DBConfig;
 import com.mobigen.datafabric.share.protobuf.DataLayer.*;
+import com.mobigen.datafabric.share.protobuf.Utilities;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
@@ -70,7 +71,7 @@ public class DataLayerRepository {
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 column = Column.newBuilder()
                         .setColumnName(rs.getMetaData().getColumnName(i))
-                        .setType(DataType.STRING)
+                        .setType(Utilities.DataType.STRING)
                         .build();
                 tableBuilder.addColumns(column);
             }
@@ -133,7 +134,7 @@ public class DataLayerRepository {
 //                                yield Cell.newBuilder().build();
 //                            }
 //                        }
-                        case 16, -6 -> // BOOLEAN, TINYINT
+                        case 16, -6 , -7-> // BOOLEAN, TINYINT
                                 Cell.newBuilder()
                                         .setBoolValue(rs.getBoolean(i))
                                         .setColumnIndex(i-1)
