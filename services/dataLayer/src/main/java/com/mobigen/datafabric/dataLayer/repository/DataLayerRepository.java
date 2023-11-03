@@ -82,22 +82,22 @@ public class DataLayerRepository {
                         case 4, 5 -> // INTEGER, SMALLINT
                                 Cell.newBuilder()
                                         .setInt32Value(rs.getInt(i))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
                         case 6, 7 -> // FLOAT, REAL
                                 Cell.newBuilder()
                                         .setFloatValue(rs.getFloat(i))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
                         case 8, 3, 2 -> // DOUBLE, NUMERIC, DECIMAL
                                 Cell.newBuilder()
                                         .setDoubleValue(rs.getDouble(i))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
                         case -2, -3, 2004 -> // BINARY, VARBINARY, BLOB
                                 Cell.newBuilder()
                                         .setBytesValue(ByteString.copyFrom(rs.getBytes(i)))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
 //                        case 91 -> { // DATE todo
 //                            time = Time.newBuilder()
@@ -136,23 +136,23 @@ public class DataLayerRepository {
                         case 16, -6 -> // BOOLEAN, TINYINT
                                 Cell.newBuilder()
                                         .setBoolValue(rs.getBoolean(i))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
                         case -5 -> // BIGINT
                                 Cell.newBuilder()
                                         .setInt64Value(rs.getLong(i))
-                                        .setColumnIndex(i)
+                                        .setColumnIndex(i-1)
                                         .build();
                         default -> // Others
                                 rs.getString(i) != null ?
                                         Cell.newBuilder()
                                                 .setStringValue(rs.getString(i))
-                                                .setColumnIndex(i)
+                                                .setColumnIndex(i-1)
                                                 .build()
                                         :
                                         Cell.newBuilder()
                                                 .setStringValue("")
-                                                .setColumnIndex(i)
+                                                .setColumnIndex(i-1)
                                                 .build();
 
                     };

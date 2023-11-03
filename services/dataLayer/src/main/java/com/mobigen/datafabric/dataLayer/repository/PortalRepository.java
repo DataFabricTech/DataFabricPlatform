@@ -126,6 +126,25 @@ public class PortalRepository {
         }
     }
 
+    public void insertDocument(StorageModel storageModel) throws OpenSearchException, IOException {
+        log.info("[insertDocument] start");
+        try {
+            var response = client.index(i -> i.index(portalConfig.getStorageIndex())
+                    .document(storageModel));
+            if (response.result() != Result.Created) {
+                log.error(String.format("Client Create Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Insert Fail")
+                                        .type("INSERT")).status(500).build());
+            }
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+
     public void insertDocument(RecentSearchesModel recentSearchesModel) throws OpenSearchException, IOException {
         try {
             var response = client.index(i -> i.index(portalConfig.getRecentSearchesIndex())
@@ -146,11 +165,32 @@ public class PortalRepository {
     public void updateDocument(DataCatalogModel dataCatalogModel, String id) throws OpenSearchException, IOException {
         log.info("[updateDocument] start");
         try {
-            var docId = getDocumentId(id);
+            var docId = getDataCatalogDocumentId(id);
 
             var response = client.update(u -> u.index(portalConfig.getDataCatalogIndex())
                             .id(docId)
                             .doc(dataCatalogModel)
+                    , DataCatalogModel.class);
+            if (response.result() != Result.Updated && response.result() != Result.NoOp) {
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("Client Update fail, because of same document update twice")
+                                        .type("UPDATE")).status(500).build());
+            }
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public void updateDocument(StorageModel storageModel, String id) throws OpenSearchException, IOException {
+        log.info("[updateDocument] start");
+        try {
+            var docId = getStorageDocumentId(id);
+
+            var response = client.update(u -> u.index(portalConfig.getStorageIndex())
+                            .id(docId)
+                            .doc(storageModel)
                     , DataCatalogModel.class);
             if (response.result() != Result.Updated && response.result() != Result.NoOp) {
                 throw new OpenSearchException(
@@ -183,10 +223,10 @@ public class PortalRepository {
         }
     }
 
-    public void deleteDocument(String id) throws OpenSearchException, IOException {
-        log.info("[deleteDocument] start");
+    public void deleteDataCatalogDocument(String id) throws OpenSearchException, IOException {
+        log.info("[deleteDataCatalogDocument] start");
         try {
-            var docId = getDocumentId(id);
+            var docId = getDataCatalogDocumentId(id);
             var response = client.delete(d -> d.index(portalConfig.getDataCatalogIndex()).id(docId));
             if (response.result() != Result.Deleted) {
                 log.error(String.format("Client Delete Fail, result %s", response.result()));
@@ -201,7 +241,25 @@ public class PortalRepository {
         }
     }
 
-    public LinkedList<String> searchAll() throws OpenSearchException, IOException {
+    public void deleteStorageDocument(String id) throws OpenSearchException, IOException {
+        log.info("[deleteStorageDocument] start");
+        try {
+            var docId = getStorageDocumentId(id);
+            var response = client.delete(d -> d.index(portalConfig.getStorageIndex()).id(docId));
+            if (response.result() != Result.Deleted) {
+                log.error(String.format("Client Delete Fail, result %s", response.result()));
+                throw new OpenSearchException(
+                        new ErrorResponse.Builder().error(
+                                e -> e.reason("OpenSearch Delete Fail")
+                                        .type("DELETE")).status(500).build());
+            }
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public LinkedList<String> searchDataCatalogAll() throws OpenSearchException, IOException {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
@@ -220,12 +278,32 @@ public class PortalRepository {
         return ids;
     }
 
+    public LinkedList<String> searchStorageAll() throws OpenSearchException, IOException {
+        log.info("[search] start");
+        var ids = new LinkedList<String>();
+        try {
+            // todo size -> config
+            var hits = client.search(s -> s.index(portalConfig.getStorageIndex())
+                            .size(10000)
+                    , StorageModel.class).hits().hits();
+
+            hits.forEach(hit -> {
+                var id = hit.source().getId();
+                ids.add(id);
+            });
+        } catch (OpenSearchException | IOException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+        return ids;
+    }
+
+
     public SearchModel search(List<Query> mainQuery, List<Query> mustQuery
             , List<Query> shouldQuery, Utilities.Pageable pageable)
             throws OpenSearchException, IOException {
         log.info("[search] start");
         var searchModel = new SearchModel();
-        var ids = new LinkedList<String>();
         try {
             var sortOptions = getSortOptions(pageable);
 
@@ -253,11 +331,13 @@ public class PortalRepository {
                             .sort(sortOptions)
                             .query(q -> q.bool(boolQuery))
                     , DataCatalogModel.class).hits().hits();
+
+
+            var dataCatalogModels = new LinkedList<DataCatalogModel>();
             hits.forEach(hit -> {
-                var id = hit.source().getId();
-                ids.add(id.substring(1, id.length() - 1));
+                dataCatalogModels.add(hit.source());
             });
-            searchModel.setIds(ids);
+            searchModel.setDataCatalogModelList(dataCatalogModels);
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
             throw e;
@@ -269,7 +349,6 @@ public class PortalRepository {
     public SearchModel search(List<Query> storageQuery, Utilities.Pageable pageable)
             throws IOException, OpenSearchException {
         log.info("[search] start");
-        var ids = new LinkedList<String>();
         var searchModel = new SearchModel();
         try {
             var sortOptions = getSortOptions(pageable);
@@ -292,11 +371,11 @@ public class PortalRepository {
                             .query(q -> q.bool(b -> b.minimumShouldMatch("1").should(storageQuery)))
                     , StorageModel.class).hits().hits();
 
+            var storageModels = new LinkedList<StorageModel>();
             hits.forEach(hit -> {
-                var id = hit.source().getId();
-                ids.add(id.substring(1, id.length() - 1));
+                storageModels.add(hit.source());
             });
-            searchModel.setIds(ids);
+            searchModel.setStorageModelList(storageModels);
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
             throw e;
@@ -332,7 +411,7 @@ public class PortalRepository {
         }
     }
 
-    public String getDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
+    public String getDataCatalogDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
         try {
             return client.search(s -> s.index(portalConfig.getDataCatalogIndex())
                     .query(q -> q.match(
@@ -344,7 +423,19 @@ public class PortalRepository {
         }
     }
 
-    public DataCatalogModel getDocuemnt(String id)
+    public String getStorageDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
+        try {
+            return client.search(s -> s.index(portalConfig.getStorageIndex())
+                    .query(q -> q.match(
+                            m -> m.field("id").query(FieldValue.of(id.substring(1, id.length()-1)))
+                    )), StorageModel.class).hits().hits().get(0).id();
+        } catch (OpenSearchException | IOException | NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public DataCatalogModel getDataCatalogDocuemnt(String id)
             throws OpenSearchException, IOException, IndexOutOfBoundsException {
         log.info("[searchId] start");
         try {
@@ -359,6 +450,20 @@ public class PortalRepository {
         }
     }
 
+    public StorageModel getStorageDocuemnt(String id)
+            throws OpenSearchException, IOException, IndexOutOfBoundsException {
+        log.info("[searchId] start");
+        try {
+            return client.search(s -> s.index(portalConfig.getStorageIndex())
+                            .query(q -> q.match(
+                                    m -> m.field("id").query(FieldValue.of(id))
+                            ))
+                    , StorageModel.class).hits().hits().get(0).source();
+        } catch (OpenSearchException | IOException | IndexOutOfBoundsException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
+    }
     public Hit<RecentSearchesModel> recentSearches(String userId) throws OpenSearchException, IOException {
         log.info("[recentSearches] start");
         try {

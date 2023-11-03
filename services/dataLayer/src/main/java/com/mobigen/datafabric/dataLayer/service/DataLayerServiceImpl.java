@@ -47,11 +47,6 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
                                         .build())
                         .build();
             } else {
-                if (statement instanceof Insert insertStatement) {
-                    var id = UUID.randomUUID().toString();
-                    addIdToSql(insertStatement, id);
-                    sql = insertStatement.toString();
-                }
                 resExecute
                         .setData(
                                 ResExecute.Data.newBuilder()
@@ -86,13 +81,8 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
                             .setErrMsg(String.format("Batch not use Select %s", sqls[i]))
                             .build();
                 }
-
-                if (statement instanceof Insert insertStatement) {
-                    var id = UUID.randomUUID().toString();
-                    addIdToSql(insertStatement, id);
-                    sqls[i] = insertStatement.toString();
-                }
             }
+
             var data = Arrays.stream(dataLayerRepository.executeBatchUpdate(sqls)).boxed().collect(Collectors.toList());
             resBacthExecute.addAllData(data);
 

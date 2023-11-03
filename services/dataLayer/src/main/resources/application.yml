@@ -2,9 +2,9 @@ open_search:
   host: 192.168.107.28
   port: 35000
   index:
-    data_catalog: dataCatalogIndex
-    recent_searches: recentSearchesIndex
-    storage: storageIndex
+    data_catalog: dataCatalogIndex1
+    recent_searches: recentSearchesIndex1
+    storage: storageIndex1
   number_of_save_recent_searches: 100
   number_of_recent_searches: 10
   limit_search_size: 10000
@@ -17,5 +17,5 @@ datasource:
   password: testUser
   table:
     data_catalog: data_catalog_test
-    storage: storage_test
+    storage: DataStorage, DataStorageTag, DataStorageAdaptor, DataStorageType
     data_tag: data_tag_test

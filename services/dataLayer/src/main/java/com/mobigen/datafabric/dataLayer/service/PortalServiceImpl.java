@@ -8,11 +8,8 @@ import com.mobigen.datafabric.dataLayer.model.RecentSearchesModel;
 import com.mobigen.datafabric.dataLayer.model.StorageModel;
 import com.mobigen.datafabric.dataLayer.repository.DataLayerRepository;
 import com.mobigen.datafabric.dataLayer.repository.PortalRepository;
-import com.mobigen.datafabric.share.protobuf.DataCatalogOuterClass;
-import com.mobigen.datafabric.share.protobuf.DataLayer;
+import com.mobigen.datafabric.share.protobuf.*;
 import com.mobigen.datafabric.share.protobuf.Portal.*;
-import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
-import com.mobigen.datafabric.share.protobuf.Utilities;
 import com.mobigen.libs.grpc.PortalCallBack;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
@@ -24,6 +21,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.logging.log4j.core.util.internal.Status;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
@@ -78,8 +76,11 @@ public class PortalServiceImpl implements PortalCallBack {
                                     .build()
                     ).build();
 
+            var a = searchResponseBuilder.getFiltersMap();
+
             searchResponseBuilder
                     .setPageable(resPageable)
+                    .putAllFilters(a)
                     .setContents(searchContentBuilder.build());
 
             resSearchBuilder.setCode("200").setData(
@@ -121,22 +122,17 @@ public class PortalServiceImpl implements PortalCallBack {
 
     private int dataCatalogBuilder(SearchContent.Builder builder, String input, Map<String, String> details
             , Map<String, ListString> filters, Utilities.Pageable pageable) throws OpenSearchException, IOException, SQLException, ClassNotFoundException {
-        var sql = "select * from %s where id = '%s'";
         var searchModel = portalRepository.search(
                 mainQueryBuilder(input),
                 details.isEmpty() ? null : mustQueryBuilder(details),
                 filters.isEmpty() ? null : shouldQueryBuilder(filters),
                 pageable
         );
-        var totalSize = searchModel.getTotalSize();
-        var dataCatalogIds = searchModel.getIds();
 
-        if (dataCatalogIds != null && !dataCatalogIds.isEmpty()) {
-            for (var dataCatalogId : dataCatalogIds) {
-                var table = dataLayerRepository.executeQuery(
-                        String.format(sql, dbConfig.getDataCatalog(), dataCatalogId));
-                builder.addDataCatalogs(convertToCatalog(table));
-            }
+        var totalSize = searchModel.getTotalSize();
+
+        for (var dataCatalogModel : searchModel.getDataCatalogModelList()) {
+            builder.addDataCatalogs(convertToCatalog(dataCatalogModel));
         }
 
         return totalSize;
@@ -144,16 +140,12 @@ public class PortalServiceImpl implements PortalCallBack {
 
     private int storageBuilder(SearchContent.Builder builder, String input, Utilities.Pageable pageable)
             throws OpenSearchException, IOException, SQLException, ClassNotFoundException {
-        var sql = "select * from %s where id = '%s'";
         var searchModel = portalRepository.search(storageMainQueryBuilder(input), pageable);
-        var totalSize = searchModel.getTotalSize();
-        var storageIds = searchModel.getIds();
 
-        if (storageIds != null && !storageIds.isEmpty()) {
-            for (var storageId : storageIds) {
-                var table = dataLayerRepository.executeQuery(String.format(sql, dbConfig.getStorage(), storageId));
-                builder.addStorages(convertToStorage(table));
-            }
+        var totalSize = searchModel.getTotalSize();
+
+        for (var storageModel : searchModel.getStorageModelList()) {
+            builder.addStorages(convertToStorage(storageModel));
         }
 
         return totalSize;
@@ -204,11 +196,10 @@ public class PortalServiceImpl implements PortalCallBack {
     }
 
 
-    public void executeUpdate(String sql)
-            throws OpenSearchException, IOException {
+    public void executeUpdate(String sql) throws OpenSearchException, IOException {
         log.info("[executeUpdate] start");
-        var dataSetTableName = dbConfig.getDataCatalog();
-        var storageTableName = dbConfig.getStorage();
+        var dataSetTableName = dbConfig.getDataCatalog(); // todo dataCatalog schema 정의
+        var storageTableNames = dbConfig.getStorage();
         Statement statement = null;
         try {
             statement = CCJSqlParserUtil.parse(sql);
@@ -217,36 +208,80 @@ public class PortalServiceImpl implements PortalCallBack {
         }
 
         if (statement instanceof Insert insertStatement) {
-            if (insertStatement.getTable().getName().equals(dataSetTableName) ||
-                    insertStatement.getTable().getName().equals(storageTableName)) {
-                portalRepository.insertDocument(sqlToModel(insertStatement));
-            }
+            if (insertStatement.getTable().getName().equals(dataSetTableName))
+                portalRepository.insertDocument(sqlToDataCatalogModel(insertStatement));
+            else if (storageTableNames.contains(insertStatement.getTable().getName()))
+                portalRepository.insertDocument(sqlToStorageModel(insertStatement));
         } else if (statement instanceof Delete deleteStatement) {
-            if (deleteStatement.getTable().getName().equals(dataSetTableName) ||
-                    deleteStatement.getTable().getName().equals(storageTableName)) {
-                portalRepository.deleteDocument(getId(deleteStatement));
-            }
+            if (deleteStatement.getTable().getName().equals(dataSetTableName))
+                portalRepository.deleteDataCatalogDocument(getId(deleteStatement));
+            else if (storageTableNames.contains(deleteStatement.getTable().getName()))
+                portalRepository.deleteStorageDocument(getId(deleteStatement));
         } else if (statement instanceof Update updateStatement) {
-            if (updateStatement.getTable().getName().equals(dataSetTableName) ||
-                    updateStatement.getTable().getName().equals(storageTableName)) {
-                portalRepository.updateDocument(sqlToModel(updateStatement), getId(updateStatement));
-            }
+            if (updateStatement.getTable().getName().equals(dataSetTableName))
+                portalRepository.updateDocument(sqlToDataCatalogModel(updateStatement), getId(updateStatement));
+            else if (storageTableNames.contains(updateStatement.getTable().getName()))
+                portalRepository.updateDocument(sqlToStorageModel(updateStatement), getId(updateStatement));
+
         }
     }
 
     public void executeBatchUpdate(String[] sqls)
             throws JSQLParserException, IOException, OpenSearchException, IndexOutOfBoundsException {
-        for (var sql : sqls) {
-            executeUpdate(sql);
+        var dataCatalogTableNames = dbConfig.getDataCatalog();
+        var storageTableNames = dbConfig.getStorage();
+        var state = CCJSqlParserUtil.parse(sqls[0]);
+        try {
+            if (state instanceof Insert insertState) {
+                var tableName = insertState.getTable().getName().toLowerCase();
+                if (storageTableNames.contains(tableName)) {
+                    var storageModel = new StorageModel();
+                    for (var sql : sqls) {
+                        insertState = (Insert) CCJSqlParserUtil.parse(sql);
+                        sqlToBulkStorageModel(storageModel, insertState);
+                    }
+
+                    portalRepository.insertDocument(storageModel);
+                } else if (dataCatalogTableNames.contains(tableName)) {
+                    // todo
+                }
+            } else if (state instanceof Update updateState) {
+                var tableName = updateState.getTable().getName().toLowerCase();
+                if (storageTableNames.contains(tableName)) {
+                    var id = getId(updateState);
+                    var storageModel = portalRepository.getStorageDocuemnt(id);
+
+                    for (var sql : sqls) {
+                        updateState = (Update) CCJSqlParserUtil.parse(sql);
+                        sqlToBulkStorageModel(storageModel, updateState);
+                    }
+
+                    portalRepository.updateDocument(storageModel, id);
+                } else if (dataCatalogTableNames.contains(tableName)) {
+                    // todo dataCatalog
+                }
+            } else if (state instanceof Delete deleteState) {
+                var tableName = deleteState.getTable().getName().toLowerCase();
+                if (storageTableNames.contains(tableName)) {
+                    portalRepository.deleteStorageDocument(getId(deleteState));
+                } else if (dataCatalogTableNames.contains(tableName)) {
+                    // todo dataCatalog
+                }
+            }
+        } catch (JSQLParserException | IOException | OpenSearchException | IndexOutOfBoundsException |
+                 NullPointerException e) {
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
     public List<String> searchAll() throws IOException, OpenSearchException {
-        return portalRepository.searchAll();
+//        return portalRepository.searchDataCatalogAll();
+        return portalRepository.searchStorageAll();
     }
 
 
-    private DataCatalogModel sqlToModel(Insert insert) {
+    private DataCatalogModel sqlToDataCatalogModel(Insert insert) {
         var columns = insert.getColumns();
         var values = insert.getValues().getExpressions();
 
@@ -256,9 +291,38 @@ public class PortalServiceImpl implements PortalCallBack {
         return dataCatalogModel;
     }
 
-    private DataCatalogModel sqlToModel(Update update) throws OpenSearchException, IOException, IndexOutOfBoundsException {
-        // todo getId(update)가 진짜로 id를 가져오는지 확인
-        var dataCatalogModel = portalRepository.getDocuemnt(getId(update));
+    private StorageModel sqlToStorageModel(Insert insert) {
+        var columns = insert.getColumns();
+        var values = insert.getValues().getExpressions();
+        var tableName = insert.getTable().getName().toLowerCase();
+
+        var storageModel = new StorageModel();
+        setStorage(storageModel, tableName, columns, values);
+
+        return storageModel;
+    }
+
+    private void sqlToBulkStorageModel(StorageModel storageModel, Insert insert) {
+        var columns = insert.getColumns();
+        var values = insert.getValues().getExpressions();
+        var tableName = insert.getTable().getName().toLowerCase();
+
+        setStorage(storageModel, tableName, columns, values);
+    }
+
+    private void sqlToBulkStorageModel(StorageModel storageModel, Update update) {
+        for (var set : update.getUpdateSets()) {
+            var columns = set.getColumns();
+            var values = set.getValues();
+            var tableName = update.getTable().getName();
+
+            setStorage(storageModel, tableName, columns, values);
+        }
+    }
+
+
+    private DataCatalogModel sqlToDataCatalogModel(Update update) throws OpenSearchException, IOException, IndexOutOfBoundsException {
+        var dataCatalogModel = portalRepository.getDataCatalogDocuemnt(getId(update));
 
         for (var set : update.getUpdateSets()) {
             var columns = set.getColumns();
@@ -270,8 +334,31 @@ public class PortalServiceImpl implements PortalCallBack {
         return dataCatalogModel;
     }
 
+    private StorageModel sqlToStorageModel(Update update) throws OpenSearchException, IOException, IndexOutOfBoundsException {
+        var storageModel = portalRepository.getStorageDocuemnt(getId(update));
+
+        for (var set : update.getUpdateSets()) {
+            var columns = set.getColumns();
+            var values = set.getValues();
+            var tableName = update.getTable().getName();
+
+            setStorage(storageModel, tableName, columns, values);
+        }
+
+        return storageModel;
+    }
+
     private String getId(Delete delete) {
         return ((EqualsTo) delete.getWhere()).getRightExpression().toString();
+    }
+
+    private String getId(Insert insert) {
+        var columns = insert.getColumns();
+        for (int i = 0; i < columns.size(); i++) {
+            if (columns.get(i).equals("id"))
+                return insert.getValues().getExpressions().get(i).toString();
+        }
+        return "";
     }
 
     private String getId(Update update) {
@@ -299,62 +386,35 @@ public class PortalServiceImpl implements PortalCallBack {
         }
     }
 
-    private DataCatalogOuterClass.DataCatalog setDataCatalog(List<DataLayer.Column> columns, List<DataLayer.Cell> values) {
-        var dataCatalogBuilder = DataCatalogOuterClass.DataCatalog.newBuilder();
+    private void setStorage(StorageModel storageModel, String tableName
+            , ExpressionList<Column> columns, ExpressionList<?> values) {
         for (int i = 0; i < values.size(); i++) {
-            // todo mapping
-            switch (columns.get(i).getColumnName()) {
-                case "id" -> dataCatalogBuilder.setId(values.get(i).getStringValue());
-                case "name" -> dataCatalogBuilder.setName(values.get(i).getStringValue());
-                case "description" -> dataCatalogBuilder.setDescription(values.get(i).getStringValue());
-                case "status" -> dataCatalogBuilder.setStatus(values.get(i).getStringValue());
-                case "datatype" -> dataCatalogBuilder.setDataType(values.get(i).getStringValue());
-                case "dataformat" -> dataCatalogBuilder.setDataFormat(values.get(i).getStringValue());
-                case "row" -> dataCatalogBuilder.setRow(values.get(i).getInt32Value());
-                case "size" -> dataCatalogBuilder.setSize(values.get(i).getInt32Value());
-                case "dataLocation", "dataStructur", "dataRefine", "category"
-                        , "systemMeta", "userMeta", "tag", "permission", "downloadInfo"
-                        , "ratingAndComment", "statistics", "creator", "createdAt", "lastModifier", "lastModifiedAt" -> {
-                    // todo knowlegdeGraph?
-                    /**
-                     * User
-                     * var user = UserOuterClass.User.newBuilder()
-                     * .setId(values.get(i).toString());
-                     * or .setName(values.get(i).toString());
-                     * dataCatalogBuilder.setCreator(user);
-                     */
-
-                    /**
-                     * Connector 관련
-                     * var location = DataCatalogOuterClass.DataLocation.newBuilder()
-                     *         .setDatabaseName(values.get(i).toString()).build();
-                     * dataCatalogBuilder.addDataLocation(location);
-                     */
-                    System.out.println("TODO");
+            switch (columns.get(i).toString()) {
+                case "id" -> {
+                    if (tableName.equalsIgnoreCase("datastorage"))
+                        storageModel.setId(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
                 }
+                case "name" -> {
+                    if (tableName.equalsIgnoreCase("datastorage"))
+                        storageModel.setName(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                }
+                case "user_desc" -> {
+                    if (tableName.equalsIgnoreCase("datastorage"))
+                        storageModel.setDesc(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                }
+                case "tag" -> {
+                    List<String> tags = storageModel.getTag() != null ?
+                            new ArrayList<>(List.of(storageModel.getTag())) :
+                            new ArrayList<>();
+                    tags.add(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                    storageModel.setTag(tags.toArray(new String[0]));
+                }
+                case "created_by" -> storageModel.setCreatedBy(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                case "storage_type_name" -> storageModel.setStorageTypeName(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                case "updated_at" -> storageModel.setUpdatedAt(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
+                case "status" -> storageModel.setStatus(values.get(i).toString().substring(1, values.get(i).toString().length()-1));
             }
         }
-        return dataCatalogBuilder.build();
-    }
-
-    private StorageOuterClass.Storage setStorage(List<DataLayer.Column> columns, List<DataLayer.Cell> values) {
-        var storageBuilder = StorageOuterClass.Storage.newBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            // todo meta, tags, createdAt
-            switch (columns.get(i).getColumnName()) {
-                case "id" -> storageBuilder.setId(values.get(i).toString());
-                case "name" -> storageBuilder.setName(values.get(i).toString());
-                case "description" -> storageBuilder.setDescription(values.get(i).toString());
-                case "storageType" -> storageBuilder.setStorageType(values.get(i).toString());
-                case "adaptorId" -> storageBuilder.setAdaptorId(values.get(i).toString());
-                case "systemMeta", "userMeta", "tag", "basicOptions", "additonalOptions"
-                        , "settings", "statue", "statistics", "dataStatistics", "history"
-                        , "event", "createdBy", "createdAt", "lastModifiedBy", "lastModifiedAt" ->
-                        System.out.println("TODO");
-            }
-        }
-
-        return storageBuilder.build();
     }
 
     public List<Query> mainQueryBuilder(String input) {
@@ -414,14 +474,42 @@ public class PortalServiceImpl implements PortalCallBack {
         return mustQuery;
     }
 
-    private DataCatalogOuterClass.DataCatalog convertToCatalog(DataLayer.Table table) {
-        // todo 추후에 확정된 schema로 mapping 필요
-        return setDataCatalog(table.getColumnsList(), table.getRows(0).getCellList());
+    private DataCatalogOuterClass.DataCatalog convertToCatalog(DataCatalogModel dataCatalogModel) {
+        var dataCatalogBuilder = DataCatalogOuterClass.DataCatalog.newBuilder();
+        for (var field : dataCatalogModel.getClass().getDeclaredFields()) {
+            switch (field.toString().toLowerCase()) {
+                case "id" -> dataCatalogBuilder.setId(dataCatalogModel.getId());
+                case "name" -> dataCatalogBuilder.setName(dataCatalogModel.getName());
+                case "description" -> dataCatalogBuilder.setDescription(dataCatalogBuilder.getDescription());
+                // todo 추후에 확정된 schema로 mapping 필요
+            }
+        }
+        return dataCatalogBuilder.build();
     }
 
-    private StorageOuterClass.Storage convertToStorage(DataLayer.Table table) {
-        // todo 추후에 확정된 schema로 mapping 필요
-        return setStorage(table.getColumnsList(), table.getRows(0).getCellList());
+    private StorageOuterClass.Storage convertToStorage(StorageModel storageModel) {
+        var storageBuilder = StorageOuterClass.Storage.newBuilder();
+        for (var field : storageModel.getClass().getDeclaredFields()) {
+            switch (field.getName().toLowerCase()) {
+                case "id" -> storageBuilder.setId(storageModel.getId());
+                case "name" -> storageBuilder.setName(storageModel.getName());
+                case "user_desc" -> storageBuilder.setDescription(storageModel.getDesc());
+                case "tag" -> {
+                    storageBuilder.addAllTags(Arrays.asList(storageModel.getTag()));
+                }
+                case "created_by" -> storageBuilder.setCreatedBy(
+                        UserOuterClass.User.newBuilder()
+                                .setName(storageModel.getCreatedBy())
+                                .build());
+                case "storage_type_name" -> storageBuilder.setStorageType(storageModel.getStorageTypeName());
+                case "updated_at" -> storageBuilder.setLastModifiedAt(
+                        Utilities.DateTime.newBuilder()
+                                .setStrDateTime(storageModel.getUpdatedAt())
+                                .build());
+//                case "status" -> storageBuilder.setStatus(storageModel.getStatus()); // todo
+            }
+        }
+        return storageBuilder.build();
     }
 
     public void deleteSearchesDocument(String id) {

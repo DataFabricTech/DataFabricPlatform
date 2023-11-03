@@ -13,4 +13,10 @@ public class StorageModel {
 
     @Nullable
     private String name;
+    private String desc;
+    private String[] tag;
+    private String createdBy;
+    private String storageTypeName;
+    private String updatedAt;
+    private String status;
 }
