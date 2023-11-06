@@ -1,10 +1,8 @@
-package com.mobigen.datafabric.core.job;
+package com.mobigen.datafabric.core.worker.queue;
 
-public interface JobQueue {
-    public QueueResult push(Job job) throws Exception;
-//    public QueueResult offer(Job job) throws Exception;
-    public Job pop() throws Exception;
-//    public QueueStatus status();
+public interface Queue<E> {
+    boolean add(E e) throws Exception;
+    E poll() throws Exception;
 }
 
 // Queue 는 2가지 작업을 향 후 진행할 필요가 있음.

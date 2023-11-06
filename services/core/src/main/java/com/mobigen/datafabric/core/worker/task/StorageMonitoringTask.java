@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.core.worker.task;
 
-import com.mobigen.datafabric.core.job.Job;
+import com.mobigen.datafabric.core.worker.Job;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

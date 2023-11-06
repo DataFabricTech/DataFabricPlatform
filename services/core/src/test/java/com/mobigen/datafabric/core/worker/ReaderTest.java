@@ -1,8 +1,8 @@
 package com.mobigen.datafabric.core.worker;
 
-import com.mobigen.datafabric.core.job.JobQueue;
-import com.mobigen.datafabric.core.job.JobQueueImpl;
-import com.mobigen.datafabric.core.job.QueueMode;
+import com.mobigen.datafabric.core.worker.queue.Queue;
+import com.mobigen.datafabric.core.worker.queue.QueueImpl;
+import com.mobigen.datafabric.core.worker.queue.QueueMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -11,17 +11,15 @@ class ReaderTest {
 
     @Test
     void Q1T1_Start() {
-        LinkedHashMap<String, JobQueue> queues = new LinkedHashMap<>();
-        JobQueue queue;
+        LinkedHashMap<String, Queue<Job>> queues = new LinkedHashMap<>();
+        Queue<Job> queue;
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        queues.put( "queue:0", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        queues.put( "Queue:0", queue );
 
-        Reader reader = new Reader( queues, null );
+        Reader reader = new Reader( queues, null, null );
 
-        Runnable runnable1 = () -> {
-            reader.start( 1 );
-        };
+        Runnable runnable1 = () -> reader.start( 1 );
         Thread t = new Thread( runnable1 );
         t.start();
         try {
@@ -33,20 +31,18 @@ class ReaderTest {
     }
     @Test
     void Q2T1_Start() {
-        LinkedHashMap<String, JobQueue> queues = new LinkedHashMap<>();
-        JobQueue queue;
+        LinkedHashMap<String, Queue<Job>> queues = new LinkedHashMap<>();
+        Queue<Job> queue;
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        queues.put( "queue:0", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        queues.put( "Queue:0", queue );
 
-        Reader reader = new Reader( queues, null );
+        Reader reader = new Reader( queues, null, null );
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        reader.addQueue( "queue:1", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        reader.addQueue( "Queue:1", queue );
 
-        Runnable runnable1 = () -> {
-            reader.start( 1 );
-        };
+        Runnable runnable1 = () -> reader.start( 1 );
         Thread t = new Thread( runnable1 );
         t.start();
         try {
@@ -60,23 +56,21 @@ class ReaderTest {
 
     @Test
     void Q3T2_Start() {
-        LinkedHashMap<String, JobQueue> queues = new LinkedHashMap<>();
-        JobQueue queue;
+        LinkedHashMap<String, Queue<Job>> queues = new LinkedHashMap<>();
+        Queue<Job> queue;
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        queues.put( "queue:0", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        queues.put( "Queue:0", queue );
 
-        Reader reader = new Reader( queues, null );
+        Reader reader = new Reader( queues, null , null);
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        reader.addQueue( "queue:1", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        reader.addQueue( "Queue:1", queue );
 
-        queue = new JobQueueImpl( QueueMode.NON_BLOCKING, 10 );
-        reader.addQueue( "queue:2", queue );
+        queue = new QueueImpl<>( QueueMode.NON_BLOCKING, 10 );
+        reader.addQueue( "Queue:2", queue );
 
-        Runnable runnable1 = () -> {
-            reader.start( 2 );
-        };
+        Runnable runnable1 = () -> reader.start( 2 );
         Thread t = new Thread( runnable1 );
         t.start();
         try {
