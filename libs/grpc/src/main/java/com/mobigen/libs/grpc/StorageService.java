@@ -51,7 +51,7 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
 
     @Override
     public void browse(StorageOuterClass.ReqStorageBrowse request, StreamObserver<StorageOuterClass.ResStorageBrowse> responseObserver) {
-        responseObserver.onNext(callBack.browse());
+        responseObserver.onNext(callBack.browse(request));
         responseObserver.onCompleted();
     }
 

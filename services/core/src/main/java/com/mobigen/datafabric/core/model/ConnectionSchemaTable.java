@@ -17,10 +17,10 @@ import java.sql.JDBCType;
 @Getter
 public class ConnectionSchemaTable {
     SqlTable table = SqlTable.of("ConnectionSchema");
-    SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
-    SqlColumn keyCol = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    SqlColumn typeCol = SqlColumn.of("type", table, JDBCType.VARCHAR);
+    SqlColumn adaptorId = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
+    SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
+    SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
     SqlColumn defaultCol = SqlColumn.of("default", table, JDBCType.BLOB);
-    SqlColumn requiredCol = SqlColumn.of("required", table, JDBCType.BOOLEAN);
-
+    SqlColumn required = SqlColumn.of("required", table, JDBCType.BOOLEAN);
+    SqlColumn basic = SqlColumn.of("basic", table, JDBCType.BOOLEAN);
 }

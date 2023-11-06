@@ -80,7 +80,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .setStorage(dataStorageService.getStorage(request.getId()))
+                        .setStorage(dataStorageService.default_(request.getId()))
                         .build())
                 .build();
     }
@@ -90,14 +90,24 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .setStorage(dataStorageService.getStorage(request.getId()))
+                        .setStorage(dataStorageService.advanced(request.getId()))
                         .build())
                 .build();
     }
 
     @Override
-    public StorageOuterClass.ResStorageBrowse browse() {
-        return null;
+    public StorageOuterClass.ResStorageBrowse browse(StorageOuterClass.ReqStorageBrowse request) {
+        return StorageOuterClass.ResStorageBrowse.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorageBrowse.Data.newBuilder()
+                        .setStorageBrowse(dataStorageService.browse(
+                                request.getId(),
+                                request.getPath(),
+                                request.getDepth(),
+                                request.getName()
+                        ))
+                        .build())
+                .build();
     }
 
     @Override

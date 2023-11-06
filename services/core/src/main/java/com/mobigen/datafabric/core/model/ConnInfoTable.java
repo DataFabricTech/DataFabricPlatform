@@ -21,5 +21,6 @@ public class ConnInfoTable {
     SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
     SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
     SqlColumn value = SqlColumn.of("value", table, JDBCType.BLOB);
-    SqlColumn required = SqlColumn.of("required", table, JDBCType.BLOB);
+    SqlColumn required = SqlColumn.of("required", table, JDBCType.BOOLEAN);
+    SqlColumn basic = SqlColumn.of("basic", table, JDBCType.BOOLEAN);
 }

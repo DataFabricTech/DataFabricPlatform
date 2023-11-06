@@ -33,7 +33,7 @@ public class JdbcConnector implements AutoCloseable {
 
 
     public JdbcConnector connect() throws SQLException {
-        return connect(null);
+        return connect(new Properties());
     }
 
     public ResultSet getTables() {

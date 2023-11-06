@@ -1,7 +1,9 @@
 package com.mobigen.datafabric.core.services.storage;
 
+import com.mobigen.datafabric.core.collector.DataCollectorFactory;
 import com.mobigen.datafabric.core.model.*;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
+import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.core.util.Tuple;
 import com.mobigen.datafabric.share.protobuf.DataLayer;
 import com.mobigen.datafabric.share.protobuf.StorageCommon;
@@ -13,9 +15,8 @@ import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.sql.SQLException;
+import java.util.*;
 
 import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertDataOfDataLayer;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
@@ -266,7 +267,7 @@ public class DataStorageService {
         return result;
     }
 
-    public StorageOuterClass.Storage status(String id) {
+    private StorageOuterClass.Storage.Builder getStorageBuilderById(String id) {
         var dataStorageSql = select().from(dataStorageTable.getTable())
                 .where(Equal.of(dataStorageTable.getId(), id))
                 .generate().getStatement();
@@ -276,9 +277,6 @@ public class DataStorageService {
         var connInfoSql = select().from(connInfoTable.getTable())
                 .where(Equal.of(connInfoTable.getDatastorageId(), id))
                 .generate().getStatement();
-        var storageAutoAddSettingSql = select().from(connInfoTable.getTable())
-                .where(Equal.of(connInfoTable.getDatastorageId(), id))
-                .generate().getStatement();
         var tagSql = select().from(dataStorageTagTable.getTable())
                 .where(Equal.of(dataStorageTagTable.getDatastorageId(), id))
                 .generate().getStatement();
@@ -286,7 +284,8 @@ public class DataStorageService {
         var result = dataLayerConnection.execute(dataStorageSql).getData().getTable();
 
         if (result.getRowsCount() == 0) {
-            throw new RuntimeException("No data of id = " + id);
+            log.warn("No data of id = " + id);
+            return StorageOuterClass.Storage.newBuilder();
         }
         var storageBuilder = getStorageBuilder(
                 result.getColumnsList(),
@@ -306,9 +305,85 @@ public class DataStorageService {
         result = dataLayerConnection.execute(tagSql).getData().getTable();
         storageBuilder.addAllTags(getTags(result.getColumnsList(), result.getRowsList()));
 
+        return storageBuilder;
+    }
+
+    public StorageOuterClass.Storage status(String id) {
+        var storageBuilder = getStorageBuilderById(id);
+        // TODO: statistic, history, event 정보 추가 필요
         return storageBuilder.build();
     }
 
+    public StorageOuterClass.Storage default_(String id) {
+        var storageBuilder = getStorageBuilderById(id);
+        return storageBuilder.build();
+    }
+
+    public StorageOuterClass.Storage advanced(String id) {
+        var storageBuilder = getStorageBuilderById(id);
+        var storageAutoAddSettingSql = select().from(connInfoTable.getTable())
+                .where(Equal.of(connInfoTable.getDatastorageId(), id))
+                .generate().getStatement();
+        // TODO: setting 정보 추가 필요
+        return storageBuilder.build();
+    }
+
+    public StorageOuterClass.StorageBrowse browse(String dataStorageId, String path, Integer depth, String name) {
+        var sql = select(
+                dataStorageTable.getUrl(),
+                connInfoTable.getKey(),
+                connInfoTable.getValue(),
+                connInfoTable.getBasic(),
+                adaptorTable.getStorageTypeName()
+        )
+                .from(connInfoTable.getTable())
+                .join(dataStorageTable.getTable(),
+                        JoinMethod.RIGHT,
+                        Equal.of(connInfoTable.getDatastorageId(), dataStorageTable.getId()))
+                .join(adaptorTable.getTable(),
+                        JoinMethod.RIGHT,
+                        Equal.of(adaptorTable.getId(), dataStorageTable.getAdaptorId()))
+                .where(Equal.of(connInfoTable.getDatastorageId(), dataStorageId))
+                .generate()
+                .getStatement();
+        var infos = dataLayerConnection.execute(sql);
+        var table = infos.getData().getTable();
+        var builder = StorageOuterClass.StorageBrowse.newBuilder()
+                .setId(dataStorageId)
+                .setPath(path);
+        if (table.getRowsCount() < 1) {
+            return builder.build();
+        }
+        var url = table.getRows(0).getCell(0).getStringValue();
+        Map<String, Object> basicOptions = new HashMap<>();
+        Properties advOptions = new Properties();
+        for (var row : table.getRowsList()) {
+            var key = row.getCell(1).getStringValue().toLowerCase();
+            var valueCell = row.getCell(2);
+            var value = convertDataOfDataLayer(table.getColumns(valueCell.getColumnIndex()), valueCell);
+
+            if (row.getCell(3).getBoolValue()) {
+                basicOptions.put(key, value);
+            } else {
+                advOptions.put(key, value);
+            }
+        }
+        var collector = DataCollectorFactory.getCollector(
+                table.getRows(0).getCell(4).getStringValue());
+        assert collector != null; // 삭제 할것 default 만들 던지 에러 처리 하던지
+        try (var engine = new JdbcConnector(url, basicOptions)) {
+            var conn = engine.connect(advOptions);
+            var cur = conn.cursor();
+            collector.setDepth(depth);
+            collector.setPath(path);
+            cur.execute(collector.getQuery());
+            return builder
+                    .addAllData(collector.parse(cur.getResultSet()))
+                    .build();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void addStorage(StorageOuterClass.Storage inputData) {
         List<String> sqlList = new ArrayList<>();
