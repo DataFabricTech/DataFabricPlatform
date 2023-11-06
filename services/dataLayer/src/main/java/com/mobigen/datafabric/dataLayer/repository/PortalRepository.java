@@ -69,8 +69,6 @@ public class PortalRepository {
                                 .text(new TextProperty.Builder().fielddata(true).build()).build());
                     }
                 }
-                // todoasdf
-
                 var mappings = new TypeMapping.Builder().properties(properties).build();
 
                 client.indices().create(c -> c.index(portalConfig.getDataCatalogIndex()).mappings(mappings));
@@ -113,6 +111,7 @@ public class PortalRepository {
         try {
             var response = client.index(i -> i.index(portalConfig.getDataCatalogIndex())
                     .document(dataCatalogModel));
+
             if (response.result() != Result.Created) {
                 log.error(String.format("Client Create Fail, result %s", response.result()));
                 throw new OpenSearchException(
@@ -131,6 +130,7 @@ public class PortalRepository {
         try {
             var response = client.index(i -> i.index(portalConfig.getStorageIndex())
                     .document(storageModel));
+
             if (response.result() != Result.Created) {
                 log.error(String.format("Client Create Fail, result %s", response.result()));
                 throw new OpenSearchException(
@@ -263,13 +263,12 @@ public class PortalRepository {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            // todo size -> config
             var hits = client.search(s -> s.index(portalConfig.getDataCatalogIndex())
                             .size(10000)
                     , DataCatalogModel.class).hits().hits();
+
             hits.forEach(hit -> {
-                var id = hit.source().getId();
-                ids.add(id.substring(1, id.length() - 1));
+                ids.add(hit.source().getId());
             });
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
@@ -288,8 +287,7 @@ public class PortalRepository {
                     , StorageModel.class).hits().hits();
 
             hits.forEach(hit -> {
-                var id = hit.source().getId();
-                ids.add(id);
+                ids.add(hit.source().getId());
             });
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());

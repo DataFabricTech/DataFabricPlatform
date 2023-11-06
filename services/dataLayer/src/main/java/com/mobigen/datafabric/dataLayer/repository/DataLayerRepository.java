@@ -71,7 +71,7 @@ public class DataLayerRepository {
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 column = Column.newBuilder()
                         .setColumnName(rs.getMetaData().getColumnName(i))
-                        .setType(Utilities.DataType.STRING)
+                        .setType(setColumnType(rs.getMetaData().getColumnType(i)))
                         .build();
                 tableBuilder.addColumns(column);
             }
@@ -80,25 +80,25 @@ public class DataLayerRepository {
                 Row.Builder rowsBuilder = Row.newBuilder();
                 for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                     cell = switch (rs.getMetaData().getColumnType(i)) {
-                        case 4, 5 -> // INTEGER, SMALLINT
+                        case Types.INTEGER, Types.SMALLINT ->  // INTEGER, SMALLINT
                                 Cell.newBuilder()
                                         .setInt32Value(rs.getInt(i))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
-                        case 6, 7 -> // FLOAT, REAL
+                        case Types.FLOAT, Types.REAL -> // FLOAT, REAL
                                 Cell.newBuilder()
                                         .setFloatValue(rs.getFloat(i))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
-                        case 8, 3, 2 -> // DOUBLE, NUMERIC, DECIMAL
+                        case Types.DOUBLE, Types.NUMERIC, Types.DECIMAL  -> // DOUBLE, NUMERIC, DECIMAL
                                 Cell.newBuilder()
                                         .setDoubleValue(rs.getDouble(i))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
-                        case -2, -3, 2004 -> // BINARY, VARBINARY, BLOB
+                        case Types.BINARY, Types.VARBINARY, Types.BLOB -> // BINARY, VARBINARY, BLOB
                                 Cell.newBuilder()
                                         .setBytesValue(ByteString.copyFrom(rs.getBytes(i)))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
 //                        case 91 -> { // DATE todo
 //                            time = Time.newBuilder()
@@ -134,26 +134,26 @@ public class DataLayerRepository {
 //                                yield Cell.newBuilder().build();
 //                            }
 //                        }
-                        case 16, -6 , -7-> // BOOLEAN, TINYINT
+                        case Types.BOOLEAN, Types.TINYINT ->  // BOOLEAN, TINYINT
                                 Cell.newBuilder()
                                         .setBoolValue(rs.getBoolean(i))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
-                        case -5 -> // BIGINT
+                        case Types.BIGINT -> // BIGINT
                                 Cell.newBuilder()
                                         .setInt64Value(rs.getLong(i))
-                                        .setColumnIndex(i-1)
+                                        .setColumnIndex(i - 1)
                                         .build();
                         default -> // Others
                                 rs.getString(i) != null ?
                                         Cell.newBuilder()
                                                 .setStringValue(rs.getString(i))
-                                                .setColumnIndex(i-1)
+                                                .setColumnIndex(i - 1)
                                                 .build()
                                         :
                                         Cell.newBuilder()
                                                 .setStringValue("")
-                                                .setColumnIndex(i-1)
+                                                .setColumnIndex(i - 1)
                                                 .build();
 
                     };
@@ -168,25 +168,23 @@ public class DataLayerRepository {
         return tableBuilder.build();
     }
 
-    public String setColumnType(int columTypeEnum) {
+    public Utilities.DataType setColumnType(int columTypeEnum) {
         return switch (columTypeEnum) {
-            case 4, 5 -> // INTEGER, SMALLINT
-                    "int32";
-            case 6, 7 -> // FLOAT, REAL
-                    "float";
-            case 8, 3, 2 -> // DOUBLE, NUMERIC, DECIMAL
-                    "double";
-            case -2, -3, 2004 -> // BINARY, VARBINARY, BLOB
-                    "bytes";
-            case 91 -> "date";
-            case 92 -> "time";
-            case 93 -> "timestamp";
-            case 16, -6 -> // BOOLEAN, TINYINT
-                    "boolean";
-            case -5 -> // BIGINT
-                    "int64";
+            case Types.INTEGER, Types.SMALLINT -> // INTEGER, SMALLINT
+                    Utilities.DataType.INT32;
+            case Types.FLOAT, Types.REAL -> // FLOAT, REAL
+                    Utilities.DataType.FLOAT;
+            case Types.DOUBLE, Types.NUMERIC, Types.DECIMAL  -> // DOUBLE, NUMERIC, DECIMAL
+                    Utilities.DataType.DOUBLE;
+            case Types.BINARY, Types.VARBINARY, Types.BLOB  -> // BINARY, VARBINARY, BLOB
+                    Utilities.DataType.BYTES;
+            case 91, 92, 93 -> Utilities.DataType.DATETIME;
+            case Types.BOOLEAN, Types.TINYINT -> // BOOLEAN, TINYINT
+                    Utilities.DataType.BOOL;
+            case Types.BIGINT -> // BIGINT
+                    Utilities.DataType.INT64;
             default -> // Others4
-                    "string";
+                    Utilities.DataType.STRING;
         };
     }
 

@@ -1,23 +1,17 @@
 package com.mobigen.datafabric.dataLayer.service;
 
-import com.mobigen.datafabric.dataLayer.config.DBConfig;
+import com.mobigen.datafabric.dataLayer.model.ResponseCode;
 import com.mobigen.datafabric.dataLayer.repository.DataLayerRepository;
 import com.mobigen.datafabric.share.protobuf.DataLayer.*;
 import com.mobigen.libs.grpc.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.insert.Insert;
 import org.opensearch.client.opensearch._types.OpenSearchException;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,7 +34,7 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
             if (statement.getClass().getSimpleName().equals("PlainSelect")) {
                 var table = dataLayerRepository.executeQuery(sql);
                 ResExecute.Data.newBuilder().setTable(table).build();
-                return resExecute.setCode("200")
+                return resExecute.setCode(ResponseCode.SUCCESS.getValue())
                         .setData(
                                 ResExecute.Data.newBuilder()
                                         .setTable(table)
@@ -55,14 +49,14 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
                         );
 
                 portalService.executeUpdate(sql);
-                return resExecute.setCode("200").build();
+                return resExecute.setCode(ResponseCode.SUCCESS.getValue()).build();
             }
         } catch (JSQLParserException e) {
             log.error(e.getMessage());
-            return resExecute.setCode("400").setErrMsg(e.getMessage()).build();
+            return resExecute.setCode(ResponseCode.UNKNOWN.getValue()).setErrMsg(e.getMessage()).build();
         } catch (SQLException | OpenSearchException | IOException | ClassNotFoundException
                  | IndexOutOfBoundsException | NullPointerException e) {
-            return resExecute.setCode("404").setErrMsg(e.getMessage()).build();
+            return resExecute.setCode(ResponseCode.UNKNOWN.getValue()).setErrMsg(e.getMessage()).build();
         }
     }
 
@@ -77,7 +71,7 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
                 if (statement.getClass().getSimpleName().equals("PlainSelect")) {
                     log.error("Batch not accept select Query");
                     return ResBatchExecute.newBuilder()
-                            .setCode("400")
+                            .setCode(ResponseCode.UNKNOWN.getValue())
                             .setErrMsg(String.format("Batch not use Select %s", sqls[i]))
                             .build();
                 }
@@ -90,26 +84,17 @@ public class DataLayerServiceImpl implements DataLayerCallBack {
         } catch (JSQLParserException e) {
             log.error(e.getMessage());
             return ResBatchExecute.newBuilder()
-                    .setCode("400")
+                    .setCode(ResponseCode.UNKNOWN.getValue())
                     .setErrMsg(e.getMessage())
                     .build();
         } catch (ClassNotFoundException | SQLException | IOException |
                  NullPointerException | OpenSearchException | IndexOutOfBoundsException e) {
             return ResBatchExecute.newBuilder()
-                    .setCode("404")
+                    .setCode(ResponseCode.UNKNOWN.getValue())
                     .setErrMsg(e.getMessage())
                     .build();
         }
-        return resBacthExecute.setCode("200").build();
-    }
 
-    private void addIdToSql(Insert state, String id) throws NullPointerException {
-        try {
-            state.getColumns().add(new Column("id"));
-            ((ExpressionList<Expression>) state.getSelect().getValues().getExpressions()).add(new StringValue(id));
-        } catch (NullPointerException e) {
-            log.error(e.getMessage());
-            throw e;
-        }
+        return resBacthExecute.setCode(ResponseCode.SUCCESS.getValue()).build();
     }
 }
