@@ -74,35 +74,22 @@ public class Timer {
         try {
             mutex.acquire();
             int id = getId();
-            TimerData timer;
-            long runTime;
+            Long startTime = null;
             if (utcMilliSecond != null) {
-                runTime = utcMilliSecond;
-                timer = TimerData.builder()
-                        .id(id)
-                        .runTime(utcMilliSecond)
-                        .period(0)
-                        .isRepeat(false)
-                        .callback(callback)
-                        .build();
+                startTime = utcMilliSecond;
             } else {
-                runTime = System.currentTimeMillis() + delayMilliSecond;
-                timer = TimerData.builder()
-                        .id(id)
-                        .runTime(runTime)
-                        .period(delayMilliSecond)
-                        .isRepeat(isRepeat != null ? isRepeat : false)
-                        .callback(callback)
-                        .build();
+                startTime = System.currentTimeMillis() + delayMilliSecond;
             }
+            TimerData tData = new TimerData(startTime, delayMilliSecond, isRepeat, callback );
+            tData.setTimerId( id );
 
             // 실행 시간 순서에 맞춰 삽입
             int insertIdx = 0;
             for (insertIdx = 0; insertIdx < timerList.size(); insertIdx++) {
-                if (timerList.get(insertIdx).getRunTime() < runTime) continue;
+                if (timerList.get(insertIdx).getStartTime() < startTime) continue;
                 break;
             }
-            timerList.add(insertIdx, timer);
+            timerList.add(insertIdx, tData);
             numTimer.incrementAndGet();
             return id;
         } catch (InterruptedException e) {
@@ -113,13 +100,49 @@ public class Timer {
         return -1;
     }
 
+    public Integer Add(TimerData timerData ) {
+        // Parameter Check
+        if (timerData.getStartTime() == null && timerData.getPeriod() == null ) return -1;
+        if (timerData.getStartTime() != null && timerData.getStartTime() < System.currentTimeMillis()) return -1;
+        if (timerData.getPeriod() != null && timerData.getPeriod() < 100) return -1;
+        if (timerData.getIsRepeat() != null && (timerData.getIsRepeat().equals( true ) && timerData.getPeriod() == null ) ) return -1;
+        if (timerData.getCallback() == null) return -1;
+
+        // Timer Size Check
+        if (numTimer.get() + 1 > this.maxSize) return -1;
+
+        try {
+            mutex.acquire();
+            timerData.setTimerId( getId() );
+            if ( timerData.getStartTime() == null) {
+                timerData.setStartTime( System.currentTimeMillis() + timerData.getPeriod() );
+            }
+
+            // 실행 시간 순서에 맞춰 삽입
+            int insertIdx = 0;
+            for (insertIdx = 0; insertIdx < timerList.size(); insertIdx++) {
+                if (timerList.get(insertIdx).getStartTime()  < timerData.getStartTime()) continue;
+                break;
+            }
+            timerList.add(insertIdx, timerData);
+            numTimer.incrementAndGet();
+            return timerData.getTimerId();
+        } catch (InterruptedException e) {
+            log.error("[ Timer ] Error : Add Time Callback Msg[ {} ]", e.getMessage());
+        } finally {
+            mutex.release();
+        }
+        return -1;
+    }
+
+
     public boolean Update(TimerData data) {
         try {
             mutex.acquire();
             // 실행 시간 순서에 맞춰 삽입
             int insertIdx = 0;
             for (insertIdx = 0; insertIdx < timerList.size(); insertIdx++) {
-                if (timerList.get(insertIdx).getRunTime() < data.getRunTime()) continue;
+                if (timerList.get(insertIdx).getStartTime() < data.getStartTime()) continue;
                 break;
             }
             timerList.add(insertIdx, data);
@@ -137,7 +160,7 @@ public class Timer {
         try {
             mutex.acquire();
             for (TimerData timer : timerList) {
-                if (timer.getId() != id) continue;
+                if (timer.getTimerId() != id) continue;
                 timerList.remove(timer);
                 numTimer.decrementAndGet();
                 delId(id);
@@ -167,27 +190,27 @@ public class Timer {
                 List<TimerData> repeatList = new LinkedList<>();
                 while (it.hasNext()) {
                     TimerData td = it.next();
-                    if (td.getRunTime() > now) {
-                        sleepTime = td.getRunTime() - now;
+                    if (td.getStartTime() > now) {
+                        sleepTime = td.getStartTime() - now;
                         break;
                     }
                     // Run
                     Runnable r = () -> td.getCallback().callback(td);
-                    System.out.println("Run : " + td.getId());
+                    System.out.println("Run : " + td.getTimerId());
                     worker.runTask(r);
 
                     // Add Delete List
                     delList.add(td);
                     // Add Repeat List
-                    if (td.isRepeat()) {
-                        td.setRunTime(now + td.getPeriod());
+                    if (td.getIsRepeat()) {
+                        td.setStartTime(now + td.getPeriod());
                         repeatList.add(td);
                     }
                 }
                 mutex.release();
 
                 // 업데이트
-                delList.forEach(timerData -> Del(timerData.getId()));
+                delList.forEach(timerData -> Del(timerData.getTimerId()));
                 repeatList.forEach(this::Update);
 
                 // 대기

@@ -95,7 +95,5 @@ public class ReaderThread implements Runnable {
             log.error("[ {} ] Storage ID is Null", this.readerName);
             return;
         }
-
     }
-
 }

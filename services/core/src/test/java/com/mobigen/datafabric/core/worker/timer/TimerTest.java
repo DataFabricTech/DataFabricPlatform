@@ -53,7 +53,7 @@ class TimerTest {
         int id04 = t.Add( runTime, null, false, r );
         assertTrue( id04 >= 0 );
         // 다른 녀석들보다 시간이 빠르므로 제일 먼저 들어가 있어야 함.
-        assertEquals( runTime, t.getTimerList().get( 0 ).getRunTime());
+        assertEquals( runTime, t.getTimerList().get( 0 ).getStartTime());
 
         t.Stop();
         timerThread.join();
