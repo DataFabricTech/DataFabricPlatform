@@ -2,6 +2,7 @@ package com.mobigen.sqlgen.model;
 
 import com.mobigen.sqlgen.where.Condition;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class SqlValue<T> {
     public String getValue() {
         if (value instanceof SqlColumn) {
             return ((SqlColumn) value).getNameWithTable();
-        } else if (value instanceof List) {
+        } else if (value instanceof Collection<?>) {
             return "("
                     + ((List<?>) value).stream()
                     .map(x -> new SqlValue<>(x).getValue())

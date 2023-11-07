@@ -78,7 +78,8 @@ public class AdaptorService {
                 connectionSchemaTable.getKey(),
                 connectionSchemaTable.getType(),
                 connectionSchemaTable.getDefaultCol(),
-                connectionSchemaTable.getRequired()
+                connectionSchemaTable.getRequired(),
+                connectionSchemaTable.getBasic()
         )
                 .from(adaptorTable.getTable())
                 .join(urlFormatTable.getTable(),

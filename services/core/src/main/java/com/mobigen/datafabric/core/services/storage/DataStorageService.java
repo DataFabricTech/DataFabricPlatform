@@ -11,12 +11,20 @@ import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
 import com.mobigen.datafabric.share.protobuf.Utilities;
 import com.mobigen.libs.configuration.Config;
 import com.mobigen.sqlgen.maker.JoinMaker;
+import com.mobigen.sqlgen.maker.MakerInterface;
+import com.mobigen.sqlgen.maker.OrderUsable;
+import com.mobigen.sqlgen.maker.WhereUsable;
 import com.mobigen.sqlgen.model.JoinMethod;
+import com.mobigen.sqlgen.order.Order;
+import com.mobigen.sqlgen.where.Condition;
 import com.mobigen.sqlgen.where.conditions.Equal;
+import com.mobigen.sqlgen.where.conditions.In;
+import com.mobigen.sqlgen.where.conditions.Like;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertDataOfDataLayer;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
@@ -244,8 +252,11 @@ public class DataStorageService {
         return tags;
     }
 
-    public List<StorageOuterClass.Storage> search() {
-        var sqlBuilder = select(
+    public List<StorageOuterClass.Storage> search(
+            StorageOuterClass.StorageSearchFilter filter,
+            List<Utilities.Sort> sorts
+    ) {
+        MakerInterface sqlBuilder = select(
                 dataStorageTable.getId(),
                 dataStorageTable.getName(),
                 dataStorageTable.getStatus(),
@@ -255,6 +266,36 @@ public class DataStorageService {
                 .join(adaptorTable.getTable(),
                         JoinMethod.LEFT,
                         Equal.of(dataStorageTable.getAdaptorId(), adaptorTable.getId()));
+
+        List<Condition> conditions = new ArrayList<>();
+        if (!filter.getName().isBlank()) {
+            conditions.add(Like.of(dataStorageTable.getName(), "%" + filter.getName() + "%"));
+        }
+        if (filter.getStorageTypeCount() > 0) {
+            conditions.add(In.of(adaptorTable.getStorageTypeName(),
+                    filter.getStorageTypeList()
+            ));
+        }
+        if (filter.getStatusCount() > 0) {
+            conditions.add(In.of(dataStorageTable.getStatus(),
+                    filter.getStatusList().stream()
+                            .map(x -> x.getValueDescriptor().getName())
+                            .collect(Collectors.toList())
+            ));
+        }
+
+        if (!conditions.isEmpty()) {
+            sqlBuilder = ((WhereUsable) sqlBuilder)
+                    .where(conditions.toArray(new Condition[]{}));
+        }
+        if (!sorts.isEmpty()) {
+            sqlBuilder = ((OrderUsable) sqlBuilder)
+                    .orderBy(
+                            sorts.stream()
+                                    .map(x -> new Order(x.getOrder(), x.getField(), x.getDirection().name()))
+                                    .toArray(Order[]::new)
+                    );
+        }
 
         var dbResult = dataLayerConnection.execute(sqlBuilder.generate().getStatement());
         var tableData = dbResult.getData().getTable();

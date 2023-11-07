@@ -16,7 +16,7 @@ import java.util.List;
  * @version 0.0.1
  * @since 0.0.1
  */
-public class WhereMaker implements MakerInterface {
+public class WhereMaker extends OrderUsable implements MakerInterface {
     private final MakerInterface maker;
     private final List<Condition> conditions;
 

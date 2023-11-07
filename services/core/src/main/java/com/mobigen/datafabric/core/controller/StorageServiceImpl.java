@@ -60,7 +60,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorages.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorages.Data.newBuilder()
-                        .addAllStorages(dataStorageService.search())
+                        .addAllStorages(dataStorageService.search(filters, sorts))
                         .build())
                 .build();
     }

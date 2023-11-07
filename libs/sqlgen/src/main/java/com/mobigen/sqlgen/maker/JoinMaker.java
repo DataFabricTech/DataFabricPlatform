@@ -20,7 +20,7 @@ import java.util.Objects;
  * @version 0.0.1
  * @since 0.0.1
  */
-public class JoinMaker implements MakerInterface {
+public class JoinMaker extends OrderUsable implements WhereUsable {
     private final MakerInterface maker;
     private final SqlTable rightTable;
     private JoinMethod how;
@@ -53,6 +53,7 @@ public class JoinMaker implements MakerInterface {
         return join(rightTable, JoinMethod.INNER);
     }
 
+    @Override
     public WhereMaker where(Condition... conditions) {
         return new WhereMaker.Builder()
                 .withMaker(this)
