@@ -27,6 +27,9 @@ public class Worker {
     }
 
     public void monitoring() {
-        log.error( "[ Worker ] Active[ {} ] PoolSize[ {} ], TaskQueue[ {} ]", this.executor.getActiveCount(), this.executor.getPoolSize(), this.executor.getQueue().size() );
+        log.error( "[ Worker ] Active[ {} ] PoolSize[ {} ], TaskQueue[ {} ]",
+                this.executor.getActiveCount(),
+                this.executor.getPoolSize(),
+                this.executor.getQueue().size() );
     }
 }

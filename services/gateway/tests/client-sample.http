@@ -80,7 +80,7 @@ GET http://{{host}}:{{port}}/storage/v1/storage-type
 Accept: application/json
 
 ### Adaptor List And Input Field Options
-GET http://{{host}}:{{port}}/storage/v1/adaptors?storage-type=iris
+GET http://{{host}}:{{port}}/storage/v1/adaptors?storage-type=postgres
 Accept: application/json
 
 ### Connect Test - Auth Fail
