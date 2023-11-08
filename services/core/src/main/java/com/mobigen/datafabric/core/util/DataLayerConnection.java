@@ -48,6 +48,7 @@ public class DataLayerConnection {
         }
     }
 
+    @Deprecated
     public DataLayer.ResExecute getStorage(String sql) {
         log.info("sql: " + sql);
         return DataLayer.ResExecute.newBuilder()

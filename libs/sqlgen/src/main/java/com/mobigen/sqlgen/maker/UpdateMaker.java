@@ -19,7 +19,7 @@ import java.util.Objects;
  * @version 0.0.1
  * @since 0.0.1
  */
-public class UpdateMaker implements MakerInterface {
+public class UpdateMaker implements WhereUsable {
 
     private final SqlTable table;
 
@@ -59,6 +59,7 @@ public class UpdateMaker implements MakerInterface {
                 .build();
     }
 
+    @Override
     public WhereMaker where(Condition... conditions) {
         return new WhereMaker.Builder()
                 .withMaker(this)

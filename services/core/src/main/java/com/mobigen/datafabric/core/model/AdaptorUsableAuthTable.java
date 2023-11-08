@@ -14,9 +14,8 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class AdaptorUsableAuthTable {
-    SqlTable table = SqlTable.of("AdaptorUsableAuth");
-    SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
-    SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
+    public static SqlTable table = SqlTable.of("AdaptorUsableAuth");
+    public static SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
+    public static SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
 }

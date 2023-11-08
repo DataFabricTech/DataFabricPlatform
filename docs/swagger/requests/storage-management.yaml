@@ -24,6 +24,7 @@ ConnectTest:
                 value: "utf-8"
               - key: "timezone"
                 value: "asia/seoul"
+            url_format: "jdbc:postgresql://{host}:{port}/{database}"
         iris:
           value:
             adaptorId: "iris-adaptor-001"
@@ -43,6 +44,7 @@ ConnectTest:
                 value: "utf-8"
               - key: "timezone"
                 value: "asia/seoul"
+            url_format: "jdbc:postgresql://{host}:{port}/{database}"
 
 AddStorage:
   description: "연결정보(저장소) 저장 요청 메시지"
@@ -64,6 +66,7 @@ AddStorage:
               - "설계"
             storageType: "IRIS"
             adaptorId: "IRIS-adaptor-01"
+            url: "jdbc:postgresql://{host}:{port}/{database}"
             basicOptions:
               - key: "HOST"
                 value: "localhost"

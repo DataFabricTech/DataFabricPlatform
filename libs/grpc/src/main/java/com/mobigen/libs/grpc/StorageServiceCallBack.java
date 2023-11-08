@@ -15,7 +15,7 @@ public interface StorageServiceCallBack {
 
     StorageOuterClass.ResStorage advanced(Utilities.ReqId request);
 
-    StorageOuterClass.ResStorageBrowse browse();
+    StorageOuterClass.ResStorageBrowse browse(StorageOuterClass.ReqStorageBrowse request);
 
     StorageOuterClass.ResStorageBrowseDefault browseDefault();
 

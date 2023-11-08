@@ -14,13 +14,12 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class ConnectionSchemaTable {
-    SqlTable table = SqlTable.of("ConnectionSchema");
-    SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
-    SqlColumn keyCol = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    SqlColumn typeCol = SqlColumn.of("type", table, JDBCType.VARCHAR);
-    SqlColumn defaultCol = SqlColumn.of("default", table, JDBCType.BLOB);
-    SqlColumn requiredCol = SqlColumn.of("required", table, JDBCType.BOOLEAN);
-
+    public static SqlTable table = SqlTable.of("ConnectionSchema");
+    public static SqlColumn adaptorId = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
+    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
+    public static SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
+    public static SqlColumn defaultCol = SqlColumn.of("default", table, JDBCType.BLOB);
+    public static SqlColumn required = SqlColumn.of("required", table, JDBCType.BOOLEAN);
+    public static SqlColumn basic = SqlColumn.of("basic", table, JDBCType.BOOLEAN);
 }

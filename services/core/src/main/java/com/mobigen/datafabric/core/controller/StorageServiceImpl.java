@@ -1,19 +1,12 @@
 package com.mobigen.datafabric.core.controller;
 
 import com.mobigen.datafabric.core.services.storage.DataStorageService;
-import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
 import com.mobigen.datafabric.share.protobuf.Utilities;
 import com.mobigen.libs.grpc.StorageServiceCallBack;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertInputField;
 
 /**
  * gRPC 의 request 를 받아 response 를 생성하는 콜백 클래스의 구현부
@@ -60,7 +53,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorages.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorages.Data.newBuilder()
-                        .addAllStorages(dataStorageService.search())
+                        .addAllStorages(dataStorageService.search(filters, sorts))
                         .build())
                 .build();
     }
@@ -80,7 +73,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .setStorage(dataStorageService.getStorage(request.getId()))
+                        .setStorage(dataStorageService.default_(request.getId()))
                         .build())
                 .build();
     }
@@ -90,14 +83,24 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorage.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorage.Data.newBuilder()
-                        .setStorage(dataStorageService.getStorage(request.getId()))
+                        .setStorage(dataStorageService.advanced(request.getId()))
                         .build())
                 .build();
     }
 
     @Override
-    public StorageOuterClass.ResStorageBrowse browse() {
-        return null;
+    public StorageOuterClass.ResStorageBrowse browse(StorageOuterClass.ReqStorageBrowse request) {
+        return StorageOuterClass.ResStorageBrowse.newBuilder()
+                .setCode("OK")
+                .setData(StorageOuterClass.ResStorageBrowse.Data.newBuilder()
+                        .setStorageBrowse(dataStorageService.browse(
+                                request.getId(),
+                                request.getPath(),
+                                request.getDepth(),
+                                request.getName()
+                        ))
+                        .build())
+                .build();
     }
 
     @Override
@@ -107,37 +110,20 @@ public class StorageServiceImpl implements StorageServiceCallBack {
 
     @Override
     public Utilities.CommonResponse connectTest(StorageOuterClass.ConnInfo request) {
-        Map<String, Object> basic = new HashMap<>();
-
-        for (var op : request.getBasicOptionsList()) {
-            basic.put(op.getKey().toLowerCase(), convertInputField(op));
-        }
-
-        Properties addition = new Properties();
-
-        for (var op : request.getAdvancedOptionsList()) {
-            addition.put(op.getKey().toLowerCase(), convertInputField(op));
-        }
-
-        var urlFormat = request.getUrlFormat();
-        try (var connector = new JdbcConnector(urlFormat, basic)) {
-            var conn = connector.connect(addition);
-            var cur = conn.cursor();
-            cur.execute("select 1");
-            var result = cur.getResultSet();
-            System.out.println(result);
-            result.next();
-            var value = result.getString(1);
-            if (value.equals("1")) {
-                return Utilities.CommonResponse.newBuilder().setCode("OK").build();
-            } else {
-                return Utilities.CommonResponse.newBuilder().setCode("FAIL").build();
-            }
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
+        var result = dataStorageService.connectTest(
+                request.getAdaptorId(),
+                request.getBasicOptionsList(),
+                request.getAdvancedOptionsList(),
+                request.getUrlFormat()
+        );
+        if (result.getLeft()) {
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("OK")
+                    .build();
+        } else {
             return Utilities.CommonResponse.newBuilder()
                     .setCode("FAIL")
-                    .setErrMsg(e.getMessage())
+                    .setErrMsg(result.getRight())
                     .build();
         }
     }

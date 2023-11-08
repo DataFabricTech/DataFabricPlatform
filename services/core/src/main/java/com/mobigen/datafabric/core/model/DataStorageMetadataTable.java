@@ -14,11 +14,10 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class DataStorageMetadataTable {
-    SqlTable table = SqlTable.of("DataStorageMetadata");
-    SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
-    SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
-    SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
+    public static SqlTable table = SqlTable.of("DataStorageMetadata");
+    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
+    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
+    public static SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
+    public static SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
 }

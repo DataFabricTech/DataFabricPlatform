@@ -17,7 +17,7 @@ import java.util.Objects;
  * @version 0.0.1
  * @since 0.0.1
  */
-public class DeleteMaker implements MakerInterface {
+public class DeleteMaker implements WhereUsable {
 
     private final SqlTable table;
 
@@ -32,6 +32,7 @@ public class DeleteMaker implements MakerInterface {
                 .build();
     }
 
+    @Override
     public WhereMaker where(Condition... conditions) {
         return new WhereMaker.Builder()
                 .withMaker(this)
