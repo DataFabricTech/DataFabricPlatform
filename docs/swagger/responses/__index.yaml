@@ -1,6 +1,8 @@
 ## Search(Portal)
 Search:
   $ref: "./search.yaml#/Search"
+SearchItems:
+  $ref: "./search.yaml#/SearchItems"
 RecentSearches:
   $ref: "./search.yaml#/RecentSearches"
 
