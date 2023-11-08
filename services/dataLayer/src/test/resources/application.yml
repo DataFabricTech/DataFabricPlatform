@@ -9,7 +9,7 @@ open_search:
   number_of_recent_searches: 10
   limit_search_size: 10000
   default_search_size: 10
-  data_catalog_filters: name, dataType, dataFormat, knowledgeGraph, categories, tag, connectorType, connectorName
+  filters: name, dataType, dataFormat, knowledgeGraph, categories, tag, connectorType, connectorName
 
 datasource:
   url: jdbc:postgresql://192.168.107.28:14632/testdb
