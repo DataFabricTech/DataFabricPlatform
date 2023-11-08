@@ -237,3 +237,47 @@ RecentSearchesResponse:
       type: array
       items:
         type: string
+SearchItemsResponse:
+  type: object
+  description: "상세 검색 항목"
+  properties:
+    keywordType:
+      type: string
+      description: "희망하는 검색 타입"
+      enum:
+        - "ALL"
+        - "DATA_MODEL"
+        - "TAG"
+        - "OWNER"
+        - "CATEGORY"
+    dateType:
+      type: string
+      description: "기간 타입"
+      enum:
+        - "ALL"
+        - "RECENT_UPDATED"
+        - "RECENT_CREATED"
+    connectorName:
+      type: array
+      description: "연결 정보의 이름"
+      items:
+        type: string
+    storageType:
+       type: array
+       description: "연결 정보의 유형"
+       items:
+         type: string
+    dataType:
+       type: array
+       description: "데이터 모델의 형식"
+       items:
+         type: string
+    dataFormat:
+      type: array
+      description: "데이터 모델의 포맷"
+      items:
+        type: string
+
+
+
+

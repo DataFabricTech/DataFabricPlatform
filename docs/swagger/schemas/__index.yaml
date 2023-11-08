@@ -30,7 +30,8 @@ SearchResponseContent:
   $ref: "./search.yaml#/SearchResponseContent"
 RecentSearchesResponse:
   $ref: "./search.yaml#/RecentSearchesResponse"
-
+SearchItemsResponse:
+  $ref: "./search.yaml#/SearchItemsResponse"
 
 ## Supported Storage Type
 InputField:
