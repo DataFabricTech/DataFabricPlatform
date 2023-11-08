@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -17,23 +19,26 @@ import java.util.Properties;
  */
 @Slf4j
 public class JdbcConnector implements AutoCloseable {
-    private String url;
+    private final String url;
+    private final Properties advancedOptions;
+    private final String driver;
     private Connection connection;
     private Cursor cursor;
 
-    public JdbcConnector(String urlFormat, Map<String, Object> basicOptions) {
-        url = StringSubstitutor.replace(urlFormat, basicOptions, "{", "}");
+    private JdbcConnector(Builder builder) {
+        var urlFormat = Objects.requireNonNull(builder.urlFormat);
+        url = StringSubstitutor.replace(urlFormat, builder.urlOptions, "{", "}");
+        advancedOptions = Objects.requireNonNull(builder.advancedOptions);
+        driver = Objects.requireNonNull(builder.driver);
     }
 
-    public JdbcConnector connect(Properties options) throws SQLException {
+    public JdbcConnector connect() throws SQLException, ClassNotFoundException {
         // TODO: driver 받아서 연결해야함. 예외처리 필수
-        connection = DriverManager.getConnection(url, options);
+        Class.forName(driver);
+        log.info("Success to load driver. " + driver);
+        connection = DriverManager.getConnection(url, advancedOptions);
+        connection.setAutoCommit(false);
         return this;
-    }
-
-
-    public JdbcConnector connect() throws SQLException {
-        return connect(new Properties());
     }
 
     public ResultSet getTables() {
@@ -50,6 +55,17 @@ public class JdbcConnector implements AutoCloseable {
         try {
             cursor = new Cursor(connection.createStatement());
             return cursor;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ResultSet getMetadata(String schemaPattern, String tableNamePattern) {
+        if (tableNamePattern == null) {
+            tableNamePattern = "%";
+        }
+        try {
+            return connection.getMetaData().getTables(null, schemaPattern, tableNamePattern, null);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -100,6 +116,42 @@ public class JdbcConnector implements AutoCloseable {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    public static class Builder {
+        private String urlFormat;
+        private final Map<String, Object> urlOptions = new HashMap<>();
+        private final Properties advancedOptions = new Properties();
+        private String driver;
+
+        public Builder withUrlFormat(String urlFormat) {
+            this.urlFormat = urlFormat;
+            return this;
+        }
+
+        public Builder withUrlOptions(Map<String, Object> options) {
+            this.urlOptions.putAll(options);
+            return this;
+        }
+
+        public Builder withAdvancedOptions(Map<String, Object> options) {
+            this.advancedOptions.putAll(options);
+            return this;
+        }
+
+        public Builder withAdvancedOptions(Properties options) {
+            this.advancedOptions.putAll(options);
+            return this;
+        }
+
+        public Builder withDriver(String driver) {
+            this.driver = driver;
+            return this;
+        }
+
+        public JdbcConnector build() {
+            return new JdbcConnector(this);
         }
     }
 }

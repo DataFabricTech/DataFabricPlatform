@@ -10,11 +10,8 @@ package com.mobigen.datafabric.core.collector;
 public class DataCollectorFactory {
     public static DataCollector getCollector(String database) {
         switch (database.toLowerCase()) {
-            case "postgresql" -> {
-                return new PostgresCollector();
-            }
-            case "mysql" -> {
-                return null;
+            case "postgresql", "mysql", "mariadb" -> {
+                return new JdbcCollector();
             }
             default -> {
                 return null;

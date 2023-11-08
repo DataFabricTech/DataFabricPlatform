@@ -2,9 +2,9 @@ package com.mobigen.datafabric.core.collector;
 
 import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * <p>
@@ -18,7 +18,5 @@ public interface DataCollector {
 
     void setPath(String path);
 
-    String getQuery();
-
-    List<StorageOuterClass.StorageBrowseData> parse(ResultSet rs) throws SQLException;
+    List<StorageOuterClass.StorageBrowseData> collect(String url, Map<String, Object> options, Properties properties, String driver);
 }

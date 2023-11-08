@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertDataOfDataLayer;
+import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertInputField;
 import static com.mobigen.sqlgen.SqlBuilder.insert;
 import static com.mobigen.sqlgen.SqlBuilder.select;
 import static com.mobigen.sqlgen.maker.DeleteMaker.delete;
@@ -375,7 +376,8 @@ public class DataStorageService {
                 connInfoTable.getKey(),
                 connInfoTable.getValue(),
                 connInfoTable.getBasic(),
-                adaptorTable.getStorageTypeName()
+                adaptorTable.getStorageTypeName(),
+                adaptorTable.getDriver()
         )
                 .from(connInfoTable.getTable())
                 .join(dataStorageTable.getTable(),
@@ -412,18 +414,12 @@ public class DataStorageService {
         var collector = DataCollectorFactory.getCollector(
                 table.getRows(0).getCell(4).getStringValue());
         assert collector != null; // 삭제 할것 default 만들 던지 에러 처리 하던지
-        try (var engine = new JdbcConnector(url, basicOptions)) {
-            var conn = engine.connect(advOptions);
-            var cur = conn.cursor();
-            collector.setDepth(depth);
-            collector.setPath(path);
-            cur.execute(collector.getQuery());
-            return builder
-                    .addAllData(collector.parse(cur.getResultSet()))
-                    .build();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        collector.setDepth(depth);
+        collector.setPath(path);
+        var driver = table.getRows(0).getCell(5).getStringValue();
+        return builder
+                .addAllData(collector.collect(url, basicOptions, advOptions, driver))
+                .build();
     }
 
     public void addStorage(StorageOuterClass.Storage inputData) {
@@ -584,6 +580,60 @@ public class DataStorageService {
                 .getStatement();
         var result = dataLayerConnection.execute(sql);
         log.info("delete result: " + result.getData().getResponse());
+    }
+
+    public Tuple<Boolean, String> connectTest(
+            String id,
+            List<StorageCommon.InputField> basicOptions,
+            List<StorageCommon.InputField> advancedOptions,
+            String urlFormat
+    ) {
+        var sql = select(adaptorTable.getDriver())
+                .from(adaptorTable.getTable())
+                .where(Equal.of(adaptorTable.getId(), id))
+                .generate()
+                .getStatement();
+        var resultTable = dataLayerConnection.execute(sql).getData().getTable();
+        if (resultTable.getRowsCount() != 1 || resultTable.getRows(0).getCellCount() != 1) {
+            return new Tuple<>(false, "해당 id 의 driver 값을 찾지 못했다.");
+        }
+        var driver = resultTable.getRows(0).getCell(0).getStringValue();
+
+        Map<String, Object> basic = new HashMap<>();
+
+        for (var op : basicOptions) {
+            basic.put(op.getKey().toLowerCase(), convertInputField(op));
+        }
+
+        Properties addition = new Properties();
+
+        for (var op : advancedOptions) {
+            addition.put(op.getKey().toLowerCase(), convertInputField(op));
+        }
+
+        try (var connector = new JdbcConnector.Builder()
+                .withUrlFormat(urlFormat)
+                .withUrlOptions(basic)
+                .withAdvancedOptions(addition)
+                .withDriver(driver)
+                .build()
+        ) {
+            var conn = connector.connect();
+            var cur = conn.cursor();
+            cur.execute("select 1");
+            var result = cur.getResultSet();
+            System.out.println(result);
+            result.next();
+            var value = result.getString(1);
+            if (value.equals("1")) {
+                return new Tuple<>(true, "연결 성공");
+            } else {
+                return new Tuple<>(false, "연결 실패");
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            log.error(e.getMessage(), e);
+            return new Tuple<>(false, e.getMessage());
+        }
     }
 
 //    public List<Map<String, String>> getStorageList() {
