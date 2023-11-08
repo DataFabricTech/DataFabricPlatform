@@ -78,50 +78,46 @@ class AdaptorServiceTest {
         var driver = "org.postgresql.Driver";
         var url = "jdbc:postgresql://{host}:{port}/{database}";
 
-        var adaptorTable = new DataStorageAdaptorTable();
-        var urlFormatTable = new UrlFormatTable();
-        var connectionSchemaTable = new ConnectionSchemaTable();
-
         when(dataLayerConnection.execute(any()))
                 .thenReturn(DataLayer.ResExecute.newBuilder()
                         .setData(DataLayer.ResExecute.Data.newBuilder()
                                 .setTable(DataLayer.Table.newBuilder()
                                         .addAllColumns(List.of(
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getId().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.id.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getStorageTypeName().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.storageTypeName.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getName().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.name.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getVersion().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.version.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getPath().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.path.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(adaptorTable.getDriver().getName())
+                                                        .setColumnName(DataStorageAdaptorTable.driver.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(urlFormatTable.getFormat().getName())
+                                                        .setColumnName(UrlFormatTable.format.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(connectionSchemaTable.getKey().getName())
+                                                        .setColumnName(ConnectionSchemaTable.key.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(connectionSchemaTable.getType().getName())
+                                                        .setColumnName(ConnectionSchemaTable.type.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(connectionSchemaTable.getDefaultCol().getName())
+                                                        .setColumnName(ConnectionSchemaTable.defaultCol.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(connectionSchemaTable.getRequired().getName())
+                                                        .setColumnName(ConnectionSchemaTable.required.getName())
                                                         .build(),
                                                 DataLayer.Column.newBuilder()
-                                                        .setColumnName(connectionSchemaTable.getBasic().getName())
+                                                        .setColumnName(ConnectionSchemaTable.basic.getName())
                                                         .build()
                                         ))
                                         .addAllRows(List.of(

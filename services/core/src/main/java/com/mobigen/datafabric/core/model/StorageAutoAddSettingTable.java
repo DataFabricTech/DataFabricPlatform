@@ -17,17 +17,16 @@ import static com.mobigen.sqlgen.maker.SelectMaker.select;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class StorageAutoAddSettingTable {
-    SqlTable table = SqlTable.of("StorageAutoAddSetting");
-    SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
-    SqlColumn regex = SqlColumn.of("regex", table, JDBCType.VARCHAR);
-    SqlColumn dataType = SqlColumn.of("data_type", table, JDBCType.VARCHAR);
-    SqlColumn dataFormat = SqlColumn.of("data_format", table, JDBCType.VARCHAR);
-    SqlColumn minSize = SqlColumn.of("min_size", table, JDBCType.INTEGER);
-    SqlColumn maxSize = SqlColumn.of("max_size", table, JDBCType.INTEGER);
-    SqlColumn startDate = SqlColumn.of("start_date", table, JDBCType.VARCHAR);
-    SqlColumn endDate = SqlColumn.of("end_date", table, JDBCType.VARCHAR);
+    public static SqlTable table = SqlTable.of("StorageAutoAddSetting");
+    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
+    public static SqlColumn regex = SqlColumn.of("regex", table, JDBCType.VARCHAR);
+    public static SqlColumn dataType = SqlColumn.of("data_type", table, JDBCType.VARCHAR);
+    public static SqlColumn dataFormat = SqlColumn.of("data_format", table, JDBCType.VARCHAR);
+    public static SqlColumn minSize = SqlColumn.of("min_size", table, JDBCType.INTEGER);
+    public static SqlColumn maxSize = SqlColumn.of("max_size", table, JDBCType.INTEGER);
+    public static SqlColumn startDate = SqlColumn.of("start_date", table, JDBCType.VARCHAR);
+    public static SqlColumn endDate = SqlColumn.of("end_date", table, JDBCType.VARCHAR);
 
     public SelectMaker selectAll() {
         return select().from(table);

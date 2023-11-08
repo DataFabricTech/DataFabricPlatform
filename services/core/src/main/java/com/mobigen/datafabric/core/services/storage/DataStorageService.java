@@ -41,12 +41,6 @@ import static com.mobigen.sqlgen.maker.DeleteMaker.delete;
  */
 @Slf4j
 public class DataStorageService {
-    DataStorageTable dataStorageTable = new DataStorageTable();
-    StorageAutoAddSettingTable storageAutoAddSettingTable = new StorageAutoAddSettingTable();
-    ConnInfoTable connInfoTable = new ConnInfoTable();
-    DataStorageAdaptorTable adaptorTable = new DataStorageAdaptorTable();
-    DataStorageTagTable dataStorageTagTable = new DataStorageTagTable();
-    DataStorageMetadataTable dataStorageMetadataTable = new DataStorageMetadataTable();
 
     static Config config = new Config();
     DataLayerConnection dataLayerConnection;
@@ -63,88 +57,15 @@ public class DataStorageService {
 
     private JoinMaker getDataStorageStmt() {
         return select(
-                dataStorageTable.getId(),
-                dataStorageTable.getName(),
-                adaptorTable.getStorageTypeName()
+                DataStorageTable.id,
+                DataStorageTable.name,
+                DataStorageAdaptorTable.storageTypeName
         )
-                .from(dataStorageTable.getTable())
-                .join(adaptorTable.getTable(),
+                .from(DataStorageTable.table)
+                .join(DataStorageAdaptorTable.table,
                         JoinMethod.LEFT,
-                        Equal.of(dataStorageTable.getAdaptorId(), adaptorTable.getId())
+                        Equal.of(DataStorageTable.adaptorId, DataStorageAdaptorTable.id)
                 );
-    }
-
-    private StorageOuterClass.Storage convertStorage(DataLayer.Row row, List<DataLayer.Column> columns) {
-        var storageBuilder = StorageOuterClass.Storage.newBuilder();
-        for (var cell : row.getCellList()) {
-            var cellHead = columns.get(cell.getColumnIndex());
-            var data = convertDataOfDataLayer(cellHead, cell);
-            var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
-            if (colNameCaseIgnore.equals(dataStorageTable.getId().getName())) {
-                storageBuilder.setId((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getAdaptorId().getName())) {
-                storageBuilder.setAdaptorId((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getName().getName())) {
-                storageBuilder.setName((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getUserDesc().getName())) {
-                storageBuilder.setDescription((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getStatus().getName())) {
-                storageBuilder.setStatus(Utilities.Status.valueOf((String) data));
-            }
-        }
-        return storageBuilder.build();
-    }
-
-    @Deprecated
-    public List<StorageOuterClass.Storage> getStorageList() {
-        var dataStorageSql = getDataStorageStmt()
-                .generate()
-                .getStatement();
-        var systemMetadataSql = "";
-        var userMetadataSql = "";
-        var storageTagSql = "";
-        var autoAddSettingSql = storageAutoAddSettingTable.selectAll()
-                .generate()
-                .getStatement();
-
-        // TODO: DataLayer 연동
-        // storage builder 를 이용 해서 data storage 데이터를 넣고,
-        // id 로 순회하면서 setting 정보를 넣어야함
-//        var dbResult = dataLayerConnection.execute(dataStorageSql);
-        var dbResult = dataLayerConnection.getStorage(dataStorageSql);
-
-        var tableData = dbResult.getData().getTable();
-        List<StorageOuterClass.Storage> result = new ArrayList<>();
-        for (var row : tableData.getRowsList()) {
-            result.add(convertStorage(row, tableData.getColumnsList()));
-        }
-        return result;
-    }
-
-
-    @Deprecated
-    public StorageOuterClass.Storage getStorage(String id) {
-        var dataStorageSql = getDataStorageStmt()
-                .where(Equal.of(dataStorageTable.getId(), id))
-                .generate()
-                .getStatement();
-        var systemMetadataSql = "";
-        var userMetadataSql = "";
-        var storageTagSql = "";
-        var autoAddSettingSql = storageAutoAddSettingTable.selectAll()
-                .where(Equal.of(storageAutoAddSettingTable.getDatastorageId(), id))
-                .generate()
-                .getStatement();
-
-        // TODO: DataLayer 연동
-        // storage builder 를 이용 해서 data storage 데이터를 넣고,
-        // id 로 순회하면서 setting 정보를 넣어야함
-//        var dbResult = dataLayerConnection.execute(dataStorageSql);
-        var dbResult = dataLayerConnection.getStorage(dataStorageSql);
-
-        var tableData = dbResult.getData().getTable();
-        var row = tableData.getRows(0);
-        return convertStorage(row, tableData.getColumnsList());
     }
 
     private StorageOuterClass.Storage.Builder getStorageBuilder(
@@ -156,20 +77,20 @@ public class DataStorageService {
             var cellHead = columns.get(cell.getColumnIndex());
             var data = convertDataOfDataLayer(cellHead, cell);
             var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
-            if (colNameCaseIgnore.equals(dataStorageTable.getId().getName())) {
+            if (colNameCaseIgnore.equals(DataStorageTable.id.getName())) {
                 builder.setId((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getAdaptorId().getName())) {
+            } else if (colNameCaseIgnore.equals(DataStorageTable.adaptorId.getName())) {
                 builder.setAdaptorId((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getName().getName())) {
+            } else if (colNameCaseIgnore.equals(DataStorageTable.name.getName())) {
                 builder.setName((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getUserDesc().getName())) {
+            } else if (colNameCaseIgnore.equals(DataStorageTable.userDesc.getName())) {
                 builder.setDescription((String) data);
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getStatus().getName())) {
+            } else if (colNameCaseIgnore.equals(DataStorageTable.status.getName())) {
                 if (data == "") {
                     data = "INIT";
                 }
                 builder.setStatus(Utilities.Status.valueOf((String) data));
-            } else if (colNameCaseIgnore.equals(dataStorageTable.getUrl().getName())) {
+            } else if (colNameCaseIgnore.equals(DataStorageTable.url.getName())) {
                 builder.setUrl((String) data);
             }
         }
@@ -190,11 +111,11 @@ public class DataStorageService {
                 var cellHead = columns.get(cell.getColumnIndex());
                 var data = convertDataOfDataLayer(cellHead, cell);
                 var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
-                if (colNameCaseIgnore.equals(dataStorageMetadataTable.getKey().getName())) {
+                if (colNameCaseIgnore.equals(DataStorageMetadataTable.key.getName())) {
                     metaBuilder.setKey((String) data);
-                } else if (colNameCaseIgnore.equals(dataStorageMetadataTable.getValue().getName())) {
+                } else if (colNameCaseIgnore.equals(DataStorageMetadataTable.value.getName())) {
                     metaBuilder.setValue((String) data);
-                } else if (colNameCaseIgnore.equals(dataStorageMetadataTable.getIsSystem().getName())) {
+                } else if (colNameCaseIgnore.equals(DataStorageMetadataTable.isSystem.getName())) {
                     isSystem = (boolean) data;
                 }
             }
@@ -220,11 +141,11 @@ public class DataStorageService {
                 var cellHead = columns.get(cell.getColumnIndex());
                 var data = convertDataOfDataLayer(cellHead, cell);
                 var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
-                if (colNameCaseIgnore.equals(connInfoTable.getKey().getName())) {
+                if (colNameCaseIgnore.equals(ConnInfoTable.key.getName())) {
                     builder.setKey((String) data);
-                } else if (colNameCaseIgnore.equals(connInfoTable.getValue().getName())) {
+                } else if (colNameCaseIgnore.equals(ConnInfoTable.value.getName())) {
                     builder.setValue((String) data);
-                } else if (colNameCaseIgnore.equals(connInfoTable.getType().getName())) {
+                } else if (colNameCaseIgnore.equals(ConnInfoTable.type.getName())) {
                     isBasic = (boolean) data;
                 }
             }
@@ -245,7 +166,7 @@ public class DataStorageService {
                 var cellHead = columns.get(cell.getColumnIndex());
                 var data = convertDataOfDataLayer(cellHead, cell);
                 var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
-                if (colNameCaseIgnore.equals(dataStorageTagTable.getTag().getName())) {
+                if (colNameCaseIgnore.equals(DataStorageTagTable.tag.getName())) {
                     tags.add((String) data);
                 }
             }
@@ -258,27 +179,27 @@ public class DataStorageService {
             List<Utilities.Sort> sorts
     ) {
         MakerInterface sqlBuilder = select(
-                dataStorageTable.getId(),
-                dataStorageTable.getName(),
-                dataStorageTable.getStatus(),
-                adaptorTable.getStorageTypeName()
+                DataStorageTable.id,
+                DataStorageTable.name,
+                DataStorageTable.status,
+                DataStorageAdaptorTable.storageTypeName
         )
-                .from(dataStorageTable.getTable())
-                .join(adaptorTable.getTable(),
+                .from(DataStorageTable.table)
+                .join(DataStorageAdaptorTable.table,
                         JoinMethod.LEFT,
-                        Equal.of(dataStorageTable.getAdaptorId(), adaptorTable.getId()));
+                        Equal.of(DataStorageTable.adaptorId, DataStorageAdaptorTable.id));
 
         List<Condition> conditions = new ArrayList<>();
         if (!filter.getName().isBlank()) {
-            conditions.add(Like.of(dataStorageTable.getName(), "%" + filter.getName() + "%"));
+            conditions.add(Like.of(DataStorageTable.name, "%" + filter.getName() + "%"));
         }
         if (filter.getStorageTypeCount() > 0) {
-            conditions.add(In.of(adaptorTable.getStorageTypeName(),
+            conditions.add(In.of(DataStorageAdaptorTable.storageTypeName,
                     filter.getStorageTypeList()
             ));
         }
         if (filter.getStatusCount() > 0) {
-            conditions.add(In.of(dataStorageTable.getStatus(),
+            conditions.add(In.of(DataStorageTable.status,
                     filter.getStatusList().stream()
                             .map(x -> x.getValueDescriptor().getName())
                             .collect(Collectors.toList())
@@ -310,17 +231,17 @@ public class DataStorageService {
     }
 
     private StorageOuterClass.Storage.Builder getStorageBuilderById(String id) {
-        var dataStorageSql = select().from(dataStorageTable.getTable())
-                .where(Equal.of(dataStorageTable.getId(), id))
+        var dataStorageSql = select().from(DataStorageTable.table)
+                .where(Equal.of(DataStorageTable.id, id))
                 .generate().getStatement();
-        var metadataSql = select().from(dataStorageMetadataTable.getTable())
-                .where(Equal.of(dataStorageMetadataTable.getDatastorageId(), id))
+        var metadataSql = select().from(DataStorageMetadataTable.table)
+                .where(Equal.of(DataStorageMetadataTable.datastorageId, id))
                 .generate().getStatement();
-        var connInfoSql = select().from(connInfoTable.getTable())
-                .where(Equal.of(connInfoTable.getDatastorageId(), id))
+        var connInfoSql = select().from(ConnInfoTable.table)
+                .where(Equal.of(ConnInfoTable.datastorageId, id))
                 .generate().getStatement();
-        var tagSql = select().from(dataStorageTagTable.getTable())
-                .where(Equal.of(dataStorageTagTable.getDatastorageId(), id))
+        var tagSql = select().from(DataStorageTagTable.table)
+                .where(Equal.of(DataStorageTagTable.datastorageId, id))
                 .generate().getStatement();
 
         var result = dataLayerConnection.execute(dataStorageSql).getData().getTable();
@@ -363,8 +284,8 @@ public class DataStorageService {
 
     public StorageOuterClass.Storage advanced(String id) {
         var storageBuilder = getStorageBuilderById(id);
-        var storageAutoAddSettingSql = select().from(connInfoTable.getTable())
-                .where(Equal.of(connInfoTable.getDatastorageId(), id))
+        var storageAutoAddSettingSql = select().from(ConnInfoTable.table)
+                .where(Equal.of(ConnInfoTable.datastorageId, id))
                 .generate().getStatement();
         // TODO: setting 정보 추가 필요
         return storageBuilder.build();
@@ -372,21 +293,21 @@ public class DataStorageService {
 
     public StorageOuterClass.StorageBrowse browse(String dataStorageId, String path, Integer depth, String name) {
         var sql = select(
-                dataStorageTable.getUrl(),
-                connInfoTable.getKey(),
-                connInfoTable.getValue(),
-                connInfoTable.getBasic(),
-                adaptorTable.getStorageTypeName(),
-                adaptorTable.getDriver()
+                DataStorageTable.url,
+                ConnInfoTable.key,
+                ConnInfoTable.value,
+                ConnInfoTable.basic,
+                DataStorageAdaptorTable.storageTypeName,
+                DataStorageAdaptorTable.driver
         )
-                .from(connInfoTable.getTable())
-                .join(dataStorageTable.getTable(),
+                .from(ConnInfoTable.table)
+                .join(DataStorageTable.table,
                         JoinMethod.RIGHT,
-                        Equal.of(connInfoTable.getDatastorageId(), dataStorageTable.getId()))
-                .join(adaptorTable.getTable(),
+                        Equal.of(ConnInfoTable.datastorageId, DataStorageTable.id))
+                .join(DataStorageAdaptorTable.table,
                         JoinMethod.RIGHT,
-                        Equal.of(adaptorTable.getId(), dataStorageTable.getAdaptorId()))
-                .where(Equal.of(connInfoTable.getDatastorageId(), dataStorageId))
+                        Equal.of(DataStorageAdaptorTable.id, DataStorageTable.adaptorId))
+                .where(Equal.of(ConnInfoTable.datastorageId, dataStorageId))
                 .generate()
                 .getStatement();
         var infos = dataLayerConnection.execute(sql);
@@ -425,30 +346,30 @@ public class DataStorageService {
     public void addStorage(StorageOuterClass.Storage inputData) {
         List<String> sqlList = new ArrayList<>();
         var id = UUID.randomUUID().toString();
-        var dataStorageSql = insert(dataStorageTable.getTable())
+        var dataStorageSql = insert(DataStorageTable.table)
                 .columns(
-                        dataStorageTable.getId(),
-                        dataStorageTable.getAdaptorId(),
-                        dataStorageTable.getName(),
-                        dataStorageTable.getUrl(),
-                        dataStorageTable.getUserDesc(),
+                        DataStorageTable.id,
+                        DataStorageTable.adaptorId,
+                        DataStorageTable.name,
+                        DataStorageTable.url,
+                        DataStorageTable.userDesc,
 
-                        dataStorageTable.getSyncEnable(),
-                        dataStorageTable.getSyncType(),
-                        dataStorageTable.getSyncWeek(),
-                        dataStorageTable.getSyncRunTime(),
+                        DataStorageTable.syncEnable,
+                        DataStorageTable.syncType,
+                        DataStorageTable.syncWeek,
+                        DataStorageTable.syncRunTime,
 
-                        dataStorageTable.getMonitoringEnable(),
-                        dataStorageTable.getMonitoringProtocol(),
-                        dataStorageTable.getMonitoringHost(),
-                        dataStorageTable.getMonitoringPort(),
-                        dataStorageTable.getMonitoringSql(),
-                        dataStorageTable.getMonitoringPeriod(),
-                        dataStorageTable.getMonitoringTimeout(),
-                        dataStorageTable.getMonitoringSuccessThreshold(),
-                        dataStorageTable.getMonitoringFailThreshold(),
+                        DataStorageTable.monitoringEnable,
+                        DataStorageTable.monitoringProtocol,
+                        DataStorageTable.monitoringHost,
+                        DataStorageTable.monitoringPort,
+                        DataStorageTable.monitoringSql,
+                        DataStorageTable.monitoringPeriod,
+                        DataStorageTable.monitoringTimeout,
+                        DataStorageTable.monitoringSuccessThreshold,
+                        DataStorageTable.monitoringFailThreshold,
 
-                        dataStorageTable.getAutoAddSettingEnable()
+                        DataStorageTable.autoAddSettingEnable
                 )
                 .values(
                         id,
@@ -479,16 +400,16 @@ public class DataStorageService {
         sqlList.add(dataStorageSql);
 
         if (inputData.getSettings().getAutoAddSetting().getOptionsCount() > 0) {
-            var authAddSettingSqlBuilder = insert(storageAutoAddSettingTable.getTable())
+            var authAddSettingSqlBuilder = insert(StorageAutoAddSettingTable.table)
                     .columns(
-                            storageAutoAddSettingTable.getDatastorageId(),
-                            storageAutoAddSettingTable.getRegex(),
-                            storageAutoAddSettingTable.getDataType(),
-                            storageAutoAddSettingTable.getDataFormat(),
-                            storageAutoAddSettingTable.getMinSize(),
-                            storageAutoAddSettingTable.getMaxSize(),
-                            storageAutoAddSettingTable.getStartDate(),
-                            storageAutoAddSettingTable.getEndDate()
+                            StorageAutoAddSettingTable.datastorageId,
+                            StorageAutoAddSettingTable.regex,
+                            StorageAutoAddSettingTable.dataType,
+                            StorageAutoAddSettingTable.dataFormat,
+                            StorageAutoAddSettingTable.minSize,
+                            StorageAutoAddSettingTable.maxSize,
+                            StorageAutoAddSettingTable.startDate,
+                            StorageAutoAddSettingTable.endDate
                     );
             for (var s : inputData.getSettings().getAutoAddSetting().getOptionsList()) {
                 authAddSettingSqlBuilder = authAddSettingSqlBuilder
@@ -507,13 +428,13 @@ public class DataStorageService {
         }
 
         if (inputData.getBasicOptionsCount() > 0 || inputData.getAdditionalOptionsCount() > 0) {
-            var connInfoSqlBuilder = insert(connInfoTable.getTable())
+            var connInfoSqlBuilder = insert(ConnInfoTable.table)
                     .columns(
-                            connInfoTable.getDatastorageId(),
-                            connInfoTable.getKey(),
-                            connInfoTable.getType(),
-                            connInfoTable.getValue(),
-                            connInfoTable.getRequired()
+                            ConnInfoTable.datastorageId,
+                            ConnInfoTable.key,
+                            ConnInfoTable.type,
+                            ConnInfoTable.value,
+                            ConnInfoTable.required
                     );
 
             for (var c : inputData.getBasicOptionsList()) {
@@ -540,9 +461,9 @@ public class DataStorageService {
         }
 
         if (inputData.getTagsCount() > 0) {
-            var tagSqlBuilder = insert(dataStorageTagTable.getTable())
-                    .columns(dataStorageTagTable.getDatastorageId(),
-                            dataStorageTagTable.getTag());
+            var tagSqlBuilder = insert(DataStorageTagTable.table)
+                    .columns(DataStorageTagTable.datastorageId,
+                            DataStorageTagTable.tag);
             for (var t : inputData.getTagsList()) {
                 tagSqlBuilder = tagSqlBuilder.values(id, t);
             }
@@ -550,11 +471,11 @@ public class DataStorageService {
         }
 
         if (inputData.getUserMetaCount() > 0) {
-            var metadataSqlBuilder = insert(dataStorageMetadataTable.getTable())
-                    .columns(dataStorageMetadataTable.getDatastorageId(),
-                            dataStorageMetadataTable.getKey(),
-                            dataStorageMetadataTable.getValue(),
-                            dataStorageMetadataTable.getIsSystem()
+            var metadataSqlBuilder = insert(DataStorageMetadataTable.table)
+                    .columns(DataStorageMetadataTable.datastorageId,
+                            DataStorageMetadataTable.key,
+                            DataStorageMetadataTable.value,
+                            DataStorageMetadataTable.isSystem
                     );
             for (var m : inputData.getUserMetaList()) {
                 metadataSqlBuilder = metadataSqlBuilder.values(
@@ -574,8 +495,8 @@ public class DataStorageService {
 
     public void deleteStorage(String id) {
         // data storage id 를 참조하는 테이블의 값은 on delete cascade 이므로 함께 삭제됨
-        var sql = delete(dataStorageTable.getTable())
-                .where(Equal.of(dataStorageTable.getId(), id))
+        var sql = delete(DataStorageTable.table)
+                .where(Equal.of(DataStorageTable.id, id))
                 .generate()
                 .getStatement();
         var result = dataLayerConnection.execute(sql);
@@ -588,9 +509,9 @@ public class DataStorageService {
             List<StorageCommon.InputField> advancedOptions,
             String urlFormat
     ) {
-        var sql = select(adaptorTable.getDriver())
-                .from(adaptorTable.getTable())
-                .where(Equal.of(adaptorTable.getId(), id))
+        var sql = select(DataStorageAdaptorTable.driver)
+                .from(DataStorageAdaptorTable.table)
+                .where(Equal.of(DataStorageAdaptorTable.id, id))
                 .generate()
                 .getStatement();
         var resultTable = dataLayerConnection.execute(sql).getData().getTable();

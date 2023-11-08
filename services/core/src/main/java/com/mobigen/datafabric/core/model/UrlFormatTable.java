@@ -14,9 +14,8 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class UrlFormatTable {
-    SqlTable table = SqlTable.of("UrlFormat");
-    SqlColumn adaptorId = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
-    SqlColumn format = SqlColumn.of("format", table, JDBCType.VARCHAR);
+    public static SqlTable table = SqlTable.of("UrlFormat");
+    public static SqlColumn adaptorId = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
+    public static SqlColumn format = SqlColumn.of("format", table, JDBCType.VARCHAR);
 }

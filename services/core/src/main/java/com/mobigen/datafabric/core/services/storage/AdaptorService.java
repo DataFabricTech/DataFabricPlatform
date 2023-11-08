@@ -28,11 +28,6 @@ import static com.mobigen.sqlgen.SqlBuilder.select;
  */
 @Slf4j
 public class AdaptorService {
-
-    DataStorageTypeTable dataStorageTypeTable = new DataStorageTypeTable();
-    DataStorageAdaptorTable adaptorTable = new DataStorageAdaptorTable();
-    UrlFormatTable urlFormatTable = new UrlFormatTable();
-    ConnectionSchemaTable connectionSchemaTable = new ConnectionSchemaTable();
     static Config config = new Config();
     DataLayerConnection dataLayerConnection;
 
@@ -48,8 +43,8 @@ public class AdaptorService {
 
 
     public List<AdaptorOuterClass.SupportedStorageType> getStorageTypes() {
-        var sql = select(dataStorageTypeTable.getNameCol(), dataStorageTypeTable.getIconCol())
-                .from(dataStorageTypeTable.getTable())
+        var sql = select(DataStorageTypeTable.nameCol, DataStorageTypeTable.iconCol)
+                .from(DataStorageTypeTable.table)
                 .generate()
                 .getStatement();
         log.info("sql: " + sql);
@@ -66,28 +61,28 @@ public class AdaptorService {
 
     public List<AdaptorOuterClass.Adaptor> getAdaptors() {
         var sql = select(
-                adaptorTable.getId(),
-                adaptorTable.getStorageTypeName(),
-                adaptorTable.getName(),
-                adaptorTable.getVersion(),
-                adaptorTable.getPath(),
-                adaptorTable.getDriver(),
+                DataStorageAdaptorTable.id,
+                DataStorageAdaptorTable.storageTypeName,
+                DataStorageAdaptorTable.name,
+                DataStorageAdaptorTable.version,
+                DataStorageAdaptorTable.path,
+                DataStorageAdaptorTable.driver,
 
-                urlFormatTable.getFormat(),
+                UrlFormatTable.format,
 
-                connectionSchemaTable.getKey(),
-                connectionSchemaTable.getType(),
-                connectionSchemaTable.getDefaultCol(),
-                connectionSchemaTable.getRequired(),
-                connectionSchemaTable.getBasic()
+                ConnectionSchemaTable.key,
+                ConnectionSchemaTable.type,
+                ConnectionSchemaTable.defaultCol,
+                ConnectionSchemaTable.required,
+                ConnectionSchemaTable.basic
         )
-                .from(adaptorTable.getTable())
-                .join(urlFormatTable.getTable(),
+                .from(DataStorageAdaptorTable.table)
+                .join(UrlFormatTable.table,
                         JoinMethod.LEFT,
-                        Equal.of(adaptorTable.getId(), urlFormatTable.getAdaptorId()))
-                .join(connectionSchemaTable.getTable(),
+                        Equal.of(DataStorageAdaptorTable.id, UrlFormatTable.adaptorId))
+                .join(ConnectionSchemaTable.table,
                         JoinMethod.LEFT,
-                        Equal.of(adaptorTable.getId(), connectionSchemaTable.getAdaptorId()))
+                        Equal.of(DataStorageAdaptorTable.id, ConnectionSchemaTable.adaptorId))
                 .generate()
                 .getStatement();
 
@@ -117,29 +112,29 @@ public class AdaptorService {
             var inputFieldBuilder = StorageCommon.InputField.newBuilder();
             for (var cell : row.getCellList()) {
                 var header = resultTable.getColumnsList().get(cell.getColumnIndex());
-                if (header.getColumnName().toLowerCase().equals(adaptorTable.getId().getName())) {
+                if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.id.getName())) {
                     adaptorBuilder.get(idOfRow).setId(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(adaptorTable.getStorageTypeName().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.storageTypeName.getName())) {
                     adaptorBuilder.get(idOfRow).setStorageType(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(adaptorTable.getName().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.name.getName())) {
                     adaptorBuilder.get(idOfRow).setName(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(adaptorTable.getVersion().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.version.getName())) {
                     adaptorBuilder.get(idOfRow).setVersion(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(adaptorTable.getPath().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.path.getName())) {
                     adaptorBuilder.get(idOfRow).setPath(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(adaptorTable.getDriver().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.driver.getName())) {
                     adaptorBuilder.get(idOfRow).setClass_(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(urlFormatTable.getFormat().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(UrlFormatTable.format.getName())) {
                     urls.get(idOfRow).add(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(connectionSchemaTable.getKey().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.key.getName())) {
                     inputFieldBuilder.setKey(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(connectionSchemaTable.getDefaultCol().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.defaultCol.getName())) {
                     inputFieldBuilder.setDefault(cell.getStringValue());
-                } else if (header.getColumnName().toLowerCase().equals(connectionSchemaTable.getRequired().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.required.getName())) {
                     inputFieldBuilder.setRequired(cell.getBoolValue());
-                } else if (header.getColumnName().toLowerCase().equals(connectionSchemaTable.getType().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.type.getName())) {
                     inputFieldBuilder.setValueType(Utilities.DataType.valueOf(cell.getStringValue()));
-                } else if (header.getColumnName().toLowerCase().equals(connectionSchemaTable.getBasic().getName())) {
+                } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.basic.getName())) {
                     isBasic = cell.getBoolValue();
                 }
             }

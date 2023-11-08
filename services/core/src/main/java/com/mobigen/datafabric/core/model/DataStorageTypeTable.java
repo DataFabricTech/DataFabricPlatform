@@ -14,9 +14,8 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class DataStorageTypeTable {
-    SqlTable table = SqlTable.of("DataStorageType");
-    SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);  // pk
-    SqlColumn iconCol = SqlColumn.of("icon", table, JDBCType.BLOB);
+    public static SqlTable table = SqlTable.of("DataStorageType");
+    public static SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);  // pk
+    public static SqlColumn iconCol = SqlColumn.of("icon", table, JDBCType.BLOB);
 }
