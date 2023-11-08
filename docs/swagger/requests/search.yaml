@@ -41,6 +41,20 @@ Search:
             pageable:
               sort:
                 - order: 1
+                  field: "RECENT_UPDATE"
+                  # RECENT_UPDATE, RECENT_CREATE, HIGH_VIEW, LOW_VIEW, HIGH_SCORE, LOW_SCORE, HIGH_DOWNLOAD, LOW_DOWNLOAD, HIGH_BOOKMARK, LOW_BOOKMARK
+                  direction: "ASC"
+              page:
+                size: 20
+                selectPage: 1
+        changeSortOld:
+          description: "검색 결과 정렬 변경"
+          summary: "검색 결과 정렬 변경 - old"
+          value:
+            keyword: "data fabric"
+            pageable:
+              sort:
+                - order: 1
                   field: "createdAt"
                   direction: "ASC"
                 - order: 2
@@ -51,7 +65,41 @@ Search:
                 selectPage: 1
         filterSelect:
           description: "검색 후 필터 별 데이터 수를 확인하고 필터를 선택"
-          summary: "검색 후 필터 선택"
+          summary: "검색 후 필터 선택(좌측 패널)"
+          value:
+            keyword: "data fabric"
+            pageable:
+              page:
+                size: 20
+                selectPage: 1
+            filterSearch:
+              KEYWORD_TYPE: "전체"
+              CONNECTOR_NAME:
+                - "연결 정보 이름 A"
+                - "연결 정보 이름 B"
+              STORAGE_TYPE:
+                - "PostgreSQL"
+                - "MariaDB"
+                - "Mysql"
+              DATA_TYPE:
+                - "DataModel"
+              DATA_FORMAT:
+                - "Table"
+        #              CATEGORY:
+        #                - "IT"
+        #                - "데이터"
+        #                - "..."
+        #              TAG:
+        #                - "IT"
+        #                - "데이터패브릭"
+        #                - "설계"
+        #                - "..."
+        #              CREATOR:
+        #                - "mobigen-user"
+        #                - "mobigen-admin"
+        filterSelectOld:
+          description: "검색 후 필터 별 데이터 수를 확인하고 필터를 선택"
+          summary: "검색 후 필터 선택 - old"
           value:
             keyword: "data fabric"
             pageable:
@@ -88,26 +136,49 @@ Search:
                 - "mobigen-admin"
         detailSearch:
           description: "상세 검색"
-          summary: "상세 검색"
+          summary: "상세 검색(상단 패널)"
           value:
             keyword: "data fabric"
             pageable:
               page:
                 size: 20
             detailSearch:
-              DATA_NAME : "data fabric"
-              DATA_TYPE : "STRUCTURED"
-              DATA_FORMAT : "TABLE"
-              CATEGORY : "IT"
-              TAG : "IT"
-              STORAGE_TYPE : "PostgreSQL"
-              CONNECTOR_NAME : "Mobigen-PostgreSQL"
-              CREATOR : "mobigen-user"
-              START_DATE : "2021-01-01"
-              END_DATE : "2021-01-31"
-        detailSearchNFilter:
+              #              DATA_NAME : "data fabric"
+              #              KEYWORD : "data fabric"
+              #              DATA_TYPE : "STRUCTURED"
+              KEYWORD_TYPE: "전체"
+              DATE_TYPE: "최근 수정 일자"
+              START_DATE: "2021-01-01"
+              END_DATE: "2021-01-31"
+              CONNECTOR_NAME: "Mobigen-PostgreSQL"
+              STORAGE_TYPE: "PostgreSQL"
+              DATA_TYPE: "DataModel"
+              DATA_FORMAT: "TABLE"
+        #              CATEGORY : "IT"
+        #              TAG : "IT"
+        #              CREATOR : "mobigen-user"
+        detailSearchOld:
           description: "상세 검색"
-          summary: "상세 검색"
+          summary: "상세 검색 - old"
+          value:
+            keyword: "data fabric"
+            pageable:
+              page:
+                size: 20
+            detailSearch:
+              DATA_NAME: "data fabric"
+              DATA_TYPE: "STRUCTURED"
+              DATA_FORMAT: "TABLE"
+              CATEGORY: "IT"
+              TAG: "IT"
+              STORAGE_TYPE: "PostgreSQL"
+              CONNECTOR_NAME: "Mobigen-PostgreSQL"
+              CREATOR: "mobigen-user"
+              START_DATE: "2021-01-01"
+              END_DATE: "2021-01-31"
+        detailSearchNFilter:
+          description: "검색 후 상세 검색 및 필터 검색"
+          summary: "검색 후 상세 검색 및 필터 검색 (좌측 및 상단 패널)"
           value:
             keyword: "data fabric"
             pageable:
@@ -115,16 +186,64 @@ Search:
                 size: 20
                 selectPage: 1
             detailSearch:
-              DATA_NAME : "data fabric"
-              DATA_TYPE : "STRUCTURED"
-              DATA_FORMAT : "TABLE"
-              CATEGORY : "IT"
-              TAG : "IT"
-              STORAGE_TYPE : "PostgreSQL"
-              CONNECTOR_NAME : "Mobigen-PostgreSQL"
-              CREATOR : "mobigen-user"
-              START_DATE : "2021-01-01"
-              END_DATE : "2021-01-31"
+              # DATA_NAME : "data fabric"
+              # KEYWORD : "data fabric"
+              # DATA_TYPE : "STRUCTURED"
+              KEYWORD_TYPE: "데이터 모델명"
+              DATE_TYPE: "최근 수정 일자"
+              START_DATE: "2021-01-01"
+              END_DATE: "2021-01-31"
+              CONNECTOR_NAME: "Mobigen-PostgreSQL"
+              STORAGE_TYPE: "PostgreSQL"
+              DATA_TYPE: "DataModel"
+              DATA_FORMAT: "TABLE"
+              # CATEGORY : "IT"
+              # TAG : "IT"
+              # CREATOR : "mobigen-user"
+            filterSearch:
+              CONNECTOR_NAME:
+                - "연결 정보 이름 A"
+                - "연결 정보 이름 B"
+              STORAGE_TYPE:
+                - "PostgreSQL"
+                - "MariaDB"
+                - "Mysql"
+              DATA_TYPE:
+                - "DataModel"
+              DATA_FORMAT:
+                - "Table"
+              # CATEGORY:
+              #   - "IT"
+              #   - "데이터"
+              #   - "..."
+              # TAG:
+              #   - "IT"
+              #   - "데이터패브릭"
+              #   - "설계"
+              #   - "..."
+              # CREATOR:
+              #   - "mobigen-user"
+              #   - "mobigen-admin"
+        detailSearchNFilterOld:
+          description: "상세 검색"
+          summary: "상세 검색 - Old -> 상세 검색, 필터 선택 - Old"
+          value:
+            keyword: "data fabric"
+            pageable:
+              page:
+                size: 20
+                selectPage: 1
+            detailSearch:
+              DATA_NAME: "data fabric"
+              DATA_TYPE: "STRUCTURED"
+              DATA_FORMAT: "TABLE"
+              CATEGORY: "IT"
+              TAG: "IT"
+              STORAGE_TYPE: "PostgreSQL"
+              CONNECTOR_NAME: "Mobigen-PostgreSQL"
+              CREATOR: "mobigen-user"
+              START_DATE: "2021-01-01"
+              END_DATE: "2021-01-31"
             filterSearch:
               DATA_TYPE:
                 - "STRUCTURED"
