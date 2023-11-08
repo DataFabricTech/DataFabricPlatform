@@ -457,7 +457,7 @@ public class DataStorageService {
 
         var result = dataLayerConnection.executeBatch(sqlList);
         log.info("insert result: " + result.getDataList());
-        // TODO: queue 로 메세지 를 송신, event_type, id
+        // TODO: Queue 로 메세지 를 송신, event_type, id
     }
 
     public void deleteStorage(String id) {
