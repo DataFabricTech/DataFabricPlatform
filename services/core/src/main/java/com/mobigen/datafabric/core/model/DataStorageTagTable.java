@@ -14,10 +14,9 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class DataStorageTagTable {
-    SqlTable table = SqlTable.of("DataStorageTag");
-    SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
-    SqlColumn userId = SqlColumn.of("user_id", table, JDBCType.VARCHAR);
-    SqlColumn tag = SqlColumn.of("tag", table, JDBCType.VARCHAR);
+    public static SqlTable table = SqlTable.of("DataStorageTag");
+    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
+    public static SqlColumn userId = SqlColumn.of("user_id", table, JDBCType.VARCHAR);
+    public static SqlColumn tag = SqlColumn.of("tag", table, JDBCType.VARCHAR);
 }

@@ -14,13 +14,12 @@ import java.sql.JDBCType;
  * @version 0.0.1
  * @since 0.0.1
  */
-@Getter
 public class AuthSchemaTable {
-    SqlTable table = SqlTable.of("AuthSchema");
-    SqlColumn storageTypeNameCol = SqlColumn.of("storage_type_name", table, JDBCType.VARCHAR); // fk
-    SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
-    SqlColumn keyCol = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    SqlColumn typeCol = SqlColumn.of("type", table, JDBCType.VARCHAR);
-    SqlColumn requiredCol = SqlColumn.of("required", table, JDBCType.BOOLEAN);
+    public static SqlTable table = SqlTable.of("AuthSchema");
+    public static SqlColumn storageTypeNameCol = SqlColumn.of("storage_type_name", table, JDBCType.VARCHAR); // fk
+    public static SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
+    public static SqlColumn keyCol = SqlColumn.of("key", table, JDBCType.VARCHAR);
+    public static SqlColumn typeCol = SqlColumn.of("type", table, JDBCType.VARCHAR);
+    public static SqlColumn requiredCol = SqlColumn.of("required", table, JDBCType.BOOLEAN);
 
 }

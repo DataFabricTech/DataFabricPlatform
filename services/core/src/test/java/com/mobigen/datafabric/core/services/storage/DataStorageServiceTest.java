@@ -119,7 +119,9 @@ class DataStorageServiceTest {
                         .setStatus(status2)
                         .build()
         );
-        var result = dataStorageService.search();
+        var filter = StorageOuterClass.StorageSearchFilter.newBuilder().build();
+        var sorts = List.of(Utilities.Sort.newBuilder().build());
+        var result = dataStorageService.search(filter, sorts);
         assertEquals(expect, result);
     }
 

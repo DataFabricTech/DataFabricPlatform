@@ -62,6 +62,7 @@ create table ConnectionSchema
     "type"     text,
     "default"  text,
     required   bool,
+    basic      bool default false,
     foreign key (adaptor_id) references DataStorageAdaptor (id) on delete cascade
 );
 
@@ -124,6 +125,7 @@ create table ConnInfo
     "type"         text,
     "value"        text,
     required       bool,
+    basic          bool default false,
     foreign key (datastorage_id) references DataStorage (id) on delete cascade
 );
 

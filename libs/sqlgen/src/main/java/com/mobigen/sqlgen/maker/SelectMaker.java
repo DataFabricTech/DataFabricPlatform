@@ -21,7 +21,7 @@ import java.util.Objects;
  * @version 0.0.1
  * @since 0.0.1
  */
-public class SelectMaker implements MakerInterface {
+public class SelectMaker extends OrderUsable implements WhereUsable {
     private final SqlTable table;
     private final List<SqlColumn> selectColumns;
 
@@ -48,6 +48,7 @@ public class SelectMaker implements MakerInterface {
         return join(rightTable, JoinMethod.INNER);
     }
 
+    @Override
     public WhereMaker where(Condition... conditions) {
         return new WhereMaker.Builder()
                 .withMaker(this)
