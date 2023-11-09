@@ -75,7 +75,7 @@ public final class StorageService extends StorageServiceGrpc.StorageServiceImplB
 
     @Override
     public void updateStorage(StorageOuterClass.Storage request, StreamObserver<Utilities.CommonResponse> responseObserver) {
-        responseObserver.onNext(callBack.updateStorage());
+        responseObserver.onNext(callBack.updateStorage(request));
         responseObserver.onCompleted();
     }
 

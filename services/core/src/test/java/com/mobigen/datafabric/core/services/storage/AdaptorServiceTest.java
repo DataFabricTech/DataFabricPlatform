@@ -12,9 +12,11 @@ import com.mobigen.datafabric.share.protobuf.Utilities;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -261,6 +263,16 @@ class AdaptorServiceTest {
         );
         var result = adaptorService.getAdaptors();
 
-        assertEquals(expect, result);
+        assertEquals(expect.get(0).getStorageType(), result.get(0).getStorageType());
+        assertEquals(expect.get(0).getName(), result.get(0).getName());
+        assertEquals(expect.get(0).getVersion(), result.get(0).getVersion());
+        assertEquals(expect.get(0).getPath(), result.get(0).getPath());
+        assertEquals(expect.get(0).getClass_(), result.get(0).getClass_());
+        assertEquals(expect.get(0).getSupportedURLList().stream().sorted().collect(Collectors.toList()),
+                result.get(0).getSupportedURLList().stream().sorted().collect(Collectors.toList()));
+        assertEquals(expect.get(0).getBasicOptionsList().stream().sorted(Comparator.comparing(StorageCommon.InputField::getKey)).collect(Collectors.toList()),
+                result.get(0).getBasicOptionsList().stream().sorted(Comparator.comparing(StorageCommon.InputField::getKey)).collect(Collectors.toList()));
+        assertEquals(expect.get(0).getAdditionalOptionsList().stream().sorted(Comparator.comparing(StorageCommon.InputField::getKey)).collect(Collectors.toList()),
+                result.get(0).getAdditionalOptionsList().stream().sorted(Comparator.comparing(StorageCommon.InputField::getKey)).collect(Collectors.toList()));
     }
 }

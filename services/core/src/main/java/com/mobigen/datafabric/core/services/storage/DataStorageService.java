@@ -14,6 +14,7 @@ import com.mobigen.sqlgen.maker.OrderUsable;
 import com.mobigen.sqlgen.maker.WhereUsable;
 import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.model.SqlColumn;
+import com.mobigen.sqlgen.model.SqlTable;
 import com.mobigen.sqlgen.order.Order;
 import com.mobigen.sqlgen.where.Condition;
 import com.mobigen.sqlgen.where.conditions.Equal;
@@ -28,8 +29,7 @@ import java.util.stream.Collectors;
 
 import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertDataOfDataLayer;
 import static com.mobigen.datafabric.core.util.DataLayerUtilFunction.convertInputField;
-import static com.mobigen.sqlgen.SqlBuilder.insert;
-import static com.mobigen.sqlgen.SqlBuilder.select;
+import static com.mobigen.sqlgen.SqlBuilder.*;
 import static com.mobigen.sqlgen.maker.DeleteMaker.delete;
 
 /**
@@ -147,8 +147,11 @@ public class DataStorageService {
                 } else if (colNameCaseIgnore.equals(ConnInfoTable.value.getName())) {
                     builder.setValue((String) data);
                 } else if (colNameCaseIgnore.equals(ConnInfoTable.type.getName())) {
-//                    isBasic = (boolean) data;
-                    isBasic = cell.getBoolValue();
+                    builder.setValueType(Utilities.DataType.valueOf((String) data));
+                } else if (colNameCaseIgnore.equals(ConnInfoTable.required.getName())) {
+                    builder.setRequired((Boolean) data);
+                } else if (colNameCaseIgnore.equals(ConnInfoTable.basic.getName())) {
+                    isBasic = (Boolean) data;
                 }
             }
             if (isBasic) {
@@ -286,9 +289,77 @@ public class DataStorageService {
 
     public StorageOuterClass.Storage advanced(String id) {
         var storageBuilder = getStorageBuilderById(id);
-        var storageAutoAddSettingSql = select().from(ConnInfoTable.table)
-                .where(Equal.of(ConnInfoTable.datastorageId, id))
+        var storageAutoAddSettingSql = select(
+                StorageAutoAddSettingTable.regex,
+                StorageAutoAddSettingTable.dataType,
+                StorageAutoAddSettingTable.dataFormat,
+                StorageAutoAddSettingTable.minSize,
+                StorageAutoAddSettingTable.maxSize,
+                StorageAutoAddSettingTable.startDate,
+                StorageAutoAddSettingTable.endDate
+        ).from(StorageAutoAddSettingTable.table)
+                .where(Equal.of(StorageAutoAddSettingTable.datastorageId, id))
                 .generate().getStatement();
+        var syncMonitoringSql = select(
+                DataStorageTable.syncEnable,
+                DataStorageTable.syncType,
+                DataStorageTable.syncWeek,
+                DataStorageTable.syncRunTime,
+
+                DataStorageTable.monitoringEnable,
+                DataStorageTable.monitoringProtocol,
+                DataStorageTable.monitoringHost,
+                DataStorageTable.monitoringPort,
+                DataStorageTable.monitoringSql,
+                DataStorageTable.monitoringPeriod,
+                DataStorageTable.monitoringTimeout,
+                DataStorageTable.monitoringSuccessThreshold,
+                DataStorageTable.monitoringFailThreshold,
+
+                DataStorageTable.autoAddSettingEnable
+        ).from(DataStorageTable.table)
+                .where(Equal.of(DataStorageTable.id, id))
+                .generate().getStatement();
+
+        var autoAddSettingResult = dataLayerConnection.execute(storageAutoAddSettingSql).getData().getTable();
+        var syncMonitoringResult = dataLayerConnection.execute(syncMonitoringSql).getData().getTable();
+
+        var builder = StorageOuterClass.StorageSetting.newBuilder();
+        builder.setSyncSetting(StorageOuterClass.SyncSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(0).getBoolValue())
+                .setSyncType(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(1).getInt32Value())
+                .setWeek(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(2).getInt32Value())
+                .setRunTime(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(3).getStringValue())
+                .build());
+        var monitoringBuilder = StorageOuterClass.MonitoringSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(4).getBoolValue())
+                .setHost(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(6).getStringValue())
+                .setPort(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(7).getStringValue())
+                .setSql(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(8).getStringValue())
+                .setPeriod(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(9).getInt32Value())
+                .setTimeout(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(10).getInt32Value())
+                .setSuccessThreshold(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(11).getInt32Value())
+                .setFailThreshold(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(12).getInt32Value());
+        if (!syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(5).getStringValue().isEmpty()) {
+            monitoringBuilder.setProtocol(StorageOuterClass.MonitoringProtocol.valueOf(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(5).getStringValue()));
+        }
+        builder.setMonitoringSetting(monitoringBuilder.build());
+        builder.setAutoAddSetting(StorageOuterClass.AutoAddSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(13).getBoolValue())
+                .addAllOptions(
+                        autoAddSettingResult.getRowsList().stream().map(x -> StorageOuterClass.AutoAddSetting.AutoAddSettingOption.newBuilder()
+                                .setRegex(x.getCellOrBuilder(0).getStringValue())
+                                .setDataType(x.getCellOrBuilder(1).getStringValue())
+                                .setDataFormat(x.getCellOrBuilder(2).getStringValue())
+                                .setMinSize(x.getCellOrBuilder(3).getInt32Value())
+                                .setMaxSize(x.getCellOrBuilder(4).getInt32Value())
+                                .setStartDate(x.getCellOrBuilder(5).getStringValue())
+                                .setEndDate(x.getCellOrBuilder(6).getStringValue())
+                                .build()).collect(Collectors.toList())
+                )
+        );
+        storageBuilder.setSettings(builder.build());
+
         // TODO: setting 정보 추가 필요
         return storageBuilder.build();
     }
@@ -345,63 +416,88 @@ public class DataStorageService {
                 .build();
     }
 
-    public void addStorage(StorageOuterClass.Storage inputData) {
+    private String getInsertOrUpdateSql(Boolean isInsert, SqlTable table, List<SqlColumn> columns, List<Object> values, Condition condition) {
+        if (isInsert) {
+            return insert(table)
+                    .columns(columns.toArray(SqlColumn[]::new))
+                    .values(values.toArray())
+                    .generate().getStatement();
+        } else {
+            return update(table)
+                    .columns(columns.toArray(SqlColumn[]::new))
+                    .values(values.toArray())
+                    .where(condition)
+                    .generate().getStatement();
+        }
+    }
+
+    private List<String> getInsertOrUpdateQueries(StorageOuterClass.Storage inputData, boolean isInsert) {
         List<String> sqlList = new ArrayList<>();
-        var id = UUID.randomUUID().toString();
-        var dataStorageSql = insert(DataStorageTable.table)
-                .columns(
-                        DataStorageTable.id,
-                        DataStorageTable.adaptorId,
-                        DataStorageTable.name,
-                        DataStorageTable.url,
-                        DataStorageTable.userDesc,
+        String id;
 
-                        DataStorageTable.syncEnable,
-                        DataStorageTable.syncType,
-                        DataStorageTable.syncWeek,
-                        DataStorageTable.syncRunTime,
+        List<SqlColumn> columns = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
+        Condition condition = Equal.of(0, 1);
+        if (isInsert) {
+            id = UUID.randomUUID().toString();
+            columns.add(DataStorageTable.id);
+            values.add(id);
+        } else {
+            id = inputData.getId();
+            condition = Equal.of(DataStorageTable.id, id);
+        }
+        columns.addAll(List.of(
+                DataStorageTable.adaptorId,
+                DataStorageTable.name,
+                DataStorageTable.url,
+                DataStorageTable.userDesc,
 
-                        DataStorageTable.monitoringEnable,
-                        DataStorageTable.monitoringProtocol,
-                        DataStorageTable.monitoringHost,
-                        DataStorageTable.monitoringPort,
-                        DataStorageTable.monitoringSql,
-                        DataStorageTable.monitoringPeriod,
-                        DataStorageTable.monitoringTimeout,
-                        DataStorageTable.monitoringSuccessThreshold,
-                        DataStorageTable.monitoringFailThreshold,
+                DataStorageTable.syncEnable,
+                DataStorageTable.syncType,
+                DataStorageTable.syncWeek,
+                DataStorageTable.syncRunTime,
 
-                        DataStorageTable.autoAddSettingEnable
-                )
-                .values(
-                        id,
-                        inputData.getAdaptorId(),
-                        inputData.getName(),
-                        inputData.getUrl(),
-                        inputData.getDescription(),
+                DataStorageTable.monitoringEnable,
+                DataStorageTable.monitoringProtocol,
+                DataStorageTable.monitoringHost,
+                DataStorageTable.monitoringPort,
+                DataStorageTable.monitoringSql,
+                DataStorageTable.monitoringPeriod,
+                DataStorageTable.monitoringTimeout,
+                DataStorageTable.monitoringSuccessThreshold,
+                DataStorageTable.monitoringFailThreshold,
 
-                        inputData.getSettings().getSyncSetting().getEnable(),
-                        inputData.getSettings().getSyncSetting().getSyncType(),
-                        inputData.getSettings().getSyncSetting().getWeek(),
-                        inputData.getSettings().getSyncSetting().getRunTime(),
+                DataStorageTable.autoAddSettingEnable));
+        values.addAll(List.of(
+                inputData.getAdaptorId(),
+                inputData.getName(),
+                inputData.getUrl(),
+                inputData.getDescription(),
 
-                        inputData.getSettings().getMonitoringSetting().getEnable(),
-                        inputData.getSettings().getMonitoringSetting().getProtocol().getValueDescriptor().getName(),
-                        inputData.getSettings().getMonitoringSetting().getHost(),
-                        inputData.getSettings().getMonitoringSetting().getPort(),
-                        inputData.getSettings().getMonitoringSetting().getSql(),
-                        inputData.getSettings().getMonitoringSetting().getPeriod(),
-                        inputData.getSettings().getMonitoringSetting().getTimeout(),
-                        inputData.getSettings().getMonitoringSetting().getSuccessThreshold(),
-                        inputData.getSettings().getMonitoringSetting().getFailThreshold(),
+                inputData.getSettings().getSyncSetting().getEnable(),
+                inputData.getSettings().getSyncSetting().getSyncType(),
+                inputData.getSettings().getSyncSetting().getWeek(),
+                inputData.getSettings().getSyncSetting().getRunTime(),
 
-                        inputData.getSettings().getAutoAddSetting().getEnable()
-                )
-                .generate()
-                .getStatement();
-        sqlList.add(dataStorageSql);
+                inputData.getSettings().getMonitoringSetting().getEnable(),
+                inputData.getSettings().getMonitoringSetting().getProtocol().getValueDescriptor().getName(),
+                inputData.getSettings().getMonitoringSetting().getHost(),
+                inputData.getSettings().getMonitoringSetting().getPort(),
+                inputData.getSettings().getMonitoringSetting().getSql(),
+                inputData.getSettings().getMonitoringSetting().getPeriod(),
+                inputData.getSettings().getMonitoringSetting().getTimeout(),
+                inputData.getSettings().getMonitoringSetting().getSuccessThreshold(),
+                inputData.getSettings().getMonitoringSetting().getFailThreshold(),
+
+                inputData.getSettings().getAutoAddSetting().getEnable()));
+
+        sqlList.add(getInsertOrUpdateSql(isInsert, DataStorageTable.table, columns, values, condition));
 
         if (inputData.getSettings().getAutoAddSetting().getOptionsCount() > 0) {
+            sqlList.add(delete(StorageAutoAddSettingTable.table)
+                    .where(Equal.of(StorageAutoAddSettingTable.datastorageId, id))
+                    .generate().getStatement()
+            );
             var authAddSettingSqlBuilder = insert(StorageAutoAddSettingTable.table)
                     .columns(
                             StorageAutoAddSettingTable.datastorageId,
@@ -430,6 +526,10 @@ public class DataStorageService {
         }
 
         if (inputData.getBasicOptionsCount() > 0 || inputData.getAdditionalOptionsCount() > 0) {
+            sqlList.add(delete(ConnInfoTable.table)
+                    .where(Equal.of(ConnInfoTable.datastorageId, id))
+                    .generate().getStatement()
+            );
             var connInfoSqlBuilder = insert(ConnInfoTable.table)
                     .columns(
                             ConnInfoTable.datastorageId,
@@ -463,6 +563,10 @@ public class DataStorageService {
         }
 
         if (inputData.getTagsCount() > 0) {
+            sqlList.add(delete(DataStorageTagTable.table)
+                    .where(Equal.of(DataStorageTagTable.datastorageId, id))
+                    .generate().getStatement()
+            );
             var tagSqlBuilder = insert(DataStorageTagTable.table)
                     .columns(DataStorageTagTable.datastorageId,
                             DataStorageTagTable.tag);
@@ -473,6 +577,10 @@ public class DataStorageService {
         }
 
         if (inputData.getUserMetaCount() > 0) {
+            sqlList.add(delete(DataStorageMetadataTable.table)
+                    .where(Equal.of(DataStorageMetadataTable.datastorageId, id))
+                    .generate().getStatement()
+            );
             var metadataSqlBuilder = insert(DataStorageMetadataTable.table)
                     .columns(DataStorageMetadataTable.datastorageId,
                             DataStorageMetadataTable.key,
@@ -490,9 +598,27 @@ public class DataStorageService {
             sqlList.add(metadataSqlBuilder.generate().getStatement());
         }
 
+        return sqlList;
+    }
+
+    public void addStorage(StorageOuterClass.Storage inputData) {
+        var sqlList = getInsertOrUpdateQueries(inputData, true);
         var result = dataLayerConnection.executeBatch(sqlList);
         log.info("insert result: " + result.getDataList());
         // TODO: Queue 로 메세지 를 송신, event_type, id
+    }
+
+    public void updateStorage(StorageOuterClass.Storage inputData) {
+        var result = dataLayerConnection.execute(select(DataStorageTable.id)
+                .from(DataStorageTable.table)
+                .where(Equal.of(DataStorageTable.id, inputData.getId()))
+                .generate().getStatement());
+        if (result.getData().getTable().getRowsCount() != 1) {
+            throw new RuntimeException("no id " + inputData.getId());
+        }
+        var sqlList = getInsertOrUpdateQueries(inputData, false);
+        var batchResult = dataLayerConnection.executeBatch(sqlList);
+        log.info("update result: " + batchResult.getDataList());
     }
 
     public void deleteStorage(String id) {
