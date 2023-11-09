@@ -289,9 +289,77 @@ public class DataStorageService {
 
     public StorageOuterClass.Storage advanced(String id) {
         var storageBuilder = getStorageBuilderById(id);
-        var storageAutoAddSettingSql = select().from(ConnInfoTable.table)
-                .where(Equal.of(ConnInfoTable.datastorageId, id))
+        var storageAutoAddSettingSql = select(
+                StorageAutoAddSettingTable.regex,
+                StorageAutoAddSettingTable.dataType,
+                StorageAutoAddSettingTable.dataFormat,
+                StorageAutoAddSettingTable.minSize,
+                StorageAutoAddSettingTable.maxSize,
+                StorageAutoAddSettingTable.startDate,
+                StorageAutoAddSettingTable.endDate
+        ).from(StorageAutoAddSettingTable.table)
+                .where(Equal.of(StorageAutoAddSettingTable.datastorageId, id))
                 .generate().getStatement();
+        var syncMonitoringSql = select(
+                DataStorageTable.syncEnable,
+                DataStorageTable.syncType,
+                DataStorageTable.syncWeek,
+                DataStorageTable.syncRunTime,
+
+                DataStorageTable.monitoringEnable,
+                DataStorageTable.monitoringProtocol,
+                DataStorageTable.monitoringHost,
+                DataStorageTable.monitoringPort,
+                DataStorageTable.monitoringSql,
+                DataStorageTable.monitoringPeriod,
+                DataStorageTable.monitoringTimeout,
+                DataStorageTable.monitoringSuccessThreshold,
+                DataStorageTable.monitoringFailThreshold,
+
+                DataStorageTable.autoAddSettingEnable
+        ).from(DataStorageTable.table)
+                .where(Equal.of(DataStorageTable.id, id))
+                .generate().getStatement();
+
+        var autoAddSettingResult = dataLayerConnection.execute(storageAutoAddSettingSql).getData().getTable();
+        var syncMonitoringResult = dataLayerConnection.execute(syncMonitoringSql).getData().getTable();
+
+        var builder = StorageOuterClass.StorageSetting.newBuilder();
+        builder.setSyncSetting(StorageOuterClass.SyncSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(0).getBoolValue())
+                .setSyncType(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(1).getInt32Value())
+                .setWeek(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(2).getInt32Value())
+                .setRunTime(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(3).getStringValue())
+                .build());
+        var monitoringBuilder = StorageOuterClass.MonitoringSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(4).getBoolValue())
+                .setHost(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(6).getStringValue())
+                .setPort(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(7).getStringValue())
+                .setSql(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(8).getStringValue())
+                .setPeriod(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(9).getInt32Value())
+                .setTimeout(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(10).getInt32Value())
+                .setSuccessThreshold(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(11).getInt32Value())
+                .setFailThreshold(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(12).getInt32Value());
+        if (!syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(5).getStringValue().isEmpty()) {
+            monitoringBuilder.setProtocol(StorageOuterClass.MonitoringProtocol.valueOf(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(5).getStringValue()));
+        }
+        builder.setMonitoringSetting(monitoringBuilder.build());
+        builder.setAutoAddSetting(StorageOuterClass.AutoAddSetting.newBuilder()
+                .setEnable(syncMonitoringResult.getRowsOrBuilder(0).getCellOrBuilder(13).getBoolValue())
+                .addAllOptions(
+                        autoAddSettingResult.getRowsList().stream().map(x -> StorageOuterClass.AutoAddSetting.AutoAddSettingOption.newBuilder()
+                                .setRegex(x.getCellOrBuilder(0).getStringValue())
+                                .setDataType(x.getCellOrBuilder(1).getStringValue())
+                                .setDataFormat(x.getCellOrBuilder(2).getStringValue())
+                                .setMinSize(x.getCellOrBuilder(3).getInt32Value())
+                                .setMaxSize(x.getCellOrBuilder(4).getInt32Value())
+                                .setStartDate(x.getCellOrBuilder(5).getStringValue())
+                                .setEndDate(x.getCellOrBuilder(6).getStringValue())
+                                .build()).collect(Collectors.toList())
+                )
+        );
+        storageBuilder.setSettings(builder.build());
+
         // TODO: setting 정보 추가 필요
         return storageBuilder.build();
     }
