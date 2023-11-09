@@ -125,14 +125,26 @@ public class AdaptorService {
                 } else if (header.getColumnName().toLowerCase().equals(DataStorageAdaptorTable.driver.getName())) {
                     adaptorBuilder.get(idOfRow).setClass_(cell.getStringValue());
                 } else if (header.getColumnName().toLowerCase().equals(UrlFormatTable.format.getName())) {
+                    if (cell.getStringValue().isBlank()) {
+                        continue;
+                    }
                     urls.get(idOfRow).add(cell.getStringValue());
                 } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.key.getName())) {
+                    if (cell.getStringValue().isBlank()) {
+                        continue;
+                    }
                     inputFieldBuilder.setKey(cell.getStringValue());
                 } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.defaultCol.getName())) {
+                    if (cell.getStringValue().isBlank()) {
+                        continue;
+                    }
                     inputFieldBuilder.setDefault(cell.getStringValue());
                 } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.required.getName())) {
                     inputFieldBuilder.setRequired(cell.getBoolValue());
                 } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.type.getName())) {
+                    if (cell.getStringValue().isBlank()) {
+                        continue;
+                    }
                     inputFieldBuilder.setValueType(Utilities.DataType.valueOf(cell.getStringValue()));
                 } else if (header.getColumnName().toLowerCase().equals(ConnectionSchemaTable.basic.getName())) {
                     isBasic = cell.getBoolValue();
