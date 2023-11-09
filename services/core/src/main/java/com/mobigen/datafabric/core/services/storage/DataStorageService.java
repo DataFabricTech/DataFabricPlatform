@@ -24,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,10 +76,9 @@ public class DataStorageService {
             DataLayer.Row row
     ) {
         StorageOuterClass.Storage.Builder builder = StorageOuterClass.Storage.newBuilder();
-        for (var cell : row.getCellList()) {
-            var cellHead = columns.get(cell.getColumnIndex());
-            var data = convertDataOfDataLayer(cellHead, cell);
-            var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
+        for( int i = 0; i < columns.size(); i++ ) {
+            var data = convertDataOfDataLayer(columns.get( i ), row.getCell( i ));
+            var colNameCaseIgnore = columns.get( i ).getColumnName().toLowerCase();
             if (colNameCaseIgnore.equals(DataStorageTable.id.getName())) {
                 builder.setId((String) data);
             } else if (colNameCaseIgnore.equals(DataStorageTable.adaptorId.getName())) {
@@ -94,6 +96,27 @@ public class DataStorageService {
                 builder.setUrl((String) data);
             }
         }
+//        for (var cell : row.getCellList()) {
+//            var cellHead = columns.get(cell.getColumnIndex());
+//            var data = convertDataOfDataLayer(cellHead, cell);
+//            var colNameCaseIgnore = cellHead.getColumnName().toLowerCase();
+//            if (colNameCaseIgnore.equals(DataStorageTable.id.getName())) {
+//                builder.setId((String) data);
+//            } else if (colNameCaseIgnore.equals(DataStorageTable.adaptorId.getName())) {
+//                builder.setAdaptorId((String) data);
+//            } else if (colNameCaseIgnore.equals(DataStorageTable.name.getName())) {
+//                builder.setName((String) data);
+//            } else if (colNameCaseIgnore.equals(DataStorageTable.userDesc.getName())) {
+//                builder.setDescription((String) data);
+//            } else if (colNameCaseIgnore.equals(DataStorageTable.status.getName())) {
+//                if (data == "") {
+//                    data = "INIT";
+//                }
+//                builder.setStatus(Utilities.Status.valueOf((String) data));
+//            } else if (colNameCaseIgnore.equals(DataStorageTable.url.getName())) {
+//                builder.setUrl((String) data);
+//            }
+//        }
         return builder;
     }
 
@@ -690,17 +713,17 @@ public class DataStorageService {
         // Data Model
         dataModels.forEach( data -> {
             var id = UUID.randomUUID().toString();
+            OffsetDateTime createdAt = OffsetDateTime.now( ZoneOffset.UTC );
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
             var insertDataModel = insert(DataModel.table)
                     .columns(
                             DataModel.id,
                             DataModel.name,
                             DataModel.description,
-
                             DataModel.type,
                             DataModel.format,
-
                             DataModel.status,
-
                             DataModel.createdAt,
                             DataModel.createdBy
                     )
@@ -711,8 +734,8 @@ public class DataStorageService {
                             data.getDataType(),
                             data.getDataFormat(),
                             data.getStatus(),
-                            data.getCreatedAt().getUtcTime(),
-                            data.getCreator()
+                            createdAt.format( dateTimeFormatter ),
+                            data.getCreator().getId()
                     )
                     .generate()
                     .getStatement();

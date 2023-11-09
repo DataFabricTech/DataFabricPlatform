@@ -5,7 +5,7 @@ Configuration:
     Console:
       name: LogToConsole
       PatternLayout:
-        Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5.-5level] %C [%-24.24replace{%F}{[.java]}{}:%4L] : %msg%n"
+        Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5.-5level] [%-24.24c{2}:%4L] : %msg%n"
 
     #File:
     #  name: File

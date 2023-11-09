@@ -11,6 +11,11 @@ public class TimerData {
     private final Long period;
     private final Boolean isRepeat;
     private final TimerCallback callback;
+    /* Service Dependency code */
+    private String timerDataType;
+    private String dataId;      // Storage ID, Data Model ID
+    public static final String TIMER_DATA_TYPE_STORAGE = "storage";
+    public static final String TIMER_DATA_TYPE_DATA_MODEL = "data_model";
 
     public TimerData( Long startTime, Long period, Boolean isRepeat, TimerCallback callback ) {
         this.startTime = startTime;

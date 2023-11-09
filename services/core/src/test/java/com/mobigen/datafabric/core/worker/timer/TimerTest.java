@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.core.worker.timer;
 
-import com.mobigen.datafabric.core.worker.Worker;
+import com.mobigen.datafabric.core.worker.ThreadPool;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -61,7 +61,7 @@ class TimerTest {
 
     @Test
     void del() throws InterruptedException {
-        Worker w = new Worker( 5 );
+        ThreadPool w = new ThreadPool( 5 );
         Timer timer = new Timer( 50, w);
         Runnable timerRunnable = timer::Start;
         Thread timerThread = new Thread( timerRunnable );
@@ -97,7 +97,7 @@ class TimerTest {
 
     @Test
     void start() throws InterruptedException {
-        Worker w = new Worker( 5 );
+        ThreadPool w = new ThreadPool( 5 );
         Timer timer = new Timer( 50, w);
         Runnable timerRunnable = timer::Start;
         Thread timerThread = new Thread( timerRunnable );
@@ -128,7 +128,7 @@ class TimerTest {
 
     @Test
     void fullTest() throws InterruptedException {
-        Worker w = Mockito.mock(Worker.class);
+        ThreadPool w = Mockito.mock( ThreadPool.class);
         Timer timer = new Timer( 100, w);
         Runnable timerRunnable = timer::Start;
         Thread timerThread = new Thread( timerRunnable );

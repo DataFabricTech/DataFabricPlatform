@@ -5,11 +5,14 @@ import com.mobigen.datafabric.core.services.storage.DataStorageService;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.core.worker.Job;
+import com.mobigen.datafabric.core.worker.timer.Timer;
 import com.mobigen.datafabric.share.protobuf.*;
 import com.mobigen.libs.configuration.Config;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -43,37 +46,38 @@ public class AddStorageTask implements Runnable {
         // 데이터 변경을 위해 빌더로 변경
         StorageOuterClass.Storage.Builder storagebuilder = StorageOuterClass.Storage.newBuilder().mergeFrom( storage );
 
-        try( var connector = getConnector( storage ) ) {
+        try( var connector = getConnector( storagebuilder) ) {
             log.info( "[ New Storage ] : Update System Metadata" );
-            var meta = getStorageMeta( storage, connector.cursor() );
+            var meta = getStorageMeta( storagebuilder, connector.cursor() );
             storagebuilder.addAllSystemMeta( meta );
 
             log.info( "[ New Storage ] : Get Data( And Build Data Model)" );
-            if( storage.getSettings().hasAutoAddSetting() && storage.getSettings().getAutoAddSetting().getEnable() ) {
+            if( storagebuilder.getSettings().hasAutoAddSetting() && storagebuilder.getSettings().getAutoAddSetting().getEnable() ) {
                 // 자동 추가 설정 기준으로 데이터 필터링
-                List<DataModelOuterClass.DataModel.Builder> dataModels = getDataList( storage, connector.cursor() );
-                // 데이터 정보 채우기
-                setMetadata( storage, connector.cursor(), dataModels );
-
-                log.info( "[ New Storage ] : Save Data Model" );
-                ds.NewDataModels(dataModels);
-//                DataLayerConnection dc = new DataLayerConnection();
+                List<DataModelOuterClass.DataModel.Builder> dataModels = getDataList( storagebuilder, connector.cursor() );
+                if( dataModels != null && !dataModels.isEmpty() ) {
+                    // 데이터 정보 채우기
+                    setMetadata( storagebuilder, connector.cursor(), dataModels );
+                    log.info( "[ New Storage ] : Save Data Model" );
+                    ds.NewDataModels(dataModels);
+                }
             }
 
-            if( storage.getSettings().hasSyncSetting() && storage.getSettings().getSyncSetting().getEnable() ) {
+            if( storagebuilder.getSettings().hasSyncSetting() && storagebuilder.getSettings().getSyncSetting().getEnable() ) {
                 log.error( "[ New Storage ] : Set Sync Timer" );
-                var syncSetting = storage.getSettings().getSyncSetting();
+                var syncSetting = storagebuilder.getSettings().getSyncSetting();
                 if( syncSetting.getSyncType() == 0 ) {
                     log.info( "[ New Storage ] : Storage[ {} ] Sync Enable. Type[ Period ] [ {} ]",
-                            storage.getName(), syncSetting.getPeriod() );
-//                    Timer timer = Timer.getInstance();
-//                    timer.Add( new TimerData( null, syncSetting.getPeriod() ) );
-//                timer.Add( null, ( long )syncSetting.getPeriod(), true, new TimerCallback() {
-//                    @Override
-//                    public void callback( TimerData data ) {
-//
-//                    }
-//                } );
+                            storagebuilder.getName(), syncSetting.getPeriod() );
+                    Timer timer = Timer.getInstance();
+                    if( timer != null ) {
+                        var timerResult = timer.Add( null, ( long )( syncSetting.getPeriod() * 1000L ), true,
+                                new StorageSyncTask( Job.builder().type( Job.JobType.STORAGE_SYNC ).storageId( storage.getId() ).build() ) );
+                        if( timerResult < 0 ) {
+                            log.error( "[ New Storage ] Storage[ {} / {} ]. Timer Insert Error[ {} ]",
+                                    storage.getId(), storage.getName(), timerResult );
+                        }
+                    }
                 } else {
                     boolean[] week = new boolean[ 7 ];
                     for( int i = 0; i < 7; i++ ) {
@@ -81,7 +85,8 @@ public class AddStorageTask implements Runnable {
                         week[ i ] = ( day & syncSetting.getWeek() ) > 0;
                     }
                     log.info( "[ New Storage ] : Storage[ {} ] Sync Enable. Type[ Week ] [ {} / {} ] RunTime[ {} ]",
-                            storage.getName(), syncSetting.getWeek(), Arrays.toString( week ), syncSetting.getRunTime() );
+                            storagebuilder.getName(), String.format( "0x%02X", syncSetting.getWeek() ),
+                            Arrays.toString( week ), syncSetting.getRunTime() );
                 }
             }
             // TODO : 실행 결과 저장
@@ -220,20 +225,21 @@ public class AddStorageTask implements Runnable {
         return storageBuilder.build();
     }
 
-    public JdbcConnector getConnector( StorageOuterClass.Storage storage ) {
-        var sql = select( DataStorageAdaptorTable.driver )
+    public JdbcConnector getConnector( StorageOuterClass.Storage.Builder storage ) throws SQLException, ClassNotFoundException {
+        var sql = select( DataStorageAdaptorTable.storageTypeName, DataStorageAdaptorTable.driver )
                 .from( DataStorageAdaptorTable.table )
                 .where( Equal.of( DataStorageAdaptorTable.id, storage.getAdaptorId() ) )
                 .generate()
                 .getStatement();
         var resultTable = dc.execute( sql ).getData().getTable();
-        if( resultTable.getRowsCount() != 1 || resultTable.getRows( 0 ).getCellCount() != 1 ) {
+        if( resultTable.getRowsCount() != 1 || resultTable.getRows( 0 ).getCellCount() != 2 ) {
             log.error( "[ New Storage ] Storage[ {} / {} ] Not found Adaptor ID[ {} ]",
                     storage.getId(), storage.getName(), storage.getAdaptorId() );
             return null;
         }
-        var driver = resultTable.getRows( 0 ).getCell( 0 ).getStringValue();
-
+        var storageTypeName = resultTable.getRows( 0 ).getCell( 0 ).getStringValue();
+        var driver = resultTable.getRows( 0 ).getCell( 1 ).getStringValue();
+        storage.setStorageType( storageTypeName );
 
         Map<String, Object> basic = new HashMap<>();
         for (var op : storage.getBasicOptionsList()) {
@@ -244,34 +250,28 @@ public class AddStorageTask implements Runnable {
             addition.put(op.getKey().toLowerCase(), convertInputField(op));
         }
 
-        try( var connector = new JdbcConnector.Builder()
+        var connector = new JdbcConnector.Builder()
                 .withUrlFormat( storage.getUrl() )
                 .withUrlOptions( basic )
                 .withAdvancedOptions( addition )
                 .withDriver( driver )
-                .build()
-        ) {
-            var conn = connector.connect();
-            var cur = conn.cursor();
-            cur.execute( "select 1" );
-            var result = cur.getResultSet();
-            System.out.println( result );
-            result.next();
-            var value = result.getString( 1 );
-            if( value.equals( "1" ) ) {
-                return conn;
-            } else {
-                log.error( "[ New Storage ] [ {} / {} ] Connect Fail", storage.getId(), storage.getName() );
-                return null;
-            }
-        } catch( ClassNotFoundException | SQLException e ) {
-            log.error( e.getMessage(), e );
+                .build();
+        var conn = connector.connect();
+        var cur = conn.cursor();
+        cur.execute( "select 1" );
+        var result = cur.getResultSet();
+        System.out.println( result );
+        result.next();
+        var value = result.getString( 1 );
+        if( value.equals( "1" ) ) {
+            return conn;
+        } else {
             log.error( "[ New Storage ] [ {} / {} ] Connect Fail", storage.getId(), storage.getName() );
             return null;
         }
     }
 
-    public ArrayList<Utilities.Meta> getStorageMeta( StorageOuterClass.Storage storage, JdbcConnector.Cursor cur ) throws Exception {
+    public ArrayList<Utilities.Meta> getStorageMeta( StorageOuterClass.Storage.Builder storage, JdbcConnector.Cursor cur ) throws Exception {
         ArrayList<Utilities.Meta> metas = new ArrayList<>();
 
         final String[] param = new String[ 2 ];
@@ -283,9 +283,18 @@ public class AddStorageTask implements Runnable {
                 param[ 1 ] = x.getValue();
             }
         } );
+        storage.getAdditionalOptionsList().forEach( x -> {
+            if( x.getKey().equalsIgnoreCase( "DATABASE" ) ) {
+                param[ 0 ] = x.getValue();
+            }
+            if( x.getKey().equalsIgnoreCase( "USER" ) ) {
+                param[ 1 ] = x.getValue();
+            }
+        } );
 
         // Set Storage Name
-        metas.add( Utilities.Meta.newBuilder().setKey( "DATABASE_NAME" ).setValue( param[ 0 ] ).build() );
+        if( param[0] != null && !param[0].isEmpty())
+            metas.add( Utilities.Meta.newBuilder().setKey( "DATABASE_NAME" ).setValue( param[ 0 ] ).build() );
 
         // Set Storage Owner : Get Database Owner
         if( storage.getStorageType().equalsIgnoreCase( "postgresql" ) ) {
@@ -296,13 +305,15 @@ public class AddStorageTask implements Runnable {
                 metas.add( Utilities.Meta.newBuilder().setKey( "OWNER" ).setValue( rs.getString( 1 ) ).build() );
             }
         } else {
-            metas.add( Utilities.Meta.newBuilder().setKey( "OWNER" ).setValue( param[ 0 ] ).build() );
+            if( param[ 1 ] != null && !param[ 1 ].isEmpty() ) {
+                metas.add( Utilities.Meta.newBuilder().setKey( "OWNER" ).setValue( param[ 1 ] ).build() );
+            }
         }
 
         return metas;
     }
 
-    private List<DataModelOuterClass.DataModel.Builder> getDataList( StorageOuterClass.Storage storage, JdbcConnector.Cursor cur ) throws Exception {
+    private List<DataModelOuterClass.DataModel.Builder> getDataList( StorageOuterClass.Storage.Builder storage, JdbcConnector.Cursor cur ) throws Exception {
         for( StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt : storage.getSettings().getAutoAddSetting().getOptionsList() ) {
             // TODO : Data Type Filter 처리 필요
             var regexResult = FilterNameAndFormat( storage, opt, cur );
@@ -314,7 +325,7 @@ public class AddStorageTask implements Runnable {
     }
 
     private List<DataModelOuterClass.DataModel.Builder> FilterNameAndFormat(
-            StorageOuterClass.Storage storage,
+            StorageOuterClass.Storage.Builder storage,
             StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt,
             JdbcConnector.Cursor cur ) throws Exception {
 
@@ -379,7 +390,7 @@ public class AddStorageTask implements Runnable {
     }
 
     private List<DataModelOuterClass.DataModel.Builder> FilterSize(
-            StorageOuterClass.Storage storage,
+            StorageOuterClass.Storage.Builder storage,
             StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt,
             JdbcConnector.Cursor cur,
             List<DataModelOuterClass.DataModel.Builder> builders ) throws Exception {
@@ -407,7 +418,7 @@ public class AddStorageTask implements Runnable {
 
 
     private void setMetadata(
-            StorageOuterClass.Storage storage,
+            StorageOuterClass.Storage.Builder storage,
             JdbcConnector.Cursor cursor,
             List<DataModelOuterClass.DataModel.Builder> dataModels ) throws Exception {
 
@@ -437,7 +448,7 @@ public class AddStorageTask implements Runnable {
             // 사용자 정보
             dataModels.get( i ).setCreator(
                     UserOuterClass.User.newBuilder()
-                            .setId( "test-user-id-01" )
+                            .setId( String.valueOf( UUID.randomUUID() ) )
                             .setName( "test-user-name" )
                             .setNickname( "test-user-nickname" )
                             .setPhone( "+8210-1234-1234" )
@@ -450,7 +461,7 @@ public class AddStorageTask implements Runnable {
         }
     }
 
-    private String getTableComment( StorageOuterClass.Storage storage, JdbcConnector.Cursor cur, String tableName ) throws Exception {
+    private String getTableComment( StorageOuterClass.Storage.Builder storage, JdbcConnector.Cursor cur, String tableName ) throws Exception {
         cur.execute( new SQL_Generator().getTableComment( storage.getStorageType(), tableName ) );
         var rs = cur.getResultSet();
         while( rs.next() ) {
@@ -460,7 +471,7 @@ public class AddStorageTask implements Runnable {
     }
 
     private List<DataModelOuterClass.DataStructure> getDataStructure(
-            StorageOuterClass.Storage storage,
+            StorageOuterClass.Storage.Builder storage,
             JdbcConnector.Cursor cur, String tableName ) throws Exception {
         List<DataModelOuterClass.DataStructure> dataStructures = new ArrayList<>();
 
@@ -479,7 +490,11 @@ public class AddStorageTask implements Runnable {
                     dataStructureBuilder.setLength( rs.getLong( 5 ) > Integer.MAX_VALUE ? -1 : rs.getInt( 5 ) );
                 }
             }
-            dataStructureBuilder.setDefaultValue( rs.getString( 6 ) == null ? "" : rs.getString( 6 ) );
+            if( rs.getString( 6 ) != null && !rs.getString( 6 ).isEmpty()) {
+                var def = rs.getString( 6 );
+                def = URLEncoder.encode(def, StandardCharsets.UTF_8 );
+                dataStructureBuilder.setDefaultValue( def );
+            }
             dataStructureBuilder.setDescription( rs.getString( 7 ) == null ? "" : rs.getString( 7 ) );
 
             log.error( "Column : " + dataStructureBuilder.toString() );
