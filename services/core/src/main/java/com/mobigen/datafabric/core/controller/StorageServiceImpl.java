@@ -135,7 +135,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
             return Utilities.CommonResponse.newBuilder()
                     .setCode("OK")
                     .build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error(e.getMessage(), e);
             return Utilities.CommonResponse.newBuilder()
                     .setCode("FAIL")
@@ -145,8 +145,19 @@ public class StorageServiceImpl implements StorageServiceCallBack {
     }
 
     @Override
-    public Utilities.CommonResponse updateStorage() {
-        return null;
+    public Utilities.CommonResponse updateStorage(StorageOuterClass.Storage request) {
+        try {
+            dataStorageService.updateStorage(request);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("OK")
+                    .build();
+        } catch (RuntimeException e) {
+            log.error(e.getMessage(), e);
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode("FAIL")
+                    .setErrMsg(e.getMessage())
+                    .build();
+        }
     }
 
     @Override
@@ -161,7 +172,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
             return Utilities.CommonResponse.newBuilder()
                     .setCode("OK")
                     .build();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error(e.getMessage(), e);
             return Utilities.CommonResponse.newBuilder()
                     .setCode("FAIL")

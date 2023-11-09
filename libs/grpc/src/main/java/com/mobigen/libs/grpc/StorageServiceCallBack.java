@@ -23,7 +23,7 @@ public interface StorageServiceCallBack {
 
     Utilities.CommonResponse addStorage(StorageOuterClass.Storage request);
 
-    Utilities.CommonResponse updateStorage();
+    Utilities.CommonResponse updateStorage(StorageOuterClass.Storage request);
 
     StorageOuterClass.ResConnectedData connectedData();
 
