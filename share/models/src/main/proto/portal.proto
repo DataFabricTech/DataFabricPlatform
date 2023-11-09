@@ -4,7 +4,7 @@ package com.mobigen.datafabric.share.protobuf;
 option go_package= "github.com/mobigen/datafabric/protobuf";
 
 import "google/protobuf/empty.proto";
-import "data-catalog.proto";
+import "data-model.proto";
 import "storage.proto";
 import "utilities.proto";
 
@@ -48,7 +48,7 @@ message ListMapStrNumber {
 }
 
 message SearchContent {
-  repeated DataCatalog dataCatalogs = 1;
+  repeated DataModel dataModels = 1;
   repeated Storage storages = 2;
 }
 

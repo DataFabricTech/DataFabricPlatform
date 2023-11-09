@@ -168,9 +168,9 @@ RatingAndComment:
       description: 코멘트
       maxLength: 1000
 
-DataCatalogStatistics:
+DataModelStatistics:
   type: object
-  description: 데이터 통계 정보
+  description: 데이터 모델 통계 정보
   properties:
     time:
       $ref: "./__index.yaml#/DateTime"
@@ -199,7 +199,7 @@ DataCatalogStatistics:
       description: 데이터 평균 응답 시간(초)
       format: double
 
-DataCatalog:
+DataModel:
   type: object
   description: 가상화된 데이터(메타 데이터 집합)
   properties:
@@ -227,14 +227,6 @@ DataCatalog:
     dataFormat:
       description: 데이터 포맷
       $ref: "#/DataFormat"
-    row:
-      type: number
-      description: 테이블 형태 데이터의 라인 수
-      format: long
-    size:
-      type: number
-      description: "테이블 데이터(Row), 파일 데이터(byte)"
-      format: long
     systemMeta:
       $ref: "./__index.yaml#/Meta"
     userMeta:
@@ -271,7 +263,7 @@ DataCatalog:
     ratingAndComments:
       $ref: "#/RatingAndComments"
     statistics:
-      $ref: "#/DataCatalogStatistics"
+      $ref: "#/DataModelStatistics"
       description: 누적 통계 정보(조회, 북마크)
     createdBy:
       $ref: "./__index.yaml#/User"

@@ -36,7 +36,7 @@ public class AddStorageTask implements Runnable {
         log.error( "[ New Storage ] : Start. Storage Connection ID[ {} ]", job.getStorageId() );
 
         // TODO : Get Storage From Data Layer
-        StorageOuterClass.Storage storage = ds.default_( job.getStorageId() );
+        StorageOuterClass.Storage storage = ds.advanced( job.getStorageId() );
 //        postgres =    1b6c8550-a7f8-4c96-9d17-cd10770ace87
 //        mysql =       2b6c8550-a7f8-4c96-9d17-cd10770ace87
 
@@ -48,14 +48,15 @@ public class AddStorageTask implements Runnable {
             var meta = getStorageMeta( storage, connector.cursor() );
             storagebuilder.addAllSystemMeta( meta );
 
-            log.info( "[ New Storage ] : Get Data( And Build Data Catalog )" );
+            log.info( "[ New Storage ] : Get Data( And Build Data Model)" );
             if( storage.getSettings().hasAutoAddSetting() && storage.getSettings().getAutoAddSetting().getEnable() ) {
                 // 자동 추가 설정 기준으로 데이터 필터링
-                List<DataCatalogOuterClass.DataCatalog.Builder> dataCatalogs = getDataList( storage, connector.cursor() );
+                List<DataModelOuterClass.DataModel.Builder> dataModels = getDataList( storage, connector.cursor() );
                 // 데이터 정보 채우기
-                setMetadata( storage, connector.cursor(), dataCatalogs );
+                setMetadata( storage, connector.cursor(), dataModels );
 
-                log.info( "[ New Storage ] : Save Data Catalog" );
+                log.info( "[ New Storage ] : Save Data Model" );
+                ds.NewDataModels(dataModels);
 //                DataLayerConnection dc = new DataLayerConnection();
             }
 
@@ -301,32 +302,23 @@ public class AddStorageTask implements Runnable {
         return metas;
     }
 
-    private List<DataCatalogOuterClass.DataCatalog.Builder> getDataList( StorageOuterClass.Storage storage, JdbcConnector.Cursor cur ) throws Exception {
-        List<DataCatalogOuterClass.DataCatalog.Builder> dataCatalogs = new ArrayList<>();
-
+    private List<DataModelOuterClass.DataModel.Builder> getDataList( StorageOuterClass.Storage storage, JdbcConnector.Cursor cur ) throws Exception {
         for( StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt : storage.getSettings().getAutoAddSetting().getOptionsList() ) {
-            // TODO : Data Type Filter 는 어떻게 처리할까?
-//            if( !opt.getDataType().isEmpty() ) {
-//                if( storage.getStorageType().equalsIgnoreCase( "rdbms" )) datatype only structured
-//                if( storage.getStorageType().equalsIgnoreCase( "fs" )) datatype all possible
-//                structured, semi-structured, unstructured
-//            }
+            // TODO : Data Type Filter 처리 필요
             var regexResult = FilterNameAndFormat( storage, opt, cur );
-            var sizeResult = FilterSize( storage, opt, cur, regexResult );
-            dataCatalogs.addAll( sizeResult );
-            // TODO : RDBMS의 경우 시간 필터링은 수행하지 않음.
-//            var dateResult = FilterDate( storage, cur, dataCatalogs );
+            return FilterSize( storage, opt, cur, regexResult );
+            // TODO : 시간 필터링 처리 필요
         }
 
-        return dataCatalogs;
+        return null;
     }
 
-    private List<DataCatalogOuterClass.DataCatalog.Builder> FilterNameAndFormat(
+    private List<DataModelOuterClass.DataModel.Builder> FilterNameAndFormat(
             StorageOuterClass.Storage storage,
             StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt,
             JdbcConnector.Cursor cur ) throws Exception {
 
-        List<DataCatalogOuterClass.DataCatalog.Builder> dataCatalogs = new ArrayList<>();
+        List<DataModelOuterClass.DataModel.Builder> dataModels = new ArrayList<>();
         cur.execute( new SQL_Generator().getTablesInfo( storage.getStorageType() ) );
         var rs = cur.getResultSet();
         while( rs.next() ) {
@@ -340,27 +332,27 @@ public class AddStorageTask implements Runnable {
                 }
             }
 
-            DataCatalogOuterClass.DataCatalog.Builder dataCatalogBuilder = DataCatalogOuterClass.DataCatalog.newBuilder();
+            DataModelOuterClass.DataModel.Builder dataModelBuilder = DataModelOuterClass.DataModel.newBuilder();
             if( !opt.getDataFormat().isEmpty() ) {
                 if( opt.getDataFormat().equalsIgnoreCase( "table" ) ) {
                     if( !rs.getString( 2 ).equalsIgnoreCase( "base table" ) ) continue;
-                    dataCatalogBuilder.setDataType( "STRUCTURED" );
-                    dataCatalogBuilder.setDataFormat( "TABLE" );
+                    dataModelBuilder.setDataType( "STRUCTURED" );
+                    dataModelBuilder.setDataFormat( "TABLE" );
                 } else if( opt.getDataFormat().equalsIgnoreCase( "view" ) ) {
                     if( rs.getString( 2 ).equalsIgnoreCase( "view" ) ) continue;
-                    dataCatalogBuilder.setDataType( "STRUCTURED" );
-                    dataCatalogBuilder.setDataFormat( "VIEW" );
+                    dataModelBuilder.setDataType( "STRUCTURED" );
+                    dataModelBuilder.setDataFormat( "VIEW" );
                 }
             }
             // Set Name(Table Name)
-            dataCatalogBuilder.setName( rs.getString( 1 ) );
+            dataModelBuilder.setName( rs.getString( 1 ) );
             // Set Status
-            dataCatalogBuilder.setStatus( "CONNECTED" );
+            dataModelBuilder.setStatus( "CONNECTED" );
             log.debug( "New Data Name[ {} ]", rs.getString( 1 ) );
             // Set System Metadata ( owner )
             if( rs.getMetaData().getColumnCount() == 3 ) {
-                dataCatalogBuilder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "NAME" ).setValue( rs.getString( 1 ) ).build() );
-                dataCatalogBuilder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "OWNER" ).setValue( rs.getString( 3 ) ).build() );
+                dataModelBuilder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "NAME" ).setValue( rs.getString( 1 ) ).build() );
+                dataModelBuilder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "OWNER" ).setValue( rs.getString( 3 ) ).build() );
                 log.debug( "Data Name[ {} ] Metadata[ owner ][ {} ]", rs.getString( 1 ), rs.getString( 3 ) );
             }
 
@@ -368,8 +360,8 @@ public class AddStorageTask implements Runnable {
             for( int i = 0; i < storage.getSystemMetaCount(); i++ ) {
                 if( storage.getSystemMeta( i ).getKey().equalsIgnoreCase( "database_name" ) ) {
                     var databaseName = storage.getSystemMeta( i ).getValue();
-                    dataCatalogBuilder.addDataLocation(
-                            DataCatalogOuterClass.DataLocation.newBuilder()
+                    dataModelBuilder.addDataLocation(
+                            DataModelOuterClass.DataLocation.newBuilder()
                                     .setStorageId( storage.getId() )
                                     .setDatabaseName( databaseName )
                                     .setTableName( rs.getString( 1 ) )
@@ -379,23 +371,23 @@ public class AddStorageTask implements Runnable {
             }
 
             // Set Dat Refine
-            dataCatalogBuilder.setDataRefine( DataCatalogOuterClass.DataRefine.newBuilder().setQuery( "select * from " + rs.getString( 1 ) ).build() );
+            dataModelBuilder.setDataRefine( DataModelOuterClass.DataRefine.newBuilder().setQuery( "select * from " + rs.getString( 1 ) ).build() );
 
-            dataCatalogs.add( dataCatalogBuilder );
+            dataModels.add( dataModelBuilder );
         }
-        return dataCatalogs;
+        return dataModels;
     }
 
-    private List<DataCatalogOuterClass.DataCatalog.Builder> FilterSize(
+    private List<DataModelOuterClass.DataModel.Builder> FilterSize(
             StorageOuterClass.Storage storage,
             StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt,
             JdbcConnector.Cursor cur,
-            List<DataCatalogOuterClass.DataCatalog.Builder> builders ) throws Exception {
+            List<DataModelOuterClass.DataModel.Builder> builders ) throws Exception {
 
         if( opt.getMinSize() <= 0 && opt.getMaxSize() <= 0 ) return builders;
 
-        List<DataCatalogOuterClass.DataCatalog.Builder> dataCatalogs = new ArrayList<>();
-        for( DataCatalogOuterClass.DataCatalog.Builder builder : builders ) {
+        List<DataModelOuterClass.DataModel.Builder> dataModels = new ArrayList<>();
+        for( DataModelOuterClass.DataModel.Builder builder : builders ) {
             cur.execute( new SQL_Generator().getTableSize( storage.getStorageType(), builder.getName() ) );
             var rs = cur.getResultSet();
             while( rs.next() ) {
@@ -406,44 +398,44 @@ public class AddStorageTask implements Runnable {
                     continue;
                 }
                 log.info( "Data[ {} ] Size(Row)[ {} ]", builder.getName(), rows );
-                builder.setRow( ( int )rows );
-                dataCatalogs.add( builder );
+                builder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "ROWS" ).setValue( String.valueOf( rows ) ).build() );
+                dataModels.add( builder );
             }
         }
-        return dataCatalogs;
+        return dataModels;
     }
 
 
     private void setMetadata(
             StorageOuterClass.Storage storage,
             JdbcConnector.Cursor cursor,
-            List<DataCatalogOuterClass.DataCatalog.Builder> dataCatalogs ) throws Exception {
+            List<DataModelOuterClass.DataModel.Builder> dataModels ) throws Exception {
 
-        for( int i = 0; i < dataCatalogs.size(); i++ ) {
+        for( int i = 0; i < dataModels.size(); i++ ) {
             // 테이블 코멘트
-            var comment = getTableComment( storage, cursor, dataCatalogs.get( i ).getName() );
+            var comment = getTableComment( storage, cursor, dataModels.get( i ).getName() );
             if( comment != null && !comment.isEmpty() ) {
-                dataCatalogs.get( i ).setDescription( comment );
-                dataCatalogs.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "DESC" ).setValue( comment ).build() );
-                log.info( "Data[ {} ] Comment[ {} ]", dataCatalogs.get( i ).getName(), comment );
+                dataModels.get( i ).setDescription( comment );
+                dataModels.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "DESC" ).setValue( comment ).build() );
+                log.info( "Data[ {} ] Comment[ {} ]", dataModels.get( i ).getName(), comment );
             } else {
-                log.info( "Data[ {} ] No Have Comment", dataCatalogs.get( i ).getName() );
+                log.info( "Data[ {} ] No Have Comment", dataModels.get( i ).getName() );
             }
             // 데이터 구조
-            dataCatalogs.get( i ).addAllDataStructure( getDataStructure( storage, cursor, dataCatalogs.get( i ).getName() ) );
+            dataModels.get( i ).addAllDataStructure( getDataStructure( storage, cursor, dataModels.get( i ).getName() ) );
 
             // 메타 데이터 설정
-            dataCatalogs.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "FORMAT" ).setValue( "TABLE" ).build() );
-            dataCatalogs.get( i ).addSystemMeta(
+            dataModels.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "FORMAT" ).setValue( "TABLE" ).build() );
+            dataModels.get( i ).addSystemMeta(
                     Utilities.Meta.newBuilder().setKey( "COLUMNS" )
-                            .setValue( String.valueOf( dataCatalogs.get( i ).getDataStructureList().size() ) ).build() );
+                            .setValue( String.valueOf( dataModels.get( i ).getDataStructureList().size() ) ).build() );
 
             // 권한  :
-            dataCatalogs.get( i ).setPermission( DataCatalogOuterClass.Permission.newBuilder().setRead( true ).setWrite( true ).build() );
+            dataModels.get( i ).setPermission( DataModelOuterClass.Permission.newBuilder().setRead( true ).setWrite( true ).build() );
             // 기타 데이터 설정
-            dataCatalogs.get( i ).setDownloadInfo( DataCatalogOuterClass.DownloadInfo.newBuilder().setStatus( DataCatalogOuterClass.DownloadInfo.DownloadStatus.READY ).build() );
+            dataModels.get( i ).setDownloadInfo( DataModelOuterClass.DownloadInfo.newBuilder().setStatus( DataModelOuterClass.DownloadInfo.DownloadStatus.READY ).build() );
             // 사용자 정보
-            dataCatalogs.get( i ).setCreator(
+            dataModels.get( i ).setCreator(
                     UserOuterClass.User.newBuilder()
                             .setId( "test-user-id-01" )
                             .setName( "test-user-name" )
@@ -452,7 +444,7 @@ public class AddStorageTask implements Runnable {
                             .setEmail( "test-user@mobigen.com" )
                             .build() );
             // 생성 시간
-            dataCatalogs.get( i ).setCreatedAt(
+            dataModels.get( i ).setCreatedAt(
                     Utilities.DateTime.newBuilder()
                             .setUtcTime( System.currentTimeMillis() ).build() );
         }
@@ -467,15 +459,15 @@ public class AddStorageTask implements Runnable {
         return null;
     }
 
-    private List<DataCatalogOuterClass.DataStructure> getDataStructure(
+    private List<DataModelOuterClass.DataStructure> getDataStructure(
             StorageOuterClass.Storage storage,
             JdbcConnector.Cursor cur, String tableName ) throws Exception {
-        List<DataCatalogOuterClass.DataStructure> dataStructures = new ArrayList<>();
+        List<DataModelOuterClass.DataStructure> dataStructures = new ArrayList<>();
 
         cur.execute( new SQL_Generator().getTableStructure( storage.getStorageType(), tableName ) );
         var rs = cur.getResultSet();
         while( rs.next() ) {
-            DataCatalogOuterClass.DataStructure.Builder dataStructureBuilder = DataCatalogOuterClass.DataStructure.newBuilder();
+            DataModelOuterClass.DataStructure.Builder dataStructureBuilder = DataModelOuterClass.DataStructure.newBuilder();
 
             dataStructureBuilder.setOrder( Integer.parseInt( rs.getString( 1 ) ) );
             dataStructureBuilder.setName( rs.getString( 2 ) );

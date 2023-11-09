@@ -15,8 +15,6 @@ Search:
                     properties:
                       pageable:
                         $ref: "../schemas/__index.yaml#/Pageable"
-                      filters:
-                        $ref: "../schemas/__index.yaml#/SearchResponseFilter"
                       contents:
                         $ref: "../schemas/__index.yaml#/SearchResponseContent"
       examples:
@@ -36,54 +34,63 @@ Search:
                     - order: 1
                       field: "name"
                       direction: "ASC"
-                filters:
-                  DATA_TYPE:
-                    DataModel: 10
-                  DATA_FORMAT:
-                    TABLE: 10
-                  #                  CATEGORY:
-                  #                    IT: 10
-                  #                    데이터: 20
-                  #                  TAG:
-                  #                    모비젠: 10
-                  #                    데이터: 20
-                  STORAGE_TYPE:
-                    MySQL: 30
-                    MariaDB: 20
-                    PostgreSQL: 40
-                  CONNECTOR_NAME:
-                    Mobigen-IRIS:
-                      ID: "connector-id01"
-                      Count: 10
-                    Mobigen-HDFS:
-                      ID: "connector-id02"
-                      Count: 20
-                    Mobigen-MySQL:
-                      ID: "connector-id03"
-                      Count: 30
-                    Mobigen-PostgreSQL:
-                      ID: "connector-id04"
-                      Count: 40
-                #                  CREATOR:
-                #                    mobigen-user:
-                #                      ID: "user-01"
-                #                      Count: 10
-                #                    mobigen-admin:
-                #                      ID: "user-02"
-                #                      Count: 20
+                #기획서 상 필터 기능 삭제 됨.
+                #filters:
+                #  DATA_TYPE:
+                #    DataModel: 10
+                #  DATA_FORMAT:
+                #    TABLE: 10
+                #  CATEGORY:
+                #    IT: 10
+                #    데이터: 20
+                #  TAG:
+                #    모비젠: 10
+                #    데이터: 20
+                #  STORAGE_TYPE:
+                #    MySQL: 30
+                #    MariaDB: 20
+                #    PostgreSQL: 40
+                #  CONNECTOR_NAME:
+                #    Mobigen-IRIS:
+                #      ID: "connector-id01"
+                #      Count: 10
+                #    Mobigen-HDFS:
+                #      ID: "connector-id02"
+                #      Count: 20
+                #    Mobigen-MySQL:
+                #      ID: "connector-id03"
+                #      Count: 30
+                #    Mobigen-PostgreSQL:
+                #      ID: "connector-id04"
+                #      Count: 40
+                #    CREATOR:
+                #      mobigen-user:
+                #        ID: "user-01"
+                #        Count: 10
+                #      mobigen-admin:
+                #        ID: "user-02"
+                #        Count: 20
                 contents:
-                  dataCatalogs:
-                    - id: "data-catalog-id01"
+                  dataModels:
+                    - id: "data-model-id01"
                       name: "데이터 이름"
                       description: "데이터 설명"
                       status: "CONNECTED"
                       dataType: "DataModel"
                       dataFormat: "TABLE"
-                      row: 112
-                      size: 11234
                       systemMeta:
                         - key: "프로젝트"
                           value: "데이터패브릭"
+                        - key: "database"
+                          value: "data-fabric"
+                        - key: "table_name"
+                          value: "analysis_data"
+                        - key: "rows"
+                          value: "110"
+                        - key: "columns"
+                          value: "120"
+                        - key: "size"
+                          value: "11234"
                       userMeta:
                         - key: "프로젝트"
                           value: "데이터패브릭"
@@ -100,25 +107,11 @@ Search:
                         write: true
                       ratingAndComments:
                         avgRating: 4.5
-                      #                        ratingAndComment:
-                      #                          - id: "comment-id"
-                      #                            time:
-                      #                              strDateTime: "2020-12-01 12:00:00"
-                      #                              utcTime: 1606824000000
-                      #                            user:
-                      #                              id: "user-id01"
-                      #                              name: "user-name01"
-                      #                            rating: 4.5
-                      #                            comment: "데이터가 좋습니다"
-                      #                      category:
-                      #                        - id: "category-id01"
-                      #                          name: "IT"
-                      #                          description: "IT 관련 데이터"
                       statistics:
                         accessCount: 1000
                         downloadCount: 10
                         bookMarkCount: 20
-                        avgResponseTime: 1.2
+#                        avgResponseTime: 1.2
                       createdBy:
                         id: "user-id01" # UUID
                         name: "user-name01"
@@ -127,178 +120,6 @@ Search:
                         utcTime: 1606824000000
                       lastModifiedBy:
                         id: "user-id01" # UUID
-                        name: "user-name01"
-                      lastModifiedAt:
-                        strDateTime: "2020-12-01 12:00:00"
-                        utcTime: 1606824000000
-                  storages:
-                    - id: "storage-id-01"
-                      name: "IRIS"
-                      description: "IRIS 연결정보"
-                      systemMeta:
-                        - key: storageType
-                          value: "IRIS"
-                        - key: database
-                          value: "data-platform"
-                        - key: createdBy
-                          value: "admin"
-                        - key: modifiedBy
-                          value: "jblim"
-                      userMeta:
-                        - key: purpose
-                          value: "Data Fabric Test"
-                      tag:
-                        - "tag01"
-                        - "tag02"
-                      status: "CONNECTED"
-                      storageType: "IRIS"
-                      adaptorId: "adaptor-id01"
-                      basicOptions:
-                        - key: HOST
-                          value: "192.168.0.1"
-                        - key: PORT
-                          value: "1234"
-                        - key: DATABASE
-                          value: "DATA_FABRIC"
-                        - key: USER
-                          value: "admin"
-                        - key: PASSWORD
-                          value: "****"
-                      createdBy:
-                        id: "admin"
-                        name: "관리자"
-                      createdAt:
-                        strDateTime: "2021-01-01 00:00:00.000"
-                        utcTime: 1609459200000
-                      lastModifiedBy:
-                        id: "admin"
-                        name: "관리자"
-                      lastModifiedAt:
-                        strDateTime: "2021-01-01 00:00:00.000"
-                        utcTime: 1609459200000
-        sample01 - old:
-          description: 검색 결과
-          value:
-            code: "200"
-            data:
-              searchResponse:
-                pageable:
-                  page:
-                    size: 20
-                    totalSize: 100
-                    selectPage: 1
-                    totalPage: 5
-                  sort:
-                    - order: 1
-                      field: "name"
-                      direction: "ASC"
-                filters:
-                  DATA_TYPE:
-                    STRUCTURED: 10
-                    UNSTRUCTURED: 20
-                    SEMI_STRUCTURED: 30
-                  DATA_FORMAT:
-                    TABLE: 10
-                    VIEW: 20
-                    CSV: 30
-                    EXCEL: 40
-                    WORD: 50
-                    HWP: 60
-                    PDF: 70
-                    PPT: 80
-                    IMAGE: 90
-                    AUDIO: 100
-                    VIDEO: 110
-                    JSON: 120
-                    YAML: 130
-                    HTML: 140
-                  CATEGORY:
-                    IT: 10
-                    데이터: 20
-                  TAG:
-                    모비젠: 10
-                    데이터: 20
-                  STORAGE_TYPE:
-                    IRIS: 10
-                    HDFS: 20
-                    MySQL: 30
-                    PostgreSQL: 40
-                  CONNECTOR_NAME:
-                    Mobigen-IRIS:
-                      ID: "connector-id01"
-                      Count: 10
-                    Mobigen-HDFS:
-                      ID: "connector-id02"
-                      Count: 20
-                    Mobigen-MySQL:
-                      ID: "connector-id03"
-                      Count: 30
-                    Mobigen-PostgreSQL:
-                      ID: "connector-id04"
-                      Count: 40
-                  CREATOR:
-                    mobigen-user:
-                      ID: "user-01"
-                      Count: 10
-                    mobigen-admin:
-                      ID: "user-02"
-                      Count: 20
-                contents:
-                  dataCatalogs:
-                    - id: "data-catalog-id01"
-                      name: "데이터 이름"
-                      description: "데이터 설명"
-                      status: "CONNECTED"
-                      dataType: "STRUCTURED"
-                      dataFormat: "TABLE"
-                      row: 112
-                      size: 11234
-                      systemMeta:
-                        - key: "프로젝트"
-                          value: "데이터패브릭"
-                      userMeta:
-                        - key: "프로젝트"
-                          value: "데이터패브릭"
-                      tag:
-                        - "IT"
-                        - "데이터패브릭"
-                        - "설계"
-                      #                   category
-                      downloadInfo:
-                        status: 0
-                        link: "http://datafabric.mobigen.com/download/id-90123"
-                      permission:
-                        read: true
-                        write: true
-                      ratingAndComments:
-                        avgRating: 4.5
-                      #                        ratingAndComment:
-                      #                          - id: "comment-id"
-                      #                            time:
-                      #                              strDateTime: "2020-12-01 12:00:00"
-                      #                              utcTime: 1606824000000
-                      #                            user:
-                      #                              id: "user-id01"
-                      #                              name: "user-name01"
-                      #                            rating: 4.5
-                      #                            comment: "데이터가 좋습니다"
-                      #                      category:
-                      #                        - id: "category-id01"
-                      #                          name: "IT"
-                      #                          description: "IT 관련 데이터"
-                      statistics:
-                        accessCount: 1000
-                        downloadCount: 10
-                        bookMarkCount: 20
-                        avgResponseTime: 1.2
-                      createdBy:
-                        id: "user-id01"
-                        name: "user-name01"
-                      createdAt:
-                        strDateTime: "2020-12-01 12:00:00"
-                        utcTime: 1606824000000
-                      lastModifiedBy:
-                        id: "user-id01"
                         name: "user-name01"
                       lastModifiedAt:
                         strDateTime: "2020-12-01 12:00:00"

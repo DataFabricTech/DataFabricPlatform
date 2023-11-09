@@ -5,16 +5,15 @@ import com.mobigen.datafabric.core.model.*;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.core.util.Tuple;
-import com.mobigen.datafabric.share.protobuf.DataLayer;
-import com.mobigen.datafabric.share.protobuf.StorageCommon;
-import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
-import com.mobigen.datafabric.share.protobuf.Utilities;
+import com.mobigen.datafabric.share.protobuf.*;
 import com.mobigen.libs.configuration.Config;
+import com.mobigen.sqlgen.SqlBuilder;
 import com.mobigen.sqlgen.maker.JoinMaker;
 import com.mobigen.sqlgen.maker.MakerInterface;
 import com.mobigen.sqlgen.maker.OrderUsable;
 import com.mobigen.sqlgen.maker.WhereUsable;
 import com.mobigen.sqlgen.model.JoinMethod;
+import com.mobigen.sqlgen.model.SqlColumn;
 import com.mobigen.sqlgen.order.Order;
 import com.mobigen.sqlgen.where.Condition;
 import com.mobigen.sqlgen.where.conditions.Equal;
@@ -22,6 +21,7 @@ import com.mobigen.sqlgen.where.conditions.In;
 import com.mobigen.sqlgen.where.conditions.Like;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -116,7 +116,8 @@ public class DataStorageService {
                 } else if (colNameCaseIgnore.equals(DataStorageMetadataTable.value.getName())) {
                     metaBuilder.setValue((String) data);
                 } else if (colNameCaseIgnore.equals(DataStorageMetadataTable.isSystem.getName())) {
-                    isSystem = (boolean) data;
+//                    isSystem = (boolean) data;
+                    isSystem = cell.getBoolValue();
                 }
             }
             if (isSystem) {
@@ -146,7 +147,8 @@ public class DataStorageService {
                 } else if (colNameCaseIgnore.equals(ConnInfoTable.value.getName())) {
                     builder.setValue((String) data);
                 } else if (colNameCaseIgnore.equals(ConnInfoTable.type.getName())) {
-                    isBasic = (boolean) data;
+//                    isBasic = (boolean) data;
+                    isBasic = cell.getBoolValue();
                 }
             }
             if (isBasic) {
@@ -555,6 +557,100 @@ public class DataStorageService {
             log.error(e.getMessage(), e);
             return new Tuple<>(false, e.getMessage());
         }
+    }
+
+    public void NewDataModels( List<DataModelOuterClass.DataModel.Builder> dataModels ) {
+        List<String> sqlList = new ArrayList<>();
+        // Data Model
+        dataModels.forEach( data -> {
+            var id = UUID.randomUUID().toString();
+            var insertDataModel = insert(DataModel.table)
+                    .columns(
+                            DataModel.id,
+                            DataModel.name,
+                            DataModel.description,
+
+                            DataModel.type,
+                            DataModel.format,
+
+                            DataModel.status,
+
+                            DataModel.createdAt,
+                            DataModel.createdBy
+                    )
+                    .values(
+                            id,
+                            data.getName(),
+                            data.getDescription() == null ? "": data.getDescription(),
+                            data.getDataType(),
+                            data.getDataFormat(),
+                            data.getStatus(),
+                            data.getCreatedAt().getUtcTime(),
+                            data.getCreator()
+                    )
+                    .generate()
+                    .getStatement();
+            sqlList.add(insertDataModel);
+            for( DataModelOuterClass.DataLocation dataLocation : data.getDataLocationList() ) {
+                var insertSql = insert(DataModelLocation.table)
+                        .columns(
+                                DataModelLocation.id,
+                                DataModelLocation.storageId,
+                                DataModelLocation.path,
+                                DataModelLocation.name
+                        ).values(
+                                id,
+                                dataLocation.getStorageId(),
+                                dataLocation.getDatabaseName(),
+                                dataLocation.getTableName()
+                        ).generate().getStatement();
+                sqlList.add( insertSql );
+            }
+            for( Utilities.Meta meta : data.getSystemMetaList() ) {
+                var insertSql = insert(DataModelMetadata.table)
+                        .columns(
+                                DataModelMetadata.id,
+                                DataModelMetadata.isSystem,
+                                DataModelMetadata.key,
+                                DataModelMetadata.value
+                        ).values(
+                                id,
+                                true,
+                                meta.getKey(),
+                                meta.getValue()
+                        ).generate().getStatement();
+                sqlList.add( insertSql );
+            }
+//            if( data.getDataRefine() != null ) {
+//
+//            }
+            for( DataModelOuterClass.DataStructure dataStructure : data.getDataStructureList() ) {
+                var insertSql = insert(DataModelSchema.table)
+                        .columns(
+                                DataModelSchema.id,
+                                DataModelSchema.ordinalPosition,
+                                DataModelSchema.columnName,
+                                DataModelSchema.dataType,
+                                DataModelSchema.length,
+                                DataModelSchema.defaultValue,
+                                DataModelSchema.description
+                        ).values(
+                                id,
+                                dataStructure.getOrder(),
+                                dataStructure.getName(),
+                                dataStructure.getColType(),
+                                dataStructure.getLength(),
+                                dataStructure.getDefaultValue(),
+                                dataStructure.getDescription()
+                        ).generate().getStatement();
+                sqlList.add( insertSql );
+            }
+//            if( data.getTagList(  ) != null && data.getTagList().size() > 0 ) {
+//
+//            }
+        } );
+        var result = dataLayerConnection.executeBatch(sqlList);
+        log.info("[ Data-Layer ] Data Model Insert Result : " + result.getDataList());
     }
 
 //    public List<Map<String, String>> getStorageList() {

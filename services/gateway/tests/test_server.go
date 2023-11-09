@@ -26,8 +26,8 @@ func main() {
 	protobuf.RegisterAdaptorServiceServer(server, adaptorService)
 	storageService := &service.StorageService{}
 	protobuf.RegisterStorageServiceServer(server, storageService)
-	dataCatalogService := &service.DataCatalogService{}
-	protobuf.RegisterDataCatalogServiceServer(server, dataCatalogService)
+	dataCatalogService := &service.DataModelService{}
+	protobuf.RegisterDataModelServiceServer(server, dataCatalogService)
 	log.Printf("test server listening at %v", lis.Addr())
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

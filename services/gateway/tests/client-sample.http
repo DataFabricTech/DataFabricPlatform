@@ -23,36 +23,6 @@ Content-Type: application/json
       }
     ]
   },
-  "filters": {
-    "DATA_TYPE": [
-      "STRUCTURED",
-      "SSEMI_STRUCTURED"
-    ],
-    "DATA_FORMAT": [
-      "CSV",
-      "JSON"
-    ],
-    "CATEGORY": [
-      "FINANCE",
-      "HEALTHCARE"
-    ],
-    "TAG": [
-      "TAG1",
-      "TAG2"
-    ],
-    "STORAGE_TYPE": [
-      "HDFS",
-      "S3"
-    ],
-    "CONNECTOR_ID": [
-      "CONNECTOR_ID1",
-      "CONNECTOR_ID2"
-    ],
-    "CREATOR_ID": [
-      "CREATOR_ID1",
-      "CREATOR_ID2"
-    ]
-  },
   "detailSearch": {
     "DATA_NAME": "test",
     "DATA_TYPE": "STRUCTURED",
