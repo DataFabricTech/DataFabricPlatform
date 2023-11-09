@@ -66,7 +66,7 @@ public class PortalServiceImpl implements PortalCallBack {
             totalSize += storageBuilder(searchContentBuilder, input, pageable);
             facetBuilder(searchResponseBuilder, input, details, filters);
 
-            var currentSize = searchContentBuilder.getDataCatalogsCount() + searchContentBuilder.getStoragesCount();
+            var currentSize = searchContentBuilder.getDataModelsCount() + searchContentBuilder.getStoragesCount();
             var resPageable = Utilities.Pageable.newBuilder()
                     .setPage(
                             Utilities.Page.newBuilder()
@@ -133,7 +133,7 @@ public class PortalServiceImpl implements PortalCallBack {
         var totalSize = searchModel.getTotalSize();
 
         for (var dataCatalogModel : searchModel.getDataCatalogModelList()) {
-            builder.addDataCatalogs(convertToCatalog(dataCatalogModel));
+            builder.addDataModels(convertToCatalog(dataCatalogModel));
         }
 
         return totalSize;
@@ -522,19 +522,19 @@ public class PortalServiceImpl implements PortalCallBack {
         return mustQuery;
     }
 
-    private DataCatalogOuterClass.DataCatalog convertToCatalog(DataCatalogModel dataCatalogModel) {
-        var dataCatalogBuilder = DataCatalogOuterClass.DataCatalog.newBuilder();
+    private DataModelOuterClass.DataModel convertToCatalog(DataCatalogModel dataCatalogModel) {
+        var dataModelBuilder = DataModelOuterClass.DataModel.newBuilder();
         for (var field : dataCatalogModel.getClass().getDeclaredFields()) {
             switch (field.getName().toLowerCase()) {
-                case "id" -> dataCatalogBuilder.setId(dataCatalogModel.getId());
-                case "name" -> dataCatalogBuilder.setName(dataCatalogModel.getName());
-                case "description" -> dataCatalogBuilder.setDescription(dataCatalogModel.getDescription());
-                case "datatype" -> dataCatalogBuilder.setDataType(dataCatalogModel.getDataType());
-                case "dataformat" -> dataCatalogBuilder.setDataFormat(dataCatalogModel.getDataFormat());
+                case "id" -> dataModelBuilder.setId(dataCatalogModel.getId());
+                case "name" -> dataModelBuilder.setName(dataCatalogModel.getName());
+                case "description" -> dataModelBuilder.setDescription(dataCatalogModel.getDescription());
+                case "datatype" -> dataModelBuilder.setDataType(dataCatalogModel.getDataType());
+                case "dataformat" -> dataModelBuilder.setDataFormat(dataCatalogModel.getDataFormat());
                 // todo 추후에 확정된 schema로 mapping 필요
             }
         }
-        return dataCatalogBuilder.build();
+        return dataModelBuilder.build();
     }
 
     private StorageOuterClass.Storage convertToStorage(StorageModel storageModel) {

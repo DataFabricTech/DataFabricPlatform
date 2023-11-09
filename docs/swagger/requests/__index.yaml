@@ -2,19 +2,19 @@
 Search:
   $ref: "./search.yaml#/Search"
 
-# DataCatalog
-DataCatalogId:
-  $ref: "./data-catalog.yaml#/DataCatalogId"
+# DataModel
+DataModelId:
+  $ref: "./data-model.yaml#/DataModelId"
 DataMetaUpdate:
-  $ref: "./data-catalog.yaml#/DataMetaUpdate"
+  $ref: "./data-model.yaml#/DataMetaUpdate"
 DataTagUpdate:
-  $ref: "./data-catalog.yaml#/DataTagUpdate"
+  $ref: "./data-model.yaml#/DataTagUpdate"
 DataRatingAndComment:
-  $ref: "./data-catalog.yaml#/DataRatingAndComment"
+  $ref: "./data-model.yaml#/DataRatingAndComment"
 
-# For Data Catalog Browser
-DataCatalogSearch:
-  $ref: "./data-catalog.yaml#/DataCatalogSearch"
+# For Data Model Browser
+DataModelSearch:
+  $ref: "./data-model.yaml#/DataModelSearch"
 
 # For Storage Management
 ConnectTest:

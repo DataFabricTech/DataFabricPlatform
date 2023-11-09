@@ -7,11 +7,11 @@ option go_package = "github.com/mobigen/datafabric/protobuf";
 import "utilities.proto";
 import "user.proto";
 
-service DataCatalogService {
+service DataModelService {
   //  POST /data/v1/preview - 미리보기
-  rpc Preview(ReqId) returns (DataCatalogPreview);
+  rpc Preview(ReqId) returns (DataModelPreview);
   //  POST /data/v1/default - 데이터 상세 보기 - 기본 정보
-  rpc Default(ReqId) returns (DataCatalogDefault);
+  rpc Default(ReqId) returns (DataModelDefault);
   //  POST /data/v1/metadata - 사용자 설정 메타 데이터 업데이트
   rpc UserMetadata(ReqMetaUpdate) returns (CommonResponse);
   //  POST /data/v1/tag - 데이터 태그 업데이트
@@ -27,13 +27,13 @@ service DataCatalogService {
   rpc DelComment(ReqId) returns (CommonResponse);
 
   //  POST /data/v1/all-data/summary - 데이터 평가와 댓글 삭제
-  rpc AllDataSummary(DataCatalogSearch) returns (ResDataCatalogs);
+  rpc AllDataSummary(DataModelSearch) returns (ResDataModels);
   //  POST /data/v1/all-data          - 데이터 평가와 댓글 삭제
-  rpc AllData(DataCatalogSearch) returns (ResDataCatalogs);
+  rpc AllData(DataModelSearch) returns (ResDataModels);
 }
 
-// DataCatalog 검색 결과, 미리보기, 기본 정보를 위한 데이터
-message DataCatalog {
+// DataModel 검색 결과, 미리보기, 기본 정보를 위한 데이터
+message DataModel {
   string id = 1;
   string name = 2;
   string description = 3;
@@ -42,9 +42,6 @@ message DataCatalog {
 
   string dataType = 5;
   string dataFormat = 6;
-
-  int32 row = 7;
-  int32 size = 9;
 
   // 저장소 정보와 원본 데이터로부터 가상화 설정 정보
   repeated DataLocation dataLocation = 11;
@@ -69,7 +66,7 @@ message DataCatalog {
   }
   RatingAndComments ratingAndComments = 21;
 
-  DataCatalogStatistics statistics = 22;
+  DataModelStatistics statistics = 22;
 
   User creator = 23;
   DateTime createdAt = 24;
@@ -141,8 +138,8 @@ message RatingAndComment {
   string comment = 4;
 }
 
-// DataCatalogStatistics 데이터 카탈로그 통계
-message DataCatalogStatistics {
+// DataModelStatistics 데이터 모델 통계
+message DataModelStatistics {
   string time = 1;                    // 통계 시간
   string id = 2;                      // 데이터 아이디
   string name = 3;                    // 데이터 이름
@@ -154,22 +151,22 @@ message DataCatalogStatistics {
   double avgResponseTime = 8;         // 데이터 조회 평균 응답 시간
 }
 
-// DataCatalog Preview
-message DataCatalogPreview {
+// DataModel Preview
+message DataModelPreview {
   string code = 1;
   string errMsg = 2;
   message Data {
-    DataCatalog dataPreview = 1;
+    DataModel dataPreview = 1;
   }
   Data data = 3;
 }
 
-// DataCatalog Default
-message DataCatalogDefault {
+// DataModel Default
+message DataModelDefault {
   string code = 1;
   string errMsg = 2;
   message Data {
-    DataCatalog dataCatalog = 1;
+    DataModel dataModel = 1;
   }
   Data data = 3;
 }
@@ -191,8 +188,8 @@ message ReqRatingAndComment {
   RatingAndComment ratingAndComment = 2;
 }
 
-message DataCatalogSearch {
-  message DataCatalogSearchFilter {
+message DataModelSearch {
+  message DataModelSearchFilter {
     string keyword = 1;
     message DateRange {
       string from = 1;
@@ -202,16 +199,16 @@ message DataCatalogSearch {
     string dataType = 3;
     string dataFormat = 4;
   }
-  DataCatalogSearchFilter filter = 1;
+  DataModelSearchFilter filter = 1;
   Pageable pageable = 2;
 }
 
-message ResDataCatalogs {
+message ResDataModels {
   string code = 1;
   string errMsg = 2;
   message Data {
     Pageable pageable = 1;
-    repeated DataCatalog dataCatalogs = 2;
+    repeated DataModel dataModels = 2;
   }
   Data data = 3;
 }

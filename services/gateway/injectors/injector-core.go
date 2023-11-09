@@ -40,20 +40,20 @@ func (h *Injector) Init() error {
 
 	// Data Catalog : Grouping
 	h.Log.Errorf("[ PATH ] /data/v1 ................................................................. [ OK ]")
-	dataCatalogGroup := h.Router.Group("/data/v1")
-	dataCatalog := DataCatalogInjector{}.Init(h)
+	dataModelGroup := h.Router.Group("/data/v1")
+	dataModel := DataModelInjector{}.Init(h)
 	// Data Catalog Detail And Management
-	dataCatalogGroup.POST("/preview", dataCatalog.Preview)
-	dataCatalogGroup.POST("/default", dataCatalog.Default)
-	dataCatalogGroup.POST("/metadata", dataCatalog.UserMetadata)
-	dataCatalogGroup.POST("/tag", dataCatalog.Tag)
-	dataCatalogGroup.POST("/download-request", dataCatalog.DownloadRequest)
-	dataCatalogGroup.POST("/comment/add", dataCatalog.AddComment)
-	dataCatalogGroup.POST("/comment/update", dataCatalog.UpdateComment)
-	dataCatalogGroup.POST("/comment/delete", dataCatalog.DelComment)
+	dataModelGroup.POST("/preview", dataModel.Preview)
+	dataModelGroup.POST("/default", dataModel.Default)
+	dataModelGroup.POST("/metadata", dataModel.UserMetadata)
+	dataModelGroup.POST("/tag", dataModel.Tag)
+	dataModelGroup.POST("/download-request", dataModel.DownloadRequest)
+	dataModelGroup.POST("/comment/add", dataModel.AddComment)
+	dataModelGroup.POST("/comment/update", dataModel.UpdateComment)
+	dataModelGroup.POST("/comment/delete", dataModel.DelComment)
 	// DCatalogGta Catalog Browser
-	dataCatalogGroup.POST("/all-data/summary", dataCatalog.AllDataSummary)
-	dataCatalogGroup.POST("/all-data", dataCatalog.AllData)
+	dataModelGroup.POST("/all-data/summary", dataModel.AllDataSummary)
+	dataModelGroup.POST("/all-data", dataModel.AllData)
 
 	// Storage : Grouping
 	h.Log.Errorf("[ PATH ] /storage/v1 .............................................................. [ OK ]")

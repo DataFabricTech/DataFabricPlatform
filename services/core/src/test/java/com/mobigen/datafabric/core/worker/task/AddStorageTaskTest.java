@@ -7,8 +7,14 @@ class AddStorageTaskTest {
 
     @Test
     void test() {
-        AddStorageTask task = new AddStorageTask(Job.builder().type(Job.JobType.STORAGE_ADD).build());
+//        Job mysqlJob = Job.builder().storageId( "2b6c8550-a7f8-4c96-9d17-cd10770ace87" ).build();
+//        AddStorageTask task = new AddStorageTask( mysqlJob );
+//        task.run();
+
+        Job postgresJob = Job.builder().storageId( "1b6c8550-a7f8-4c96-9d17-cd10770ace87" ).build();
+        AddStorageTask task = new AddStorageTask( postgresJob );
         task.run();
+
     }
 
 }

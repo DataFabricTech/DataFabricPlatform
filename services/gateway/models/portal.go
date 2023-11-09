@@ -9,8 +9,8 @@ type ResSearch struct {
 }
 
 type SearchContent struct {
-	DataCatalogs []*DataCatalog `json:"dataCatalogs"`
-	Storages     []*Storage     `json:"storages"`
+	DataModels []*DataModel `json:"dataModels"`
+	Storages   []*Storage   `json:"storages"`
 }
 
 func (res *ResSearch) Convert(input *protobuf.SearchResponse) (*CommonResponse, error) {
@@ -42,10 +42,10 @@ func (res *ResSearch) ConvertSearchFilter(filters map[string]*protobuf.ListMapSt
 
 func (res *ResSearch) ConvertSearchContent(contents *protobuf.SearchContent) {
 	res.Contents = &SearchContent{}
-	for _, v := range contents.DataCatalogs {
-		dc := &DataCatalog{}
+	for _, v := range contents.DataModels {
+		dc := &DataModel{}
 		dc.Convert(v)
-		res.Contents.DataCatalogs = append(res.Contents.DataCatalogs, dc)
+		res.Contents.DataModels = append(res.Contents.DataModels, dc)
 	}
 	for _, v := range contents.Storages {
 		s := &Storage{}

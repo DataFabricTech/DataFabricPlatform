@@ -309,7 +309,7 @@ StorageDataDefault:
       type: array
       description: "원본 데이터기반으로 생성(가상화)된 데이터 목록"
       items:
-        $ref: "./__index.yaml#/DataCatalog"
+        $ref: "./__index.yaml#/DataModel"
     dataStructure:
       $ref: "./__index.yaml#/GridData"
 
@@ -668,7 +668,7 @@ Storage:
 #      type: array
 #      description: 저장소 내 데이터 통계 정보
 #      items:
-#        $ref: "./__index.yaml#/DataCatalogStatistics"
+#        $ref: "./__index.yaml#/DataModelStatistics"
 #      example:
 #        - id: "data-uuid01"
 #          name: "data-name01"

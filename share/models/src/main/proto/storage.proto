@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 import "storage-common.proto";
 import "utilities.proto";
 import "user.proto";
-import "data-catalog.proto";
+import "data-model.proto";
 
 // Storage
 service StorageService {
@@ -65,7 +65,7 @@ message Storage {
   StorageSetting settings = 11;
   Status status = 12;
   StorageStatistics statistics = 13;
-  repeated DataCatalogStatistics dataStatistics = 14;
+  repeated DataModelStatistics dataStatistics = 14;
 
   repeated StorageHistory history = 16;
   repeated StorageEvent event = 17;
@@ -279,7 +279,7 @@ message StorageBrowseDefault {
   }
   DataInfo dataInfo = 6;
   int32 connectedDataCount = 7;               // 연결된 데이터 수
-  repeated DataCatalog connectedData = 8;     // 연결된 데이터
+  repeated DataModel connectedData = 8;     // 연결된 데이터
   repeated DataStructure dataStructure = 9;   // 데이터 구조
 }
 

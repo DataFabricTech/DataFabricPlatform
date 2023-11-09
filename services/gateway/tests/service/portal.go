@@ -79,7 +79,7 @@ func (service *PortalService) Search(ctx context.Context, req *protobuf.ReqSearc
 					},
 				},
 				Contents: &protobuf.SearchContent{
-					DataCatalogs: []*protobuf.DataCatalog{
+					DataModels: []*protobuf.DataModel{
 						{
 							Id:          "1",
 							Name:        "2",
@@ -87,8 +87,6 @@ func (service *PortalService) Search(ctx context.Context, req *protobuf.ReqSearc
 							Status:      "CONNECTED",
 							DataType:    "STRUCTURED",
 							DataFormat:  "TABLE",
-							Row:         10,
-							Size:        20,
 							DataLocation: []*protobuf.DataLocation{
 								{
 									StorageId:    "1",
@@ -159,7 +157,7 @@ func (service *PortalService) Search(ctx context.Context, req *protobuf.ReqSearc
 								Status: 1,
 								Url:    "http://localhost:8080/download/wawawawaw",
 							},
-							RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+							RatingAndComments: &protobuf.DataModel_RatingAndComments{
 								AvgRating: 7.8,
 								RatingAndComment: []*protobuf.RatingAndComment{
 									{
@@ -179,7 +177,7 @@ func (service *PortalService) Search(ctx context.Context, req *protobuf.ReqSearc
 									},
 								},
 							},
-							Statistics: &protobuf.DataCatalogStatistics{
+							Statistics: &protobuf.DataModelStatistics{
 								Time:            "2022-11-11 11:11:11.123",
 								Id:              "data id",
 								Name:            "data name",
@@ -278,7 +276,7 @@ func (service *PortalService) Search(ctx context.Context, req *protobuf.ReqSearc
 								RegisteredData:  2,
 								AvgResponseTime: 1.2,
 							},
-							DataStatistics: []*protobuf.DataCatalogStatistics{
+							DataStatistics: []*protobuf.DataModelStatistics{
 								{
 									Time:            "2023-10-11 10:10:10.123",
 									Id:              "data id 01",
