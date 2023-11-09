@@ -79,20 +79,20 @@ StorageSearchFilter:
   $ref: "./storage.yaml#/StorageSearchFilter"
 
 DataType:
-  $ref: "./data-catalog.yaml#/DataType"
+  $ref: "./data-model.yaml#/DataType"
 DataFormat:
-  $ref: "./data-catalog.yaml#/DataFormat"
-DataCatalog:
-  $ref: "./data-catalog.yaml#/DataCatalog"
-DataCatalogStatistics:
-  $ref: "./data-catalog.yaml#/DataCatalogStatistics"
+  $ref: "./data-model.yaml#/DataFormat"
+DataModel:
+  $ref: "./data-model.yaml#/DataModel"
+DataModelStatistics:
+  $ref: "./data-model.yaml#/DataModelStatistics"
 #DataStructure:
-#  $ref: "./data-catalog.yaml#/DataStructure"
+#  $ref: "./data-model.yaml#/DataStructure"
 RatingAndComment:
-  $ref: "./data-catalog.yaml#/RatingAndComment"
+  $ref: "./data-model.yaml#/RatingAndComment"
 
 DataPreview:
-  $ref: "./data-catalog.yaml#/DataPreview"
+  $ref: "./data-model.yaml#/DataPreview"
 
 Sort:
   $ref: "./utilities.yaml#/Sort"

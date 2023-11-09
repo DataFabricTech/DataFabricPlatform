@@ -112,7 +112,7 @@ func (s *Storage) ConvertStatistics(input *protobuf.StorageStatistics) {
 	}
 }
 
-func (s *Storage) ConvertDataStatistics(input []*protobuf.DataCatalogStatistics) {
+func (s *Storage) ConvertDataStatistics(input []*protobuf.DataModelStatistics) {
 	s.DataStatistics = &BarChart{
 		Categories: []string{},
 		Series: []*BarSeries{

@@ -284,7 +284,7 @@ func (service *StorageService) Status(ctx context.Context, in *protobuf.ReqId) (
 					RegisteredData:  2,
 					AvgResponseTime: 1.2,
 				},
-				DataStatistics: []*protobuf.DataCatalogStatistics{
+				DataStatistics: []*protobuf.DataModelStatistics{
 					{
 						Time:            "2023-10-11 10:10:10.123",
 						Id:              "data id 01",
@@ -523,7 +523,7 @@ func (service *StorageService) Default(ctx context.Context, in *protobuf.ReqId) 
 					RegisteredData:  2,
 					AvgResponseTime: 1.2,
 				},
-				DataStatistics: []*protobuf.DataCatalogStatistics{
+				DataStatistics: []*protobuf.DataModelStatistics{
 					{
 						Time:            "2023-10-11 10:10:10.123",
 						Id:              "data id 01",
@@ -762,7 +762,7 @@ func (service *StorageService) Advanced(ctx context.Context, in *protobuf.ReqId)
 					RegisteredData:  2,
 					AvgResponseTime: 1.2,
 				},
-				DataStatistics: []*protobuf.DataCatalogStatistics{
+				DataStatistics: []*protobuf.DataModelStatistics{
 					{
 						Time:            "2023-10-11 10:10:10.123",
 						Id:              "data id 01",
@@ -1064,7 +1064,7 @@ func (service *StorageService) BrowseDefault(ctx context.Context, in *protobuf.R
 	}
 
 	res.Data.DataDefaultInfo.ConnectedDataCount = 2
-	res.Data.DataDefaultInfo.ConnectedData = []*protobuf.DataCatalog{
+	res.Data.DataDefaultInfo.ConnectedData = []*protobuf.DataModel{
 		{
 			Id:          "data-catalog-id-01",
 			Name:        "data-catalog-name-01",

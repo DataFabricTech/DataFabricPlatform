@@ -15,6 +15,14 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Search'
+  /portal/v1/searchItems:
+    description: 상세 검색 항목
+    get:
+      tags:
+        - portal
+      responses:
+        '200':
+          $ref: '#/components/responses/SearchItems'
   /portal/v1/recent-searches:
     description: 사용자 최근 검색어
     get:
@@ -29,7 +37,7 @@ paths:
       tags:
         - data
       requestBody:
-        $ref: '#/components/requestBodies/DataCatalogId'
+        $ref: '#/components/requestBodies/DataModelId'
       responses:
         '200':
           $ref: '#/components/responses/DataPreview'
@@ -39,7 +47,7 @@ paths:
       tags:
         - data
       requestBody:
-        $ref: '#/components/requestBodies/DataCatalogId'
+        $ref: '#/components/requestBodies/DataModelId'
       responses:
         '200':
           $ref: '#/components/responses/DataDefault'
@@ -71,7 +79,7 @@ paths:
       tags:
         - data
       requestBody:
-        $ref: '#/components/requestBodies/DataCatalogId'
+        $ref: '#/components/requestBodies/DataModelId'
       responses:
         '200':
           $ref: '#/components/responses/DataDownloadRequest'
@@ -297,7 +305,7 @@ paths:
       tags:
         - data-browser
       requestBody:
-        $ref: '#/components/requestBodies/DataCatalogSearch'
+        $ref: '#/components/requestBodies/DataModelSearch'
       responses:
         '200':
           $ref: '#/components/responses/DataBrowserAllDataSummary'
@@ -307,7 +315,7 @@ paths:
       tags:
         - data-browser
       requestBody:
-        $ref: '#/components/requestBodies/DataCatalogSearch'
+        $ref: '#/components/requestBodies/DataModelSearch'
       responses:
         '200':
           $ref: '#/components/responses/DataBrowser'
@@ -336,8 +344,6 @@ components:
                 description: 정렬 & 페이지 정보
               detailSearch:
                 $ref: '#/components/schemas/SearchRequestDetail'
-              filterSearch:
-                $ref: '#/components/schemas/SearchRequestFilter'
           examples:
             firstTimeSearch:
               summary: 검색어를 이용한 첫 검색
@@ -364,6 +370,19 @@ components:
                 pageable:
                   sort:
                     - order: 1
+                      field: RECENT_UPDATE
+                      direction: ASC
+                  page:
+                    size: 20
+                    selectPage: 1
+            changeSortOld:
+              description: 검색 결과 정렬 변경
+              summary: 검색 결과 정렬 변경 - old
+              value:
+                keyword: data fabric
+                pageable:
+                  sort:
+                    - order: 1
                       field: createdAt
                       direction: ASC
                     - order: 2
@@ -372,119 +391,32 @@ components:
                   page:
                     size: 20
                     selectPage: 1
-            filterSelect:
-              description: 검색 후 필터 별 데이터 수를 확인하고 필터를 선택
-              summary: 검색 후 필터 선택
-              value:
-                keyword: data fabric
-                pageable:
-                  page:
-                    size: 20
-                    selectPage: 1
-                filterSearch:
-                  DATA_TYPE:
-                    - STRUCTURED
-                    - SEMI_STRUCTURED
-                  DATA_FORMAT:
-                    - TABLE
-                    - CSV
-                    - JSON
-                  CATEGORY:
-                    - IT
-                    - 데이터
-                  TAG:
-                    - IT
-                    - 데이터패브릭
-                    - 설계
-                  STORAGE_TYPE:
-                    - IRIS
-                    - Tibero
-                    - HDFS
-                    - MySQL
-                    - PostgreSQL
-                  CONNECTOR_NAME:
-                    - Mobigen-IRIS
-                    - Mobigen-MySQL
-                    - Mobigen-PostgreSQL
-                  CREATOR:
-                    - mobigen-user
-                    - mobigen-admin
             detailSearch:
               description: 상세 검색
-              summary: 상세 검색
+              summary: 상세 검색(상단 패널)
               value:
                 keyword: data fabric
                 pageable:
                   page:
                     size: 20
                 detailSearch:
-                  DATA_NAME: data fabric
-                  DATA_TYPE: STRUCTURED
-                  DATA_FORMAT: TABLE
-                  CATEGORY: IT
-                  TAG: IT
-                  STORAGE_TYPE: PostgreSQL
-                  CONNECTOR_NAME: Mobigen-PostgreSQL
-                  CREATOR: mobigen-user
+                  KEYWORD_TYPE: 전체
+                  DATE_TYPE: 최근 수정 일자
                   START_DATE: '2021-01-01'
                   END_DATE: '2021-01-31'
-            detailSearchNFilter:
-              description: 상세 검색
-              summary: 상세 검색
-              value:
-                keyword: data fabric
-                pageable:
-                  page:
-                    size: 20
-                    selectPage: 1
-                detailSearch:
-                  DATA_NAME: data fabric
-                  DATA_TYPE: STRUCTURED
-                  DATA_FORMAT: TABLE
-                  CATEGORY: IT
-                  TAG: IT
-                  STORAGE_TYPE: PostgreSQL
                   CONNECTOR_NAME: Mobigen-PostgreSQL
-                  CREATOR: mobigen-user
-                  START_DATE: '2021-01-01'
-                  END_DATE: '2021-01-31'
-                filterSearch:
-                  DATA_TYPE:
-                    - STRUCTURED
-                    - SEMI_STRUCTURED
-                  DATA_FORMAT:
-                    - TABLE
-                    - CSV
-                    - JSON
-                  CATEGORY:
-                    - IT
-                    - 데이터
-                  TAG:
-                    - IT
-                    - 데이터패브릭
-                    - 설계
-                  STORAGE_TYPE:
-                    - IRIS
-                    - Tibero
-                    - HDFS
-                    - MySQL
-                    - PostgreSQL
-                  CONNECTOR_NAME:
-                    - Mobigen-IRIS
-                    - Mobigen-MySQL
-                    - Mobigen-PostgreSQL
-                  CREATOR:
-                    - mobigen-user
-                    - mobigen-admin
-    DataCatalogId:
-      description: 데이터 카탈로그 아이디
+                  STORAGE_TYPE: PostgreSQL
+                  DATA_TYPE: DataModel
+                  DATA_FORMAT: TABLE
+    DataModelId:
+      description: 데이터 모델 아이디
       content:
         application/json:
           schema:
             properties:
               id:
                 type: string
-                description: 데이터 카탈로그 아이디
+                description: 데이터 모델 아이디
                 format: uuid
             example:
               id: f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e
@@ -583,7 +515,7 @@ components:
                 id: f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e
                 ratingAndComment:
                   id: f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e
-    DataCatalogSearch:
+    DataModelSearch:
       description: '이름 검색, 페이지, 정렬'
       content:
         application/json:
@@ -665,6 +597,7 @@ components:
                     value: utf-8
                   - key: timezone
                     value: asia/seoul
+                url_format: 'jdbc:postgresql://{host}:{port}/{database}'
             iris:
               value:
                 adaptorId: iris-adaptor-001
@@ -684,6 +617,7 @@ components:
                     value: utf-8
                   - key: timezone
                     value: asia/seoul
+                url_format: 'jdbc:postgresql://{host}:{port}/{database}'
     AddStorage:
       description: 연결정보(저장소) 저장 요청 메시지
       content:
@@ -704,6 +638,7 @@ components:
                   - 설계
                 storageType: IRIS
                 adaptorId: IRIS-adaptor-01
+                url: 'jdbc:postgresql://{host}:{port}/{database}'
                 basicOptions:
                   - key: HOST
                     value: localhost
@@ -999,8 +934,6 @@ components:
                         properties:
                           pageable:
                             $ref: '#/components/schemas/Pageable'
-                          filters:
-                            $ref: '#/components/schemas/SearchResponseFilter'
                           contents:
                             $ref: '#/components/schemas/SearchResponseContent'
           examples:
@@ -1020,70 +953,27 @@ components:
                         - order: 1
                           field: name
                           direction: ASC
-                    filters:
-                      DATA_TYPE:
-                        STRUCTURED: 10
-                        UNSTRUCTURED: 20
-                        SEMI_STRUCTURED: 30
-                      DATA_FORMAT:
-                        TABLE: 10
-                        VIEW: 20
-                        CSV: 30
-                        EXCEL: 40
-                        WORD: 50
-                        HWP: 60
-                        PDF: 70
-                        PPT: 80
-                        IMAGE: 90
-                        AUDIO: 100
-                        VIDEO: 110
-                        JSON: 120
-                        YAML: 130
-                        HTML: 140
-                      CATEGORY:
-                        IT: 10
-                        데이터: 20
-                      TAG:
-                        모비젠: 10
-                        데이터: 20
-                      STORAGE_TYPE:
-                        IRIS: 10
-                        HDFS: 20
-                        MySQL: 30
-                        PostgreSQL: 40
-                      CONNECTOR_NAME:
-                        Mobigen-IRIS:
-                          ID: connector-id01
-                          Count: 10
-                        Mobigen-HDFS:
-                          ID: connector-id02
-                          Count: 20
-                        Mobigen-MySQL:
-                          ID: connector-id03
-                          Count: 30
-                        Mobigen-PostgreSQL:
-                          ID: connector-id04
-                          Count: 40
-                      CREATOR:
-                        mobigen-user:
-                          ID: user-01
-                          Count: 10
-                        mobigen-admin:
-                          ID: user-02
-                          Count: 20
                     contents:
-                      dataCatalogs:
-                        - id: data-catalog-id01
+                      dataModels:
+                        - id: data-model-id01
                           name: 데이터 이름
                           description: 데이터 설명
                           status: CONNECTED
-                          dataType: STRUCTURED
+                          dataType: DataModel
                           dataFormat: TABLE
-                          row: 112
-                          size: 11234
                           systemMeta:
                             - key: 프로젝트
                               value: 데이터패브릭
+                            - key: database
+                              value: data-fabric
+                            - key: table_name
+                              value: analysis_data
+                            - key: rows
+                              value: '110'
+                            - key: columns
+                              value: '120'
+                            - key: size
+                              value: '11234'
                           userMeta:
                             - key: 프로젝트
                               value: 데이터패브릭
@@ -1103,7 +993,6 @@ components:
                             accessCount: 1000
                             downloadCount: 10
                             bookMarkCount: 20
-                            avgResponseTime: 1.2
                           createdBy:
                             id: user-id01
                             name: user-name01
@@ -1161,6 +1050,51 @@ components:
                           lastModifiedAt:
                             strDateTime: '2021-01-01 00:00:00.000'
                             utcTime: 1609459200000
+    SearchItems:
+      description: 상세 검색 항목
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/CommonResponse'
+              - type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/SearchItemsResponse'
+          examples:
+            success:
+              value:
+                code: '200'
+                data:
+                  KEYWORD_TYPE:
+                    - 전체
+                    - 데이터 모델명
+                    - 태그
+                    - 소유자
+                  DATE_TYPE:
+                    - 전체
+                    - 최근 수정 일자
+                    - 최근 등록 일자
+                  CONNECTOR_NAME:
+                    - 전체
+                    - 연결 정보 이름 A
+                    - 연결 정보 이름 B
+                  STORAGE_TYPE:
+                    - 전체
+                    - PostgreSQL
+                    - MariaDB
+                    - Mysql
+                  DATA_TYPE:
+                    - 전체
+                    - DataModel
+                  DATA_FORMAT:
+                    - 전체
+                    - Table
+            error:
+              value:
+                code: '400'
+                errMsg: 잘못된 요청입니다.
+                data: null
     RecentSearches:
       description: 최근 검색어 목록
       content:
@@ -1210,8 +1144,6 @@ components:
                     description: IRIS 연결정보
                     dataType: STRUCTURED
                     dataFormat: TABLE
-                    row: 1234
-                    size: 123457
                     status: CONNECTED
                     systemMeta:
                       - key: storageType
@@ -1220,6 +1152,12 @@ components:
                         value: data-platform
                       - key: admin
                         value: jblim
+                      - key: rows
+                        value: '1234'
+                      - key: columns
+                        value: '1234'
+                      - key: size
+                        value: '1234125'
                     userMeta:
                       - key: purpose
                         value: Data Fabric Test
@@ -1268,25 +1206,30 @@ components:
               - $ref: '#/components/schemas/CommonResponse'
               - type: object
                 properties:
-                  dataCatalog:
-                    $ref: '#/components/schemas/DataCatalog'
+                  dataModel:
+                    $ref: '#/components/schemas/DataModel'
           examples:
             sample01:
               description: 데이터 상세 보기 - 기본정보
               value:
                 code: '200'
                 data:
-                  dataCatalog:
-                    id: data-catalog-id01
+                  dataModel:
+                    id: data-model-id01
                     name: 데이터 이름
                     description: 데이터 설명
                     status: CONNECTED
                     dataType: STRUCTURED
                     dataFormat: TABLE
-                    size: 11234
                     systemMeta:
                       - key: 프로젝트
                         value: 데이터패브릭
+                      - key: rows
+                        value: '112'
+                      - key: columns
+                        value: '11'
+                      - key: size
+                        value: '11234'
                     userMeta:
                       - key: 프로젝트
                         value: 데이터패브릭
@@ -1363,7 +1306,7 @@ components:
                       strDateTime: '2020-12-01 12:00:00'
                       utcTime: 1606824000000
     DataMetaUpdate:
-      description: 데이터 미리보기
+      description: 데이터 메타 데이터 업데이트
       content:
         application/json:
           schema:
@@ -1453,17 +1396,17 @@ components:
                 properties:
                   data:
                     properties:
-                      dataCatalogs:
+                      dataModels:
                         type: array
                         items:
-                          $ref: '#/components/schemas/DataCatalog'
+                          $ref: '#/components/schemas/DataModel'
           examples:
             success:
               description: 데이터 조회 성공
               value:
                 code: '200'
                 data:
-                  dataCatalogs:
+                  dataModels:
                     - id: data-id-01
                       name: data-name
                       description: data-description
@@ -1483,10 +1426,10 @@ components:
                 properties:
                   pageable:
                     $ref: '#/components/schemas/Pageable'
-                  dataCatalogs:
+                  dataModels:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DataCatalog'
+                      $ref: '#/components/schemas/DataModel'
           examples:
             sample01:
               description: 데이터 리스트
@@ -1503,17 +1446,18 @@ components:
                       - order: 1
                         field: name
                         direction: ASC
-                  dataCatalogs:
-                    - id: data-catalog-id01
+                  dataModels:
+                    - id: data-model-id01
                       name: 데이터 이름
                       description: 데이터 설명
                       status: CONNECTED
                       dataType: STRUCTURED
                       dataFormat: TABLE
-                      size: 11234
                       systemMeta:
                         - key: 프로젝트
                           value: 데이터패브릭
+                        - key: size
+                          value: '11234'
                       userMeta:
                         - key: 프로젝트
                           value: 데이터패브릭
@@ -2613,11 +2557,11 @@ components:
       type: object
       description: 검색 결과 컨텐츠
       properties:
-        dataCatalogs:
+        dataModels:
           type: array
           description: 데이터 목록
           items:
-            $ref: '#/components/schemas/DataCatalog'
+            $ref: '#/components/schemas/DataModel'
         storages:
           type: array
           description: 저장소 목록
@@ -2629,6 +2573,46 @@ components:
       properties:
         recentSearches:
           type: array
+          items:
+            type: string
+    SearchItemsResponse:
+      type: object
+      description: 상세 검색 항목
+      properties:
+        keywordType:
+          type: string
+          description: 희망하는 검색 타입
+          enum:
+            - ALL
+            - DATA_MODEL
+            - TAG
+            - OWNER
+            - CATEGORY
+        dateType:
+          type: string
+          description: 기간 타입
+          enum:
+            - ALL
+            - RECENT_UPDATED
+            - RECENT_CREATED
+        connectorName:
+          type: array
+          description: 연결 정보의 이름
+          items:
+            type: string
+        storageType:
+          type: array
+          description: 연결 정보의 유형
+          items:
+            type: string
+        dataType:
+          type: array
+          description: 데이터 모델의 형식
+          items:
+            type: string
+        dataFormat:
+          type: array
+          description: 데이터 모델의 포맷
           items:
             type: string
     InputField:
@@ -2975,7 +2959,7 @@ components:
           type: array
           description: 원본 데이터기반으로 생성(가상화)된 데이터 목록
           items:
-            $ref: '#/components/schemas/DataCatalog'
+            $ref: '#/components/schemas/DataModel'
         dataStructure:
           $ref: '#/components/schemas/GridData'
     AutoAddSetting:
@@ -3382,7 +3366,7 @@ components:
         - JSON
         - YAML
         - HTML
-    DataCatalog:
+    DataModel:
       type: object
       description: 가상화된 데이터(메타 데이터 집합)
       properties:
@@ -3410,14 +3394,6 @@ components:
         dataFormat:
           description: 데이터 포맷
           $ref: '#/components/schemas/DataFormat'
-        row:
-          type: number
-          description: 테이블 형태 데이터의 라인 수
-          format: long
-        size:
-          type: number
-          description: '테이블 데이터(Row), 파일 데이터(byte)'
-          format: long
         systemMeta:
           $ref: '#/components/schemas/Meta'
         userMeta:
@@ -3520,7 +3496,7 @@ components:
               items:
                 $ref: '#/components/schemas/RatingAndComment'
         statistics:
-          $ref: '#/components/schemas/DataCatalogStatistics'
+          $ref: '#/components/schemas/DataModelStatistics'
           description: '누적 통계 정보(조회, 북마크)'
         createdBy:
           $ref: '#/components/schemas/User'
@@ -3530,9 +3506,9 @@ components:
           $ref: '#/components/schemas/User'
         lastModifiedAt:
           $ref: '#/components/schemas/DateTime'
-    DataCatalogStatistics:
+    DataModelStatistics:
       type: object
-      description: 데이터 통계 정보
+      description: 데이터 모델 통계 정보
       properties:
         time:
           $ref: '#/components/schemas/DateTime'

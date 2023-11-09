@@ -1,12 +1,12 @@
-DataCatalogId:
-  description: 데이터 카탈로그 아이디
+DataModelId:
+  description: 데이터 모델 아이디
   content:
     application/json:
       schema:
         properties:
           id:
             type: string
-            description: 데이터 카탈로그 아이디
+            description: 데이터 모델 아이디
             format: uuid
         example:
           id: "f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e"
@@ -108,7 +108,7 @@ DataRatingAndComment:
             id: "f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e"
             ratingAndComment:
               id: "f3c0a8e3-4b72-4e7e-a3a5-5e2f1a8a8e3e"
-DataCatalogSearch:
+DataModelSearch:
   description: 이름 검색, 페이지, 정렬
   content:
     application/json:

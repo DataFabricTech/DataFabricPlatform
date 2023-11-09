@@ -5,30 +5,28 @@ import (
 	"github.com/datafabric/gateway/protobuf"
 )
 
-type DataCatalogService struct {
-	protobuf.UnimplementedDataCatalogServiceServer
+type DataModelService struct {
+	protobuf.UnimplementedDataModelServiceServer
 }
 
-func (s *DataCatalogService) Preview(ctx context.Context, in *protobuf.ReqId) (*protobuf.DataCatalogPreview, error) {
+func (s *DataModelService) Preview(ctx context.Context, in *protobuf.ReqId) (*protobuf.DataModelPreview, error) {
 	if in.Id == "err-id" {
-		res := &protobuf.DataCatalogPreview{
+		res := &protobuf.DataModelPreview{
 			Code:   "1234",
-			ErrMsg: "not found data catalog",
+			ErrMsg: "not found data model",
 		}
 		return res, nil
 	}
-	res := &protobuf.DataCatalogPreview{
+	res := &protobuf.DataModelPreview{
 		Code: "200",
-		Data: &protobuf.DataCatalogPreview_Data{
-			DataPreview: &protobuf.DataCatalog{
+		Data: &protobuf.DataModelPreview_Data{
+			DataPreview: &protobuf.DataModel{
 				Id:          "data-id-01",
 				Name:        "Test Data",
 				Description: "Test Data Description",
 				Status:      "CONNECTED",
 				DataType:    "STRUCTURED",
 				DataFormat:  "TABLE",
-				Row:         10,
-				Size:        20,
 				DataLocation: []*protobuf.DataLocation{
 					{
 						StorageId:    "storageId",
@@ -107,7 +105,7 @@ func (s *DataCatalogService) Preview(ctx context.Context, in *protobuf.ReqId) (*
 					Status: 1,
 					Url:    "http://localhost:8080/download/wawawawaw",
 				},
-				RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+				RatingAndComments: &protobuf.DataModel_RatingAndComments{
 					AvgRating: 6.7,
 					RatingAndComment: []*protobuf.RatingAndComment{
 						{
@@ -127,7 +125,7 @@ func (s *DataCatalogService) Preview(ctx context.Context, in *protobuf.ReqId) (*
 						},
 					},
 				},
-				Statistics: &protobuf.DataCatalogStatistics{
+				Statistics: &protobuf.DataModelStatistics{
 					Time:            "2022-11-11 11:11:11.123",
 					Id:              "data id",
 					Name:            "data name",
@@ -165,26 +163,24 @@ func (s *DataCatalogService) Preview(ctx context.Context, in *protobuf.ReqId) (*
 	return res, nil
 
 }
-func (s *DataCatalogService) Default(ctx context.Context, in *protobuf.ReqId) (*protobuf.DataCatalogDefault, error) {
+func (s *DataModelService) Default(ctx context.Context, in *protobuf.ReqId) (*protobuf.DataModelDefault, error) {
 	if in.Id == "err-id" {
-		res := &protobuf.DataCatalogDefault{
+		res := &protobuf.DataModelDefault{
 			Code:   "1234",
-			ErrMsg: "not found data catalog",
+			ErrMsg: "not found data model",
 		}
 		return res, nil
 	}
-	res := &protobuf.DataCatalogDefault{
+	res := &protobuf.DataModelDefault{
 		Code: "200",
-		Data: &protobuf.DataCatalogDefault_Data{
-			DataCatalog: &protobuf.DataCatalog{
+		Data: &protobuf.DataModelDefault_Data{
+			DataModel: &protobuf.DataModel{
 				Id:          "data-id-01",
 				Name:        "Test Data",
 				Description: "Test Data Description",
 				Status:      "CONNECTED",
 				DataType:    "STRUCTURED",
 				DataFormat:  "TABLE",
-				Row:         10,
-				Size:        20,
 				DataLocation: []*protobuf.DataLocation{
 					{
 						StorageId:    "storageId",
@@ -263,7 +259,7 @@ func (s *DataCatalogService) Default(ctx context.Context, in *protobuf.ReqId) (*
 					Status: 1,
 					Url:    "http://localhost:8080/download/wawawawaw",
 				},
-				RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+				RatingAndComments: &protobuf.DataModel_RatingAndComments{
 					AvgRating: 6.7,
 					RatingAndComment: []*protobuf.RatingAndComment{
 						{
@@ -283,7 +279,7 @@ func (s *DataCatalogService) Default(ctx context.Context, in *protobuf.ReqId) (*
 						},
 					},
 				},
-				Statistics: &protobuf.DataCatalogStatistics{
+				Statistics: &protobuf.DataModelStatistics{
 					Time:            "2022-11-11 11:11:11.123",
 					Id:              "data id",
 					Name:            "data name",
@@ -321,11 +317,11 @@ func (s *DataCatalogService) Default(ctx context.Context, in *protobuf.ReqId) (*
 	return res, nil
 }
 
-func (s *DataCatalogService) UserMetadata(ctx context.Context, in *protobuf.ReqMetaUpdate) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) UserMetadata(ctx context.Context, in *protobuf.ReqMetaUpdate) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for update user metadata",
+			ErrMsg: "Not Found Data model for update user metadata",
 		}
 		return res, nil
 	}
@@ -334,11 +330,11 @@ func (s *DataCatalogService) UserMetadata(ctx context.Context, in *protobuf.ReqM
 	}
 	return res, nil
 }
-func (s *DataCatalogService) Tag(ctx context.Context, in *protobuf.ReqTagUpdate) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) Tag(ctx context.Context, in *protobuf.ReqTagUpdate) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for tag",
+			ErrMsg: "Not Found Data model for tag",
 		}
 		return res, nil
 	}
@@ -347,11 +343,11 @@ func (s *DataCatalogService) Tag(ctx context.Context, in *protobuf.ReqTagUpdate)
 	}
 	return res, nil
 }
-func (s *DataCatalogService) DownloadRequest(ctx context.Context, in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) DownloadRequest(ctx context.Context, in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for download request",
+			ErrMsg: "Not Found Data model for download request",
 		}
 		return res, nil
 	}
@@ -360,11 +356,11 @@ func (s *DataCatalogService) DownloadRequest(ctx context.Context, in *protobuf.R
 	}
 	return res, nil
 }
-func (s *DataCatalogService) AddComment(ctx context.Context, in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) AddComment(ctx context.Context, in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for add comment",
+			ErrMsg: "Not Found Data model for add comment",
 		}
 		return res, nil
 	}
@@ -373,11 +369,11 @@ func (s *DataCatalogService) AddComment(ctx context.Context, in *protobuf.ReqRat
 	}
 	return res, nil
 }
-func (s *DataCatalogService) UpdateComment(ctx context.Context, in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) UpdateComment(ctx context.Context, in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for Update Comment",
+			ErrMsg: "Not Found Data model for Update Comment",
 		}
 		return res, nil
 	}
@@ -386,11 +382,11 @@ func (s *DataCatalogService) UpdateComment(ctx context.Context, in *protobuf.Req
 	}
 	return res, nil
 }
-func (s *DataCatalogService) DelComment(ctx context.Context, in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
+func (s *DataModelService) DelComment(ctx context.Context, in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
 	if in.Id == "0" {
 		res := &protobuf.CommonResponse{
 			Code:   "200",
-			ErrMsg: "Not Found Data Catalog for Delete Comment",
+			ErrMsg: "Not Found Data model for Delete Comment",
 		}
 		return res, nil
 	}
@@ -400,10 +396,10 @@ func (s *DataCatalogService) DelComment(ctx context.Context, in *protobuf.ReqId)
 	return res, nil
 }
 
-func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.DataCatalogSearch) (*protobuf.ResDataCatalogs, error) {
-	res := &protobuf.ResDataCatalogs{
+func (s *DataModelService) AllDataSummary(ctx context.Context, in *protobuf.DataModelSearch) (*protobuf.ResDataModels, error) {
+	res := &protobuf.ResDataModels{
 		Code: "200",
-		Data: &protobuf.ResDataCatalogs_Data{
+		Data: &protobuf.ResDataModels_Data{
 			Pageable: &protobuf.Pageable{
 				Page: &protobuf.Page{
 					Size:       in.Pageable.Page.Size,
@@ -424,7 +420,7 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 					},
 				},
 			},
-			DataCatalogs: []*protobuf.DataCatalog{
+			DataModels: []*protobuf.DataModel{
 				{
 					Id:          "data-id-01",
 					Name:        "Test Data",
@@ -432,8 +428,6 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 					Status:      "CONNECTED",
 					DataType:    "STRUCTURED",
 					DataFormat:  "TABLE",
-					Row:         10,
-					Size:        20,
 					DataLocation: []*protobuf.DataLocation{
 						{
 							StorageId:    "storageId",
@@ -512,7 +506,7 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 						Status: 1,
 						Url:    "http://localhost:8080/download/wawawawaw",
 					},
-					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					RatingAndComments: &protobuf.DataModel_RatingAndComments{
 						AvgRating: 4.5,
 						RatingAndComment: []*protobuf.RatingAndComment{
 							{
@@ -532,7 +526,7 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 							},
 						},
 					},
-					Statistics: &protobuf.DataCatalogStatistics{
+					Statistics: &protobuf.DataModelStatistics{
 						Time:            "2022-11-11 11:11:11.123",
 						Id:              "data id",
 						Name:            "data name",
@@ -572,8 +566,6 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 					Status:      "DISCONNECTED",
 					DataType:    "STRUCTURED",
 					DataFormat:  "TABLE",
-					Row:         10,
-					Size:        20,
 					DataLocation: []*protobuf.DataLocation{
 						{
 							StorageId:    "storageId 02",
@@ -631,7 +623,7 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 					DownloadInfo: &protobuf.DownloadInfo{
 						Status: protobuf.DownloadInfo_READY,
 					},
-					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					RatingAndComments: &protobuf.DataModel_RatingAndComments{
 						AvgRating: 8.9,
 						RatingAndComment: []*protobuf.RatingAndComment{
 							{
@@ -666,7 +658,7 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 							},
 						},
 					},
-					Statistics: &protobuf.DataCatalogStatistics{
+					Statistics: &protobuf.DataModelStatistics{
 						Time:            "2022-11-11 11:11:11.123",
 						Id:              "data id",
 						Name:            "data name",
@@ -704,10 +696,10 @@ func (s *DataCatalogService) AllDataSummary(ctx context.Context, in *protobuf.Da
 	}
 	return res, nil
 }
-func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatalogSearch) (*protobuf.ResDataCatalogs, error) {
-	res := &protobuf.ResDataCatalogs{
+func (s *DataModelService) AllData(ctx context.Context, in *protobuf.DataModelSearch) (*protobuf.ResDataModels, error) {
+	res := &protobuf.ResDataModels{
 		Code: "200",
-		Data: &protobuf.ResDataCatalogs_Data{
+		Data: &protobuf.ResDataModels_Data{
 			Pageable: &protobuf.Pageable{
 				Page: &protobuf.Page{
 					Size:       in.Pageable.Page.Size,
@@ -728,7 +720,7 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 					},
 				},
 			},
-			DataCatalogs: []*protobuf.DataCatalog{
+			DataModels: []*protobuf.DataModel{
 				{
 					Id:          "data-id-01",
 					Name:        "Test Data",
@@ -736,8 +728,6 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 					Status:      "CONNECTED",
 					DataType:    "STRUCTURED",
 					DataFormat:  "TABLE",
-					Row:         10,
-					Size:        20,
 					DataLocation: []*protobuf.DataLocation{
 						{
 							StorageId:    "storageId",
@@ -816,7 +806,7 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 						Status: 1,
 						Url:    "http://localhost:8080/download/wawawawaw",
 					},
-					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					RatingAndComments: &protobuf.DataModel_RatingAndComments{
 						AvgRating: 4.5,
 						RatingAndComment: []*protobuf.RatingAndComment{
 							{
@@ -836,7 +826,7 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 							},
 						},
 					},
-					Statistics: &protobuf.DataCatalogStatistics{
+					Statistics: &protobuf.DataModelStatistics{
 						Time:            "2022-11-11 11:11:11.123",
 						Id:              "data id",
 						Name:            "data name",
@@ -876,8 +866,6 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 					Status:      "DISCONNECTED",
 					DataType:    "STRUCTURED",
 					DataFormat:  "TABLE",
-					Row:         10,
-					Size:        20,
 					DataLocation: []*protobuf.DataLocation{
 						{
 							StorageId:    "storageId 02",
@@ -935,7 +923,7 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 					DownloadInfo: &protobuf.DownloadInfo{
 						Status: protobuf.DownloadInfo_READY,
 					},
-					RatingAndComments: &protobuf.DataCatalog_RatingAndComments{
+					RatingAndComments: &protobuf.DataModel_RatingAndComments{
 						AvgRating: 8.9,
 						RatingAndComment: []*protobuf.RatingAndComment{
 							{
@@ -970,7 +958,7 @@ func (s *DataCatalogService) AllData(ctx context.Context, in *protobuf.DataCatal
 							},
 						},
 					},
-					Statistics: &protobuf.DataCatalogStatistics{
+					Statistics: &protobuf.DataModelStatistics{
 						Time:            "2022-11-11 11:11:11.123",
 						Id:              "data id",
 						Name:            "data name",

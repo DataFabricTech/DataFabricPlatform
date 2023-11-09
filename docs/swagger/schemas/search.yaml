@@ -219,11 +219,11 @@ SearchResponseContent:
   type: object
   description: "검색 결과 컨텐츠"
   properties:
-    dataCatalogs:
+    dataModels:
       type: array
       description: "데이터 목록"
       items:
-        $ref: "./__index.yaml#/DataCatalog"
+        $ref: "./__index.yaml#/DataModel"
     storages:
       type: array
       description: "저장소 목록"

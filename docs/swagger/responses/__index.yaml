@@ -6,25 +6,25 @@ SearchItems:
 RecentSearches:
   $ref: "./search.yaml#/RecentSearches"
 
-## DataCatalog
+## DataModel
 DataPreview:
-  $ref: "./data-catalog.yaml#/DataPreview"
+  $ref: "./data-model.yaml#/DataPreview"
 DataDefault:
-  $ref: "./data-catalog.yaml#/DataDefault"
+  $ref: "./data-model.yaml#/DataDefault"
 DataMetaUpdate:
-  $ref: "./data-catalog.yaml#/DataMetaUpdate"
+  $ref: "./data-model.yaml#/DataMetaUpdate"
 DataTagUpdate:
-  $ref: "./data-catalog.yaml#/DataTagUpdate"
+  $ref: "./data-model.yaml#/DataTagUpdate"
 DataDownloadRequest:
-  $ref: "./data-catalog.yaml#/DataDownloadRequest"
+  $ref: "./data-model.yaml#/DataDownloadRequest"
 RatingAndComment:
-  $ref: "./data-catalog.yaml#/RatingAndComment"
+  $ref: "./data-model.yaml#/RatingAndComment"
 
-## DataCatalog Browser
+## Data Model Browser
 DataBrowserAllDataSummary:
-  $ref: "./data-catalog.yaml#/DataBrowserAllDataSummary"
+  $ref: "./data-model.yaml#/DataBrowserAllDataSummary"
 DataBrowser:
-  $ref: "./data-catalog.yaml#/DataBrowser"
+  $ref: "./data-model.yaml#/DataBrowser"
 
 
 ## Storage Browser

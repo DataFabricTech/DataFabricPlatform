@@ -41,7 +41,7 @@ paths:
       tags:
         - "data"
       requestBody:
-        $ref: "./requests/__index.yaml#/DataCatalogId"
+        $ref: "./requests/__index.yaml#/DataModelId"
       responses:
         '200':
           $ref: "./responses/__index.yaml#/DataPreview"
@@ -52,7 +52,7 @@ paths:
       tags:
         - "data"
       requestBody:
-        $ref: "./requests/__index.yaml#/DataCatalogId"
+        $ref: "./requests/__index.yaml#/DataModelId"
       responses:
         '200':
           $ref: "./responses/__index.yaml#/DataDefault"
@@ -89,7 +89,7 @@ paths:
       tags:
         - "data"
       requestBody:
-        $ref: "./requests/__index.yaml#/DataCatalogId"
+        $ref: "./requests/__index.yaml#/DataModelId"
       responses:
         '200':
           $ref: "./responses/__index.yaml#/DataDownloadRequest"
@@ -339,7 +339,7 @@ paths:
       tags:
         - data-browser
       requestBody:
-        $ref: "./requests/__index.yaml#/DataCatalogSearch"
+        $ref: "./requests/__index.yaml#/DataModelSearch"
       responses:
         '200':
           $ref: "./responses/__index.yaml#/DataBrowserAllDataSummary"
@@ -349,7 +349,7 @@ paths:
       tags:
         - data-browser
       requestBody:
-        $ref: "./requests/__index.yaml#/DataCatalogSearch"
+        $ref: "./requests/__index.yaml#/DataModelSearch"
       responses:
         '200':
           $ref: "./responses/__index.yaml#/DataBrowser"

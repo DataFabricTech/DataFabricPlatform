@@ -22,8 +22,6 @@ DataPreview:
                 description: "IRIS 연결정보"
                 dataType: "STRUCTURED"
                 dataFormat: "TABLE"
-                row: 1234
-                size: 123457
                 status: "CONNECTED"
                 systemMeta:
                   - key : "storageType"
@@ -32,6 +30,12 @@ DataPreview:
                     value: "data-platform"
                   - key: "admin"
                     value: "jblim"
+                  - key: "rows"
+                    value: "1234"
+                  - key: "columns"
+                    value: "1234"
+                  - key: "size"
+                    value: "1234125"
                 userMeta:
                   - key: "purpose"
                     value: "Data Fabric Test"
@@ -80,25 +84,30 @@ DataDefault:
           - $ref: "../schemas/__index.yaml#/CommonResponse"
           - type: object
             properties:
-              dataCatalog:
-                $ref: "../schemas/__index.yaml#/DataCatalog"
+              dataModel:
+                $ref: "../schemas/__index.yaml#/DataModel"
       examples:
         sample01:
           description: "데이터 상세 보기 - 기본정보"
           value:
             code: "200"
             data:
-              dataCatalog:
-                id: "data-catalog-id01"
+              dataModel:
+                id: "data-model-id01"
                 name: "데이터 이름"
                 description: "데이터 설명"
                 status: "CONNECTED"
                 dataType: "STRUCTURED"
                 dataFormat: "TABLE"
-                size: 11234
                 systemMeta:
                   - key: "프로젝트"
                     value: "데이터패브릭"
+                  - key: "rows"
+                    value: "112"
+                  - key: "columns"
+                    value: "11"
+                  - key: "size"
+                    value: "11234"
                 userMeta:
                   - key: "프로젝트"
                     value: "데이터패브릭"
@@ -176,7 +185,7 @@ DataDefault:
                   strDateTime: "2020-12-01 12:00:00"
                   utcTime: 1606824000000
 DataMetaUpdate:
-  description: "데이터 미리보기"
+  description: "데이터 메타 데이터 업데이트"
   content:
     application/json:
       schema:
@@ -270,17 +279,17 @@ DataBrowserAllDataSummary:
             properties:
               data:
                 properties:
-                  dataCatalogs:
+                  dataModels:
                     type: array
                     items:
-                      $ref: "../schemas/__index.yaml#/DataCatalog"
+                      $ref: "../schemas/__index.yaml#/DataModel"
       examples:
         success:
           description: "데이터 조회 성공"
           value:
             code: "200"
             data:
-              dataCatalogs:
+              dataModels:
                 - id: "data-id-01"
                   name: "data-name"
                   description: "data-description"
@@ -300,10 +309,10 @@ DataBrowser:
             properties:
               pageable:
                 $ref: "../schemas/__index.yaml#/Pageable"
-              dataCatalogs:
+              dataModels:
                 type: array
                 items:
-                  $ref: '../schemas/__index.yaml#/DataCatalog'
+                  $ref: '../schemas/__index.yaml#/DataModel'
       examples:
         sample01:
           description: 데이터 리스트
@@ -320,17 +329,18 @@ DataBrowser:
                   - order: 1
                     field: name
                     direction: ASC
-              dataCatalogs:
-                - id: data-catalog-id01
+              dataModels:
+                - id: data-model-id01
                   name: 데이터 이름
                   description: 데이터 설명
                   status: CONNECTED
                   dataType: STRUCTURED
                   dataFormat: TABLE
-                  size: 11234
                   systemMeta:
                     - key: 프로젝트
                       value: 데이터패브릭
+                    - key: "size"
+                      value: "11234"
                   userMeta:
                     - key: 프로젝트
                       value: 데이터패브릭

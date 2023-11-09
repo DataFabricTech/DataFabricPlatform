@@ -3,10 +3,7 @@ syntax = "proto3";
 package com.mobigen.datafabric.share.protobuf;
 option go_package = "github.com/mobigen/datafabric/protobuf";
 
-import "google/protobuf/empty.proto";
 import "utilities.proto";
-import "data-catalog.proto";
-import "storage.proto";
 
 service DataLayerGRPCService {
   rpc execute(ReqExecute) returns (ResExecute);
