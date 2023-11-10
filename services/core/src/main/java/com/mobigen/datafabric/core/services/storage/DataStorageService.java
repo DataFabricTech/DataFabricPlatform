@@ -7,7 +7,6 @@ import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.core.util.Tuple;
 import com.mobigen.datafabric.share.protobuf.*;
 import com.mobigen.libs.configuration.Config;
-import com.mobigen.sqlgen.SqlBuilder;
 import com.mobigen.sqlgen.maker.JoinMaker;
 import com.mobigen.sqlgen.maker.MakerInterface;
 import com.mobigen.sqlgen.maker.OrderUsable;
@@ -22,7 +21,6 @@ import com.mobigen.sqlgen.where.conditions.In;
 import com.mobigen.sqlgen.where.conditions.Like;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.JDBCType;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,6 +64,45 @@ public class DataStorageService {
                         JoinMethod.LEFT,
                         Equal.of(DataStorageTable.adaptorId, DataStorageAdaptorTable.id)
                 );
+    }
+
+    public List<StorageOuterClass.StorageTypeCount> getStorageTypeCounts() {
+        var sql = "select A.name, cast(count(data_location.id) as int) as cnt"
+                + " from (select datastorage.id as storage_id, d.name"
+                + "   from datastorage"
+                + "     left join datastorageadaptor on datastorage.adaptor_id = datastorageadaptor.id"
+                + "     left join datastoragetype d on datastorageadaptor.storage_type_name = d.name) A"
+                + "   right join data_location on data_location.storage_id = A.storage_id"
+                + " group by A.name";
+        var rs = dataLayerConnection.execute(sql);
+        List<StorageOuterClass.StorageTypeCount> result = new ArrayList<>();
+        for (var row : rs.getData().getTable().getRowsList()) {
+            result.add(StorageOuterClass.StorageTypeCount.newBuilder()
+                    .setStorageType(row.getCell(0).getStringValue())
+                    .setCount(row.getCell(1).getInt32Value())
+                    .build()
+            );
+        }
+        return result;
+    }
+
+    public List<StorageOuterClass.StorageStatusCount> getStorageStatusCounts() {
+
+        var sql = "select datastorage.status, cast(count(data_location.id) as int)" +
+                " from datastorage" +
+                "          right join data_location on data_location.storage_id = datastorage.id\n" +
+                " group by datastorage.status" +
+                " ;";
+        var rs = dataLayerConnection.execute(sql);
+        List<StorageOuterClass.StorageStatusCount> result = new ArrayList<>();
+        for (var row : rs.getData().getTable().getRowsList()) {
+            result.add(StorageOuterClass.StorageStatusCount.newBuilder()
+                    .setStatus(Utilities.Status.valueOf(row.getCell(0).getStringValue()).getNumber())
+                    .setCount(row.getCell(1).getInt32Value())
+                    .build()
+            );
+        }
+        return result;
     }
 
     private StorageOuterClass.Storage.Builder getStorageBuilder(
@@ -685,10 +722,10 @@ public class DataStorageService {
         }
     }
 
-    public void NewDataModels( List<DataModelOuterClass.DataModel.Builder> dataModels ) {
+    public void NewDataModels(List<DataModelOuterClass.DataModel.Builder> dataModels) {
         List<String> sqlList = new ArrayList<>();
         // Data Model
-        dataModels.forEach( data -> {
+        dataModels.forEach(data -> {
             var id = UUID.randomUUID().toString();
             var insertDataModel = insert(DataModel.table)
                     .columns(
@@ -707,7 +744,7 @@ public class DataStorageService {
                     .values(
                             id,
                             data.getName(),
-                            data.getDescription() == null ? "": data.getDescription(),
+                            data.getDescription() == null ? "" : data.getDescription(),
                             data.getDataType(),
                             data.getDataFormat(),
                             data.getStatus(),
@@ -717,7 +754,7 @@ public class DataStorageService {
                     .generate()
                     .getStatement();
             sqlList.add(insertDataModel);
-            for( DataModelOuterClass.DataLocation dataLocation : data.getDataLocationList() ) {
+            for (DataModelOuterClass.DataLocation dataLocation : data.getDataLocationList()) {
                 var insertSql = insert(DataModelLocation.table)
                         .columns(
                                 DataModelLocation.id,
@@ -730,9 +767,9 @@ public class DataStorageService {
                                 dataLocation.getDatabaseName(),
                                 dataLocation.getTableName()
                         ).generate().getStatement();
-                sqlList.add( insertSql );
+                sqlList.add(insertSql);
             }
-            for( Utilities.Meta meta : data.getSystemMetaList() ) {
+            for (Utilities.Meta meta : data.getSystemMetaList()) {
                 var insertSql = insert(DataModelMetadata.table)
                         .columns(
                                 DataModelMetadata.id,
@@ -745,12 +782,12 @@ public class DataStorageService {
                                 meta.getKey(),
                                 meta.getValue()
                         ).generate().getStatement();
-                sqlList.add( insertSql );
+                sqlList.add(insertSql);
             }
 //            if( data.getDataRefine() != null ) {
 //
 //            }
-            for( DataModelOuterClass.DataStructure dataStructure : data.getDataStructureList() ) {
+            for (DataModelOuterClass.DataStructure dataStructure : data.getDataStructureList()) {
                 var insertSql = insert(DataModelSchema.table)
                         .columns(
                                 DataModelSchema.id,
@@ -769,12 +806,12 @@ public class DataStorageService {
                                 dataStructure.getDefaultValue(),
                                 dataStructure.getDescription()
                         ).generate().getStatement();
-                sqlList.add( insertSql );
+                sqlList.add(insertSql);
             }
 //            if( data.getTagList(  ) != null && data.getTagList().size() > 0 ) {
 //
 //            }
-        } );
+        });
         var result = dataLayerConnection.executeBatch(sqlList);
         log.info("[ Data-Layer ] Data Model Insert Result : " + result.getDataList());
     }

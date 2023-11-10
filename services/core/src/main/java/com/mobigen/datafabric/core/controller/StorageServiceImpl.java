@@ -26,22 +26,13 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         return StorageOuterClass.ResStorageOverview.newBuilder()
                 .setCode("OK")
                 .setData(StorageOuterClass.ResStorageOverview.Data.newBuilder()
-                        .addAllStorageTypeCount(List.of(
-                                StorageOuterClass.StorageTypeCount.newBuilder()
-                                        .setCount(4)
-                                        .setStorageType("postgresql")
-                                        .build()
-                        ))
-                        .addAllStorageStatusCount(List.of(
-                                StorageOuterClass.StorageStatusCount.newBuilder()
-                                        .setCount(5)
-                                        .setStatus(1)
-                                        .build()
-                        ))
-                        .addAllStorageStatistics(List.of(
-                                StorageOuterClass.StorageStatistics.newBuilder()
-                                        .build()
-                        ))
+                        .addAllStorageTypeCount(dataStorageService.getStorageTypeCounts())
+                        .addAllStorageStatusCount(dataStorageService.getStorageStatusCounts())
+                        .addAllStorageStatistics(List.of())
+                        .addAllStorageDataCount(List.of())
+                        .addAllStorageResponseTime(List.of())
+                        .addAllHistory(List.of())
+                        .addAllEvent(List.of())
                         .build())
                 .build();
     }
