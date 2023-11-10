@@ -1,6 +1,7 @@
 package com.mobigen.libs.grpc;
 
 import io.grpc.*;
+import io.grpc.protobuf.services.ProtoReflectionService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class GRPCServer {
         }
         this.serverBuilder = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                 .executor( Executors.newFixedThreadPool(threadPoolSize) );
-
+        this.serverBuilder.addService( ProtoReflectionService.newInstance() );
         log.debug("Init gRPC Server Builder. Port[ {} ], ThreadPool[ {} ]", port, threadPoolSize);
     }
 

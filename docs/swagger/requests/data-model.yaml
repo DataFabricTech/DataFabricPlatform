@@ -20,7 +20,7 @@ DataMetaUpdate:
         properties:
           id:
             type: string
-            description: 데이터 카탈로그 아이디
+            description: 데이터 모델 아이디
             format: uuid
           userMeta:
             $ref: "../schemas/__index.yaml#/Meta"
@@ -51,7 +51,7 @@ DataTagUpdate:
         properties:
           id:
             type: string
-            description: 데이터 카탈로그 아이디
+            description: 데이터 모델 아이디
             format: uuid
           tags:
             $ref: "../schemas/__index.yaml#/Tag"
@@ -82,7 +82,7 @@ DataRatingAndComment:
         properties:
           id:
             type: string
-            description: 데이터 카탈로그 아이디
+            description: 데이터 모델 아이디
             format: uuid
           ratingAndComment:
             $ref: "../schemas/__index.yaml#/RatingAndComment"

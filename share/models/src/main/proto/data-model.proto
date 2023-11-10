@@ -24,11 +24,11 @@ service DataModelService {
   //  POST /data/v1/comment/update - 데이터 평가와 댓글 업데이트
   rpc UpdateComment(ReqRatingAndComment) returns (CommonResponse);
   //  POST /data/v1/comment/delete - 데이터 평가와 댓글 삭제
-  rpc DelComment(ReqId) returns (CommonResponse);
+  rpc DelComment(ReqRatingAndComment) returns (CommonResponse);
 
-  //  POST /data/v1/all-data/summary - 데이터 평가와 댓글 삭제
+  //  POST /data/v1/all-data/summary - 데이터 모델 조회 축약 버전( 이름, 상태 정도의 정보만 전달 )
   rpc AllDataSummary(DataModelSearch) returns (ResDataModels);
-  //  POST /data/v1/all-data          - 데이터 평가와 댓글 삭제
+  //  POST /data/v1/all-data          - 데이터 모델 조회
   rpc AllData(DataModelSearch) returns (ResDataModels);
 }
 
@@ -131,11 +131,11 @@ message DownloadInfo {
 }
 
 message RatingAndComment {
-  //  string id = 1;
-  User user = 1;
-  DateTime lastModifiedAt = 2;
-  int32 rating = 3;
-  string comment = 4;
+  string id = 1;
+  User user = 2;
+  DateTime lastModifiedAt = 3;
+  int32 rating = 4;
+  string comment = 5;
 }
 
 // DataModelStatistics 데이터 모델 통계

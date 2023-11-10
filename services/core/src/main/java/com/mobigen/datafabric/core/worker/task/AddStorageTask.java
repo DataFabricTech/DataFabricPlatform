@@ -1,6 +1,7 @@
 package com.mobigen.datafabric.core.worker.task;
 
 import com.mobigen.datafabric.core.model.DataStorageAdaptorTable;
+import com.mobigen.datafabric.core.services.storage.DataModelService;
 import com.mobigen.datafabric.core.services.storage.DataStorageService;
 import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.datafabric.core.util.JdbcConnector;
@@ -24,14 +25,16 @@ import static com.mobigen.sqlgen.maker.SelectMaker.select;
 @Slf4j
 public class AddStorageTask implements Runnable {
     private final Job job;
-    private final DataStorageService ds;
+    private final DataStorageService dataStorageService;
+    private final DataModelService dataModelService;
     private final DataLayerConnection dc;
 
     public AddStorageTask( Job job ) {
         Config config = new Config();
         this.job = job;
         this.dc = new DataLayerConnection( config.getConfig().getBoolean( "data-layer.test", false ) );
-        this.ds = new DataStorageService();
+        this.dataStorageService = new DataStorageService(this.dc);
+        this.dataModelService = new DataModelService(this.dc);
     }
 
     @Override
@@ -39,7 +42,7 @@ public class AddStorageTask implements Runnable {
         log.error( "[ New Storage ] : Start. Storage Connection ID[ {} ]", job.getStorageId() );
 
         // TODO : Get Storage From Data Layer
-        StorageOuterClass.Storage storage = ds.advanced( job.getStorageId() );
+        StorageOuterClass.Storage storage = dataStorageService.advanced( job.getStorageId() );
 //        postgres =    1b6c8550-a7f8-4c96-9d17-cd10770ace87
 //        mysql =       2b6c8550-a7f8-4c96-9d17-cd10770ace87
 
@@ -55,11 +58,11 @@ public class AddStorageTask implements Runnable {
             if( storagebuilder.getSettings().hasAutoAddSetting() && storagebuilder.getSettings().getAutoAddSetting().getEnable() ) {
                 // 자동 추가 설정 기준으로 데이터 필터링
                 List<DataModelOuterClass.DataModel.Builder> dataModels = getDataList( storagebuilder, connector.cursor() );
-                if( dataModels != null && !dataModels.isEmpty() ) {
+                if( !dataModels.isEmpty() ) {
                     // 데이터 정보 채우기
                     setMetadata( storagebuilder, connector.cursor(), dataModels );
                     log.info( "[ New Storage ] : Save Data Model" );
-                    ds.NewDataModels(dataModels);
+                    dataModelService.NewDataModels(dataModels);
                 }
             }
 
@@ -89,140 +92,12 @@ public class AddStorageTask implements Runnable {
                             Arrays.toString( week ), syncSetting.getRunTime() );
                 }
             }
-            // TODO : 실행 결과 저장
-//        ds.updateStorage();
-            // TODO : 필요한 경우 알림 전송 개발 추가 - 아마도 필요
+            // TODO : Update Storage
+//            ds.updateStorage(storagebuilder.build());
+//             TODO : 필요한 경우 알림 전송 개발 추가 - 아마도 필요
         } catch( Exception e ) {
-            e.printStackTrace();
-            log.error( e.getMessage() );
+            log.error( e.getMessage(), e );
         }
-    }
-
-    private StorageOuterClass.Storage getSampleStorage( Job job ) {
-        if( job.getStorageId().equals( "postgres" ) ) return postgreStorage();
-        else return mariaStorage();
-    }
-
-    public StorageOuterClass.Storage postgreStorage() {
-        var storageBuilder = StorageOuterClass.Storage.newBuilder();
-        storageBuilder
-                .setId( "test" )
-                .setName( "data-fabric-storage" )
-                .setDescription( "data-fabric-storage" )
-                .setStorageType( "PostgreSQL" )
-                .setAdaptorId( "PostgreSQL" )
-                .setUrl( "jdbc:postgresql://{HOST}:{PORT}/{DATABASE}" );
-
-        var optBuilder = StorageCommon.InputField.newBuilder();
-
-        optBuilder.setKey( "HOST" ).setValue( "192.168.107.28" ).build();
-        storageBuilder.addBasicOptions( optBuilder.build() );
-
-        optBuilder.setKey( "PORT" ).setValue( "14632" ).build();
-        storageBuilder.addBasicOptions( 1, optBuilder.build() );
-
-        optBuilder.setKey( "DATABASE" ).setValue( "testdb" ).build();
-        storageBuilder.addBasicOptions( 2, optBuilder.build() );
-
-        optBuilder.setKey( "USER" ).setValue( "testUser" ).build();
-        storageBuilder.addBasicOptions( 3, optBuilder.build() );
-
-        optBuilder.setKey( "PASSWORD" ).setValue( "testUser" ).build();
-        storageBuilder.addBasicOptions( 4, optBuilder.build() );
-
-        StorageOuterClass.StorageSetting.Builder settingBuilder = StorageOuterClass.StorageSetting.newBuilder();
-
-        StorageOuterClass.AutoAddSetting.Builder autoAddSettingBuilder = StorageOuterClass.AutoAddSetting.newBuilder();
-        autoAddSettingBuilder.setEnable( true );
-
-        StorageOuterClass.AutoAddSetting.AutoAddSettingOption tableOpt = StorageOuterClass.AutoAddSetting.
-                AutoAddSettingOption.newBuilder().setRegex( "*" ).setDataFormat( "TABLE" ).setMinSize( 1 ).setMaxSize( 100000 ).build();
-        autoAddSettingBuilder.addOptions( tableOpt );
-
-        StorageOuterClass.SyncSetting.Builder syncSettingBuilder = StorageOuterClass.SyncSetting.newBuilder();
-        syncSettingBuilder.setEnable( true );
-        syncSettingBuilder.setSyncType( 0 ); // period, week
-        syncSettingBuilder.setPeriod( 1000 * 60 );
-
-        StorageOuterClass.MonitoringSetting.Builder monitoringBuilder = StorageOuterClass.MonitoringSetting.newBuilder();
-        monitoringBuilder.setEnable( true );
-        monitoringBuilder.setProtocol( StorageOuterClass.MonitoringProtocol.SQL );
-        monitoringBuilder.setHost( "192.168.107.28" );
-        monitoringBuilder.setPort( "14632" );
-        monitoringBuilder.setPeriod( 30 );
-        monitoringBuilder.setTimeout( 5 );
-        monitoringBuilder.setSuccessThreshold( 1 );
-        monitoringBuilder.setFailThreshold( 2 );
-
-        settingBuilder.setAutoAddSetting( autoAddSettingBuilder.build() );
-        settingBuilder.setSyncSetting( syncSettingBuilder.build() );
-        settingBuilder.setMonitoringSetting( monitoringBuilder.build() );
-
-        storageBuilder.setSettings( settingBuilder.build() );
-        storageBuilder.setCreatedBy( UserOuterClass.User.newBuilder().setId( "user-foo-id-001" ).setName( "foo" ).setNickname( "bar" ).build() );
-        storageBuilder.setCreatedAt( Utilities.DateTime.newBuilder().setStrDateTime( "2023-11-05 12:23:34.123" ).build() );
-        return storageBuilder.build();
-    }
-
-    public StorageOuterClass.Storage mariaStorage() {
-        var storageBuilder = StorageOuterClass.Storage.newBuilder();
-        storageBuilder
-                .setId( "test" )
-                .setName( "data-fabric-storage" )
-                .setDescription( "data-fabric-storage" )
-                .setStorageType( "MariaDB" )
-                .setAdaptorId( "MariaDB" )
-                .setUrl( "jdbc:mariadb://{HOST}:{PORT}/{DATABASE}" );
-
-        var optBuilder = StorageCommon.InputField.newBuilder();
-
-        optBuilder.setKey( "HOST" ).setValue( "192.168.107.28" ).build();
-        storageBuilder.addBasicOptions( optBuilder.build() );
-
-        optBuilder.setKey( "PORT" ).setValue( "39310" ).build();
-        storageBuilder.addBasicOptions( 1, optBuilder.build() );
-
-        optBuilder.setKey( "DATABASE" ).setValue( "cache_server" ).build();
-        storageBuilder.addBasicOptions( 2, optBuilder.build() );
-
-        optBuilder.setKey( "USER" ).setValue( "cacheserver" ).build();
-        storageBuilder.addBasicOptions( 3, optBuilder.build() );
-
-        optBuilder.setKey( "PASSWORD" ).setValue( "cacheserver.platform" ).build();
-        storageBuilder.addBasicOptions( 4, optBuilder.build() );
-
-        StorageOuterClass.StorageSetting.Builder settingBuilder = StorageOuterClass.StorageSetting.newBuilder();
-
-        StorageOuterClass.AutoAddSetting.Builder autoAddSettingBuilder = StorageOuterClass.AutoAddSetting.newBuilder();
-        autoAddSettingBuilder.setEnable( true );
-
-        StorageOuterClass.AutoAddSetting.AutoAddSettingOption tableOpt = StorageOuterClass.AutoAddSetting.
-                AutoAddSettingOption.newBuilder().setRegex( "*" ).setDataFormat( "TABLE" ).build();
-        autoAddSettingBuilder.addOptions( tableOpt );
-
-        StorageOuterClass.SyncSetting.Builder syncSettingBuilder = StorageOuterClass.SyncSetting.newBuilder();
-        syncSettingBuilder.setEnable( true );
-        syncSettingBuilder.setSyncType( 0 ); // period, week
-        syncSettingBuilder.setPeriod( 1000 * 60 );
-
-        StorageOuterClass.MonitoringSetting.Builder monitoringBuilder = StorageOuterClass.MonitoringSetting.newBuilder();
-        monitoringBuilder.setEnable( true );
-        monitoringBuilder.setProtocol( StorageOuterClass.MonitoringProtocol.TCP );
-        monitoringBuilder.setHost( "192.168.107.28" );
-        monitoringBuilder.setPort( "39310" );
-        monitoringBuilder.setPeriod( 60 );
-        monitoringBuilder.setTimeout( 5 );
-        monitoringBuilder.setSuccessThreshold( 1 );
-        monitoringBuilder.setFailThreshold( 2 );
-
-        settingBuilder.setAutoAddSetting( autoAddSettingBuilder.build() );
-        settingBuilder.setSyncSetting( syncSettingBuilder.build() );
-        settingBuilder.setMonitoringSetting( monitoringBuilder.build() );
-
-        storageBuilder.setSettings( settingBuilder.build() );
-        storageBuilder.setCreatedBy( UserOuterClass.User.newBuilder().setId( "user-alpha-id-001" ).setName( "alpha" ).setNickname( "beta" ).build() );
-        storageBuilder.setCreatedAt( Utilities.DateTime.newBuilder().setStrDateTime( "2023-11-03 12:23:34.123" ).build() );
-        return storageBuilder.build();
     }
 
     public JdbcConnector getConnector( StorageOuterClass.Storage.Builder storage ) throws SQLException, ClassNotFoundException {
@@ -276,17 +151,21 @@ public class AddStorageTask implements Runnable {
 
         final String[] param = new String[ 2 ];
         storage.getBasicOptionsList().forEach( x -> {
+            // 연결 정보의 데이터 베이스 값 획득
             if( x.getKey().equalsIgnoreCase( "DATABASE" ) ) {
                 param[ 0 ] = x.getValue();
             }
+            // 연결 정보의 아이디 값 획득
             if( x.getKey().equalsIgnoreCase( "USER" ) ) {
                 param[ 1 ] = x.getValue();
             }
         } );
         storage.getAdditionalOptionsList().forEach( x -> {
+            // 연결 정보의 데이터 베이스 값 획득
             if( x.getKey().equalsIgnoreCase( "DATABASE" ) ) {
                 param[ 0 ] = x.getValue();
             }
+            // 연결 정보의 아이디 값 획득
             if( x.getKey().equalsIgnoreCase( "USER" ) ) {
                 param[ 1 ] = x.getValue();
             }
@@ -314,14 +193,24 @@ public class AddStorageTask implements Runnable {
     }
 
     private List<DataModelOuterClass.DataModel.Builder> getDataList( StorageOuterClass.Storage.Builder storage, JdbcConnector.Cursor cur ) throws Exception {
+        List<DataModelOuterClass.DataModel.Builder> dataModels = new ArrayList<>();
         for( StorageOuterClass.AutoAddSetting.AutoAddSettingOption opt : storage.getSettings().getAutoAddSetting().getOptionsList() ) {
+            List<DataModelOuterClass.DataModel.Builder> filterResult;
             // TODO : Data Type Filter 처리 필요
-            var regexResult = FilterNameAndFormat( storage, opt, cur );
-            return FilterSize( storage, opt, cur, regexResult );
+            // Regex, Data Format 필터링 + 메타 데이터(
+            filterResult = FilterNameAndFormat( storage, opt, cur );
+            // Size 필터링
+            filterResult = FilterSize( storage, opt, cur, filterResult );
             // TODO : 시간 필터링 처리 필요
+            // 반환 데이터 리스트에 추가
+            dataModels.addAll( filterResult );
         }
-
-        return null;
+        // 중복 제거
+        List<DataModelOuterClass.DataModel.Builder> result = new ArrayList<>();
+        dataModels.forEach( model -> {
+            if( !result.contains( model ) ) result.add( model );
+        } );
+        return result;
     }
 
     private List<DataModelOuterClass.DataModel.Builder> FilterNameAndFormat(
@@ -395,21 +284,24 @@ public class AddStorageTask implements Runnable {
             JdbcConnector.Cursor cur,
             List<DataModelOuterClass.DataModel.Builder> builders ) throws Exception {
 
-        if( opt.getMinSize() <= 0 && opt.getMaxSize() <= 0 ) return builders;
-
         List<DataModelOuterClass.DataModel.Builder> dataModels = new ArrayList<>();
         for( DataModelOuterClass.DataModel.Builder builder : builders ) {
             cur.execute( new SQL_Generator().getTableSize( storage.getStorageType(), builder.getName() ) );
             var rs = cur.getResultSet();
             while( rs.next() ) {
                 var rows = Long.parseLong( rs.getString( 1 ) );
-                if( rows < opt.getMinSize() || opt.getMaxSize() < rows ) {
-                    log.info( "Data[ {} ] Size(Row)[ {} ] Not Match Min[ {} ] / Max[ {} ]",
+                builder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "ROWS" ).setValue( String.valueOf( rows ) ).build() );
+                if( opt.getMinSize() > 0 && rows < opt.getMinSize() ) {
+                    log.info( "Data[ {} ] Size(Row)[ {} ] Filtering. Min[ {} ] / Max[ {} ]",
+                            builder.getName(), rows, opt.getMinSize(), opt.getMaxSize() );
+                    continue;
+                }
+                if( opt.getMaxSize() > 0 && opt.getMaxSize() < rows ) {
+                    log.info( "Data[ {} ] Size(Row)[ {} ] Filtering. Min[ {} ] / Max[ {} ]",
                             builder.getName(), rows, opt.getMinSize(), opt.getMaxSize() );
                     continue;
                 }
                 log.info( "Data[ {} ] Size(Row)[ {} ]", builder.getName(), rows );
-                builder.addSystemMeta( Utilities.Meta.newBuilder().setKey( "ROWS" ).setValue( String.valueOf( rows ) ).build() );
                 dataModels.add( builder );
             }
         }
@@ -422,42 +314,38 @@ public class AddStorageTask implements Runnable {
             JdbcConnector.Cursor cursor,
             List<DataModelOuterClass.DataModel.Builder> dataModels ) throws Exception {
 
-        for( int i = 0; i < dataModels.size(); i++ ) {
+        for( DataModelOuterClass.DataModel.Builder dataModel : dataModels ) {
             // 테이블 코멘트
-            var comment = getTableComment( storage, cursor, dataModels.get( i ).getName() );
+            var comment = getTableComment( storage, cursor, dataModel.getName() );
             if( comment != null && !comment.isEmpty() ) {
-                dataModels.get( i ).setDescription( comment );
-                dataModels.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "DESC" ).setValue( comment ).build() );
-                log.info( "Data[ {} ] Comment[ {} ]", dataModels.get( i ).getName(), comment );
+                dataModel.setDescription( comment );
+                dataModel.addSystemMeta( Utilities.Meta.newBuilder().setKey( "DESC" ).setValue( comment ).build() );
+                log.info( "Data[ {} ] Comment[ {} ]", dataModel.getName(), comment );
             } else {
-                log.info( "Data[ {} ] No Have Comment", dataModels.get( i ).getName() );
+                log.info( "Data[ {} ] No Have Comment", dataModel.getName() );
             }
             // 데이터 구조
-            dataModels.get( i ).addAllDataStructure( getDataStructure( storage, cursor, dataModels.get( i ).getName() ) );
+            dataModel.addAllDataStructure( getDataStructure( storage, cursor, dataModel.getName() ) );
 
             // 메타 데이터 설정
-            dataModels.get( i ).addSystemMeta( Utilities.Meta.newBuilder().setKey( "FORMAT" ).setValue( "TABLE" ).build() );
-            dataModels.get( i ).addSystemMeta(
+            dataModel.addSystemMeta( Utilities.Meta.newBuilder().setKey( "FORMAT" ).setValue( "TABLE" ).build() );
+            dataModel.addSystemMeta(
                     Utilities.Meta.newBuilder().setKey( "COLUMNS" )
-                            .setValue( String.valueOf( dataModels.get( i ).getDataStructureList().size() ) ).build() );
+                            .setValue( String.valueOf( dataModel.getDataStructureList().size() ) ).build() );
 
             // 권한  :
-            dataModels.get( i ).setPermission( DataModelOuterClass.Permission.newBuilder().setRead( true ).setWrite( true ).build() );
+            dataModel.setPermission( DataModelOuterClass.Permission.newBuilder().setRead( true ).setWrite( true ).build() );
             // 기타 데이터 설정
-            dataModels.get( i ).setDownloadInfo( DataModelOuterClass.DownloadInfo.newBuilder().setStatus( DataModelOuterClass.DownloadInfo.DownloadStatus.READY ).build() );
-            // 사용자 정보
-            dataModels.get( i ).setCreator(
+            dataModel.setDownloadInfo( DataModelOuterClass.DownloadInfo.newBuilder().setStatus( DataModelOuterClass.DownloadInfo.DownloadStatus.READY ).build() );
+            // TODO : 사용자 정보
+            dataModel.setCreator(
                     UserOuterClass.User.newBuilder()
-                            .setId( String.valueOf( UUID.randomUUID() ) )
+                            .setId( "336c8550-a7f8-4c96-9d17-cd10770ace87" )
                             .setName( "test-user-name" )
                             .setNickname( "test-user-nickname" )
                             .setPhone( "+8210-1234-1234" )
                             .setEmail( "test-user@mobigen.com" )
                             .build() );
-            // 생성 시간
-            dataModels.get( i ).setCreatedAt(
-                    Utilities.DateTime.newBuilder()
-                            .setUtcTime( System.currentTimeMillis() ).build() );
         }
     }
 
