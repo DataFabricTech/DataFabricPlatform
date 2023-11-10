@@ -105,6 +105,10 @@ public class DataStorageService {
         return result;
     }
 
+    public List<StorageOuterClass.StorageDataCount> getStorageDataCounts() {
+        return null;
+    }
+
     private StorageOuterClass.Storage.Builder getStorageBuilder(
             List<DataLayer.Column> columns,
             DataLayer.Row row
