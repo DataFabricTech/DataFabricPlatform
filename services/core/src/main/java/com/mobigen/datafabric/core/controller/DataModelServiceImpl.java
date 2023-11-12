@@ -67,7 +67,14 @@ public class DataModelServiceImpl implements DataModelServiceCallBack {
 
     @Override
     public Utilities.CommonResponse updateTag( DataModelOuterClass.ReqTagUpdate request ) {
-        return null;
+        if( dataModelService.updateDataModelTag( request ) ) {
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode( "200" ).build();
+        }
+        return Utilities.CommonResponse.newBuilder()
+                .setCode( "500" )
+                .setErrMsg( "Error. In Update Tag(Not Found Data Model)" )
+                .build();
     }
 
     @Override
@@ -77,22 +84,53 @@ public class DataModelServiceImpl implements DataModelServiceCallBack {
 
     @Override
     public Utilities.CommonResponse addComment( DataModelOuterClass.ReqRatingAndComment request ) {
-        return null;
+        if( dataModelService.addComment( request ) ) {
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode( "200" ).build();
+        }
+        return Utilities.CommonResponse.newBuilder()
+                .setCode( "500" )
+                .setErrMsg( "Error. In Add Comment(Not Found Data Model)" )
+                .build();
     }
 
     @Override
     public Utilities.CommonResponse updateComment( DataModelOuterClass.ReqRatingAndComment request ) {
-        return null;
+        if( dataModelService.updateComment( request ) ) {
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode( "200" ).build();
+        }
+        return Utilities.CommonResponse.newBuilder()
+                .setCode( "500" )
+                .setErrMsg( "Error. In Update Comment(Not Found Data Model/Not Found Comment)" )
+                .build();
     }
 
     @Override
     public Utilities.CommonResponse deleteComment( DataModelOuterClass.ReqRatingAndComment request ) {
-        return null;
+        if( dataModelService.deleteComment( request ) ) {
+            return Utilities.CommonResponse.newBuilder()
+                    .setCode( "200" ).build();
+        }
+        return Utilities.CommonResponse.newBuilder()
+                .setCode( "500" )
+                .setErrMsg( "Error. In Delete Comment(Not Found Data Model/Not Found Comment)" )
+                .build();
     }
 
     @Override
     public DataModelOuterClass.ResDataModels allDataSummary( DataModelOuterClass.DataModelSearch request ) {
-        return null;
+        DataModelOuterClass.ResDataModels.Data result = dataModelService.getDataModelSummary( request );
+        if( result != null ) {
+            return DataModelOuterClass.ResDataModels.newBuilder()
+                    .setCode( "200" )
+                    .setData( result )
+                    .build();
+        } else {
+            return DataModelOuterClass.ResDataModels.newBuilder()
+                    .setCode( "500" )
+                    .setErrMsg( "Error. In All Data Summary" ).build();
+        }
     }
 
     @Override
