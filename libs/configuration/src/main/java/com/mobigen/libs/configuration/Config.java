@@ -1,6 +1,6 @@
 package com.mobigen.libs.configuration;
 
-import org.apache.commons.configuration.Configuration;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.yaml.snakeyaml.Yaml;
 
@@ -13,9 +13,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-public class Config {
-    public Configuration getConfig() {
-        var config = new PropertiesConfiguration();
+@Slf4j
+public class Config extends PropertiesConfiguration {
+    public Config() {
+        super();
         try {
             var baseFileName = "application";
             var profile = System.getenv("ACTIVE_PROFILE");
@@ -46,28 +47,35 @@ public class Config {
                 var properties = new Properties();
 
                 toProperties("", ymlConfig, properties);
-                File tempFile = File.createTempFile("temp",".properties");
+                File tempFile = File.createTempFile("temp", ".properties");
                 properties.store(new FileWriter(tempFile), "Converted form YAML");
 
-                config.load(tempFile);
+                this.load(tempFile);
                 tempFile.delete();
             } else { // profiles
-                config.load(resourceFile.getFile());
+                this.load(resourceFile.getFile());
             }
         } catch (Exception e) {
-            return null;
+            log.error(e.getMessage(), e);
         }
+    }
 
-        return config;
+    public PropertiesConfiguration getConfig() {
+        return this;
+    }
+
+    @Override
+    public String getString(String key) {
+        return System.getProperty(key, super.getString(key));
     }
 
     private void toProperties(String prefix, Map<String, Object> map, Properties properties) {
-        for (Map.Entry<String, Object> entry: map.entrySet()) {
-            var key = prefix.isEmpty() ? entry.getKey(): String.format("%s.%s", prefix, entry.getKey());
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            var key = prefix.isEmpty() ? entry.getKey() : String.format("%s.%s", prefix, entry.getKey());
             var value = entry.getValue();
             if (value instanceof Map) {
                 toProperties(key, (Map<String, Object>) value, properties);
-            } else if (value instanceof List){
+            } else if (value instanceof List) {
                 var list = (List<Object>) value;
                 for (int i = 0; i < list.size(); i++) {
                     properties.put(key + "[" + i + "]", list.get(i).toString());

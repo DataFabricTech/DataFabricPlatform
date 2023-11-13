@@ -110,6 +110,7 @@ public class StorageServiceImpl implements StorageServiceCallBack {
         if (result.getLeft()) {
             return Utilities.CommonResponse.newBuilder()
                     .setCode("OK")
+                    .setErrMsg(result.getRight())
                     .build();
         } else {
             return Utilities.CommonResponse.newBuilder()

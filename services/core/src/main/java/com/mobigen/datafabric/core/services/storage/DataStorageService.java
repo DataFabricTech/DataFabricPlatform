@@ -105,6 +105,10 @@ public class DataStorageService {
         return result;
     }
 
+    public List<StorageOuterClass.StorageStatistics> getStorageStatistics() {
+        return null;
+    }
+
     public List<StorageOuterClass.StorageDataCount> getStorageDataCounts() {
         return null;
     }
@@ -678,16 +682,17 @@ public class DataStorageService {
             List<StorageCommon.InputField> advancedOptions,
             String urlFormat
     ) {
-        var sql = select(DataStorageAdaptorTable.driver)
+        var sql = select(DataStorageAdaptorTable.driver, DataStorageAdaptorTable.path)
                 .from(DataStorageAdaptorTable.table)
                 .where(Equal.of(DataStorageAdaptorTable.id, id))
                 .generate()
                 .getStatement();
         var resultTable = dataLayerConnection.execute(sql).getData().getTable();
-        if (resultTable.getRowsCount() != 1 || resultTable.getRows(0).getCellCount() != 1) {
+        if (resultTable.getRowsCount() != 1) {
             return new Tuple<>(false, "해당 id 의 driver 값을 찾지 못했다.");
         }
         var driver = resultTable.getRows(0).getCell(0).getStringValue();
+        var driverFilePath = resultTable.getRows(0).getCell(1).getStringValue();
 
         Map<String, Object> basic = new HashMap<>();
 
@@ -706,6 +711,7 @@ public class DataStorageService {
                 .withUrlOptions(basic)
                 .withAdvancedOptions(addition)
                 .withDriver(driver)
+                .withDriverFilePath(driverFilePath)
                 .build()
         ) {
             var conn = connector.connect();

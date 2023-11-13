@@ -1,5 +1,6 @@
 package com.mobigen.datafabric.core.util;
 
+import com.mobigen.libs.configuration.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
 
@@ -22,21 +23,37 @@ public class JdbcConnector implements AutoCloseable {
     private final String url;
     private final Properties advancedOptions;
     private final String driver;
+    private final String driverFilePath;
     private Connection connection;
     private Cursor cursor;
+    private Config config = new Config();
 
     private JdbcConnector(Builder builder) {
         var urlFormat = Objects.requireNonNull(builder.urlFormat);
         url = StringSubstitutor.replace(urlFormat, builder.urlOptions, "{", "}");
         advancedOptions = Objects.requireNonNull(builder.advancedOptions);
         driver = Objects.requireNonNull(builder.driver);
+        driverFilePath = builder.driverFilePath;
     }
 
     public JdbcConnector connect() throws SQLException, ClassNotFoundException {
         // TODO: driver 받아서 연결해야함. 예외처리 필수
-        Class.forName(driver);
-        log.info("Success to load driver. " + driver);
-        connection = DriverManager.getConnection(url, advancedOptions);
+        if (driverFilePath != null) {
+            var loader = new DynamicJarLoader(config.getString("core.driver.path"));
+            loader.load(driverFilePath);
+            var instance = loader.newInstance(driver);
+            if (instance == null) {
+                throw new RuntimeException("Fail to load driver");
+            }
+            log.info("Success to load driver. " + driver);
+            connection = ((Driver) instance).connect(url, advancedOptions);
+        } else {
+            // TODO: driver path 없는 경우 에러처리 로 변경 필요
+            Class.forName(driver);
+            log.info("Success to load driver. " + driver);
+            connection = DriverManager.getConnection(url, advancedOptions);
+        }
+        log.info("Success to connection to " + url);
         connection.setAutoCommit(false);
         return this;
     }
@@ -124,6 +141,7 @@ public class JdbcConnector implements AutoCloseable {
         private final Map<String, Object> urlOptions = new HashMap<>();
         private final Properties advancedOptions = new Properties();
         private String driver;
+        private String driverFilePath;
 
         public Builder withUrlFormat(String urlFormat) {
             this.urlFormat = urlFormat;
@@ -147,6 +165,11 @@ public class JdbcConnector implements AutoCloseable {
 
         public Builder withDriver(String driver) {
             this.driver = driver;
+            return this;
+        }
+
+        public Builder withDriverFilePath(String path) {
+            this.driverFilePath = path;
             return this;
         }
 
