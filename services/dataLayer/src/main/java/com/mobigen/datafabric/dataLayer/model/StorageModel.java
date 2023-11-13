@@ -1,5 +1,6 @@
 package com.mobigen.datafabric.dataLayer.model;
 
+import com.mobigen.datafabric.share.protobuf.Utilities;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,6 @@ public class StorageModel {
     private String[] tag;
     private String createdBy;
     private String storageTypeName;
-    private String updatedAt;
-    private String status;
+    private long updatedAt;
+    private Utilities.Status status;
 }

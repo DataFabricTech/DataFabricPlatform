@@ -14,7 +14,7 @@ public class AppConfig {
     }
 
     public PortalServiceImpl portalService() {
-        return new PortalServiceImpl(portalRepository(), dataLayerRepository(), dbConfig(), portalConfig());
+        return new PortalServiceImpl(portalRepository(), dbConfig(), portalConfig());
     }
 
     public PortalRepository portalRepository() {

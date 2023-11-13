@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
 import com.mobigen.datafabric.dataLayer.config.PortalConfig;
-import com.mobigen.datafabric.dataLayer.model.DataCatalogModel;
+import com.mobigen.datafabric.dataLayer.model.DataModel;
 import com.mobigen.datafabric.dataLayer.model.RecentSearchesModel;
 import com.mobigen.datafabric.dataLayer.model.SearchModel;
 import com.mobigen.datafabric.dataLayer.model.StorageModel;
@@ -60,10 +60,10 @@ public class PortalRepository {
     public void createIndex() throws OpenSearchException, IOException {
         try {
             log.info("[createIndex] Create data model index");
-            if (checkIndex(portalConfig.getDataCatalogIndex())) {
+            if (checkIndex(portalConfig.getDataModelIndex())) {
                 var properties = new HashMap<String, Property>();
                 // todo properties -> meta는 필요 없음?
-                for (var field : DataCatalogModel.class.getDeclaredFields()) {
+                for (var field : DataModel.class.getDeclaredFields()) {
                     if (field.getType() == String.class) {
                         properties.put(field.getName(), new Property.Builder()
                                 .text(new TextProperty.Builder().fielddata(true).build()).build());
@@ -71,7 +71,7 @@ public class PortalRepository {
                 }
                 var mappings = new TypeMapping.Builder().properties(properties).build();
 
-                client.indices().create(c -> c.index(portalConfig.getDataCatalogIndex()).mappings(mappings));
+                client.indices().create(c -> c.index(portalConfig.getDataModelIndex()).mappings(mappings));
             }
 
             if (checkIndex(portalConfig.getStorageIndex())) {
@@ -106,11 +106,12 @@ public class PortalRepository {
         }
     }
 
-    public void insertDocument(DataCatalogModel dataCatalogModel) throws OpenSearchException, IOException {
+    public void insertDocument(DataModel dataModel) throws OpenSearchException, IOException {
         log.info("[insertDocument] start");
         try {
-            var response = client.index(i -> i.index(portalConfig.getDataCatalogIndex())
-                    .document(dataCatalogModel));
+            var response = client.index(i -> i.index(portalConfig.getDataModelIndex())
+                    .document(dataModel));
+            // todo meta inserted null value, check this
 
             if (response.result() != Result.Created) {
                 log.error(String.format("Client Create Fail, result %s", response.result()));
@@ -162,15 +163,15 @@ public class PortalRepository {
         }
     }
 
-    public void updateDocument(DataCatalogModel dataCatalogModel, String id) throws OpenSearchException, IOException {
+    public void updateDocument(DataModel dataModel, String id) throws OpenSearchException, IOException {
         log.info("[updateDocument] start");
         try {
-            var docId = getDataCatalogDocumentId(id);
+            var docId = getDataModelDocumentId(id);
 
-            var response = client.update(u -> u.index(portalConfig.getDataCatalogIndex())
+            var response = client.update(u -> u.index(portalConfig.getDataModelIndex())
                             .id(docId)
-                            .doc(dataCatalogModel)
-                    , DataCatalogModel.class);
+                            .doc(dataModel)
+                    , DataModel.class);
             if (response.result() != Result.Updated && response.result() != Result.NoOp) {
                 throw new OpenSearchException(
                         new ErrorResponse.Builder().error(
@@ -191,7 +192,7 @@ public class PortalRepository {
             var response = client.update(u -> u.index(portalConfig.getStorageIndex())
                             .id(docId)
                             .doc(storageModel)
-                    , DataCatalogModel.class);
+                    , DataModel.class);
             if (response.result() != Result.Updated && response.result() != Result.NoOp) {
                 throw new OpenSearchException(
                         new ErrorResponse.Builder().error(
@@ -223,11 +224,11 @@ public class PortalRepository {
         }
     }
 
-    public void deleteDataCatalogDocument(String id) throws OpenSearchException, IOException {
-        log.info("[deleteDataCatalogDocument] start");
+    public void deleteDataModelDocument(String id) throws OpenSearchException, IOException {
+        log.info("[deleteDataModelDocument] start");
         try {
-            var docId = getDataCatalogDocumentId(id);
-            var response = client.delete(d -> d.index(portalConfig.getDataCatalogIndex()).id(docId));
+            var docId = getDataModelDocumentId(id);
+            var response = client.delete(d -> d.index(portalConfig.getDataModelIndex()).id(docId));
             if (response.result() != Result.Deleted) {
                 log.error(String.format("Client Delete Fail, result %s", response.result()));
                 throw new OpenSearchException(
@@ -259,13 +260,13 @@ public class PortalRepository {
         }
     }
 
-    public LinkedList<String> searchDataCatalogAll() throws OpenSearchException, IOException {
+    public LinkedList<String> searchDataModelAll() throws OpenSearchException, IOException {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            var hits = client.search(s -> s.index(portalConfig.getDataCatalogIndex())
+            var hits = client.search(s -> s.index(portalConfig.getDataModelIndex())
                             .size(10000)
-                    , DataCatalogModel.class).hits().hits();
+                    , DataModel.class).hits().hits();
 
             hits.forEach(hit -> {
                 ids.add(hit.source().getId());
@@ -281,7 +282,6 @@ public class PortalRepository {
         log.info("[search] start");
         var ids = new LinkedList<String>();
         try {
-            // todo size -> config
             var hits = client.search(s -> s.index(portalConfig.getStorageIndex())
                             .size(10000)
                     , StorageModel.class).hits().hits();
@@ -308,18 +308,19 @@ public class PortalRepository {
             var boolQueryBuilder = new BoolQuery.Builder();
             if (mainQuery != null && !mainQuery.isEmpty()) boolQueryBuilder.should(mainQuery);
             if (mustQuery != null && !mustQuery.isEmpty()) boolQueryBuilder.must(mustQuery);
-            if (shouldQuery != null && !shouldQuery.isEmpty()) boolQueryBuilder.should(shouldQuery).minimumShouldMatch("2");
+            if (shouldQuery != null && !shouldQuery.isEmpty())
+                boolQueryBuilder.should(shouldQuery).minimumShouldMatch("2");
             else boolQueryBuilder.minimumShouldMatch("1");
             var boolQuery = boolQueryBuilder.build();
 
             // for page's total size
-            var hits = client.search(s -> s.index(portalConfig.getDataCatalogIndex())
+            var hits = client.search(s -> s.index(portalConfig.getDataModelIndex())
                             .size(portalConfig.getLimitSearchSize())
                             .query(q -> q.bool(boolQuery))
-                    , DataCatalogModel.class).hits().hits();
+                    , DataModel.class).hits().hits();
             searchModel.setTotalSize(hits.size());
 
-            hits = client.search(s -> s.index(portalConfig.getDataCatalogIndex())
+            hits = client.search(s -> s.index(portalConfig.getDataModelIndex())
                             .size(pageable.getPage().getSize() == 0 ?
                                     portalConfig.getDefaultSearchSize() :
                                     pageable.getPage().getSize())
@@ -328,14 +329,14 @@ public class PortalRepository {
                                     (pageable.getPage().getSelectPage() - 1) * pageable.getPage().getSize())
                             .sort(sortOptions)
                             .query(q -> q.bool(boolQuery))
-                    , DataCatalogModel.class).hits().hits();
+                    , DataModel.class).hits().hits();
 
 
-            var dataCatalogModels = new LinkedList<DataCatalogModel>();
+            var dataModel = new LinkedList<DataModel>();
             hits.forEach(hit -> {
-                dataCatalogModels.add(hit.source());
+                dataModel.add(hit.source());
             });
-            searchModel.setDataCatalogModelList(dataCatalogModels);
+            searchModel.setDataModelList(dataModel);
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
             throw e;
@@ -386,7 +387,7 @@ public class PortalRepository {
         log.info("[getFacet] start");
         try {
             var map = new HashMap<String, Aggregation>();
-            for (var field : DataCatalogModel.class.getDeclaredFields()) {
+            for (var field : DataModel.class.getDeclaredFields()) {
                 if (field.getType() == String.class) {
                     map.put(field.getName(),
                             new Aggregation.Builder().terms(t -> t.field(field.getName())).build());
@@ -399,22 +400,22 @@ public class PortalRepository {
             if (shouldQuery != null && !shouldQuery.isEmpty()) boolQuery.should(shouldQuery).minimumShouldMatch("2");
             else boolQuery.minimumShouldMatch("1");
 
-            return client.search(s -> s.index(portalConfig.getDataCatalogIndex()).size(1000)
+            return client.search(s -> s.index(portalConfig.getDataModelIndex()).size(1000)
                             .aggregations(map)
                             .query(q -> q.bool(boolQuery.build()))
-                    , DataCatalogModel.class).aggregations();
+                    , DataModel.class).aggregations();
         } catch (OpenSearchException | IOException e) {
             log.error(e.getMessage());
             throw e;
         }
     }
 
-    public String getDataCatalogDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
+    public String getDataModelDocumentId(String id) throws OpenSearchException, IOException, NullPointerException {
         try {
-            return client.search(s -> s.index(portalConfig.getDataCatalogIndex())
+            return client.search(s -> s.index(portalConfig.getDataModelIndex())
                     .query(q -> q.match(
                             m -> m.field("id").query(FieldValue.of(id))
-                    )), DataCatalogModel.class).hits().hits().get(0).id();
+                    )), DataModel.class).hits().hits().get(0).id();
         } catch (OpenSearchException | IOException | NullPointerException e) {
             log.error(e.getMessage());
             throw e;
@@ -425,7 +426,7 @@ public class PortalRepository {
         try {
             return client.search(s -> s.index(portalConfig.getStorageIndex())
                     .query(q -> q.match(
-                            m -> m.field("id").query(FieldValue.of(id.substring(1, id.length()-1)))
+                            m -> m.field("id").query(FieldValue.of(id.substring(1, id.length() - 1)))
                     )), StorageModel.class).hits().hits().get(0).id();
         } catch (OpenSearchException | IOException | NullPointerException e) {
             log.error(e.getMessage());
@@ -433,15 +434,15 @@ public class PortalRepository {
         }
     }
 
-    public DataCatalogModel getDataCatalogDocuemnt(String id)
+    public DataModel getDataModelDocument(String id)
             throws OpenSearchException, IOException, IndexOutOfBoundsException {
         log.info("[searchId] start");
         try {
-            return client.search(s -> s.index(portalConfig.getDataCatalogIndex())
+            return client.search(s -> s.index(portalConfig.getDataModelIndex())
                             .query(q -> q.match(
                                     m -> m.field("id").query(FieldValue.of(id))
                             ))
-                    , DataCatalogModel.class).hits().hits().get(0).source();
+                    , DataModel.class).hits().hits().get(0).source();
         } catch (OpenSearchException | IOException | IndexOutOfBoundsException e) {
             log.error(e.getMessage());
             throw e;
@@ -462,6 +463,7 @@ public class PortalRepository {
             throw e;
         }
     }
+
     public Hit<RecentSearchesModel> recentSearches(String userId) throws OpenSearchException, IOException {
         log.info("[recentSearches] start");
         try {
@@ -525,5 +527,4 @@ public class PortalRepository {
             throw e;
         }
     }
-
 }
