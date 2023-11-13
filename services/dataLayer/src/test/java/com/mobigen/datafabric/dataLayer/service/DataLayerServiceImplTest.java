@@ -35,8 +35,6 @@ class DataLayerServiceImplTest {
             dataLayerRepository = appConfig.dataLayerRepository();
             dataLayerService = appConfig.dataLayerServiceImpl();
             portalRepository = appConfig.portalRepository();
-//        } catch (ClassNotFoundException | SQLException e) {
-//            fail(e.getMessage());
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -57,19 +55,29 @@ class DataLayerServiceImplTest {
                     String.format("delete from datastorageadaptor where id = '%s'", id),
                     "delete from dataStorageType where name ='testStorageTypeName' ",
             };
-            dataLayerService.executeBatch(makeBatchReq(storageSqls));
+
+            if (!id.isEmpty())
+                dataLayerService.executeBatch(makeBatchReq(storageSqls));
         } catch (Exception e) {
             fail(e.getMessage());
         }
 
-        // data catalog 제거
         try {
-            var ids = portalService.searchAllDataCatalog();
+            sleep();
+            var dataModel = portalService.searchAllDataModel();
+            var id = dataModel.isEmpty() ? "" : dataModel.get(0);
 
-            for (var dataCatalogId : ids) {
-                dataLayerService.execute(makeReq(String.format(deleteSql(), dbConfig.getDataCatalog(), dataCatalogId)));
-            }
+            var dataModelSqls = new String[]{
+                    String.format("delete from data_user_comment where data_model_id= '%s'", id),
+                    String.format("delete from data_tag where id ='%s'", id),
+                    String.format("delete from data_model_schema where id = '%s'", id),
+                    String.format("delete from data_metadata where id = '%s'", id),
+                    String.format("delete from data_location where id ='%s'", id),
+                    String.format("delete from data_model where id = '%s'", id)
+            };
 
+            if (!id.isEmpty())
+                dataLayerService.executeBatch(makeBatchReq(dataModelSqls));
         } catch (IOException e) {
             fail(e.getMessage());
         }
@@ -78,8 +86,7 @@ class DataLayerServiceImplTest {
         try {
             portalService.deleteSearchesDocument("testUser");
         } catch (Exception e) {
-//            fail(e.getMessage());
-            // pass
+            fail(e.getMessage());
         }
     }
 
@@ -98,7 +105,7 @@ class DataLayerServiceImplTest {
                 "cache_enable, cache_status, created_by, updated_by)" +
                 " values ('%s', '" + name + "', 'insert_description', '" + type + "', '" + format + "', 1000, " +
                 "'insert_sampledata_id','success', false, 'fail', 'created_by', '%s')";
-        return String.format(insertSql, dbConfig.getDataCatalog(), id, id);
+        return String.format(insertSql, dbConfig.getDataModel(), id, id);
     }
 
 
@@ -109,7 +116,7 @@ class DataLayerServiceImplTest {
                 "cache_enable, cache_status, created_by, updated_by)" +
                 " values ('" + name + "', 'insert_description', '" + type + "', '" + format + "', 1000, " +
                 "'insert_sampledata_id','success', false, 'fail', 'created_by', '%s')";
-        return String.format(insertSql, dbConfig.getDataCatalog(), id);
+        return String.format(insertSql, dbConfig.getDataModel(), id);
     }
 
     //
@@ -129,15 +136,15 @@ class DataLayerServiceImplTest {
         return "update %s set name='updated_name', description = 'updated_description' where id = '%s'";
     }
 
-    // todo storage는 다음으로 미루자?
     @DisplayName("Execute Insert")
     @Test
     void insertTest() {
         var id = UUID.randomUUID().toString();
-        var insertSql = String.format(insertSql(), dbConfig.getDataCatalog(), id, id, id);
+        var insertSql = String.format(insertSql(), dbConfig.getDataModel(), id, id, id);
         var reqExecute = DataLayer.ReqExecute.newBuilder().setSql(insertSql).build();
         assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.execute(reqExecute).getCode());
     }
+
 
     @DisplayName("Execute Insert fail")
     @Test
@@ -151,7 +158,7 @@ class DataLayerServiceImplTest {
     void selectTest() {
         insertDocument();
         sleep();
-        var select = String.format(selectSql(), dbConfig.getDataCatalog(), preInserted);
+        var select = String.format(selectSql(), dbConfig.getDataModel(), preInserted);
         assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.execute(makeReq(select)).getCode());
     }
 
@@ -169,12 +176,12 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
-            var update = String.format(updateSql(), dbConfig.getDataCatalog(), ids.get(0));
+            var ids = portalService.searchAllDataModel();
+            var update = String.format(updateSql(), dbConfig.getDataModel(), ids.get(0));
             assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.execute(makeReq(update)).getCode());
         });
 
-        var select = String.format(selectSql(), dbConfig.getDataCatalog(), preInserted);
+        var select = String.format(selectSql(), dbConfig.getDataModel(), preInserted);
 
         assertEquals("updated_name", dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(1).getStringValue());
         assertEquals("updated_description", dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(2).getStringValue());
@@ -183,7 +190,7 @@ class DataLayerServiceImplTest {
     @DisplayName("Execute update fail")
     @Test
     void updateFailTest() {
-        var update = String.format(updateSql(), dbConfig.getDataCatalog(), "wrongid");
+        var update = String.format(updateSql(), dbConfig.getDataModel(), "wrongid");
         assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.execute(makeReq(update)).getCode());
     }
 
@@ -194,8 +201,8 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
-            var delete = String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0));
+            var ids = portalService.searchAllDataModel();
+            var delete = String.format(deleteSql(), dbConfig.getDataModel(), ids.get(0));
             assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.execute(makeReq(delete)).getCode());
         });
     }
@@ -203,7 +210,7 @@ class DataLayerServiceImplTest {
     @DisplayName("Execute delete fail")
     @Test
     void deleteFailTest() {
-        var delete = String.format(deleteSql(), dbConfig.getDataCatalog(), "worngId");
+        var delete = String.format(deleteSql(), dbConfig.getDataModel(), "worngId");
         assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.execute(makeReq(delete)).getCode());
     }
 
@@ -211,12 +218,11 @@ class DataLayerServiceImplTest {
     @Test
     void insertBatchTest() {
         var id = UUID.randomUUID().toString(); // storage_id
-        var id2 = UUID.randomUUID().toString(); // adaptor_id
 
         var sqls = new String[]{
                 "insert into DataStorageType (name) values ('testStorageTypeName')",
                 String.format("insert into DataStorageAdaptor (id, storage_type_name) values ('%s', 'testStorageTypeName')", id),
-                String.format("insert into DataStorage (id,adaptor_id, name, user_desc, created_by) values ('%s', '%s', 'testName','testDesc','%s')", id, id, id),
+                String.format("insert into DataStorage (id,adaptor_id, name, user_desc, created_by, status, created_at) values ('%s', '%s', 'testName','testDesc','%s', 'INIT', '2023-11-06 01:31:46.002878')", id, id, id),
                 String.format("insert into DataStorageTag (datastorage_id, tag) values ('%s','tag1')", id),
                 String.format("insert into DataStorageTag (datastorage_id, tag) values ('%s','tag2')", id),
                 String.format("insert into DataStorageTag (datastorage_id, tag) values ('%s','tag3')", id),
@@ -232,7 +238,7 @@ class DataLayerServiceImplTest {
     @Test
     void insertBatchFailTest() {
         var id = UUID.randomUUID().toString();
-        var sqls = new String[]{String.format(insertSql(), dbConfig.getDataCatalog(), id, id, id),
+        var sqls = new String[]{String.format(insertSql(), dbConfig.getDataModel(), id, id, id),
                 "insert into failTable value (1,2,3);"};
 
         assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls)).getCode());
@@ -242,8 +248,8 @@ class DataLayerServiceImplTest {
     @Test
     void insertBatchFailWithSelectTest() {
         var id = UUID.randomUUID().toString();
-        var sqls = new String[]{String.format(insertSql(), dbConfig.getDataCatalog(), id, id, id),
-                String.format(selectSql(), dbConfig.getDataCatalog(), preInserted)};
+        var sqls = new String[]{String.format(insertSql(), dbConfig.getDataModel(), id, id, id),
+                String.format(selectSql(), dbConfig.getDataModel(), preInserted)};
 
         assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls)).getCode());
     }
@@ -257,24 +263,24 @@ class DataLayerServiceImplTest {
 
         List<String> IDs = new LinkedList<>();
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
             for (var id : ids) {
                 IDs.add(id);
-                sqls.add(String.format(updateSql(), dbConfig.getDataCatalog(), id));
+                sqls.add(String.format(updateSql(), dbConfig.getDataModel(), id));
             }
 
             assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
 
         for (var id : IDs) {
-            var select = String.format(selectIDSql(), dbConfig.getDataCatalog(), id);
+            var select = String.format(selectIDSql(), dbConfig.getDataModel(), id);
 
             assertEquals("updated_name", dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(1).getStringValue());
             assertEquals("updated_description", dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(2).getStringValue());
         }
 
-        var select = "select count(*) from data_catalog_test;";
+        var select = "select count(*) from data_model_test;";
         assertEquals(2, dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(0).getInt64Value());
     }
 
@@ -286,9 +292,9 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(updateSql(), dbConfig.getDataCatalog(), ids.get(0)));
+            sqls.add(String.format(updateSql(), dbConfig.getDataModel(), ids.get(0)));
             sqls.add("asdf");
 
             assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
@@ -302,9 +308,9 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(updateSql(), dbConfig.getDataCatalog(), ids.get(0)));
+            sqls.add(String.format(updateSql(), dbConfig.getDataModel(), ids.get(0)));
             sqls.add("select * from for_fail;");
 
             assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
@@ -319,17 +325,17 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
             for (var id : ids) {
-                sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), id));
+                sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), id));
             }
 
             assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
 
         });
 
-        var select = "select count(*) from data_catalog_test;";
+        var select = "select count(*) from data_model_test;";
         sleep();
         assertEquals(0, dataLayerService.execute(makeReq(select)).getData().getTable().getRows(0).getCell(0).getInt64Value());
     }
@@ -342,9 +348,9 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0)));
+            sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), ids.get(0)));
             sqls.add("asdf");
 
             assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
@@ -359,11 +365,11 @@ class DataLayerServiceImplTest {
         sleep();
 
         assertDoesNotThrow(() -> {
-            var ids = portalService.searchAllDataCatalog();
+            var ids = portalService.searchAllDataModel();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0)));
-            sqls.add("select * from data_catalog_test;");
-            sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(1)));
+            sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), ids.get(0)));
+            sqls.add("select * from data_model_test;");
+            sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), ids.get(1)));
 
             assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
@@ -378,11 +384,11 @@ class DataLayerServiceImplTest {
         assertDoesNotThrow(() -> {
             var id = UUID.randomUUID().toString();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(insertSql(), dbConfig.getDataCatalog(), id, id, id));
-            var ids = portalService.searchAllDataCatalog();
+            sqls.add(String.format(insertSql(), dbConfig.getDataModel(), id, id, id));
+            var ids = portalService.searchAllDataModel();
             sleep();
-            sqls.add(String.format(updateSql(), dbConfig.getDataCatalog(), ids.get(0)));
-            sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0)));
+            sqls.add(String.format(updateSql(), dbConfig.getDataModel(), ids.get(0)));
+            sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), ids.get(0)));
 
             assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
@@ -398,17 +404,18 @@ class DataLayerServiceImplTest {
         assertDoesNotThrow(() -> {
             var id = UUID.randomUUID().toString();
             var sqls = new LinkedList<String>();
-            sqls.add(String.format(insertSql(), dbConfig.getDataCatalog(), id, id, id));
-            var ids = portalService.searchAllDataCatalog();
-            sqls.add(String.format(updateSql(), dbConfig.getDataCatalog(), ids.get(0)));
-            var newUpdate = String.format(updateSql(), dbConfig.getDataCatalog(), "asdf");
-            sqls.add(String.format(newUpdate, dbConfig.getDataCatalog(), ids.get(0)));
-            sqls.add(String.format(deleteSql(), dbConfig.getDataCatalog(), ids.get(0)));
+            sqls.add(String.format(insertSql(), dbConfig.getDataModel(), id, id, id));
+            var ids = portalService.searchAllDataModel();
+            sqls.add(String.format(updateSql(), dbConfig.getDataModel(), ids.get(0)));
+            var newUpdate = String.format(updateSql(), dbConfig.getDataModel(), "asdf");
+            sqls.add(String.format(newUpdate, dbConfig.getDataModel(), ids.get(0)));
+            sqls.add(String.format(deleteSql(), dbConfig.getDataModel(), ids.get(0)));
 
             assertEquals(ResponseCode.UNKNOWN.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls.toArray(new String[0]))).getCode());
         });
     }
 
+    @DisplayName("Search Keyword")
     @Test
     void searchWithInput() {
         var in = "in";
@@ -438,6 +445,7 @@ class DataLayerServiceImplTest {
     }
 
 
+    @DisplayName("Search keyword with details")
     @Test
     void searchWithInputADetail() {
         var in = "in";
@@ -466,6 +474,7 @@ class DataLayerServiceImplTest {
     }
 
 
+    @DisplayName("Search keyword with details, filters")
     @Test
     void searchWithInputADetailAFilter() {
         var in = "in";
@@ -531,22 +540,74 @@ class DataLayerServiceImplTest {
         assertEquals(11, recent.getData().getRecentSearchesCount());
     }
 
+    @DisplayName("data model insert test")
+    @Test
+    void insertBatchWithDataModelTest() {
+        var id = "3a883d0e-c2bd-47de-b16a-58d1d22c0572";
+        var id2 = "b5839838-0b4d-4414-a5c6-f45cf13eafc7";
+
+        var sqls = new String[]{
+                String.format("insert into data_model(id, name, description, type, format, status, created_at, created_by) values ('%s', 'testa', 'testa testa', 'STRUCTURED', 'TABLE', 'CONNECTED', '2023-11-09 09:40:59.721', gen_random_uuid ())", id),
+                String.format("insert into data_location(id, storage_id, path, name) values ('%s', '1b6c8550-a7f8-4c96-9d17-cd10770ace87', 'testdb', 'testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'NAME', 'testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'OWNER', 'testUser')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'DESC', 'testa testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'FORMAT', 'TABLE')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'COLUMNS', '2')", id),
+                String.format("insert into data_model_schema(id, ordinal_position, column_name, data_type, length, \"default\", description) values ('%s', 1, 'id', 'integer', 32, '', '')", id),
+                String.format("insert into data_model_schema(id, ordinal_position, column_name, data_type, length, \"default\", description) values ('%s', 2, 'db', 'text', 1073741824, '', '')", id),
+                String.format("insert into data_tag (id, tag) values ('%s', 'tag_one')", id),
+                String.format("insert into data_tag (id, tag) values ('%s', 'tag_two')", id),
+                String.format("insert into data_user_comment (id, data_model_id, user_id, rating, comment, \"time\") values ('%s', '%s', '336c8550-a7f8-4c96-9d17-cd10770ace87', '5', 'comment', NOW())", id2, id)
+        };
+
+        assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.executeBatch(makeBatchReq(sqls)).getCode());
+        sleep();
+
+        assertEquals(1, (portalService.search(makeReq("testa", null, null, null)).getData().getSearchResponse()).getPageable().getPage().getTotalSize());
+    }
+
+    @DisplayName("data model update test")
+    @Test
+    void updateDataModelTest() {
+        var id = "3a883d0e-c2bd-47de-b16a-58d1d22c0572";
+        var id2 = "b5839838-0b4d-4414-a5c6-f45cf13eafc7";
+
+        var sqls = new String[]{
+                String.format("insert into data_model(id, name, description, type, format, status, created_at, created_by) values ('%s', 'testa', 'testa testa', 'STRUCTURED', 'TABLE', 'CONNECTED', '2023-11-09 09:40:59.721', gen_random_uuid ())", id),
+                String.format("insert into data_location(id, storage_id, path, name) values ('%s', '1b6c8550-a7f8-4c96-9d17-cd10770ace87', 'testdb', 'testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'NAME', 'testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'OWNER', 'testUser')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'DESC', 'testa testa')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'FORMAT', 'TABLE')", id),
+                String.format("insert into data_metadata(id, is_system, \"key\", \"value\") values ('%s', true, 'COLUMNS', '2')", id),
+                String.format("insert into data_model_schema(id, ordinal_position, column_name, data_type, length, \"default\", description) values ('%s', 1, 'id', 'integer', 32, '', '')", id),
+                String.format("insert into data_model_schema(id, ordinal_position, column_name, data_type, length, \"default\", description) values ('%s', 2, 'db', 'text', 1073741824, '', '')", id),
+                String.format("insert into data_tag (id, tag) values ('%s', 'tag_one')", id),
+                String.format("insert into data_tag (id, tag) values ('%s', 'tag_two')", id),
+                String.format("insert into data_user_comment (id, data_model_id, user_id, rating, comment, \"time\") values ('%s', '%s', '336c8550-a7f8-4c96-9d17-cd10770ace87', '5', 'comment', NOW())", id2, id)
+        };
+        dataLayerService.executeBatch(makeBatchReq(sqls));
+        sleep();
+
+        var sql = String.format("update data_model set name = 'updated_name', last_modified_at = '2023-11-13 09:40:59.721', last_modified_by = '%s' where id = '%s'", id2, id);
+        assertEquals(ResponseCode.SUCCESS.getValue(), dataLayerService.execute(makeReq(sql)).getCode());
+
+        sleep();
+        System.out.println(portalService.search(makeReq("updated_name", null, null, null)));
+    }
+
     void insertDocument() {
         preInserted = UUID.randomUUID().toString();
         assertDoesNotThrow(() ->
-                dataLayerService.execute(makeReq(String.format(insertSql(), dbConfig.getDataCatalog(), preInserted, preInserted, preInserted))));
+                dataLayerService.execute(makeReq(String.format(insertSql(), dbConfig.getDataModel(), preInserted, preInserted, preInserted))));
     }
 
 
     void insertDocument(String insertSql) {
         var id = UUID.randomUUID().toString();
         assertDoesNotThrow(() ->
-                dataLayerService.execute(makeReq(String.format(insertSql, dbConfig.getDataCatalog(), id, id, id))));
-    }
-
-    void insertDocument(String[] sqls) {
-        assertDoesNotThrow(() ->
-                dataLayerService.executeBatch(makeBatchReq(sqls)));
+                dataLayerService.execute(makeReq(String.format(insertSql, dbConfig.getDataModel(), id, id, id))));
     }
 
     void sleep() {

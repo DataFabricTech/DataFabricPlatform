@@ -265,18 +265,23 @@ SearchItemsResponse:
     storageType:
        type: array
        description: "연결 정보의 유형"
-       items:
-         type: string
+       enum:
+         - "ALL"
+         - "POSTGRESQL"
+         - "MARIADB"
+         - "MYSQL"
     dataType:
        type: array
        description: "데이터 모델의 형식"
-       items:
-         type: string
+       enum:
+         - "ALL"
+         - "DATA_MODEL"
     dataFormat:
       type: array
       description: "데이터 모델의 포맷"
-      items:
-        type: string
+      enum:
+        - "ALL"
+        - "TABLE"
 
 
 

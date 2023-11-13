@@ -9,6 +9,6 @@ import java.util.LinkedList;
 @Setter
 public class SearchModel {
     private int totalSize;
-    private LinkedList<DataCatalogModel> dataCatalogModelList;
+    private LinkedList<DataModel> dataModelList;
     private LinkedList<StorageModel> StorageModelList;
 }

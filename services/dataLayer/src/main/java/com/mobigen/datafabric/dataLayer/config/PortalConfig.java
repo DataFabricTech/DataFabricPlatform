@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 public class PortalConfig {
     private final Configuration config;
-    private final String dataCatalogIndex;
+    private final String dataModelIndex;
     private final String storageIndex;
     private final String recentSearchesIndex;
     private final String host;
@@ -21,7 +21,7 @@ public class PortalConfig {
 
     public PortalConfig(Configuration config) {
         this.config = config;
-        this.dataCatalogIndex = config.getString("open_search.index.data_catalog").toLowerCase();
+        this.dataModelIndex = config.getString("open_search.index.data_model").toLowerCase();
         this.storageIndex = config.getString("open_search.index.storage").toLowerCase();
         this.recentSearchesIndex = config.getString("open_search.index.recent_searches").toLowerCase();
         this.host = config.getString("open_search.host");

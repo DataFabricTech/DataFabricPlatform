@@ -211,34 +211,32 @@ SearchItems:
             code: "200"
             data:
               KEYWORD_TYPE:
-                - "전체"
-                - "데이터 모델명"
-                - "태그"
-                - "소유자"
+                - "ALL"
+                - "DATA_MODEL"
+                - "TAG"
+                - "OWNER"
+                - "CATEGORY"
               DATE_TYPE:
-                - "전체"
-                - "최근 수정 일자"
-                - "최근 등록 일자"
+                - "ALL"
+                - "RECENT_UPDATED"
+                - "RECENT_CREATED"
               CONNECTOR_NAME:
-                - "전체"
+                - "ALL"
                 - "연결 정보 이름 A"
                 - "연결 정보 이름 B"
               STORAGE_TYPE:
-                - "전체"
-                - "PostgreSQL"
-                - "MariaDB"
-                - "Mysql"
+                - "ALL"
+                - "POSTGRESQL"
+                - "MARIADB"
+                - "MYSQL"
               DATA_TYPE:
-                - "전체"
-                - "DataModel"
+                - "ALL"
+                - "DATA_MODEL"
               DATA_FORMAT:
-                - "전체"
-                - "Table"
+                - "ALL"
+                - "TABLE"
         error:
           value:
             code: "400"
             errMsg: "잘못된 요청입니다."
             data: null
-
-
-

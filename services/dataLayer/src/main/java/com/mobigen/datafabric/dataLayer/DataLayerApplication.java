@@ -26,6 +26,6 @@ public class DataLayerApplication {
     private static void initService(GRPCServer server) throws IOException {
         var appConfig = new AppConfig();
         server.addService(new DataLayerService(new DataLayerServiceImpl(appConfig.dataLayerRepository(), appConfig.portalService())));
-        server.addService(new PortalService(new PortalServiceImpl(appConfig.portalRepository(), appConfig.dataLayerRepository(), appConfig.dbConfig(), appConfig.portalConfig())));
+        server.addService(new PortalService(new PortalServiceImpl(appConfig.portalRepository(), appConfig.dbConfig(), appConfig.portalConfig())));
     }
 }
