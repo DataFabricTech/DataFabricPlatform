@@ -595,4 +595,17 @@ public class DataModelService {
                         .build())
                 .build();
     }
+
+    public DataModelOuterClass.ResDataModels.Data getAllDataModel( DataModelOuterClass.DataModelSearch request ) {
+        DataModelOuterClass.ResDataModels.Data dataModels = getDataModelSummary( request );
+        if( dataModels == null ) return null;
+        if( dataModels.getDataModelsCount() <= 0 ) return dataModels;
+        DataModelOuterClass.ResDataModels.Data.Builder resBuilder = DataModelOuterClass.ResDataModels.Data.newBuilder();
+        resBuilder.setPageable( dataModels.getPageable() );
+        for( DataModelOuterClass.DataModel dataModel : dataModels.getDataModelsList() ) {
+            DataModelOuterClass.DataModel.Builder dataModelBuilder = getDataModelDefault( dataModel.getId() );
+            resBuilder.addDataModels( dataModelBuilder.build() );
+        }
+        return resBuilder.build();
+    }
 }

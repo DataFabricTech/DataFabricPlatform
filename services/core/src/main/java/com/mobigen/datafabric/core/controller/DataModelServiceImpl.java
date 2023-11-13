@@ -135,9 +135,17 @@ public class DataModelServiceImpl implements DataModelServiceCallBack {
 
     @Override
     public DataModelOuterClass.ResDataModels allData( DataModelOuterClass.DataModelSearch request ) {
-        return null;
+        DataModelOuterClass.ResDataModels.Data result = dataModelService.getAllDataModel( request );
+        if( result != null ) {
+            return DataModelOuterClass.ResDataModels.newBuilder()
+                    .setCode( "200" )
+                    .setData( result )
+                    .build();
+        } else {
+            return DataModelOuterClass.ResDataModels.newBuilder()
+                    .setCode( "500" )
+                    .setErrMsg( "Error. In All Data Summary" ).build();
+        }
     }
-//    AdaptorService service = new AdaptorService();
-
 }
 
