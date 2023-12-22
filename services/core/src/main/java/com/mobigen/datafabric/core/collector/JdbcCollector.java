@@ -70,6 +70,9 @@ public class JdbcCollector implements DataCollector {
                 var name = rs.getString(2);
                 StorageOuterClass.StorageBrowseData.Builder builder;
                 if (!schema.containsKey(name)) {
+                    if (name == null) {
+                        name = "";
+                    }
                     builder = StorageOuterClass.StorageBrowseData.newBuilder()
                             .setName(name)
                             .setType(0)
