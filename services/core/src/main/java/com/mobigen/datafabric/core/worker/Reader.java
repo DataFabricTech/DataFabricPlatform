@@ -12,10 +12,10 @@ import java.util.Map;
 @Slf4j
 public class Reader {
     private Map<String, Queue<Job>> queues;
-    private final Worker worker;
+    private final ThreadPool worker;
     private final Timer timer;
 
-    public Reader(Map<String, Queue<Job>> queues, Timer timer, Worker worker ) {
+    public Reader(Map<String, Queue<Job>> queues, Timer timer, ThreadPool worker ) {
         if( queues != null ) {
             this.queues = new LinkedHashMap<>( queues );
             // LinkedHashMap Loop
@@ -28,7 +28,7 @@ public class Reader {
         }
         this.timer = timer;
         this.worker = worker;
-        log.error( "[ ReaderM ] Init : OK" );
+        log.error( "[ ReaderM ] Worker : OK" );
     }
 
     public void addQueue( String name, Queue<Job> queue ) {

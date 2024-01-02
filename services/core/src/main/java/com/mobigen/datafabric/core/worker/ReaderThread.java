@@ -13,17 +13,17 @@ public class ReaderThread implements Runnable {
     private final String readerName;
     private final Map<String, Queue<Job>> queues;
     private Boolean isRunning;
-    private final Worker worker;
+    private final ThreadPool worker;
     private final Timer timer;
     private long runCnt;
 
-    public ReaderThread(String name, Timer timer, Worker worker) {
+    public ReaderThread(String name, Timer timer, ThreadPool worker) {
         this.readerName = name;
         this.isRunning = true;
         this.queues = new LinkedHashMap<>();
         this.timer = timer;
         this.worker = worker;
-        log.error("[ {} ] Init : OK", name);
+        log.error("[ {} ] Worker : OK", name);
     }
 
     public void addQueue(String name, Queue<Job> queue) {
@@ -47,7 +47,7 @@ public class ReaderThread implements Runnable {
                     continue;
                 }
 
-                // Job Type -> Set Task -> Run Task( Worker )
+                // Job Type -> Set Task -> Run Task( ThreadPool )
                 switch( job.getType() ) {
                     case STORAGE_ADD -> addStorage(job);
 //                    case STORAGE_UPDATE -> updateStorage(job);
@@ -61,7 +61,7 @@ public class ReaderThread implements Runnable {
                     log.error("[ {} ] Timer NotSet", this.readerName);
                 }
 
-                // Need Worker?
+                // Need ThreadPool?
                 if (worker != null) {
                     if (job.getType().equals(Job.JobType.STORAGE_ADD)) {
                         worker.runTask(new AutoAddTask(job));

@@ -26,7 +26,7 @@ type DataModelService interface {
 	// UpdateComment 	POST /data/v1/comment/update 		- 데이터 평가와 댓글 업데이트
 	UpdateComment(in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error)
 	// DelComment 		POST /data/v1/comment/delete 		- 데이터 평가와 댓글 삭제
-	DelComment(in *protobuf.ReqId) (*protobuf.CommonResponse, error)
+	DelComment(in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error)
 	// AllDataSummary 	POST /data/v1/all-data/summary 		- 데이터 브라우저 좌측 패널용 데이터
 	AllDataSummary(in *protobuf.DataModelSearch) (*protobuf.ResDataModels, error)
 	// AllData 			POST /data/v1/all-data          	- 데이터 브라우저 조회(검색) 데이터
@@ -206,7 +206,7 @@ func (ctrl *DataModelController) UpdateComment(c echo.Context) error {
 // DelComment POST /data/v1/comment/delete - 데이터 평가와 댓글 삭제
 func (ctrl *DataModelController) DelComment(c echo.Context) error {
 	ctrl.log.Infof("[%-10s] >> Delete Comment", "DATA_MODEL")
-	req := &protobuf.ReqId{}
+	req := &protobuf.ReqRatingAndComment{}
 	err := c.Bind(req)
 	if err != nil {
 		return c.JSON(http.StatusOK, &models.CommonResponse{Code: "400", ErrMsg: err.Error()})

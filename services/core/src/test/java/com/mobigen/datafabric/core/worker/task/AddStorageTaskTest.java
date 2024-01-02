@@ -14,7 +14,5 @@ class AddStorageTaskTest {
         Job postgresJob = Job.builder().storageId( "1b6c8550-a7f8-4c96-9d17-cd10770ace87" ).build();
         AddStorageTask task = new AddStorageTask( postgresJob );
         task.run();
-
     }
-
 }

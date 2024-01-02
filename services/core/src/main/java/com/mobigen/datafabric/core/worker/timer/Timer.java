@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.core.worker.timer;
 
-import com.mobigen.datafabric.core.worker.Worker;
+import com.mobigen.datafabric.core.worker.ThreadPool;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Iterator;
@@ -18,15 +18,15 @@ public class Timer {
     private boolean isStop = false;
     private final AtomicInteger idGenerator;
     private final AtomicInteger numTimer;
-    private final Worker worker;
+    private final ThreadPool threadPool;
     private final Semaphore mutex;
 
-    public Timer( int maxSize, Worker worker ) {
+    public Timer( int maxSize, ThreadPool threadPool ) {
         this.timerList = new LinkedList<>();
         this.maxSize = maxSize;
         numTimer = new AtomicInteger( 0 );
         idGenerator = new AtomicInteger( 0 );
-        this.worker = worker;
+        this.threadPool = threadPool;
         idArray = new int[ maxSize ];
         mutex = new Semaphore( 1 );
 
@@ -35,7 +35,7 @@ public class Timer {
 
     public static Timer getInstance() {
         if( instance == null ) {
-            log.error( "[ Timer ] Not Init" );
+            log.error( "[ Timer ] Not Worker" );
             return null;
         }
         return instance;
@@ -66,12 +66,23 @@ public class Timer {
         idArray[ id - 1 ] = 0;
     }
 
-    public int Add( Long utcMilliSecond, Long delayMilliSecond, Boolean isRepeat, TimerCallback callback ) {
+    /**
+     * 시간 기반 callback 실행 요청
+     * startTime과 delayMilliSecond 중 하나라도 있어야 하며, 2개 모두 설정되어 있고,
+     * repeat이 true일 경우 startTime에 최초로 실행된 후 dealyMilliSecond 만큼 대기 후 다시 callback 실행
+     *
+     * @param startTime : 입력 시간에 callback을 실행
+     * @param delay : 입력 시간 만큼 대기 후 callback 실행
+     * @param isRepeat  : 반복 여부
+     * @param callback : 실행 함수
+     * @return 성공 시 > 0 , 실패 시 -1
+     */
+    public int Add( Long startTime, Long delay, Boolean isRepeat, TimerCallback callback ) {
         // Parameter Check
-        if( utcMilliSecond == null && delayMilliSecond == null ) return -1;
-        if( utcMilliSecond != null && utcMilliSecond < System.currentTimeMillis() ) return -1;
-        if( delayMilliSecond != null && delayMilliSecond < 100 ) return -1;
-        if( isRepeat != null && ( isRepeat && delayMilliSecond == null ) ) return -1;
+        if( startTime == null && delay == null ) return -1;
+        if( startTime != null && startTime < System.currentTimeMillis() ) return -1;
+        if( delay != null && delay < 100 ) return -1;
+        if( isRepeat != null && ( isRepeat && delay == null ) ) return -1;
         if( callback == null ) return -1;
 
         // Timer Size Check
@@ -80,13 +91,10 @@ public class Timer {
         try {
             mutex.acquire();
             int id = getId();
-            Long startTime = null;
-            if( utcMilliSecond != null ) {
-                startTime = utcMilliSecond;
-            } else {
-                startTime = System.currentTimeMillis() + delayMilliSecond;
+            if( startTime == null ) {
+                startTime = System.currentTimeMillis() + delay;
             }
-            TimerData tData = new TimerData( startTime, delayMilliSecond, isRepeat, callback );
+            TimerData tData = new TimerData( startTime, delay, isRepeat, callback );
             tData.setTimerId( id );
 
             // 실행 시간 순서에 맞춰 삽입
@@ -106,45 +114,13 @@ public class Timer {
         return -1;
     }
 
-    public Integer Add( TimerData timerData ) {
-        // Parameter Check
-        if( timerData.getStartTime() == null && timerData.getPeriod() == null ) return -1;
-        if( timerData.getStartTime() != null && timerData.getStartTime() < System.currentTimeMillis() ) return -1;
-        if( timerData.getPeriod() != null && timerData.getPeriod() < 100 ) return -1;
-        if( timerData.getIsRepeat() != null && ( timerData.getIsRepeat().equals( true ) && timerData.getPeriod() == null ) )
-            return -1;
-        if( timerData.getCallback() == null ) return -1;
-
-        // Timer Size Check
-        if( numTimer.get() + 1 > this.maxSize ) return -1;
-
-        try {
-            mutex.acquire();
-            timerData.setTimerId( getId() );
-            if( timerData.getStartTime() == null ) {
-                timerData.setStartTime( System.currentTimeMillis() + timerData.getPeriod() );
-            }
-
-            // 실행 시간 순서에 맞춰 삽입
-            int insertIdx = 0;
-            for( insertIdx = 0; insertIdx < timerList.size(); insertIdx++ ) {
-                if( timerList.get( insertIdx ).getStartTime() < timerData.getStartTime() ) continue;
-                break;
-            }
-            timerList.add( insertIdx, timerData );
-            numTimer.incrementAndGet();
-            return timerData.getTimerId();
-        } catch( InterruptedException e ) {
-            log.error( "[ Timer ] Error : Add Time Callback Msg[ {} ]", e.getMessage() );
-        } finally {
-            mutex.release();
-        }
-        return -1;
+    public int Add( TimerData timerData ) {
+        return Add( timerData.getStartTime(), timerData.getPeriod(), timerData.getIsRepeat(), timerData.getCallback() );
     }
-
 
     public boolean Update( TimerData data ) {
         try {
+            data.setStartTime( System.currentTimeMillis() + data.getPeriod() );
             mutex.acquire();
             // 실행 시간 순서에 맞춰 삽입
             int insertIdx = 0;
@@ -204,7 +180,7 @@ public class Timer {
                     // Run
                     Runnable r = () -> td.getCallback().callback( td );
                     System.out.println( "Run : " + td.getTimerId() );
-                    worker.runTask( r );
+                    threadPool.runTask( r );
 
                     // Add Delete List
                     delList.add( td );
@@ -226,6 +202,40 @@ public class Timer {
                 // ignored
             }
         }
+    }
+    /* Service Dependency code */
+    public int getTimerByServiceId( String timerDataType, String id ) {
+        try {
+            mutex.acquire();
+            for( TimerData timer : timerList ) {
+                if( timer.getTimerDataType().equals( timerDataType ) && timer.getDataId().equals( id ) ) {
+                    return timer.getTimerId();
+                }
+            }
+        } catch( InterruptedException e ) {
+            log.error( "[ Timer ] Error . Delete Timer. Input[ {} ]Msg[ {} ]", id, e.getMessage() );
+        } finally {
+            mutex.release();
+        }
+        return -1;
+    }
+    public boolean deleteTimerByServiceId( String timerDataType, String id ) {
+        try {
+            mutex.acquire();
+            for( TimerData timer : timerList ) {
+                if( timer.getTimerDataType().equals( timerDataType ) && timer.getDataId().equals( id ) ) {
+                    timerList.remove( timer );
+                    numTimer.decrementAndGet();
+                    delId( timer.getTimerId() );
+                    return true;
+                }
+            }
+        } catch( InterruptedException e ) {
+            log.error( "[ Timer ] Error . Delete Timer. Input[ {} ]Msg[ {} ]", id, e.getMessage() );
+        } finally {
+            mutex.release();
+        }
+        return false;
     }
 
     public void Stop() {

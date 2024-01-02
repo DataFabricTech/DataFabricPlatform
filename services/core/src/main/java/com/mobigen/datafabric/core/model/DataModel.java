@@ -20,9 +20,9 @@ public class DataModel {
     public static SqlColumn description = SqlColumn.of("description", table, JDBCType.VARCHAR);
     public static SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
     public static SqlColumn format = SqlColumn.of("format", table, JDBCType.VARCHAR);
-    public static SqlColumn status = SqlColumn.of("status", table, JDBCType.INTEGER);
+    public static SqlColumn status = SqlColumn.of("status", table, JDBCType.VARCHAR);
 
-    public static SqlColumn createdAt = SqlColumn.of("create_at", table, JDBCType.TIMESTAMP);
+    public static SqlColumn createdAt = SqlColumn.of("created_at", table, JDBCType.TIMESTAMP);
     public static SqlColumn createdBy = SqlColumn.of("created_by", table, JDBCType.VARCHAR);
     public static SqlColumn lastModifiedAt = SqlColumn.of("last_modified_at", table, JDBCType.TIMESTAMP);
     public static SqlColumn lastModifiedBy = SqlColumn.of("last_modified_by", table, JDBCType.VARCHAR);

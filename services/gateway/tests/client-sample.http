@@ -366,12 +366,14 @@ Content-Type: application/json
   "name": "table-name"
 }
 
+
+
 ### preview error
 POST http://{{host}}:{{port}}/data/v1/preview
 Content-Type: application/json
 
 {
-  "id": "err-id"
+  "id": "d8af6378-97d1-41b9-82e5-b9be3b171145"
 }
 
 

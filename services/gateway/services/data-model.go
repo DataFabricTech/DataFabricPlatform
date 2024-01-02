@@ -192,8 +192,8 @@ func (service *DataModelService) UpdateComment(in *protobuf.ReqRatingAndComment)
 }
 
 // DelComment 		POST /data/v1/comment/delete 		- 데이터 평가와 댓글 삭제
-func (service *DataModelService) DelComment(in *protobuf.ReqId) (*protobuf.CommonResponse, error) {
-	// DelComment(in *protobuf.ReqId) (*protobuf.CommonResponse, error)
+func (service *DataModelService) DelComment(in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error) {
+	// DelComment(in *protobuf.ReqRatingAndComment) (*protobuf.CommonResponse, error)
 	service.log.Infof("[%-10s] >> Delete RatingNComment : Server", "DATA_MODEL")
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
