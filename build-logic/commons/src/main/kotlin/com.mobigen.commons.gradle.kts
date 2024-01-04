@@ -10,24 +10,30 @@ java {
     }
 }
 
+group = "com.mobigen.datafabric"
+
 dependencies {
     // For Annotation
-    compileOnly(Dependency.lombok)
-    annotationProcessor(Dependency.lombok)
+    compileOnly(Dependencies.LOMBOK)
+    annotationProcessor(Dependencies.LOMBOK)
+    // For Unit Test Code Annotation
+    testAnnotationProcessor(Dependencies.LOMBOK)
+    testImplementation(Dependencies.LOMBOK)
 
     // For Log
-    implementation(Dependency.log4j.log4jApi)
-    implementation(Dependency.log4j.log4jCore)
-    implementation(Dependency.log4j.log4jSlf4jImpl)
+    implementation(Dependencies.Log4j.API)
+    implementation(Dependencies.Log4j.CORE)
+    implementation(Dependencies.Log4j.SLF4J_IMPL)
     // For YAML Format Configurations - For To Using Log4j2
-    implementation(Dependency.log4j.jacksonYaml)
+    implementation(Dependencies.Log4j.JACKSON_YAML)
 
     // For Test
-    // JUnit Jupiter = 테스트 작성용
-    testImplementation(Dependency.junitTest.junitJupiter)
-    // JUnit Platform Launcher = 테스트를 검색, 필터링 및 실행하는 데 사용할 수 있음(Gradle Test Task 상에서 Filter 적용 등)
-    testRuntimeOnly(Dependency.junitTest.junitPlatformLauncher)
-    testImplementation(Dependency.junitTest.mockito)
+    testImplementation(platform(Dependencies.JUNIT.BOM))
+    testImplementation(Dependencies.JUNIT.JUPITER)
+    testRuntimeOnly(Dependencies.JUNIT.PLATFORM_LAUNCH)
+    testRuntimeOnly(Dependencies.JUNIT.JUPITER_ENGINE)
+    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.10.1")
+    testImplementation(Dependencies.JUNIT.MOCKITO)
 }
 
 tasks.named<Test>("test") {

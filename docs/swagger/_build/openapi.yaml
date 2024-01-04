@@ -43,7 +43,7 @@ paths:
           $ref: '#/components/responses/DataPreview'
   /data/v1/default:
     description: 데이터 상세 보기 - 기본 정보
-    get:
+    post:
       tags:
         - data
       requestBody:

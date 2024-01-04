@@ -1,33 +1,40 @@
-object Dependency {
-    const val lombok = "org.projectlombok:lombok:${Versions.lombokVer}"
+object Dependencies {
+    const val LOMBOK = "org.projectlombok:lombok:${Versions.LOMBOK_VER}"
 
-    object log4j {
-        const val log4jApi = "org.apache.logging.log4j:log4j-api:${Versions.log4jVer}"
-        const val log4jCore = "org.apache.logging.log4j:log4j-core:${Versions.log4jVer}"
-        const val log4jSlf4jImpl = "org.apache.logging.log4j:log4j-slf4j-impl:${Versions.log4jVer}"
-        const val jacksonYaml = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${Versions.jacksonYamlVer}"
+    object Log4j {
+        const val API           = "org.apache.logging.log4j:log4j-api:${Versions.LOG4J_VER}"
+        const val CORE          = "org.apache.logging.log4j:log4j-core:${Versions.LOG4J_VER}"
+        const val SLF4J_IMPL    = "org.apache.logging.log4j:log4j-slf4j-impl:${Versions.LOG4J_VER}"
+        const val JACKSON_YAML  = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${Versions.JACKSON_YAML_VER}"
     }
 
-    object protobuf {
-        const val protoc = "com.google.protobuf:protoc:${Versions.protocVer}"
-        const val protocGenJava = "io.grpc:protoc-gen-grpc-java:${Versions.grpcVer}"
-        const val protoBufUtil = "com.google.protobuf:protobuf-java-util:${Versions.protocVer}"
+    object Protobuf {
+        const val PROTOC            = "com.google.protobuf:protoc:${Versions.PROTOC_VER}"
+        const val PROTOC_GEN_JAVA   = "io.grpc:protoc-gen-grpc-java:${Versions.GRPC_VER}"
+        const val PROTOBUF_UTIL     = "com.google.protobuf:protobuf-java-util:${Versions.PROTOC_VER}"
     }
 
-    object grpc {
-        const val api = "io.grpc:grpc-api:${Versions.grpcVer}"
-        const val stub = "io.grpc:grpc-stub:${Versions.grpcVer}"
-        const val protobuf = "io.grpc:grpc-protobuf:${Versions.grpcVer}"
-        const val service = "io.grpc:grpc-services:${Versions.grpcVer}"
-        const val netty = "io.grpc:grpc-netty:${Versions.grpcVer}"
-        const val testing = "io.grpc:grpc-testing:${Versions.grpcVer}"
+    object GRPC {
+        const val API       = "io.grpc:grpc-api:${Versions.GRPC_VER}"
+        const val STUB      = "io.grpc:grpc-stub:${Versions.GRPC_VER}"
+        const val PROTOBUF  = "io.grpc:grpc-protobuf:${Versions.GRPC_VER}"
+        const val SERVICE   = "io.grpc:grpc-services:${Versions.GRPC_VER}"
+        const val NETTY     = "io.grpc:grpc-netty:${Versions.GRPC_VER}"
+        const val TESTING   = "io.grpc:grpc-testing:${Versions.GRPC_VER}"
     }
 
-    object junitTest {
-        const val junitJupiter            = "org.junit.jupiter:junit-jupiter:${Versions.junitVer}"
-        const val junitPlatformLauncher   = "org.junit.platform:junit-platform-launcher:${Versions.junitPlatformVer}"
-        const val mockito   = "org.mockito:mockito-core:${Versions.mockitoVer}"
+    object JUNIT {
+        const val BOM       = "org.junit:junit-bom:${Versions.JUNIT_VER}"
+        const val JUPITER   = "org.junit.jupiter:junit-jupiter:${Versions.JUNIT_VER}"
+        const val PLATFORM_LAUNCH = "org.junit.platform:junit-platform-launcher:${Versions.JUNIT_PLATFORM_LAUNCH}"
+        const val JUPITER_ENGINE = "org.junit.jupiter:junit-jupiter-engine:${Versions.JUNIT_VER}"
+        const val MOCKITO   = "org.mockito:mockito-core:${Versions.MOCKITO_VER}"
     }
 
-    const val springGradlePlugin = "org.springframework.boot:org.springframework.boot.gradle.plugin:${Versions.springGradlePluginVer}"
+    object Spring {
+        const val BOOT = "org.springframework.boot:spring-boot:${Versions.SPRING_BOOT_VER}"
+        const val BOOT_STARTER = "org.springframework.boot:spring-boot-starter:${Versions.SPRING_BOOT_VER}"
+        const val STARTER_WEB = "org.springframework.boot:spring-boot-starter-web:${Versions.SPRING_BOOT_VER}"
+        const val TEST = "org.springframework.boot:spring-boot-starter-test:${Versions.SPRING_BOOT_VER}"
+    }
 }
