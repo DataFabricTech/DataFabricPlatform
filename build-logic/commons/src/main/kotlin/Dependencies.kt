@@ -37,4 +37,8 @@ object Dependencies {
         const val STARTER_WEB = "org.springframework.boot:spring-boot-starter-web:${Versions.SPRING_BOOT_VER}"
         const val TEST = "org.springframework.boot:spring-boot-starter-test:${Versions.SPRING_BOOT_VER}"
     }
+
+    object RabbitMQ {
+        const val AMQP_CLIENT = "com.rabbitmq:amqp-client:${Versions.RABBITMQ_VER}"
+    }
 }

@@ -27,12 +27,15 @@ dependencies {
     // For YAML Format Configurations - For To Using Log4j2
     implementation(Dependencies.Log4j.JACKSON_YAML)
 
+    // For Message Queue(RabbitMQ)
+    implementation(Dependencies.RabbitMQ.AMQP_CLIENT)
+
     // For Test
     testImplementation(platform(Dependencies.JUNIT.BOM))
     testImplementation(Dependencies.JUNIT.JUPITER)
     testRuntimeOnly(Dependencies.JUNIT.PLATFORM_LAUNCH)
     testRuntimeOnly(Dependencies.JUNIT.JUPITER_ENGINE)
-    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.10.1")
+//    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.10.1")
     testImplementation(Dependencies.JUNIT.MOCKITO)
 }
 

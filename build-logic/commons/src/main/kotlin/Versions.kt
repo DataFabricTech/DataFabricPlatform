@@ -11,4 +11,6 @@ object Versions {
     const val MOCKITO_VER = "5.6.0"
 
     const val SPRING_BOOT_VER = "3.1.4"
+
+    const val RABBITMQ_VER = "5.20.0"
 }
