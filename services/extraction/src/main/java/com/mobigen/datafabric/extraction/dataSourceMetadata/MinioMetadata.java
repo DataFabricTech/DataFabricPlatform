@@ -2,8 +2,6 @@ package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
 import com.mobigen.datafabric.extraction.extraction.CommonMetadataExtraction;
 import com.mobigen.datafabric.extraction.extraction.TikaExtraction;
-import com.mobigen.datafabric.extraction.model.DataFormat;
-import com.mobigen.datafabric.extraction.model.StructuredType;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 import com.mobigen.datafabric.extraction.model.*;
 import org.apache.tika.exception.UnsupportedFormatException;

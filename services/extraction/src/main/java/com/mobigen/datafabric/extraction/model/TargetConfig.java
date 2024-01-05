@@ -6,6 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class TargetConfig {
+    // TODO 추후에 통합될 Class
     // storageType 은, connectConfig 를 set 혹은 get 할 때 어떤 storage 를 선택할 지 정하기 위한 값
     public static StorageType storageType;
     private ConnectInfo connectInfo;
