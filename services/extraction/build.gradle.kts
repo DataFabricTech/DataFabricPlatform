@@ -22,9 +22,8 @@ dependencies {
     // postgres
     implementation("org.postgresql:postgresql:42.6.0")
 
-    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.2")
-
+    // jpa
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.2.1")
 
     // For Test
     // JUnit Jupiter = 테스트 작성용
