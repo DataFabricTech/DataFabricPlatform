@@ -1,17 +1,14 @@
 package com.mobigen.datafabric.extraction.extraction;
 
-import com.mobigen.datafabric.extraction.dataSourceMetadata.JDBCInfo;
-
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class TableExtraction implements Extract{
-    JDBCInfo connectionInfo;
+//    JDBCInfo connectionInfo;
     RDBdataTypetoFormat rdbdataTypetoFormat = new RDBdataTypetoFormat();
 
 
@@ -37,7 +34,6 @@ public class TableExtraction implements Extract{
         try (var conn = DriverManager.getConnection(
                 url, username, password)) {
             var metadata = conn.getMetaData();
-            var stmt = conn.createStatement();
 
             // 테이블 정보 추출
             System.out.println("Tables:");
@@ -81,13 +77,13 @@ public class TableExtraction implements Extract{
 
                     ResultSet const_resultSet = const_preparedStatement.executeQuery();
                     StringBuilder constraints = new StringBuilder();
-                    Boolean isPK = false;
-                    Boolean isFK = false;
+                    String isPK = "false";
+                    String isFK = "false";
                     while (const_resultSet.next()) {
                         if (Objects.equals(const_resultSet.getString("constraint_type"), "PRIMARY KEY")) {
-                            isPK = true;
+                            isPK = "true";
                         } else if (Objects.equals(const_resultSet.getString("constraint_type"), "FOREIGN KEY")) {
-                            isFK = true;
+                            isFK = "true";
                         } else if (Objects.equals(const_resultSet.getString("constraint_type"), "NOT NULL")) {
                             continue;
                         } else {

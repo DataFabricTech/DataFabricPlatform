@@ -67,7 +67,6 @@ public class RDBdataTypetoFormat {
             put("JSON", TEXT);
 
             put("DATE", DATE);
-            put("DATE", DATE);
 
             put("TIME", TIME);
 

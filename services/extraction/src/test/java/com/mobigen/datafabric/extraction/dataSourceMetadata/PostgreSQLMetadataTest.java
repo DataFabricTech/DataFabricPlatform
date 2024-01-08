@@ -2,12 +2,8 @@ package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 import org.apache.tika.exception.UnsupportedFormatException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class PostgreSQLMetadataTest {
 
@@ -19,7 +15,7 @@ class PostgreSQLMetadataTest {
 
     @Test
     void extractDefault() {
-        HashMap<String, String> map = new HashMap<>();
+        //HashMap<String, String> map = new HashMap<>();
         var target = new TargetConfig();
         var postgres = new PostgreSQLMetadata(target);
         try {
@@ -32,7 +28,7 @@ class PostgreSQLMetadataTest {
 
     @Test
     void extractAdditional() {
-        HashMap<String, String> map = new HashMap<>();
+        //HashMap<String, String> map = new HashMap<>();
         var target = new TargetConfig();
         var postgres = new PostgreSQLMetadata(target);
         try {
