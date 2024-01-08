@@ -1,6 +1,5 @@
 package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
-import com.mobigen.datafabric.extraction.extraction.RDBdataTypetoFormat;
 import com.mobigen.datafabric.extraction.extraction.TableExtraction;
 import com.mobigen.datafabric.extraction.model.Metadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
@@ -11,7 +10,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class PostgreSQLMetadata implements Extract, ExtractAdditional{
-    String NAME = "PostgreSQL";
+    //String NAME = "PostgreSQL";
     TargetConfig target;
     Metadata metadata = new Metadata();
 
@@ -42,9 +41,7 @@ public class PostgreSQLMetadata implements Extract, ExtractAdditional{
     @Override
     public void extractDefault() throws UnsupportedFormatException {
 
-        var table = new TableExtraction();
-
-        var defaultMeta = new HashMap<String, String>();
+        //var defaultMeta = new HashMap<String, String>();
 
 
             try {
@@ -110,16 +107,16 @@ public class PostgreSQLMetadata implements Extract, ExtractAdditional{
 //
 //        var size = Long.parseLong(defaultMeta.get("size"));
 
-        for (var i: defaultMeta.keySet()) {
-            this.metadata.metadata.put(i, defaultMeta.get(i));
-        }
+//        for (var i: defaultMeta.keySet()) {
+//            this.metadata.metadata.put(i, defaultMeta.get(i));
+//        }
     }
 
     @Override
     public void extractAdditional() throws UnsupportedFormatException {
 
         var table = new TableExtraction();
-        var additionalMeta = table.extract(this.target);
+//        var additionalMeta = table.extract(this.target);
 
 //        for (var i: additionalMeta.keySet()) {
 //            this.metadata.metadata.put(i, additionalMeta.get(i));
