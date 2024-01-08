@@ -49,5 +49,9 @@ public class TargetConfig {
     @Getter
     public static class RDBMS {
         private String host;
+        private String jdbc_driver;
+        private String url;
+        private String username;
+        private String password;
     }
 }

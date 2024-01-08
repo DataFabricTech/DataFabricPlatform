@@ -3,6 +3,7 @@ package com.mobigen.datafabric.extraction;
 import com.mobigen.datafabric.extraction.dataSourceMetadata.Extract;
 import com.mobigen.datafabric.extraction.dataSourceMetadata.MariaDBMetadata;
 import com.mobigen.datafabric.extraction.dataSourceMetadata.MinioMetadata;
+import com.mobigen.datafabric.extraction.dataSourceMetadata.PostgreSQLMetadata;
 import com.mobigen.datafabric.extraction.model.Metadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 
@@ -14,7 +15,7 @@ public class worker {
             case MINIO -> new MinioMetadata(target);
             case HDFS -> null;
             case MARIADB -> new MariaDBMetadata(target);
-            case POSTGRESQL -> null;
+            case POSTGRESQL -> new PostgreSQLMetadata(target);
             case HWP -> null;
         };
         try {
