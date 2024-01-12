@@ -115,7 +115,7 @@ public class MySQLMetadata implements Extract, ExtractAdditional {
     public void extractAdditional() throws UnsupportedFormatException {
 
         var table = new MySQLTableExtraction();
-        var additionalMeta = table.extract(target);
+//        var additionalMeta = table.extract(target);
 
 //        for (var i: additionalMeta.keySet()) {
 //            this.metadata.metadata.put(i, additionalMeta.get(i));

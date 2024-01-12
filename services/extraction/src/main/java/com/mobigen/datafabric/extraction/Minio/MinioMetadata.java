@@ -5,10 +5,8 @@ import com.mobigen.datafabric.extraction.dataSourceMetadata.ExtractAdditional;
 import com.mobigen.datafabric.extraction.dataSourceMetadata.ExtractExtend;
 import com.mobigen.datafabric.extraction.extraction.CommonMetadataExtraction;
 import com.mobigen.datafabric.extraction.extraction.TikaExtraction;
-import com.mobigen.datafabric.extraction.model.DataFormat;
-import com.mobigen.datafabric.extraction.model.StructuredType;
+import com.mobigen.datafabric.extraction.model.Metadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
-import com.mobigen.datafabric.extraction.model.*;
 import org.apache.tika.exception.UnsupportedFormatException;
 
 import java.util.HashMap;
@@ -30,7 +28,7 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
             extractDefault();
             extractAdditional();
             extractExtend();
-        }  catch (UnsupportedFormatException e) {
+        } catch (UnsupportedFormatException e) {
             throw new RuntimeException(e); // todo
         }
 
@@ -60,7 +58,7 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
 //
 //        var size = Long.parseLong(defaultMeta.get("size"));
 
-        for (var i: defaultMeta.keySet()) {
+        for (var i : defaultMeta.keySet()) {
             this.metadata.metadata.put(i, defaultMeta.get(i));
         }
     }
@@ -72,7 +70,7 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
                 var tika = new TikaExtraction();
                 var additionalMeta = tika.extract(this.target.getTarget());
 
-                for (var i: additionalMeta.keySet()) {
+                for (var i : additionalMeta.keySet()) {
                     this.metadata.metadata.put(i, additionalMeta.get(i));
                 }
             }
@@ -81,7 +79,7 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
                 var additionalMeta = tika.extract(this.target.getTarget());
 
                 var sheetNames = new String[]{additionalMeta.get("sheetName")};
-                for (var i: additionalMeta.keySet()) {
+                for (var i : additionalMeta.keySet()) {
                     this.metadata.metadata.put(i, additionalMeta.get(i));
                 }
             }
@@ -94,13 +92,13 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
     }
 
     @Override
-    public void extractExtend() throws UnsupportedFormatException{
+    public void extractExtend() throws UnsupportedFormatException {
         switch (TargetConfig.dataFormat) {
             case HWP -> {
                 var common = new CommonMetadataExtraction();
                 var customMeta = common.extract(this.target.getTarget());
 
-                for (var i: customMeta.keySet()) {
+                for (var i : customMeta.keySet()) {
                     this.metadata.metadata.put(i, customMeta.get(i));
                 }
             }
@@ -108,7 +106,7 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
                 var common = new CommonMetadataExtraction();
                 var customMeta = common.extract(this.target.getTarget());
 
-                for (var i: customMeta.keySet()) {
+                for (var i : customMeta.keySet()) {
                     this.metadata.metadata.put(i, customMeta.get(i));
                 }
             }

@@ -11,12 +11,11 @@ import java.util.Objects;
 
 public class PostgresTableExtraction implements Extract {
     PostgreSQLJDBCInfo postgreSQLJDBCInfo = new PostgreSQLJDBCInfo();
-    PostgreSQLdataTypetoFormat rdbdataTypetoFormat = new PostgreSQLdataTypetoFormat();
 
     @Override
     public HashMap<String, String> extract(Object input) {
 
-        HashMap<String, String> tableExtract = new HashMap<>();
+//        HashMap<String, String> tableExtract = new HashMap<>();
 
         try {
             // JDBC 드라이버 로딩
@@ -25,8 +24,7 @@ public class PostgresTableExtraction implements Extract {
             throw new RuntimeException(e);
         }
         // 데이터 베이스 연결
-        try (var conn = DriverManager.getConnection(
-                postgreSQLJDBCInfo.url, postgreSQLJDBCInfo.username, postgreSQLJDBCInfo.password)) {
+        try (var conn = DriverManager.getConnection(postgreSQLJDBCInfo.url, postgreSQLJDBCInfo.username, postgreSQLJDBCInfo.password)) {
             var metadata = conn.getMetaData();
 
             // 테이블 정보 추출
@@ -66,12 +64,7 @@ public class PostgresTableExtraction implements Extract {
 
 
                         //제약조건 추출
-                        String const_sql =
-                                "SELECT constraint_type " +
-                                        "FROM information_schema.key_column_usage AS kc " +
-                                        "JOIN information_schema.table_constraints AS tc " +
-                                        "ON kc.constraint_name = tc.constraint_name " +
-                                        "WHERE kc.table_name = ? AND kc.column_name = ?;";
+                        String const_sql = "SELECT constraint_type " + "FROM information_schema.key_column_usage AS kc " + "JOIN information_schema.table_constraints AS tc " + "ON kc.constraint_name = tc.constraint_name " + "WHERE kc.table_name = ? AND kc.column_name = ?;";
                         PreparedStatement const_preparedStatement = conn.prepareStatement(const_sql);
                         const_preparedStatement.setString(1, tableName);
                         const_preparedStatement.setString(2, columnName);
@@ -111,7 +104,7 @@ public class PostgresTableExtraction implements Extract {
                 }
             }
             tables.close();
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return null;

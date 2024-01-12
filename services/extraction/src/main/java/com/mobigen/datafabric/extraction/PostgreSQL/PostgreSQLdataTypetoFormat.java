@@ -1,14 +1,11 @@
 package com.mobigen.datafabric.extraction.PostgreSQL;
 
-import com.mobigen.datafabric.extraction.model.RDBTabledataFormatEnum;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.mobigen.datafabric.extraction.model.RDBTabledataFormatEnum.*;
 
 public class PostgreSQLdataTypetoFormat {
-    RDBTabledataFormatEnum rdbTabledataFormat;
     static Map<String, Enum> PostgresTypetoFormat = new HashMap<>() {{
         put("int4", INTEGER);
         put("int8", INTEGER);

@@ -1,7 +1,6 @@
 package com.mobigen.datafabric.extraction.MySQL;
 
 import com.mobigen.datafabric.extraction.extraction.Extract;
-import com.mobigen.datafabric.extraction.PostgreSQL.PostgreSQLdataTypetoFormat;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,17 +11,15 @@ import java.util.Objects;
 
 public class MySQLTableExtraction implements Extract {
     MySQLJDBCInfo mySQLJDBCInfo = new MySQLJDBCInfo();
-    MySQLTypetoFormat mySQLTypetoFormat = new MySQLTypetoFormat();
 
 
     @Override
     public HashMap<String, String> extract(Object input) {
 
-        HashMap<String, String> tableExtract = new HashMap<>();
+//        HashMap<String, String> tableExtract = new HashMap<>();
 
         // 데이터 베이스 연결
-        try (var conn = DriverManager.getConnection(
-                mySQLJDBCInfo.getUrl(), mySQLJDBCInfo.getUsername(), mySQLJDBCInfo.getPassword())) {
+        try (var conn = DriverManager.getConnection(mySQLJDBCInfo.getUrl(), mySQLJDBCInfo.getUsername(), mySQLJDBCInfo.getPassword())) {
             var metadata = conn.getMetaData();
 
             // 테이블 정보 추출
@@ -37,10 +34,7 @@ public class MySQLTableExtraction implements Extract {
 
                 System.out.println("\tschema: " + columns);
 
-                int columnCount = 0;
                 while (columns.next()) {
-                    columnCount++;
-
                     String col_tableName = columns.getString("TABLE_NAME");    //테이블 이름
                     String columnName = columns.getString("COLUMN_NAME");       //열 이름
                     String columnSize = columns.getString("COLUMN_SIZE");   //열의 크기 문자열 형식의 경우 문자의 수  -- 데이터 형 integer
@@ -50,9 +44,9 @@ public class MySQLTableExtraction implements Extract {
                     String sqlDataType = columns.getString("TYPE_NAME");        //SQL데이터 형식
 
                     //nullable 출력값 변경
-                    if(nullable.equals("1")){
+                    if (nullable.equals("1")) {
                         nullable = "true";
-                    }else{
+                    } else {
                         nullable = "false";
                     }
 
@@ -61,12 +55,7 @@ public class MySQLTableExtraction implements Extract {
 
 
                     //제약조건 추출
-                    String const_sql =
-                            "SELECT constraint_type " +
-                                    "FROM information_schema.key_column_usage AS kc " +
-                                    "JOIN information_schema.table_constraints AS tc " +
-                                    "ON kc.constraint_name = tc.constraint_name " +
-                                    "WHERE kc.table_name = ? AND kc.column_name = ?;";
+                    String const_sql = "SELECT constraint_type " + "FROM information_schema.key_column_usage AS kc " + "JOIN information_schema.table_constraints AS tc " + "ON kc.constraint_name = tc.constraint_name " + "WHERE kc.table_name = ? AND kc.column_name = ?;";
                     PreparedStatement const_preparedStatement = conn.prepareStatement(const_sql);
                     const_preparedStatement.setString(1, col_tableName);
                     const_preparedStatement.setString(2, columnName);
