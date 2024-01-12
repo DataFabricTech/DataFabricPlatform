@@ -1,5 +1,8 @@
-package com.mobigen.datafabric.extraction.dataSourceMetadata;
+package com.mobigen.datafabric.extraction.Minio;
 
+import com.mobigen.datafabric.extraction.dataSourceMetadata.Extract;
+import com.mobigen.datafabric.extraction.dataSourceMetadata.ExtractAdditional;
+import com.mobigen.datafabric.extraction.dataSourceMetadata.ExtractExtend;
 import com.mobigen.datafabric.extraction.extraction.CommonMetadataExtraction;
 import com.mobigen.datafabric.extraction.extraction.TikaExtraction;
 import com.mobigen.datafabric.extraction.model.DataFormat;
@@ -112,6 +115,6 @@ public class MinioMetadata implements Extract, ExtractAdditional, ExtractExtend 
             case WORD, CSV, UNKNOWN -> {
             }
             default -> throw new UnsupportedFormatException("not Table");
-        };
+        }
     }
 }

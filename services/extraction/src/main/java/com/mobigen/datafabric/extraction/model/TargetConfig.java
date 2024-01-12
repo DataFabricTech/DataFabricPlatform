@@ -35,7 +35,7 @@ public class TargetConfig {
 
     @Setter
     @Getter
-    public static class HDFS{
+    public static class HDFS {
         private String host;
         private String restPort;
         private String port;

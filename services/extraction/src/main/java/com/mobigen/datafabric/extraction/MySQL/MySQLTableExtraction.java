@@ -1,4 +1,7 @@
-package com.mobigen.datafabric.extraction.extraction;
+package com.mobigen.datafabric.extraction.MySQL;
+
+import com.mobigen.datafabric.extraction.extraction.Extract;
+import com.mobigen.datafabric.extraction.PostgreSQL.PostgreSQLdataTypetoFormat;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,43 +10,30 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class TableExtraction implements Extract{
-//    JDBCInfo connectionInfo;
-    RDBdataTypetoFormat rdbdataTypetoFormat = new RDBdataTypetoFormat();
+public class MySQLTableExtraction implements Extract {
+    MySQLJDBCInfo mySQLJDBCInfo = new MySQLJDBCInfo();
+    MySQLTypetoFormat mySQLTypetoFormat = new MySQLTypetoFormat();
 
-
-    ////추후 변경 예정
-    private String JDBC_DRIVER = "org.postgresql.Driver";
-    private String url = "jdbc:postgresql://192.168.107.19:5433/postgres";
-    private String username = "postgres";
-    private String password = "ahqlwps12#$";
-    ////추후 변경 예정
 
     @Override
     public HashMap<String, String> extract(Object input) {
 
         HashMap<String, String> tableExtract = new HashMap<>();
 
-        try {
-            // JDBC 드라이버 로딩
-            Class.forName(JDBC_DRIVER);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
         // 데이터 베이스 연결
         try (var conn = DriverManager.getConnection(
-                url, username, password)) {
+                mySQLJDBCInfo.getUrl(), mySQLJDBCInfo.getUsername(), mySQLJDBCInfo.getPassword())) {
             var metadata = conn.getMetaData();
 
             // 테이블 정보 추출
             System.out.println("Tables:");
-            var tables = metadata.getTables(null, null, null, new String[]{"TABLE"});
+            var tables = metadata.getTables(mySQLJDBCInfo.getSchema(), null, null, new String[]{"TABLE"});
             System.out.println(tables);
             while (tables.next()) {
                 String tableName = tables.getString("TABLE_NAME");      //테이블 이름
 
                 // 각 테이블의 컬럼 정보 추출
-                var columns = metadata.getColumns(null, null, tableName, null);
+                var columns = metadata.getColumns(mySQLJDBCInfo.getSchema(), null, tableName, null);
 
                 System.out.println("\tschema: " + columns);
 
@@ -59,9 +49,15 @@ public class TableExtraction implements Extract{
                     String columnDef = columns.getString("COLUMN_DEF");     //열의 기본값
                     String sqlDataType = columns.getString("TYPE_NAME");        //SQL데이터 형식
 
+                    //nullable 출력값 변경
+                    if(nullable.equals("1")){
+                        nullable = "true";
+                    }else{
+                        nullable = "false";
+                    }
 
                     //DataFormat
-                    String col_typeName = rdbdataTypetoFormat.dataFormatDistinct(sqlDataType);
+                    String col_typeName = MySQLTypetoFormat.MySQLDataFormatDistinct(sqlDataType);
 
 
                     //제약조건 추출
@@ -108,7 +104,7 @@ public class TableExtraction implements Extract{
                 columns.close();
             }
             tables.close();
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return null;

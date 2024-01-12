@@ -1,26 +1,34 @@
 package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
-import com.mobigen.datafabric.extraction.PostgreSQL.PostgreSQLMetadata;
+import com.mobigen.datafabric.extraction.MariaDB.MariaDBMetadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
+import org.apache.tika.exception.UnsupportedFormatException;
 import org.junit.jupiter.api.Test;
 
 
-class PostgreSQLMetadataTest {
+class MariaDBMetadataTest {
 
     @Test
     void extract() {
+        //HashMap<String, String> map = new HashMap<>();
         var target = new TargetConfig();
-        var postgres = new PostgreSQLMetadata(target);
-        postgres.extract();
+        var mariadb = new MariaDBMetadata(target);
+        try {
+            mariadb.extractDefault();
+            mariadb.extractAdditional();
+            //Assertions.assertEquals("si",this.metadata.metadata.get("name"));
+        } catch (UnsupportedFormatException e) {
+            throw new RuntimeException(e);
+        }
     }
-//
+
 //    @Test
 //    void extractDefault() {
 //        //HashMap<String, String> map = new HashMap<>();
 //        var target = new TargetConfig();
-//        var postgres = new PostgreSQLMetadata(target);
+//        var mariadb = new MariaDBMetadata(target);
 //        try {
-//            postgres.extractDefault();
+//            mariadb.extractDefault();
 //            //Assertions.assertEquals("si",this.metadata.metadata.get("name"));
 //        } catch (UnsupportedFormatException e) {
 //            throw new RuntimeException(e);
@@ -31,9 +39,9 @@ class PostgreSQLMetadataTest {
 //    void extractAdditional() {
 //        //HashMap<String, String> map = new HashMap<>();
 //        var target = new TargetConfig();
-//        var postgres = new PostgreSQLMetadata(target);
+//        var mariadb = new MariaDBMetadata(target);
 //        try {
-//            postgres.extractAdditional();
+//            mariadb.extractAdditional();
 //            //Assertions.assertEquals("si",this.metadata.metadata.get("name"));
 //        } catch (UnsupportedFormatException e) {
 //            throw new RuntimeException(e);

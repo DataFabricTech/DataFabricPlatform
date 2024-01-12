@@ -1,25 +1,24 @@
-package com.mobigen.datafabric.extraction.dataSourceMetadata;
+package com.mobigen.datafabric.extraction.PostgreSQL;
 
-import com.mobigen.datafabric.extraction.extraction.TableExtraction;
+import com.mobigen.datafabric.extraction.dataSourceMetadata.Extract;
+import com.mobigen.datafabric.extraction.dataSourceMetadata.ExtractAdditional;
 import com.mobigen.datafabric.extraction.model.Metadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 import org.apache.tika.exception.UnsupportedFormatException;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-public class PostgreSQLMetadata implements Extract, ExtractAdditional{
-    //String NAME = "PostgreSQL";
+public class PostgreSQLMetadata implements Extract, ExtractAdditional {
+
+    PostgreSQLJDBCInfo postgreSQLJDBCInfo = new PostgreSQLJDBCInfo();
+    String NAME = "PostgreSQL";
     TargetConfig target;
     Metadata metadata = new Metadata();
+    Connection conn;
 
-
-    ////추후 변경 예정
-    private String JDBC_DRIVER = "org.postgresql.Driver";
-    private String url = "jdbc:postgresql://192.168.107.19:5433/postgres";
-    private String username = "postgres";
-    private String password = "ahqlwps12#$";
 
     public PostgreSQLMetadata(TargetConfig target) {
         this.metadata.metadata = new HashMap<>();
@@ -44,29 +43,34 @@ public class PostgreSQLMetadata implements Extract, ExtractAdditional{
         //var defaultMeta = new HashMap<String, String>();
 
 
-            try {
-                // JDBC 드라이버 로딩
-                Class.forName(JDBC_DRIVER);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            // 데이터 베이스 연결
-            try (var conn = DriverManager.getConnection(
-                    url, username, password)) {
-                var metadata = conn.getMetaData();
-                var stmt = conn.createStatement();
+        try {
+            // JDBC 드라이버 로딩
+            Class.forName(postgreSQLJDBCInfo.JDBC_DRIVER);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        // 데이터 베이스 연결
+        try (var conn = DriverManager.getConnection(postgreSQLJDBCInfo.url, postgreSQLJDBCInfo.username, postgreSQLJDBCInfo.password)) {
+            var metadata = conn.getMetaData();
+            var stmt = conn.createStatement();
 
-                // 테이블 정보 추출
-                System.out.println("Tables:");
-                var tables = metadata.getTables(null, null, null, new String[]{"TABLE"});
-                System.out.println(tables);
-                while (tables.next()) {
+
+            // 테이블 정보 추출
+            System.out.print("Tables: ");
+            var tables = metadata.getTables(null, null, null, new String[]{"TABLE"});
+            System.out.println(tables);
+
+            var tableNameList = postgreSQLJDBCInfo.tableNameList;
+
+            while (tables.next()) {
+                if (tableNameList.contains(tables.getString("TABLE_NAME"))) {
                     String tableName = tables.getString("TABLE_NAME");      //테이블 이름
                     String tableType = tables.getString("TABLE_TYPE");      //jdbc 데이터 형식 코드 (TABLE/VIEW/INDEX..)
                     String remarks = tables.getString("REMARKS");           //열
+                    String schema = tables.getString("TABLE_SCHEM");
 
 
-
+                    System.out.println("\tschema: " + schema); //schema name
                     System.out.println("\ttableName: " + tableName);
                     System.out.println("\tcategory: " + "정형");
                     System.out.println("\ttype: " + tableType);
@@ -90,11 +94,13 @@ public class PostgreSQLMetadata implements Extract, ExtractAdditional{
                     }
                     System.out.println("\t\tRow Count : " + rowCount);
                 }
-                tables.close();
 
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
             }
+            tables.close();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
 //        var name = defaultMeta.get("name");
 //        var modifiedAt = Long.parseLong(defaultMeta.get("modifiedAt"));
@@ -115,8 +121,8 @@ public class PostgreSQLMetadata implements Extract, ExtractAdditional{
     @Override
     public void extractAdditional() throws UnsupportedFormatException {
 
-        var table = new TableExtraction();
-//        var additionalMeta = table.extract(this.target);
+        var table = new PostgresTableExtraction();
+        var additionalMeta = table.extract(this.target);
 
 //        for (var i: additionalMeta.keySet()) {
 //            this.metadata.metadata.put(i, additionalMeta.get(i));
