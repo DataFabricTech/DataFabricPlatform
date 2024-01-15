@@ -21,30 +21,4 @@ class MariaDBMetadataTest {
             throw new RuntimeException(e);
         }
     }
-
-//    @Test
-//    void extractDefault() {
-//        //HashMap<String, String> map = new HashMap<>();
-//        var target = new TargetConfig();
-//        var mariadb = new MariaDBMetadata(target);
-//        try {
-//            mariadb.extractDefault();
-//            //Assertions.assertEquals("si",this.metadata.metadata.get("name"));
-//        } catch (UnsupportedFormatException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    @Test
-//    void extractAdditional() {
-//        //HashMap<String, String> map = new HashMap<>();
-//        var target = new TargetConfig();
-//        var mariadb = new MariaDBMetadata(target);
-//        try {
-//            mariadb.extractAdditional();
-//            //Assertions.assertEquals("si",this.metadata.metadata.get("name"));
-//        } catch (UnsupportedFormatException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 }

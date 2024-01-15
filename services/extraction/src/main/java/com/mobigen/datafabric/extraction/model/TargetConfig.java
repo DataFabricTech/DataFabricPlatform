@@ -3,22 +3,25 @@ package com.mobigen.datafabric.extraction.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Setter
 @Getter
 public class TargetConfig {
     // storageType 은, connectConfig 를 set 혹은 get 할 때 어떤 storage 를 선택할 지 정하기 위한 값
     public static StorageType storageType;
-    private ConnectInfo connectInfo;
     public static DataFormat dataFormat;
+    private ConnectInfo connectInfo = new ConnectInfo();
     // url 혹은 filepath
-    private String target;
+    private String target = "defaultValue";
 
     @Setter
     @Getter
     public static class ConnectInfo {
-        private MinIO minioConnectInfo;
-        private HDFS hdfsConnectInfo;
-        private RDBMS rdbmsConnectInfo;
+        private MinIO minioConnectInfo = new MinIO();
+        private HDFS hdfsConnectInfo = new HDFS();
+        private RDBMS rdbmsConnectInfo = new RDBMS();
     }
 
     @Setter
@@ -53,5 +56,8 @@ public class TargetConfig {
         private String url;
         private String username;
         private String password;
+        private String schema;
+
+        private List<String> tableNameList = Arrays.asList("test1", "test2");
     }
 }

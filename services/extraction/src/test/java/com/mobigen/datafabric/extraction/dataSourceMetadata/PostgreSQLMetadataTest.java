@@ -2,16 +2,18 @@ package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
 import com.mobigen.datafabric.extraction.PostgreSQL.PostgreSQLMetadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
+import org.apache.tika.exception.UnsupportedFormatException;
 import org.junit.jupiter.api.Test;
 
 
 class PostgreSQLMetadataTest {
 
     @Test
-    void extract() {
+    void extract() throws UnsupportedFormatException {
         var target = new TargetConfig();
         var postgres = new PostgreSQLMetadata(target);
-        postgres.extract();
+        postgres.extractDefault();
+        postgres.extractAdditional();
     }
 //
 //    @Test

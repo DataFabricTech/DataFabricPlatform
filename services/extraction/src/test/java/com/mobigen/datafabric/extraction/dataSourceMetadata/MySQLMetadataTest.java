@@ -9,12 +9,6 @@ class MySQLMetadataTest {
 
     @Test
     void extract() {
-//        try {
-//            Class.forName("com.mysql.cj.jdbc.Driver");
-//        } catch (ClassNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
-
         var target = new TargetConfig();
         var mysql = new MySQLMetadata(target);
 
