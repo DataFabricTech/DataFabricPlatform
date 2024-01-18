@@ -1,0 +1,39 @@
+package dto;
+
+import dto.compositeKeys.StorageMetadataKey;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "storage_metadata")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@IdClass(StorageMetadataKey.class)
+public class StorageMetadata {
+    @Id
+    @Column(name = "storage_id", nullable = false)
+    private UUID storageId;
+    @Id
+    @Column(name = "metadata_id", nullable = false)
+    private UUID metadataId;
+    private String value;
+
+    @ManyToOne
+    @JoinColumn(name = "storage_id", insertable = false,updatable = false)
+    private Storage storage;
+    @ManyToOne
+    @JoinColumn(name = "metadata_id", insertable = false,updatable = false)
+    private StorageMetadataSchema storageMetadataSchema;
+
+    @Builder
+    public StorageMetadata(UUID storageId, UUID metadataId, String value) {
+        this.storageId = storageId;
+        this.metadataId = metadataId;
+        this.value = value;
+    }
+}
