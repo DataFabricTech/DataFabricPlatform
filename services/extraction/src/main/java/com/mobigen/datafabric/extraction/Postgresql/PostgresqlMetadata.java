@@ -1,24 +1,23 @@
-package com.mobigen.datafabric.extraction.PostgreSQL;
+package com.mobigen.datafabric.extraction.Postgresql;
 
-import com.mobigen.datafabric.extraction.RDBDefault.RDBDefaultMetadata;
+import com.mobigen.datafabric.extraction.RdbDefault.RdbExtractMetadata;
+import com.mobigen.datafabric.extraction.UserDefineException.TableWhileStoppedException;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
-import org.apache.tika.exception.UnsupportedFormatException;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class PostgreSQLMetadata extends RDBDefaultMetadata {
+public class PostgresqlMetadata extends RdbExtractMetadata {
     TargetConfig target = new TargetConfig();
 
-    public PostgreSQLMetadata(TargetConfig target) {
+    public PostgresqlMetadata(TargetConfig target) throws ClassNotFoundException {
         super(target);
     }
 
     @Override
     public void extractDefault() throws UnsupportedFormatException {
         try {
-            // JDBC 드라이버 로딩
-            Class.forName(target.getConnectInfo().getRdbmsConnectInfo().getJdbc_driver());
+            Class.forName(target.getConnectInfo().getRdbmsConnectInfo().getJDBC_DRIVER());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -26,7 +25,6 @@ public class PostgreSQLMetadata extends RDBDefaultMetadata {
         try (var conn = DriverManager.getConnection(target.getConnectInfo().getRdbmsConnectInfo().getUrl(), target.getConnectInfo().getRdbmsConnectInfo().getUsername(), target.getConnectInfo().getRdbmsConnectInfo().getPassword())) {
             var metadata = conn.getMetaData();
             var stmt = conn.createStatement();
-
 
             // 테이블 정보 추출
             System.out.print("Tables: ");
@@ -41,7 +39,6 @@ public class PostgreSQLMetadata extends RDBDefaultMetadata {
                     String tableType = tables.getString("TABLE_TYPE");      //jdbc 데이터 형식 코드 (TABLE/VIEW/INDEX..)
                     String remarks = tables.getString("REMARKS");           //열
                     String schema = tables.getString("TABLE_SCHEM");
-
 
                     System.out.println("\tschema: " + schema); //schema name
                     System.out.println("\ttableName: " + tableName);
@@ -60,21 +57,21 @@ public class PostgreSQLMetadata extends RDBDefaultMetadata {
                     columns.close();
 
                     // 테이블의 행 수 추출
-                    var rowCountResult = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName);
+                    var rowCountResult = stmt.executeQuery("SELECT COUNT(*) FROM " + schema + "." + tableName);
                     int rowCount = 0;
                     if (rowCountResult.next()) {
                         rowCount = rowCountResult.getInt(1);
                     }
                     System.out.println("\t\tRow Count : " + rowCount);
                 }
-
             }
             tables.close();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (TableWhileStoppedException e) {
+            System.out.println("Table stopped error!!!!!!!!!!!!!!!");
+            e.printStackTrace();
+        } catch (SQLException ex) {
+            System.out.println("SQL error!!!!!!!!!!!!!!!");
+            ex.printStackTrace();
         }
     }
-
-
 }

@@ -1,11 +1,11 @@
-package com.mobigen.datafabric.extraction.MySQL;
+package com.mobigen.datafabric.extraction.Mysql;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mobigen.datafabric.extraction.model.RDBTabledataFormatEnum.*;
+import static com.mobigen.datafabric.extraction.model.RdbTabledataFormatEnum.*;
 
-public class MySQLTypetoFormat {
+public class MysqlTypetoFormat {
 
     static Map<String, Enum> MySQLtypetoFormat = new HashMap<>() {{
         put("BIT", INTEGER);

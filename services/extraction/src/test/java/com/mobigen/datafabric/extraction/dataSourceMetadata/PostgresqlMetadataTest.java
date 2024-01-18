@@ -1,17 +1,17 @@
 package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
-import com.mobigen.datafabric.extraction.PostgreSQL.PostgreSQLMetadata;
+import com.mobigen.datafabric.extraction.Postgresql.PostgresqlMetadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 import org.apache.tika.exception.UnsupportedFormatException;
 import org.junit.jupiter.api.Test;
 
 
-class PostgreSQLMetadataTest {
+class PostgresqlMetadataTest {
 
     @Test
-    void extract() throws UnsupportedFormatException {
+    void extract() throws UnsupportedFormatException, ClassNotFoundException {
         var target = new TargetConfig();
-        var postgres = new PostgreSQLMetadata(target);
+        var postgres = new PostgresqlMetadata(target);
         postgres.extractDefault();
         postgres.extractAdditional();
     }

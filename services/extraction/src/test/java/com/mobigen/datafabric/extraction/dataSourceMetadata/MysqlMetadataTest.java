@@ -1,16 +1,16 @@
 package com.mobigen.datafabric.extraction.dataSourceMetadata;
 
-import com.mobigen.datafabric.extraction.MySQL.MySQLMetadata;
+import com.mobigen.datafabric.extraction.Mysql.MysqlMetadata;
 import com.mobigen.datafabric.extraction.model.TargetConfig;
 import org.apache.tika.exception.UnsupportedFormatException;
 import org.junit.jupiter.api.Test;
 
-class MySQLMetadataTest {
+class MysqlMetadataTest {
 
     @Test
-    void extract() {
+    void extract() throws ClassNotFoundException {
         var target = new TargetConfig();
-        var mysql = new MySQLMetadata(target);
+        var mysql = new MysqlMetadata(target);
 
         try {
             mysql.extractDefault();
