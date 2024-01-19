@@ -39,6 +39,19 @@ public class RdbExtractMetadata implements Extract, ExtractAdditional {
             throw new RuntimeException(e);
         }
 
+//        try (var conn = DriverManager.getConnection(target.getConnectInfo().getRdbmsConnectInfo().getUrl(), target.getConnectInfo().getRdbmsConnectInfo().getUsername(), target.getConnectInfo().getRdbmsConnectInfo().getPassword())) {
+//            var stmt = conn.createStatement();
+//
+//            var JDBC_DRIVER = stmt.executeQuery("SELECT value FROM " + target.getConnectInfo().getRdbmsConnectInfo().getSchema() + ".storage_adaptor_conn_info_schema WHERE type='" + target.getConnectInfo().getRdbmsConnectInfo().getHost() + "' and key='JDBC_DRIVER'");
+//            var url = stmt.executeQuery("SELECT value FROM " + target.getConnectInfo().getRdbmsConnectInfo().getSchema() + ".storage_adaptor_conn_info_schema WHERE type='" + target.getConnectInfo().getRdbmsConnectInfo().getHost() + "' and key='url'");
+//            var username = stmt.executeQuery("SELECT value FROM " + target.getConnectInfo().getRdbmsConnectInfo().getSchema() + ".storage_adaptor_conn_info_schema WHERE type='" + target.getConnectInfo().getRdbmsConnectInfo().getHost() + "' and key='username'");
+//            var password = stmt.executeQuery("SELECT value FROM " + target.getConnectInfo().getRdbmsConnectInfo().getSchema() + ".storage_adaptor_conn_info_schema WHERE type='" + target.getConnectInfo().getRdbmsConnectInfo().getHost() + "' and key='password'");
+//            var schema = stmt.executeQuery("SELECT value FROM " + target.getConnectInfo().getRdbmsConnectInfo().getSchema() + ".storage_adaptor_conn_info_schema WHERE type='" + target.getConnectInfo().getRdbmsConnectInfo().getHost() + "' and key='schema'");
+//        } catch (SQLException e) {
+//            System.out.println("겉 catch 호출---------------------");
+////            throw new RuntimeException(e);
+//        }
+
         try (var conn = DriverManager.getConnection(target.getConnectInfo().getRdbmsConnectInfo().getUrl(), target.getConnectInfo().getRdbmsConnectInfo().getUsername(), target.getConnectInfo().getRdbmsConnectInfo().getPassword())) {
             var metadata = conn.getMetaData();
             var stmt = conn.createStatement();

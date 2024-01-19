@@ -28,7 +28,11 @@ dependencies {
     // https://mvnrepository.com/artifact/mysql/mysql-connector-java
     implementation("mysql:mysql-connector-java:8.0.33")
 
+    // https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api
+    implementation ("jakarta.persistence:jakarta.persistence-api:3.2.0-M1")
 
+    // https://mvnrepository.com/artifact/org.hibernate/hibernate-core
+    implementation ("org.hibernate:hibernate-core:6.4.1.Final")
 
     // For Test
     // JUnit Jupiter = 테스트 작성용
