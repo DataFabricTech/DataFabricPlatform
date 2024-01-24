@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ModelRelationKey.class)
-public class ModelRelation {
+public class ModelRelation implements generateKey{
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -26,9 +26,17 @@ public class ModelRelation {
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public ModelRelation(UUID modelId, UUID childModelId) {
         this.modelId = modelId;
         this.childModelId = childModelId;
+    }
+
+    @Override
+    public Object generateKey() {
+        return ModelRelationKey.builder()
+                .modelId(this.modelId)
+                .childModelId(this.childModelId)
+                .build();
     }
 }

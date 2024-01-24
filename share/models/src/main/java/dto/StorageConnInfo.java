@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(StorageConnInfoKey.class)
-public class StorageConnInfo {
+public class StorageConnInfo implements generateKey{
     @Id
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
@@ -31,12 +31,21 @@ public class StorageConnInfo {
     @JoinColumn(name = "storage_id", insertable = false,updatable = false)
     private Storage storage;
 
-    @Builder
+    @Builder(toBuilder = true)
     public StorageConnInfo(UUID storageId, String type, String key, String value, boolean isOption) {
         this.storageId = storageId;
         this.type = type;
         this.key = key;
         this.value = value;
         this.isOption = isOption;
+    }
+
+    @Override
+    public Object generateKey() {
+        return StorageConnInfoKey.builder()
+                .storageId(this.storageId)
+                .key(this.key)
+                .type(this.type)
+                .build();
     }
 }

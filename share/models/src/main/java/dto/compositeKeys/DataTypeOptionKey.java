@@ -1,12 +1,35 @@
 package dto.compositeKeys;
 
-import lombok.Data;
+import lombok.Builder;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
-@Data
 public class DataTypeOptionKey implements Serializable {
     private UUID modelId;
     private String key;
+
+    public DataTypeOptionKey() {
+    }
+
+    @Builder
+    public DataTypeOptionKey(UUID modelId, String key) {
+        this.modelId = modelId;
+        this.key = key;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        var that = (DataTypeOptionKey) o;
+        return Objects.equals(that.modelId, this.modelId) &&
+                Objects.equals(that.key, this.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.modelId, this.key);
+    }
 }

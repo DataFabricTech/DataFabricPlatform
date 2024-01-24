@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ModelMetadataKey.class)
-public class ModelMetadata {
+public class ModelMetadata implements generateKey{
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -30,10 +30,18 @@ public class ModelMetadata {
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public ModelMetadata(UUID modelId, UUID metadataId, String value) {
         this.modelId = modelId;
         this.metadataId = metadataId;
         this.value = value;
+    }
+
+    @Override
+    public Object generateKey() {
+        return ModelMetadataKey.builder()
+                .modelId(this.modelId)
+                .metadataId(this.metadataId)
+                .build();
     }
 }
