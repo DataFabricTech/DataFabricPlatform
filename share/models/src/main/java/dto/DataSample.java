@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(DataSampleKey.class)
-public class DataSample {
+public class DataSample implements generateKey{
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -29,10 +29,18 @@ public class DataSample {
     @JoinColumn(name = "model_id", insertable = false,updatable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public DataSample(UUID modelId, FormatType formatType, String filePath) {
         this.modelId = modelId;
         this.formatType = formatType;
         this.filePath = filePath;
+    }
+
+    @Override
+    public Object generateKey() {
+        return DataSampleKey.builder()
+                .modelId(this.modelId)
+                .formatType(this.formatType)
+                .build();
     }
 }

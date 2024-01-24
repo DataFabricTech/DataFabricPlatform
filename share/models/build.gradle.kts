@@ -18,6 +18,9 @@ dependencies {
     implementation(Dependency.grpc.netty)
 //    implementation(Dependency.grpc.testing)
 
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.2.1")
+
     if (JavaVersion.current().isJava9Compatible()) {
         implementation("javax.annotation:javax.annotation-api:1.3.2")
     }

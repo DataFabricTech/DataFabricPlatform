@@ -14,19 +14,33 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(StorageTagKey.class)
-public class StorageTag {
+public class StorageTag implements generateKey {
     @Id
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
-    private UUID tag;
+    @Id
+    @Column(name = "tag_id", nullable = false)
+    private UUID tagId;
 
     @ManyToOne
-    @JoinColumn(name = "storage_id", insertable = false,updatable = false)
+    @JoinColumn(name = "storage_id", insertable = false, updatable = false)
     private Storage storage;
 
-    @Builder
-    public StorageTag(UUID storageId, UUID tag) {
+    @ManyToOne
+    @JoinColumn(name = "tag_id", referencedColumnName = "tag_id", insertable = false, updatable = false)
+    private Tag tag;
+
+    @Builder(toBuilder = true)
+    public StorageTag(UUID storageId, UUID tagId) {
         this.storageId = storageId;
-        this.tag = tag;
+        this.tagId = tagId;
+    }
+
+    @Override
+    public Object generateKey() {
+        return StorageTagKey.builder()
+                .storageId(this.storageId)
+                .tagId(this.tagId)
+                .build();
     }
 }

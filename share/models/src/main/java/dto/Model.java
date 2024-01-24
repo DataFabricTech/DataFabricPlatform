@@ -17,7 +17,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "model")
-public class Model {
+public class Model implements generateKey{
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -49,29 +49,21 @@ public class Model {
     @Column(name = "sync_at")
     private LocalDateTime syncAt;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelMetadata> modelMetadatas = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ColumnMetadata> columnMetadatas = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<DataSample> dataSamples = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelRatingAndComment> modelRatingAndComments = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelTag> modelTags = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelFeedback> modelFeedbacks = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelRelation> modelRelations = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "model_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<DataTypeOption> dataTypeOptions = new ArrayList<>();
 
     @ManyToOne
@@ -102,13 +94,18 @@ public class Model {
         this.syncEnable = syncEnable;
         this.syncTime = syncTime;
         this.syncAt = syncAt;
-        this.modelMetadatas = modelMetadatas;
-        this.columnMetadatas = columnMetadatas;
-        this.dataSamples = dataSamples;
-        this.modelRatingAndComments = modelRatingAndComments;
-        this.modelTags = modelTags;
-        this.modelFeedbacks = modelFeedbacks;
-        this.modelRelations = modelRelations;
-        this.dataTypeOptions = dataTypeOptions;
+        this.modelMetadatas = modelMetadatas == null ? new ArrayList<>():modelMetadatas;
+        this.columnMetadatas = columnMetadatas == null ? new ArrayList<>():columnMetadatas;
+        this.dataSamples = dataSamples == null ? new ArrayList<>():dataSamples;
+        this.modelRatingAndComments = modelRatingAndComments == null ? new ArrayList<>():modelRatingAndComments;
+        this.modelTags = modelTags == null ? new ArrayList<>():modelTags;
+        this.modelFeedbacks = modelFeedbacks == null ? new ArrayList<>():modelFeedbacks;
+        this.modelRelations = modelRelations == null ? new ArrayList<>():modelRelations;
+        this.dataTypeOptions = dataTypeOptions == null ? new ArrayList<>():dataTypeOptions;
+    }
+
+    @Override
+    public Object generateKey() {
+        return this.modelId;
     }
 }

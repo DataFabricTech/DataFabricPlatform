@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "data_type_option")
 @IdClass(DataTypeOptionKey.class)
-public class DataTypeOption {
+public class DataTypeOption implements generateKey{
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -26,10 +26,18 @@ public class DataTypeOption {
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public DataTypeOption(UUID modelId, String key, String value) {
         this.modelId = modelId;
         this.key = key;
         this.value = value;
+    }
+
+    @Override
+    public Object generateKey() {
+        return DataTypeOptionKey.builder()
+                .modelId(this.modelId)
+                .key(this.key)
+                .build();
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(StorageAdaptorConnInfoSchemaKey.class)
-public class StorageAdaptorConnInfoSchema {
+public class StorageAdaptorConnInfoSchema implements generateKey{
     @Id
     @Column(name = "adaptor_id", nullable = false)
     private UUID adaptorId;
@@ -36,7 +36,7 @@ public class StorageAdaptorConnInfoSchema {
     @JoinColumn(name = "adaptor_id", insertable = false,updatable = false)
     private StorageAdaptorSchema storageAdaptorSchema;
 
-    @Builder
+    @Builder(toBuilder = true)
     public StorageAdaptorConnInfoSchema(UUID adaptorId, String type, String key, String value, ValueType valueType,
                                         String defaultValue, String description, boolean required) {
         this.adaptorId = adaptorId;
@@ -47,5 +47,14 @@ public class StorageAdaptorConnInfoSchema {
         this.defaultValue = defaultValue;
         this.description = description;
         this.required = required;
+    }
+
+    @Override
+    public Object generateKey() {
+        return StorageAdaptorConnInfoSchemaKey.builder()
+                .adaptorId(this.adaptorId)
+                .key(this.key)
+                .type(this.type)
+                .build();
     }
 }

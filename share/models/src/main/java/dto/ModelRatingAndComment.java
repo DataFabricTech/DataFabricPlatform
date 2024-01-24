@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ModelRatingAndCommentKey.class)
-public class ModelRatingAndComment {
+public class ModelRatingAndComment implements generateKey{
     @Id
     @Column(name = "model_id")
     private UUID modelId;
@@ -32,12 +32,20 @@ public class ModelRatingAndComment {
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public ModelRatingAndComment(UUID modelId, UUID userId, int rating, String comments, LocalDateTime createdAt) {
         this.modelId = modelId;
         this.userId = userId;
         this.rating = rating;
         this.comments = comments;
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public Object generateKey() {
+        return ModelRatingAndCommentKey.builder()
+                .modelId(this.modelId)
+                .userId(this.userId)
+                .build();
     }
 }

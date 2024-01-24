@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "data_auto_add")
-public class DataAutoAdd {
+public class DataAutoAdd implements generateKey{
     @Id
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
@@ -26,11 +26,16 @@ public class DataAutoAdd {
     @JoinColumn(name = "storage_id", insertable = false,updatable = false)
     private Storage storage;
 
-    @Builder
+    @Builder(toBuilder = true)
     public DataAutoAdd(UUID storageId, int num, String regex, FormatType formatType) {
         this.storageId = storageId;
         this.num = num;
         this.regex = regex;
         this.formatType = formatType;
+    }
+
+    @Override
+    public Object generateKey() {
+        return this.storageId;
     }
 }
