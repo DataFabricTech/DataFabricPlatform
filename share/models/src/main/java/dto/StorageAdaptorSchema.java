@@ -15,7 +15,7 @@ import java.util.UUID;
 @Table(name = "storage_adaptor_schema")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StorageAdaptorSchema {
+public class StorageAdaptorSchema implements generateKey{
     @Id
     @Column(name = "adaptor_id", nullable = false)
     private UUID adaptorId;
@@ -27,14 +27,12 @@ public class StorageAdaptorSchema {
     private byte[] logo;
     private boolean enable;
 
-    @OneToMany
-    @JoinColumn(name = "adaptor_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema")
     private List<Storage> storage = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "adaptor_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema")
     private List<StorageAdaptorConnInfoSchema> storageAdaptorConnInfoSchemas = new ArrayList<>();
 
-    @Builder
+    @Builder(toBuilder = true)
     public StorageAdaptorSchema(UUID adaptorId, String name, AdaptorType adaptorType, byte[] logo, boolean enable,
                                 List<Storage> storage,
                                 List<StorageAdaptorConnInfoSchema> storageAdaptorConnInfoSchemas) {
@@ -45,5 +43,10 @@ public class StorageAdaptorSchema {
         this.enable = enable;
         this.storage = storage;
         this.storageAdaptorConnInfoSchemas = storageAdaptorConnInfoSchemas;
+    }
+
+    @Override
+    public Object generateKey() {
+        return this.adaptorId;
     }
 }

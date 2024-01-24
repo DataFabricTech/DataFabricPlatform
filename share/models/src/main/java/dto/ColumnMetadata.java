@@ -17,7 +17,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ColumnMetadataKey.class)
-public class ColumnMetadata {
+public class ColumnMetadata implements generateKey {
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -36,20 +36,16 @@ public class ColumnMetadata {
     private boolean isFK;
     private boolean nullable;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
-    @JoinColumns({
-            @JoinColumn(name = "num", referencedColumnName = "num"),
-            @JoinColumn(name = "model_id", referencedColumnName = "model_id")
-    })
-    private List<TableDataQuality> tableDataQualitys = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "columnMetadata")
+    private List<TableDataQuality> tableDataQualities = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "model_id", insertable = false,updatable = false)
+    @JoinColumn(name = "model_id", insertable = false, updatable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public ColumnMetadata(UUID modelId, int num, String name, String description, ColumnType columnType, Long length,
-                          boolean isPK, boolean isFK, boolean nullable, List<TableDataQuality> tableDataQualitys) {
+                          boolean isPK, boolean isFK, boolean nullable, List<TableDataQuality> tableDataQualities) {
         this.modelId = modelId;
         this.num = num;
         this.name = name;
@@ -59,6 +55,14 @@ public class ColumnMetadata {
         this.isPK = isPK;
         this.isFK = isFK;
         this.nullable = nullable;
-        this.tableDataQualitys = tableDataQualitys;
+        this.tableDataQualities = tableDataQualities == null? new ArrayList<>():tableDataQualities;
+    }
+
+    @Override
+    public Object generateKey() {
+        return ColumnMetadataKey.builder()
+                .num(this.num)
+                .modelId(this.modelId)
+                .build();
     }
 }

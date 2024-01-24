@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(StorageMetadataKey.class)
-public class StorageMetadata {
+public class StorageMetadata implements generateKey{
     @Id
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
@@ -30,10 +30,18 @@ public class StorageMetadata {
     @JoinColumn(name = "metadata_id", insertable = false,updatable = false)
     private StorageMetadataSchema storageMetadataSchema;
 
-    @Builder
+    @Builder(toBuilder = true)
     public StorageMetadata(UUID storageId, UUID metadataId, String value) {
         this.storageId = storageId;
         this.metadataId = metadataId;
         this.value = value;
+    }
+
+    @Override
+    public Object generateKey() {
+        return StorageMetadataKey.builder()
+                .metadataId(this.metadataId)
+                .storageId(this.storageId)
+                .build();
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(ModelFeedbackKey.class)
-public class ModelFeedback {
+public class ModelFeedback implements generateKey {
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -36,13 +36,13 @@ public class ModelFeedback {
     private UUID resolvedUserId;
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "resolved_time")
-    private LocalDateTime ResolvedTime;
+    private LocalDateTime resolvedTime;
 
     @ManyToOne
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
-    @Builder
+    @Builder(toBuilder = true)
     public ModelFeedback(UUID modelId, UUID feedId, UUID parentFeedId, UUID userId, LocalDateTime time,
                          String title, String body, boolean isResolved, UUID resolvedUserId,
                          LocalDateTime resolvedTime) {
@@ -55,6 +55,14 @@ public class ModelFeedback {
         this.body = body;
         this.isResolved = isResolved;
         this.resolvedUserId = resolvedUserId;
-        this.ResolvedTime = resolvedTime;
+        this.resolvedTime = resolvedTime;
+    }
+
+    @Override
+    public Object generateKey() {
+        return ModelFeedbackKey.builder()
+                .modelId(this.modelId)
+                .feedId(this.feedId)
+                .build();
     }
 }

@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "data_type_option_schema")
 @IdClass(DataTypeOptionSchemaKey.class)
-public class DataTypeOptionSchema {
+public class DataTypeOptionSchema implements generateKey{
     @Id
     @Enumerated(EnumType.STRING)
     @Column(name = "data_type", nullable = false)
@@ -33,7 +33,7 @@ public class DataTypeOptionSchema {
     @JoinColumn(name = "data_type", updatable = false, insertable = false)
     private DataTypeSchema dataTypeSchema;
 
-    @Builder
+    @Builder(toBuilder = true)
     public DataTypeOptionSchema(DataType dataType, String key, String value, ValueType valueType,
                                 String defaultValue, String description) {
         this.dataType = dataType;
@@ -42,5 +42,13 @@ public class DataTypeOptionSchema {
         this.valueType = valueType;
         this.defaultValue = defaultValue;
         this.description = description;
+    }
+
+    @Override
+    public Object generateKey() {
+        return DataTypeOptionSchemaKey.builder()
+                .dataType(this.dataType)
+                .key(this.key)
+                .build();
     }
 }

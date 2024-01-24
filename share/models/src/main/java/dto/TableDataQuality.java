@@ -15,12 +15,12 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @IdClass(TableDataQualityKey.class)
-public class TableDataQuality {
+public class TableDataQuality implements generateKey{
     @Id
-    @Column(name = "model_id", nullable = false)
+    @Column(name = "model_id")
     private UUID modelId;
     @Id
-    @Column(name = "num", nullable = false)
+    @Column(name = "num")
     private int num;
     @Id
     @Enumerated(EnumType.STRING)
@@ -35,11 +35,20 @@ public class TableDataQuality {
     })
     private ColumnMetadata columnMetadata;
 
-    @Builder
+    @Builder(toBuilder = true)
     public TableDataQuality(UUID modelId, int num, QualityType qualityType, Integer value) {
         this.modelId = modelId;
         this.num = num;
         this.qualityType = qualityType;
         this.value = value;
+    }
+
+    @Override
+    public Object generateKey() {
+        return TableDataQualityKey.builder()
+                .qualityType(this.qualityType)
+                .modelId(this.modelId)
+                .num(this.num)
+                .build();
     }
 }
