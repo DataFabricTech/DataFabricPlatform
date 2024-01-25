@@ -27,9 +27,6 @@ dependencies {
     // For YAML Format Configurations - For To Using Log4j2
     implementation(Dependencies.Log4j.JACKSON_YAML)
 
-    // For Message Queue(RabbitMQ)
-    implementation(Dependencies.RabbitMQ.AMQP_CLIENT)
-
     // For Test
     testImplementation(platform(Dependencies.JUNIT.BOM))
     testImplementation(Dependencies.JUNIT.JUPITER)

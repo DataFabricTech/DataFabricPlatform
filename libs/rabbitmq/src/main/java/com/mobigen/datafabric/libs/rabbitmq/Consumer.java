@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Consumer extends DefaultConsumer {
-    Channel channel;
-    Worker worker;
+    final Channel channel;
+    final Worker worker;
     public Consumer( Worker worker, Channel channel ) {
         super( channel );
         this.worker = worker;
