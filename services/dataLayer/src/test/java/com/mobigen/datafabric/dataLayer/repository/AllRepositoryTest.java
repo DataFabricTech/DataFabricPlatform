@@ -1,10 +1,12 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
+import com.mobigen.datafabric.dataLayer.config.JpaConfig;
 import dto.*;
 import dto.compositeKeys.DataTypeOptionSchemaKey;
 import dto.compositeKeys.StorageAdaptorConnInfoSchemaKey;
 import dto.enums.*;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -14,17 +16,21 @@ public class AllRepositoryTest {
 
     @AfterAll
     static void delete() {
-        try (
-                var modelRepo = new ModelRepository();
-                var storageRepo = new StorageRepository();
-                var storageMetaSchemaRepo = new StorageMetadataSchemaRepository();
-                var modelMetadataSchemaRepo = new ModelMetadataSchemaRepository();
-                var storageAdaptorConnInfoSchemaRepo = new StorageAdaptorConnInfoSchemaRepository();
-                var storageAdaptorSchemaRepo = new StorageAdaptorSchemaRepository();
-                var tagRepo = new TagRepository();
-                var dataTypeSchemaRepo = new DataTypeSchemaRepository();
-                var dataTypeOptionSchemaRepo = new DataTypeOptionSchemaRepository();
-        ) {
+        try {
+            var em = new JpaConfig().getEm();
+
+            var modelRepo = new ModelRepository(em);
+            var storageRepo = new StorageRepository(em);
+            var storageMetaSchemaRepo = new StorageMetadataSchemaRepository(em);
+            var modelMetadataSchemaRepo = new ModelMetadataSchemaRepository(em);
+            var storageAdaptorConnInfoSchemaRepo = new StorageAdaptorConnInfoSchemaRepository(em);
+            var storageAdaptorSchemaRepo = new StorageAdaptorSchemaRepository(em);
+            var tagRepo = new TagRepository(em);
+            var dataTypeSchemaRepo = new DataTypeSchemaRepository(em);
+            var dataTypeOptionSchemaRepo = new DataTypeOptionSchemaRepository(em);
+
+            em.getTransaction().begin();
+
             var adaptorId = UUID.fromString("9df7ac96-90fa-481d-b18d-e3ca09ec95eb");
             var storageId = UUID.fromString("f29d3d75-59e8-4ae6-9902-53869db21d8c");
             var metadataId = UUID.fromString("c518ae33-aec9-42d4-b634-56b4871ec73d");
@@ -49,28 +55,33 @@ public class AllRepositoryTest {
                     .dataType(DataType.CSV)
                     .key("example_data_type_option_schema")
                     .build());
+            em.getTransaction().commit();
+            em.close();
         } catch (Exception e) {
             System.out.println("========AfterAll Error==========");
             e.printStackTrace();
             System.out.println(e);
             System.out.println("=================");
         }
-
     }
 
     @Test
     void AllInsertTest() {
-        try (
-                var modelRepo = new ModelRepository();
-                var storageRepo = new StorageRepository();
-                var storageMetaSchemaRepo = new StorageMetadataSchemaRepository();
-                var modelMetadataSchemaRepo = new ModelMetadataSchemaRepository();
-                var storageAdaptorConnInfoSchemaRepo = new StorageAdaptorConnInfoSchemaRepository();
-                var storageAdaptorSchemaRepo = new StorageAdaptorSchemaRepository();
-                var tagRepo = new TagRepository();
-                var dataTypeSchemaRepo = new DataTypeSchemaRepository();
-                var dataTypeOptionSchemaRepo = new DataTypeOptionSchemaRepository();
-        ) {
+        try {
+            var em = new JpaConfig().getEm();
+
+            var modelRepo = new ModelRepository(em);
+            var storageRepo = new StorageRepository(em);
+            var storageMetaSchemaRepo = new StorageMetadataSchemaRepository(em);
+            var modelMetadataSchemaRepo = new ModelMetadataSchemaRepository(em);
+            var storageAdaptorConnInfoSchemaRepo = new StorageAdaptorConnInfoSchemaRepository(em);
+            var storageAdaptorSchemaRepo = new StorageAdaptorSchemaRepository(em);
+            var tagRepo = new TagRepository(em);
+            var dataTypeSchemaRepo = new DataTypeSchemaRepository(em);
+            var dataTypeOptionSchemaRepo = new DataTypeOptionSchemaRepository(em);
+
+            em.getTransaction().begin();
+
             var adaptorId = UUID.fromString("9df7ac96-90fa-481d-b18d-e3ca09ec95eb");
             var storageId = UUID.fromString("f29d3d75-59e8-4ae6-9902-53869db21d8c");
             var userId = UUID.fromString("94352448-1c3a-4e58-80a0-f1eff25cb34e");
@@ -86,7 +97,7 @@ public class AllRepositoryTest {
             var storageAdaptorSchema = StorageAdaptorSchema.builder()
                     .adaptorId(adaptorId)
                     .name("example_storage_adaptor_schema_name")
-                    .adaptorType(AdaptorType.STORAGE)
+                    .adaptorType(AdaptorType.MARIADB)
                     .enable(false)
                     .build();
 
@@ -346,6 +357,9 @@ public class AllRepositoryTest {
 
             modelRepo.insert(model);
             modelRepo.insert(childModel);
+
+            em.getTransaction().commit();
+            em.close();
         } catch (Exception e) {
             System.out.println("============ Occured ");
             e.printStackTrace();
@@ -355,7 +369,16 @@ public class AllRepositoryTest {
     }
 
     @Test
-    void t() {
-        System.out.println("pass");
+    void multiThreading() {
+        var jpaConfig = new JpaConfig();
+        var em = jpaConfig.getEm();
+
+        var thread = new Thread(() -> {
+            var threadJpaConfig = new JpaConfig();
+            var threadEm = threadJpaConfig.getEm();
+
+            Assertions.assertNotEquals(threadEm, em);
+        });
+        thread.start();
     }
 }

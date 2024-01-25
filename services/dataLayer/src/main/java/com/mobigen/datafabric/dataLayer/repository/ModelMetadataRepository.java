@@ -1,9 +1,10 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
 import dto.ModelMetadata;
+import jakarta.persistence.EntityManager;
 
 public class ModelMetadataRepository extends JPARepository<ModelMetadata> {
-    public ModelMetadataRepository() {
-        super(ModelMetadata.class);
+    public ModelMetadataRepository(EntityManager em) {
+        super(ModelMetadata.class, em);
     }
 }

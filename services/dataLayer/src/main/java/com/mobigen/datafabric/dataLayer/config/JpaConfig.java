@@ -1,22 +1,17 @@
 package com.mobigen.datafabric.dataLayer.config;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import lombok.Getter;
 
+@Getter
 public class JpaConfig {
-    private static volatile EntityManager em;
+    private final EntityManager em;
+    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("fabric");
 
-    private JpaConfig() {
+    public JpaConfig() {
+        this.em = emf.createEntityManager();
     }
 
-    public static EntityManager getEntityManager() {
-        if (em == null || !em.isOpen()) {
-            synchronized (EntityManager.class) {
-                var emf = Persistence.createEntityManagerFactory("fabric");
-                em = emf.createEntityManager();
-                em.getTransaction().begin();
-            }
-        }
-        return em;
-    }
 }

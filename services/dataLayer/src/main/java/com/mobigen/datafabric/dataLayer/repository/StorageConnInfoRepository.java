@@ -1,9 +1,10 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
 import dto.StorageConnInfo;
+import jakarta.persistence.EntityManager;
 
 public class StorageConnInfoRepository extends JPARepository<StorageConnInfo> {
-    public StorageConnInfoRepository() {
-        super(StorageConnInfo.class);
+    public StorageConnInfoRepository(EntityManager em) {
+        super(StorageConnInfo.class, em);
     }
 }

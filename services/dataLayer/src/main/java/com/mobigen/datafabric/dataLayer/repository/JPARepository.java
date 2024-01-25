@@ -1,20 +1,19 @@
 package com.mobigen.datafabric.dataLayer.repository;
 
-import com.mobigen.datafabric.dataLayer.config.JpaConfig;
 import dto.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
-import jakarta.persistence.RollbackException;
 
 import java.util.List;
 import java.util.UUID;
 
-public class JPARepository<T> implements AutoCloseable, JpaFunction<T, UUID> {
-    private final EntityManager em = JpaConfig.getEntityManager();
+public class JPARepository<T> implements JpaFunction<T, UUID> {
+    private final EntityManager em;
     private final Class<T> entityClass;
 
-    public JPARepository(Class<T> entityClass) {
+    public JPARepository(Class<T> entityClass, EntityManager em) {
         this.entityClass = entityClass;
+        this.em = em;
     }
 
     @Override
@@ -77,12 +76,5 @@ public class JPARepository<T> implements AutoCloseable, JpaFunction<T, UUID> {
     public List<T> executeJQuery(String jQuery) throws IllegalArgumentException, IllegalStateException, PersistenceException {
         return em.createQuery(jQuery, entityClass)
                 .getResultList();
-    }
-
-    @Override
-    public void close() throws IllegalStateException, RollbackException {
-        em.close();
-        if (em.getTransaction().isActive())
-            em.getTransaction().commit();
     }
 }
