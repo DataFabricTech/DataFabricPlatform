@@ -7,8 +7,8 @@ group = "com.mobigen.datafabric"
 val protobufVersion = "3.24.3"
 
 dependencies {
-    implementation("com.mobigen.libs:grpc")
-    implementation("com.mobigen.libs:configuration")
+    implementation("com.mobigen.datafabric.libs:grpc")
+    implementation("com.mobigen.datafabric.libs:configuration")
 
     // protobuf
     implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")

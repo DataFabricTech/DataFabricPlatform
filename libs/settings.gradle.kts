@@ -20,3 +20,4 @@ rootProject.name = "libs" // the component name
 include("grpc")
 include("configuration")
 include("sqlgen")
+include("rabbitmq")

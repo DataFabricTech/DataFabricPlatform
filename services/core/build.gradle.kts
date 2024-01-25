@@ -10,9 +10,9 @@ group = "com.mobigen.datafabric"
 val protobufVersion = "3.24.3"
 
 dependencies {
-    implementation("com.mobigen.libs:grpc")
-    implementation("com.mobigen.libs:sqlgen")
-    implementation("com.mobigen.libs:configuration")
+    implementation("com.mobigen.datafabric.libs:grpc")
+    implementation("com.mobigen.datafabric.libs:sqlgen")
+    implementation("com.mobigen.datafabric.libs:configuration")
 
     // jdbc
     implementation("org.postgresql:postgresql:42.6.0")

@@ -4,8 +4,9 @@ plugins {
 }
 
 dependencies {
-//    constraints {
-//        api("org.springframework.boot:org.springframework.boot.gradle.plugin:3.1.4")
-//    }
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(Dependencies.Spring.BOOT)
+    implementation(Dependencies.Spring.BOOT_STARTER)
+    implementation(Dependencies.Spring.STARTER_WEB)
+
+    testImplementation(Dependencies.Spring.TEST)
 }

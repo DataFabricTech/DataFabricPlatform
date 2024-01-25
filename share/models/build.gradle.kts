@@ -10,13 +10,13 @@ version = "0.0.1"
 
 dependencies {
     // protobuf
-    implementation(Dependency.protobuf.protoBufUtil)
+    implementation(Dependencies.Protobuf.PROTOBUF_UTIL)
     // gRPC
-    implementation(Dependency.grpc.stub)
-    implementation(Dependency.grpc.protobuf)
-    implementation(Dependency.grpc.service)
-    implementation(Dependency.grpc.netty)
-//    implementation(Dependency.grpc.testing)
+    implementation(Dependencies.GRPC.STUB)
+    implementation(Dependencies.GRPC.PROTOBUF)
+    implementation(Dependencies.GRPC.SERVICE)
+    implementation(Dependencies.GRPC.NETTY)
+//    implementation(Dependencies.grpc.testing)
 
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.2.1")
@@ -28,11 +28,11 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = Dependency.protobuf.protoc
+        artifact = Dependencies.Protobuf.PROTOC
     }
     plugins {
         id("grpc") {
-            artifact = Dependency.protobuf.protocGenJava
+            artifact = Dependencies.Protobuf.PROTOC_GEN_JAVA
         }
     }
     generateProtoTasks {
