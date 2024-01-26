@@ -8,7 +8,7 @@ import com.mobigen.datafabric.core.util.DataLayerConnection;
 import com.mobigen.datafabric.share.protobuf.AdaptorOuterClass;
 import com.mobigen.datafabric.share.protobuf.StorageCommon;
 import com.mobigen.datafabric.share.protobuf.Utilities;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.libs.configuration.Configuration;
 import com.mobigen.sqlgen.model.JoinMethod;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import static com.mobigen.sqlgen.SqlBuilder.select;
  */
 @Slf4j
 public class AdaptorService {
-    static Config config = new Config();
+    static Configuration config = new Configuration();
     DataLayerConnection dataLayerConnection;
 
     public AdaptorService() {

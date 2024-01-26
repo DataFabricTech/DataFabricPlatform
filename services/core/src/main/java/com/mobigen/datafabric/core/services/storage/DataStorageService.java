@@ -9,7 +9,7 @@ import com.mobigen.datafabric.share.protobuf.DataLayer;
 import com.mobigen.datafabric.share.protobuf.StorageCommon;
 import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
 import com.mobigen.datafabric.share.protobuf.Utilities;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.libs.configuration.Configuration;
 import com.mobigen.sqlgen.maker.JoinMaker;
 import com.mobigen.sqlgen.maker.MakerInterface;
 import com.mobigen.sqlgen.maker.OrderUsable;
@@ -43,7 +43,7 @@ import static com.mobigen.sqlgen.maker.DeleteMaker.delete;
 @Slf4j
 public class DataStorageService {
 
-    static Config config = new Config();
+    static Configuration config = new Configuration();
     DataLayerConnection dataLayerConnection;
 
     public DataStorageService() {

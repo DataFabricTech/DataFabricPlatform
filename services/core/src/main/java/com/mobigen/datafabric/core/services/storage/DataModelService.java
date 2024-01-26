@@ -6,7 +6,7 @@ import com.mobigen.datafabric.share.protobuf.DataLayer;
 import com.mobigen.datafabric.share.protobuf.DataModelOuterClass;
 import com.mobigen.datafabric.share.protobuf.UserOuterClass;
 import com.mobigen.datafabric.share.protobuf.Utilities;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.libs.configuration.Configuration;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 import static com.mobigen.sqlgen.SqlBuilder.insert;
 import static com.mobigen.sqlgen.SqlBuilder.select;
@@ -33,7 +32,7 @@ import static com.mobigen.sqlgen.SqlBuilder.select;
 @Slf4j
 public class DataModelService {
 
-    static Config config = new Config();
+    static Configuration config = new Configuration();
     DataLayerConnection dataLayerConnection;
 
     public DataModelService() {

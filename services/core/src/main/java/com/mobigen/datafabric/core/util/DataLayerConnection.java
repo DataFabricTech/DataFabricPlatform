@@ -3,7 +3,7 @@ package com.mobigen.datafabric.core.util;
 import com.mobigen.datafabric.share.protobuf.DataLayer;
 import com.mobigen.datafabric.share.protobuf.DataLayerGRPCServiceGrpc;
 import com.mobigen.datafabric.share.protobuf.Utilities;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.libs.configuration.Configuration;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.List;
 public class DataLayerConnection {
     private final DataLayerGRPCServiceGrpc.DataLayerGRPCServiceBlockingStub stub;
     private final Boolean test;
-    private final Config config = new Config();
+    private final Configuration config = new Configuration();
 
     public DataLayerConnection() {
         this(false);

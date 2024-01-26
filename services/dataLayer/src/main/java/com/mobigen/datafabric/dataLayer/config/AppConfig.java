@@ -4,10 +4,7 @@ import com.mobigen.datafabric.dataLayer.repository.PortalRepository;
 import com.mobigen.datafabric.dataLayer.repository.DataLayerRepository;
 import com.mobigen.datafabric.dataLayer.service.DataLayerServiceImpl;
 import com.mobigen.datafabric.dataLayer.service.PortalServiceImpl;
-import com.mobigen.libs.configuration.Config;
-import org.apache.commons.configuration.Configuration;
-
-import java.sql.SQLException;
+import com.mobigen.libs.configuration.Configuration;
 
 public class AppConfig {
     public AppConfig() {
@@ -37,7 +34,7 @@ public class AppConfig {
         return new DBConfig(config());
     }
 
-    public Configuration config() {
-        return new Config().getConfig();
+    public org.apache.commons.configuration.Configuration config() {
+        return new Configuration().getConfig();
     }
 }

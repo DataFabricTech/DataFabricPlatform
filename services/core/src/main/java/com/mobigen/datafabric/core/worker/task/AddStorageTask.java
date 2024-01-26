@@ -8,7 +8,7 @@ import com.mobigen.datafabric.core.util.JdbcConnector;
 import com.mobigen.datafabric.core.worker.Job;
 import com.mobigen.datafabric.core.worker.timer.Timer;
 import com.mobigen.datafabric.share.protobuf.*;
-import com.mobigen.libs.configuration.Config;
+import com.mobigen.libs.configuration.Configuration;
 import com.mobigen.sqlgen.where.conditions.Equal;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +30,7 @@ public class AddStorageTask implements Runnable {
     private final DataLayerConnection dc;
 
     public AddStorageTask( Job job ) {
-        Config config = new Config();
+        Configuration config = new Configuration();
         this.job = job;
         this.dc = new DataLayerConnection( config.getConfig().getBoolean( "data-layer.test", false ) );
         this.dataStorageService = new DataStorageService(this.dc);
