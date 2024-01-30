@@ -1,6 +1,5 @@
 package dto;
 
-import dto.compositeKeys.ModelMetadataKey;
 import dto.compositeKeys.StorageConnInfoKey;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -22,8 +21,10 @@ public class StorageConnInfo implements generateKey{
     @Id
     private String type;
     @Id
-    private String key;
-    private String value;
+    @Column(name = "storage_conn_key", nullable = false)
+    private String storageConnKey;
+    @Column(name = "storage_conn_value")
+    private String storageConnValue;
     @Column(name = "is_option")
     private boolean isOption;
 
@@ -32,11 +33,11 @@ public class StorageConnInfo implements generateKey{
     private Storage storage;
 
     @Builder(toBuilder = true)
-    public StorageConnInfo(UUID storageId, String type, String key, String value, boolean isOption) {
+    public StorageConnInfo(UUID storageId, String type, String storageConnKey, String storageConnValue, boolean isOption) {
         this.storageId = storageId;
         this.type = type;
-        this.key = key;
-        this.value = value;
+        this.storageConnKey = storageConnKey;
+        this.storageConnValue = storageConnValue;
         this.isOption = isOption;
     }
 
@@ -44,7 +45,7 @@ public class StorageConnInfo implements generateKey{
     public Object generateKey() {
         return StorageConnInfoKey.builder()
                 .storageId(this.storageId)
-                .key(this.key)
+                .storageConnKey(this.storageConnKey)
                 .type(this.type)
                 .build();
     }

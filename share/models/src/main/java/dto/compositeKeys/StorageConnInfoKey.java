@@ -9,16 +9,16 @@ import java.util.UUID;
 public class StorageConnInfoKey implements Serializable {
     private UUID storageId;
     private String type;
-    private String key;
+    private String storageConnKey;
 
     public StorageConnInfoKey() {
     }
 
     @Builder
-    public StorageConnInfoKey(UUID storageId, String type, String key) {
+    public StorageConnInfoKey(UUID storageId, String type, String storageConnKey) {
         this.storageId = storageId;
         this.type = type;
-        this.key = key;
+        this.storageConnKey = storageConnKey;
     }
 
     @Override
@@ -28,12 +28,12 @@ public class StorageConnInfoKey implements Serializable {
         var that = (StorageConnInfoKey) o;
         return Objects.equals(that.storageId, this.storageId) &&
                 Objects.equals(that.type, this.type) &&
-                Objects.equals(that.key, this.key);
+                Objects.equals(that.storageConnKey, this.storageConnKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.storageId, this.type, this.key);
+        return Objects.hash(this.storageId, this.type, this.storageConnKey);
     }
 
 }

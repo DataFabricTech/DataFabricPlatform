@@ -19,25 +19,27 @@ public class DataTypeOption implements generateKey{
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
     @Id
-    private String key;
-    private String value;
+    @Column(name = "data_type_option_key", nullable = false)
+    private String dataTypeOptionKey;
+    @Column(name = "data_type_option_value")
+    private String dataTypeOptionValue;
 
     @ManyToOne
     @JoinColumn(name = "model_id", updatable = false, insertable = false)
     private Model model;
 
     @Builder(toBuilder = true)
-    public DataTypeOption(UUID modelId, String key, String value) {
+    public DataTypeOption(UUID modelId, String dataTypeOptionKey, String dataTypeOptionValue) {
         this.modelId = modelId;
-        this.key = key;
-        this.value = value;
+        this.dataTypeOptionKey = dataTypeOptionKey;
+        this.dataTypeOptionValue = dataTypeOptionValue;
     }
 
     @Override
     public Object generateKey() {
         return DataTypeOptionKey.builder()
                 .modelId(this.modelId)
-                .key(this.key)
+                .dataTypeOptionKey(this.dataTypeOptionKey)
                 .build();
     }
 }

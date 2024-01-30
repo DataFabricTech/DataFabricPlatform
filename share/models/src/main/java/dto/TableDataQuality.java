@@ -26,7 +26,8 @@ public class TableDataQuality implements generateKey{
     @Enumerated(EnumType.STRING)
     @Column(name = "quality_type")
     private QualityType qualityType;
-    private Integer value;
+    @Column(name = "quality_value")
+    private Integer qualityValue;
 
     @ManyToOne
     @JoinColumns({
@@ -36,11 +37,11 @@ public class TableDataQuality implements generateKey{
     private ColumnMetadata columnMetadata;
 
     @Builder(toBuilder = true)
-    public TableDataQuality(UUID modelId, int num, QualityType qualityType, Integer value) {
+    public TableDataQuality(UUID modelId, int num, QualityType qualityType, Integer qualityValue) {
         this.modelId = modelId;
         this.num = num;
         this.qualityType = qualityType;
-        this.value = value;
+        this.qualityValue = qualityValue;
     }
 
     @Override

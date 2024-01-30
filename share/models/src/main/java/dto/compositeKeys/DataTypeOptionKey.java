@@ -8,15 +8,15 @@ import java.util.UUID;
 
 public class DataTypeOptionKey implements Serializable {
     private UUID modelId;
-    private String key;
+    private String dataTypeOptionKey;
 
     public DataTypeOptionKey() {
     }
 
     @Builder
-    public DataTypeOptionKey(UUID modelId, String key) {
+    public DataTypeOptionKey(UUID modelId, String dataTypeOptionKey) {
         this.modelId = modelId;
-        this.key = key;
+        this.dataTypeOptionKey = dataTypeOptionKey;
     }
 
     @Override
@@ -25,11 +25,11 @@ public class DataTypeOptionKey implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         var that = (DataTypeOptionKey) o;
         return Objects.equals(that.modelId, this.modelId) &&
-                Objects.equals(that.key, this.key);
+                Objects.equals(that.dataTypeOptionKey, this.dataTypeOptionKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.modelId, this.key);
+        return Objects.hash(this.modelId, this.dataTypeOptionKey);
     }
 }

@@ -39,16 +39,17 @@
 
         <!-- JDBC Database connection settings -->
         <properties>
-            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://192.168.107.28:14632/jpatest"/>
-            <property name="javax.persistence.jdbc.user" value="testUser"/>
-            <property name="javax.persistence.jdbc.password" value="testUser"/>
+            <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:testdb"/>
+            <property name="javax.persistence.jdbc.user" value="sa"/>
+            <property name="javax.persistence.jdbc.password" value=""/>
 
             <!-- Hibernate-specific settings -->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
             <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.use_sql_comments" value="true"/>
+
+            <!-- Table Create Option -->
+            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
         </properties>
     </persistence-unit>
 </persistence>

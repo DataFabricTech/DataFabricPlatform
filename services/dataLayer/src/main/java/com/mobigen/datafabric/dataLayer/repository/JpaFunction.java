@@ -10,7 +10,7 @@ public interface JpaFunction<T, ID> {
 
     List<T> findAll() throws IllegalArgumentException, IllegalStateException, PersistenceException;
 
-    List<T> findWhere(String columnName, String value) throws IllegalArgumentException, IllegalStateException, PersistenceException;
+    List<T> findWhere(String columnName, Object value) throws IllegalArgumentException, IllegalStateException, PersistenceException;
 
     List<T> findLike(String columnName, String value) throws IllegalArgumentException, IllegalStateException, PersistenceException;
 

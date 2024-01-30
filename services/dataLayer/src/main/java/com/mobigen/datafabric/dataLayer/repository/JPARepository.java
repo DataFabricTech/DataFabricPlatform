@@ -27,18 +27,18 @@ public class JPARepository<T> implements JpaFunction<T, UUID> {
     }
 
     @Override
-    public List<T> findWhere(String columnName, String value) throws IllegalArgumentException, IllegalStateException, PersistenceException {
+    public List<T> findWhere(String columnField, Object value) throws IllegalArgumentException, IllegalStateException, PersistenceException {
         var sb = new StringBuilder();
-        sb.append("select e from ").append(entityClass.getSimpleName()).append(" e where e.").append(columnName).append(" = :value");
+        sb.append("select e from ").append(entityClass.getSimpleName()).append(" e where e.").append(columnField).append(" = :value");
         return em.createQuery(sb.toString(), entityClass)
                 .setParameter("value", value)
                 .getResultList();
     }
 
     @Override
-    public List<T> findLike(String columnName, String value) throws IllegalArgumentException, IllegalStateException, PersistenceException {
+    public List<T> findLike(String columnField, String value) throws IllegalArgumentException, IllegalStateException, PersistenceException {
         var sb = new StringBuilder();
-        sb.append("select e from ").append(entityClass.getSimpleName()).append(" e where e.").append(columnName).append(" like :value");
+        sb.append("select e from ").append(entityClass.getSimpleName()).append(" e where e.").append(columnField).append(" like :value");
         return em.createQuery(sb.toString(), entityClass)
                 .setParameter("value", value)
                 .getResultList();
@@ -58,7 +58,7 @@ public class JPARepository<T> implements JpaFunction<T, UUID> {
     public void deleteByKey(Object key) throws IllegalArgumentException, IllegalStateException {
         var entity = em.find(entityClass, key);
         if (entity != null)
-            em.remove(em.find(entityClass, key));
+            em.remove(entity);
     }
 
     @Override

@@ -17,7 +17,8 @@ public class Tag implements generateKey {
     @Id
     @Column(name = "tag_id")
     private UUID tagId;
-    private String value;
+    @Column(name = "tag_value")
+    private String tagValue;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "tag")
     private List<ModelTag> modelTags;
@@ -26,9 +27,9 @@ public class Tag implements generateKey {
     private List<StorageTag> storageTags;
 
     @Builder(toBuilder = true)
-    public Tag(UUID tagId, String value) {
+    public Tag(UUID tagId, String tagValue) {
         this.tagId = tagId;
-        this.value = value;
+        this.tagValue = tagValue;
     }
 
     @Override
