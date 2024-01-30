@@ -2,7 +2,7 @@ package com.mobigen.datafabric.extraction.model;
 
 import java.sql.JDBCType;
 
-public enum RDBTabledataFormat {
+public enum RdbTabledataFormatEnum {
     INTEGER("INTEGER", JDBCType.INTEGER, JDBCType.SMALLINT, JDBCType.BIGINT),
     REAL("REAL", JDBCType.REAL, JDBCType.DOUBLE),
     NUMERIC("NUMERIC", JDBCType.NUMERIC),
@@ -15,11 +15,12 @@ public enum RDBTabledataFormat {
     ETC("ETC", JDBCType.OTHER, JDBCType.REF_CURSOR),
     ERROR("UNDEFINED TYPE", JDBCType.OTHER);
 
-    RDBTabledataFormat(String type, JDBCType jdbcType) {
-    }
-    RDBTabledataFormat(String type, JDBCType jdbcType1, JDBCType jdbcType2) {
-    }
-    RDBTabledataFormat(String type, JDBCType jdbcType1, JDBCType jdbcType2, JDBCType jdbcType3) {
+    RdbTabledataFormatEnum(String type, JDBCType jdbcType) {
     }
 
+    RdbTabledataFormatEnum(String type, JDBCType jdbcType1, JDBCType jdbcType2) {
+    }
+
+    RdbTabledataFormatEnum(String type, JDBCType jdbcType1, JDBCType jdbcType2, JDBCType jdbcType3) {
+    }
 }
