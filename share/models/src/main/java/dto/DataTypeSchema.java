@@ -38,6 +38,6 @@ public class DataTypeSchema implements generateKey{
 
     @Override
     public Object generateKey() {
-        return this.dataType.name();
+        return this.dataType;
     }
 }

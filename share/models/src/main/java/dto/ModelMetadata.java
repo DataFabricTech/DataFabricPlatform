@@ -21,7 +21,8 @@ public class ModelMetadata implements generateKey{
     @Id
     @Column(name = "metadata_id", nullable = false)
     private UUID metadataId;
-    private String value;
+    @Column(name = "metadata_value", nullable = false)
+    private String metadataValue;
 
     @ManyToOne
     @JoinColumn(name = "metadata_id", updatable = false, insertable = false)
@@ -31,10 +32,10 @@ public class ModelMetadata implements generateKey{
     private Model model;
 
     @Builder(toBuilder = true)
-    public ModelMetadata(UUID modelId, UUID metadataId, String value) {
+    public ModelMetadata(UUID modelId, UUID metadataId, String metadataValue) {
         this.modelId = modelId;
         this.metadataId = metadataId;
-        this.value = value;
+        this.metadataValue = metadataValue;
     }
 
     @Override

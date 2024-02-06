@@ -21,7 +21,8 @@ public class StorageMetadata implements generateKey{
     @Id
     @Column(name = "metadata_id", nullable = false)
     private UUID metadataId;
-    private String value;
+    @Column(name = "metadata_value")
+    private String metadataValue;
 
     @ManyToOne
     @JoinColumn(name = "storage_id", insertable = false,updatable = false)
@@ -31,10 +32,10 @@ public class StorageMetadata implements generateKey{
     private StorageMetadataSchema storageMetadataSchema;
 
     @Builder(toBuilder = true)
-    public StorageMetadata(UUID storageId, UUID metadataId, String value) {
+    public StorageMetadata(UUID storageId, UUID metadataId, String metadataValue) {
         this.storageId = storageId;
         this.metadataId = metadataId;
-        this.value = value;
+        this.metadataValue = metadataValue;
     }
 
     @Override

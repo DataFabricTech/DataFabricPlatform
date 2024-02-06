@@ -24,4 +24,5 @@ rootProject.name = "services" // the component name
 include("core")
 include("dataLayer")
 include("extraction")
+include("jpaSample")
 //include("springSample")

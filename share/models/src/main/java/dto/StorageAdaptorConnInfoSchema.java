@@ -22,8 +22,10 @@ public class StorageAdaptorConnInfoSchema implements generateKey{
     @Id
     private String type;
     @Id
-    private String key;
-    private String value;
+    @Column(name = "adaptor_conn_schema_key",nullable = false)
+    private String adaptorConnSchemaKey;
+    @Column(name = "adaptor_conn_schema_value")
+    private String adaptorConnSchemaValue;
     @Enumerated(EnumType.STRING)
     @Column(name = "value_type")
     private ValueType valueType;
@@ -37,12 +39,12 @@ public class StorageAdaptorConnInfoSchema implements generateKey{
     private StorageAdaptorSchema storageAdaptorSchema;
 
     @Builder(toBuilder = true)
-    public StorageAdaptorConnInfoSchema(UUID adaptorId, String type, String key, String value, ValueType valueType,
+    public StorageAdaptorConnInfoSchema(UUID adaptorId, String type, String adaptorConnSchemaKey, String adaptorConnSchemaValue, ValueType valueType,
                                         String defaultValue, String description, boolean required) {
         this.adaptorId = adaptorId;
         this.type = type;
-        this.key = key;
-        this.value = value;
+        this.adaptorConnSchemaKey = adaptorConnSchemaKey;
+        this.adaptorConnSchemaValue = adaptorConnSchemaValue;
         this.valueType = valueType;
         this.defaultValue = defaultValue;
         this.description = description;
@@ -53,7 +55,7 @@ public class StorageAdaptorConnInfoSchema implements generateKey{
     public Object generateKey() {
         return StorageAdaptorConnInfoSchemaKey.builder()
                 .adaptorId(this.adaptorId)
-                .key(this.key)
+                .adaptorConnSchemaKey(this.adaptorConnSchemaKey)
                 .type(this.type)
                 .build();
     }
