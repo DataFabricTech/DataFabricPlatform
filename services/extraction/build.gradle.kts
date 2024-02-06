@@ -7,7 +7,6 @@ group = "${group}.services"
 dependencies {
     implementation("com.mobigen.datafabric.libs:grpc")
     implementation("com.mobigen.datafabric.libs:configuration")
-    implementation(project(":dataLayer"))
 
 
     // protobuf

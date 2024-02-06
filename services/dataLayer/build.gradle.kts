@@ -1,5 +1,6 @@
 plugins {
     id("com.mobigen.java-application")
+    id("com.mobigen.java-library")
 }
 
 group = "com.mobigen.datafabric"
@@ -7,7 +8,7 @@ group = "com.mobigen.datafabric"
 val protobufVersion = "3.24.3"
 
 dependencies {
-    implementation("com.mobigen.datafabric.libs:grpc")
+    api("com.mobigen.datafabric.libs:grpc")
 
     // protobuf
     implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")
@@ -19,7 +20,7 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5:5.2.2")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.2.1")
 
-    // sql parser
+    // sql parser - 추후에 지워도 되는 항목
     implementation("com.github.jsqlparser:jsqlparser:4.7")
 
     // postgres
@@ -27,41 +28,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
     implementation(Dependencies.Spring.JPA)
+    implementation(Dependencies.Spring.TEST)
 
     // For Test
     // https://mvnrepository.com/artifact/com.h2database/h2
     testImplementation("com.h2database:h2:2.2.224")
-    // JUnit Jupiter = 테스트 작성용
-//    testImplementation("org.junit.jupiter:junit-jupiter") // <4>
-}
-
-application {
-    mainClass.set("com.mobigen.datafabric.dataLayer.DataLayerApplication") // <1>
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs("src/main/resources")
-        }
-    }
-    test {
-        java {
-            srcDirs("src/test/resources")
-        }
-    }
-}
-
-tasks.withType<Copy> {
-    filesMatching("**/persistence.xml") {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "com.mobigen.datafabric.dataLayer.DataLayerApplication"
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }

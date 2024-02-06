@@ -22,8 +22,8 @@ public class DataTypeOptionSchema implements generateKey{
     @Id
     @Column(name = "data_type_option_schema_key", nullable = false)
     private String dataTypeOptionSchemaKey;
-    @Column(name = "type_option_schema_value")
-    private String typeOptionSchemaValue;
+    @Column(name = "data_type_option_schema_value")
+    private String dataTypeOptionSchemaValue;
     @Enumerated(EnumType.STRING)
     @Column(name = "value_type")
     private ValueType valueType;
@@ -36,11 +36,11 @@ public class DataTypeOptionSchema implements generateKey{
     private DataTypeSchema dataTypeSchema;
 
     @Builder(toBuilder = true)
-    public DataTypeOptionSchema(DataType dataType, String dataTypeOptionSchemaKey, String typeOptionSchemaValue, ValueType valueType,
+    public DataTypeOptionSchema(DataType dataType, String dataTypeOptionSchemaKey, String dataTypeOptionSchemaValue, ValueType valueType,
                                 String defaultValue, String description) {
         this.dataType = dataType;
         this.dataTypeOptionSchemaKey = dataTypeOptionSchemaKey;
-        this.typeOptionSchemaValue = typeOptionSchemaValue;
+        this.dataTypeOptionSchemaValue = dataTypeOptionSchemaValue;
         this.valueType = valueType;
         this.defaultValue = defaultValue;
         this.description = description;
