@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.mobigen.datafabric.share.interfaces";
+option java_outer_classname = "DataLayerProto";
+
+import "utilities.proto";
+
+service DataLayerGRPCService {
+  rpc execute(ReqExecute) returns (ResExecute);
+  rpc executeBatch(ReqBatchExecute) returns (ResBatchExecute);
+}
+
+// 실행 하고 싶은 sql 문
+message ReqExecute {
+  string sql = 1;
+}
+
+// 실행한 결과 값
+message ResExecute {
+  string code = 1;
+  string errMsg = 2;
+  message Data{
+    int32 response = 1;
+    Table table = 2;
+  }
+  Data data = 3;
+}
+
+message ExecuteResponse {
+  int32 response = 1;                     // Update, Delete, Insert 했을 떄의 response
+  Table tables = 2;                       // Select 했을 때의 Repsonse
+}
+
+message Table {
+  repeated Column columns = 1;
+  repeated Row rows = 2;
+}
+
+message Column {
+  string columnName = 1;
+  DataType type = 2;
+}
+
+message Cell {
+  int32 columnIndex = 1;
+  oneof data {
+    string stringValue = 2;
+    int32 int32Value = 3;
+    int64 int64Value = 4;
+    bool boolValue = 5;
+    bytes bytesValue = 6;
+    float floatValue = 7;
+    double doubleValue = 8;
+    DateTime timeValue = 9;
+  }
+}
+
+message Row {
+  repeated Cell cell = 1;
+}
+
+message ReqBatchExecute {
+  repeated string sql = 1;
+}
+
+message ResBatchExecute {
+  string code = 1;
+  string errMsg = 2;
+  repeated int32 data = 3;
+}

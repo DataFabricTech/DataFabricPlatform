@@ -1,17 +1,17 @@
 plugins {
-    id("com.mobigen.java-application")
+    id("com.mobigen.java-library")
 }
 
-group = "com.mobigen.datafabric"
+group = "${group}.services"
 
-val protobufVersion = "3.24.3"
+//val protobufVersion = "3.24.3"
 
 dependencies {
-    implementation("com.mobigen.datafabric.libs:grpc")
-    implementation("com.mobigen.datafabric.libs:configuration")
+//    implementation("com.mobigen.datafabric.libs:grpc")
+//    implementation("com.mobigen.datafabric.libs:configuration")
 
     // protobuf
-    implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")
+//    implementation("com.google.protobuf:protobuf-java-util:${protobufVersion}")
     //    instrumentedClasspath(project(mapOf("com.mobigen.libs:grpc"), path" to ":producer",
     //        "configuration" to "instrumentedJars")))
 
@@ -35,28 +35,28 @@ dependencies {
 //    testImplementation("org.junit.jupiter:junit-jupiter") // <4>
 }
 
-application {
-    mainClass.set("com.mobigen.datafabric.dataLayer.DataLayerApplication") // <1>
-}
+//application {
+//    mainClass.set("com.mobigen.datafabric.dataLayer.DataLayerApplication") // <1>
+//}
 
-sourceSets {
-    main {
-        resources {
-            srcDirs("src/main/resources")
-        }
-    }
-}
-
-tasks.withType<Copy> {
-    filesMatching("**/persistence.xml") {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "com.mobigen.datafabric.dataLayer.DataLayerApplication"
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-}
+//sourceSets {
+//    main {
+//        resources {
+//            srcDirs("src/main/resources")
+//        }
+//    }
+//}
+//
+//tasks.withType<Copy> {
+//    filesMatching("**/persistence.xml") {
+//        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+//    }
+//}
+//
+//tasks.withType<Jar> {
+//    manifest {
+//        attributes["Main-Class"] = "com.mobigen.datafabric.dataLayer.DataLayerApplication"
+//    }
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+//}

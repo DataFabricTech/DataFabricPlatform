@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 import lombok.Getter;
 
 import java.sql.JDBCType;
@@ -15,7 +15,7 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class DataStorageTypeTable {
-    public static SqlTable table = SqlTable.of("DataStorageType");
-    public static SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);  // pk
-    public static SqlColumn iconCol = SqlColumn.of("icon", table, JDBCType.BLOB);
+//    public static SqlTable table = SqlTable.of("DataStorageType");
+//    public static SqlColumn nameCol = SqlColumn.of("name", table, JDBCType.VARCHAR);  // pk
+//    public static SqlColumn iconCol = SqlColumn.of("icon", table, JDBCType.BLOB);
 }

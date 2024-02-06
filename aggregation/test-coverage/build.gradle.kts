@@ -4,16 +4,9 @@ plugins {
     id("org.sonarqube") version "4.4.1.3373"
 }
 
-val projectList = mutableListOf(
-    "com.mobigen.datafabric.libs:sqlgen",
-    "com.mobigen.datafabric.libs:grpc",
-    "com.mobigen.datafabric.services:springSample"
-)
-
-val projectPath = mutableListOf(
-    "libs/sqlgen",
-    "libs/grpc",
-    "services/springSample"
+val projectList = mapOf(
+    "com.mobigen.datafabric.libs:rabbitmq" to "libs/rabbitmq",
+    "com.mobigen.datafabric.services:core" to "services/core",
 )
 
 val srcPath = "src/main/java"
@@ -24,7 +17,7 @@ val testClassPath = "build/classes/java/test"
 /* jblim : 최종 모습은 group:name으로 작성 시 sonar.sources, sonar.tests를 지금과 같이 추가해주는 것이다. 하지만 방법을 찾지 못함. */
 dependencies {
     projectList.forEach { entry ->
-        aggregate(entry)
+        aggregate(entry.key)
     }
 }
 
@@ -55,13 +48,13 @@ sonar {
         val pathSonarTests = mutableListOf<String>()
         val pathSonarBinaries = mutableListOf<String>()
         val pathSonarTestBinaries = mutableListOf<String>()
-        projectPath.forEach { entry ->
-            pathSonarSources.add("$entry/$srcPath")
-            pathSonarBinaries.add("$entry/$classPath")
-            if( File("$entry/$testPath").isDirectory && File("$entry/$testPath").listFiles() != null )
-                pathSonarTests.add("$entry/$testPath")
-            if( File("$entry/$testClassPath").isDirectory && File("$entry/$testClassPath").listFiles() != null )
-                pathSonarTestBinaries.add("$entry/$testClassPath")
+        projectList.forEach { entry ->
+            pathSonarSources.add("${entry.value}/$srcPath")
+            pathSonarBinaries.add("${entry.value}/$classPath")
+            if( File("${entry.value}/$testPath").isDirectory && File("${entry.value}/$testPath").listFiles() != null )
+                pathSonarTests.add("${entry.value}/$testPath")
+            if( File("${entry.value}/$testClassPath").isDirectory && File("${entry.value}/$testClassPath").listFiles() != null )
+                pathSonarTestBinaries.add("${entry.value}/$testClassPath")
         }
         property("sonar.sources", pathSonarSources)
         property("sonar.tests", pathSonarTests)

@@ -1,9 +1,0 @@
-test:
-  stringTest: "test's stringTest"
-  intTest: 1234
-  nestedTest:
-    children: 123.456.789.10
-
-oneValue: oneValueTest
-twoValue: 123
-threeValue: true

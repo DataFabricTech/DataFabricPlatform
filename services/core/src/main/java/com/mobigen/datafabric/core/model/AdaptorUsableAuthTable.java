@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 import lombok.Getter;
 
 import java.sql.JDBCType;
@@ -15,7 +15,7 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class AdaptorUsableAuthTable {
-    public static SqlTable table = SqlTable.of("AdaptorUsableAuth");
-    public static SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
-    public static SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
+//    public static SqlTable table = SqlTable.of("AdaptorUsableAuth");
+//    public static SqlColumn adaptorIdCol = SqlColumn.of("adaptor_id", table, JDBCType.VARCHAR); // fk
+//    public static SqlColumn authTypeCol = SqlColumn.of("auth_type", table, JDBCType.VARCHAR);
 }
