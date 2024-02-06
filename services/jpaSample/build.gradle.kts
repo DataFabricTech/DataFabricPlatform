@@ -1,15 +1,20 @@
 plugins {
-    id("com.mobigen.java-library")
     id("com.mobigen.java-application")
+    id("com.mobigen.java-library")
 }
 
+group = "${group}.services"
+
 dependencies {
-//    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    // DTO Model Class
+    implementation("com.mobigen.datafabric.share:models")
+    implementation(project(":dataLayer"))
+
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
     implementation(Dependencies.Spring.BOOT)
     implementation(Dependencies.Spring.JPA)
     implementation(Dependencies.Spring.TEST)
 
-    implementation(project(":dataLayer"))
 
     // https://mvnrepository.com/artifact/com.h2database/h2
     testImplementation("com.h2database:h2:2.2.224")

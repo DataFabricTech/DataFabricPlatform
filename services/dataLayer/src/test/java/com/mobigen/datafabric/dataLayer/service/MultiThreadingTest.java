@@ -2,6 +2,7 @@ package com.mobigen.datafabric.dataLayer.service;
 
 import com.mobigen.datafabric.dataLayer.service.jpaService.StorageMetadataSchemaService;
 import dto.StorageMetadataSchema;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-public class multiThreadingTest {
+@Transactional
+public class MultiThreadingTest {
     @Autowired
     private StorageMetadataSchemaService storageMetadataSchemaService;
 

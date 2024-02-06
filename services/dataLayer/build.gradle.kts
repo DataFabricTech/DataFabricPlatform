@@ -5,6 +5,7 @@ plugins {
 group = "${group}.services"
 
 dependencies {
+    // DTO Model Class
     implementation("com.mobigen.datafabric.share:models")
 
     // openSearch
