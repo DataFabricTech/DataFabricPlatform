@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 
 import java.sql.JDBCType;
 
@@ -14,11 +14,11 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class DataModelUserComment {
-    public static SqlTable table = SqlTable.of( "data_user_comment" );
-    public static SqlColumn id = SqlColumn.of( "id", table, JDBCType.VARCHAR );
-    public static SqlColumn dataModelId = SqlColumn.of( "data_model_id", table, JDBCType.VARCHAR );
-    public static SqlColumn userId = SqlColumn.of( "user_id", table, JDBCType.VARCHAR );
-    public static SqlColumn rating = SqlColumn.of( "rating", table, JDBCType.VARCHAR );
-    public static SqlColumn comment = SqlColumn.of( "comment", table, JDBCType.VARCHAR );
-    public static SqlColumn time = SqlColumn.of( "time", table, JDBCType.TIMESTAMP );
+//    public static SqlTable table = SqlTable.of( "data_user_comment" );
+//    public static SqlColumn id = SqlColumn.of( "id", table, JDBCType.VARCHAR );
+//    public static SqlColumn dataModelId = SqlColumn.of( "data_model_id", table, JDBCType.VARCHAR );
+//    public static SqlColumn userId = SqlColumn.of( "user_id", table, JDBCType.VARCHAR );
+//    public static SqlColumn rating = SqlColumn.of( "rating", table, JDBCType.VARCHAR );
+//    public static SqlColumn comment = SqlColumn.of( "comment", table, JDBCType.VARCHAR );
+//    public static SqlColumn time = SqlColumn.of( "time", table, JDBCType.TIMESTAMP );
 }

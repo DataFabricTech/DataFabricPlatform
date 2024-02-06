@@ -1,9 +1,0 @@
-<aspectj>
-    <aspects>
-        <aspect name="com.mobigen.libs.grpc.aop.MethodMonitorAspect"/>
-        <weaver options="-verbose -showWeaveInfo">
-            <include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect"/>
-            <!--            <include within="com.mobigen.libs.grpc.*"/>-->
-        </weaver>
-    </aspects>
-</aspectj>

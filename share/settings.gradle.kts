@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "share" // the component name
 
 include("models")
+include("interfaces")

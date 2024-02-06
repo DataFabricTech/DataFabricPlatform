@@ -1,6 +1,5 @@
 package com.mobigen.datafabric.libs.rabbitmq;
 
-import com.rabbitmq.client.BuiltinExchangeType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -34,13 +33,13 @@ class ConfigurationTest {
                 .build();
         assertEquals( "localhost", c.getHost() );
         assertEquals( "hello", c.getQueueConfigs().get( 0 ).getExchangeName() );
-        assertEquals( BuiltinExchangeType.TOPIC, c.getQueueConfigs().get( 0 ).getExchangeType() );
+        assertEquals( ExchangeType.TOPIC, c.getQueueConfigs().get( 0 ).getExchangeType() );
         assertEquals( "r1", c.getQueueConfigs().get( 0 ).getRoutingKeys().get( 0 ) );
         assertEquals( "r2", c.getQueueConfigs().get( 0 ).getRoutingKeys().get( 1 ) );
         assertNull( c.getQueueConfigs().get( 0 ).getNumChannel(), "Channel Count Should Be Null" );
 
         assertEquals( "world", c.getQueueConfigs().get( 1 ).getExchangeName() );
-        assertEquals( BuiltinExchangeType.FANOUT, c.getQueueConfigs().get( 1 ).getExchangeType(), "exchangeType of second queue should be FANOUT" );
+        assertEquals( ExchangeType.FANOUT, c.getQueueConfigs().get( 1 ).getExchangeType(), "exchangeType of second queue should be FANOUT" );
         assertNull( c.getQueueConfigs().get( 1 ).getRoutingKeys(), "routingKeys should be null" );
         assertEquals( 2, c.getQueueConfigs().get( 1 ).getNumChannel(), "Channel Count Should Be 2" );
     }
