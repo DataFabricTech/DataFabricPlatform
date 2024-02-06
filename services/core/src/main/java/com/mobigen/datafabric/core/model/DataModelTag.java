@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 
 import java.sql.JDBCType;
 
@@ -14,7 +14,7 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class DataModelTag {
-    public static SqlTable table = SqlTable.of( "data_tag" );
-    public static SqlColumn id = SqlColumn.of( "id", table, JDBCType.VARCHAR );
-    public static SqlColumn tag = SqlColumn.of( "tag", table, JDBCType.VARCHAR );
+//    public static SqlTable table = SqlTable.of( "data_tag" );
+//    public static SqlColumn id = SqlColumn.of( "id", table, JDBCType.VARCHAR );
+//    public static SqlColumn tag = SqlColumn.of( "tag", table, JDBCType.VARCHAR );
 }

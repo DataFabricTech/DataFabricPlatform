@@ -22,8 +22,7 @@ rootProject.name = "services" // the component name
 
 // sub module
 include("core")
-//include("gateway") - golang
 include("dataLayer")
-include("springSample")
 include("extraction")
 include("jpaSample")
+//include("springSample")

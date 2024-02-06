@@ -32,6 +32,7 @@ object Dependencies {
     }
 
     object Spring {
+        const val CONFIG_PROC = "org.springframework.boot:spring-boot-configuration-processor:${Versions.SPRING_BOOT_VER}"
         const val BOOT = "org.springframework.boot:spring-boot:${Versions.SPRING_BOOT_VER}"
         const val BOOT_STARTER = "org.springframework.boot:spring-boot-starter:${Versions.SPRING_BOOT_VER}"
         const val STARTER_WEB = "org.springframework.boot:spring-boot-starter-web:${Versions.SPRING_BOOT_VER}"

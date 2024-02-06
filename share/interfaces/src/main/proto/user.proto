@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.mobigen.datafabric.share.interfaces";
+option java_outer_classname = "UserProto";
+
+// User 사용자 정보
+message User {
+  string id = 1;
+  string name = 2;
+  string nickname = 3;
+  string phone = 4;
+  string email = 5;
+//  DateTime createdAt = 6;
+//  DateTime updateAt = 7;
+//  DateTime deleteAt = 8;
+}

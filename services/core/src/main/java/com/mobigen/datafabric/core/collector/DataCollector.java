@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.core.collector;
 
-import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
+//import com.mobigen.datafabric.share.protobuf.StorageOuterClass;
 
 import java.util.List;
 import java.util.Map;
@@ -18,5 +18,5 @@ public interface DataCollector {
 
     void setPath(String path);
 
-    List<StorageOuterClass.StorageBrowseData> collect(String url, Map<String, Object> options, Properties properties, String driver);
+//    List<StorageOuterClass.StorageBrowseData> collect(String url, Map<String, Object> options, Properties properties, String driver);
 }

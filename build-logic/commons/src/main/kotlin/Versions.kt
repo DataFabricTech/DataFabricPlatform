@@ -10,7 +10,7 @@ object Versions {
     const val JUNIT_PLATFORM_LAUNCH = "1.10.1"
     const val MOCKITO_VER = "5.6.0"
 
-    const val SPRING_BOOT_VER = "3.1.4"
+    const val SPRING_BOOT_VER = "3.2.1"
 
     const val RABBITMQ_VER = "5.20.0"
 }

@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 import lombok.Getter;
 
 import java.sql.JDBCType;
@@ -15,11 +15,11 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class ConnInfoTable {
-    public static SqlTable table = SqlTable.of("ConnInfo");
-    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR); // fk
-    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    public static SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
-    public static SqlColumn value = SqlColumn.of("value", table, JDBCType.BLOB);
-    public static SqlColumn required = SqlColumn.of("required", table, JDBCType.BOOLEAN);
-    public static SqlColumn basic = SqlColumn.of("basic", table, JDBCType.BOOLEAN);
+//    public static SqlTable table = SqlTable.of("ConnInfo");
+//    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR); // fk
+//    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
+//    public static SqlColumn type = SqlColumn.of("type", table, JDBCType.VARCHAR);
+//    public static SqlColumn value = SqlColumn.of("value", table, JDBCType.BLOB);
+//    public static SqlColumn required = SqlColumn.of("required", table, JDBCType.BOOLEAN);
+//    public static SqlColumn basic = SqlColumn.of("basic", table, JDBCType.BOOLEAN);
 }

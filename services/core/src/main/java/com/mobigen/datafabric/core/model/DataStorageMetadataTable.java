@@ -1,7 +1,7 @@
 package com.mobigen.datafabric.core.model;
 
-import com.mobigen.sqlgen.model.SqlColumn;
-import com.mobigen.sqlgen.model.SqlTable;
+//import com.mobigen.sqlgen.model.SqlColumn;
+//import com.mobigen.sqlgen.model.SqlTable;
 import lombok.Getter;
 
 import java.sql.JDBCType;
@@ -15,9 +15,9 @@ import java.sql.JDBCType;
  * @since 0.0.1
  */
 public class DataStorageMetadataTable {
-    public static SqlTable table = SqlTable.of("DataStorageMetadata");
-    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
-    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
-    public static SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
-    public static SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
+//    public static SqlTable table = SqlTable.of("DataStorageMetadata");
+//    public static SqlColumn datastorageId = SqlColumn.of("datastorage_id", table, JDBCType.VARCHAR);
+//    public static SqlColumn key = SqlColumn.of("key", table, JDBCType.VARCHAR);
+//    public static SqlColumn value = SqlColumn.of("value", table, JDBCType.VARCHAR);
+//    public static SqlColumn isSystem = SqlColumn.of("is_system", table, JDBCType.BOOLEAN);
 }
