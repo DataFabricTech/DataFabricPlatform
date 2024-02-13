@@ -1,6 +1,6 @@
 package dto;
 
-import dto.enums.DataType;
+import dto.enums.FormatType;
 import dto.enums.StatusType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "model")
-public class Model implements generateKey{
+public class Model implements generateKey {
     @Id
     @Column(name = "model_id", nullable = false)
     private UUID modelId;
@@ -25,8 +25,8 @@ public class Model implements generateKey{
     private String name;
     private String description;
     @Enumerated(EnumType.STRING)
-    @Column(name = "data_type", nullable = false)
-    private DataType dataType;
+    @Column(name = "format_type", nullable = false)
+    private FormatType formatType;
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
     @Enumerated(EnumType.STRING)
@@ -50,9 +50,9 @@ public class Model implements generateKey{
     private LocalDateTime syncAt;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
-    private List<ModelMetadata> modelMetadatas = new ArrayList<>();
+    private List<ModelMetadata> modelMetadata = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
-    private List<ColumnMetadata> columnMetadatas = new ArrayList<>();
+    private List<ColumnMetadata> columnMetadata = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<DataSample> dataSamples = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
@@ -64,27 +64,27 @@ public class Model implements generateKey{
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
     private List<ModelRelation> modelRelations = new ArrayList<>();
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "model")
-    private List<DataTypeOption> dataTypeOptions = new ArrayList<>();
+    private List<DataFormatOption> dataFormatOptions = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "data_type", insertable = false,updatable = false)
-    private DataTypeSchema dataTypeSchema;
+    @JoinColumn(name = "format_type", insertable = false, updatable = false)
+    private DataFormatSchema dataFormatSchema;
     @ManyToOne
-    @JoinColumn(name = "storage_id", insertable = false,updatable = false)
+    @JoinColumn(name = "storage_id", insertable = false, updatable = false)
     private Storage storage;
 
     @Builder(toBuilder = true)
-    public Model(UUID modelId, String name, String description, DataType dataType, UUID storageId,
+    public Model(UUID modelId, String name, String description, FormatType formatType, UUID storageId,
                  StatusType status, LocalDateTime createdAt, UUID createdBy, LocalDateTime modifiedAt,
                  UUID modifiedBy, Boolean syncEnable, String syncTime, LocalDateTime syncAt,
-                 List<ModelMetadata> modelMetadatas, List<ColumnMetadata> columnMetadatas,
+                 List<ModelMetadata> modelMetadata, List<ColumnMetadata> columnMetadata,
                  List<DataSample> dataSamples, List<ModelRatingAndComment> modelRatingAndComments,
                  List<ModelTag> modelTags, List<ModelFeedback> modelFeedbacks,
-                 List<ModelRelation> modelRelations, List<DataTypeOption> dataTypeOptions) {
+                 List<ModelRelation> modelRelations, List<DataFormatOption> dataFormatOptions) {
         this.modelId = modelId;
         this.name = name;
         this.description = description;
-        this.dataType = dataType;
+        this.formatType = formatType;
         this.storageId = storageId;
         this.status = status;
         this.createdAt = createdAt;
@@ -94,14 +94,14 @@ public class Model implements generateKey{
         this.syncEnable = syncEnable;
         this.syncTime = syncTime;
         this.syncAt = syncAt;
-        this.modelMetadatas = modelMetadatas == null ? new ArrayList<>():modelMetadatas;
-        this.columnMetadatas = columnMetadatas == null ? new ArrayList<>():columnMetadatas;
-        this.dataSamples = dataSamples == null ? new ArrayList<>():dataSamples;
-        this.modelRatingAndComments = modelRatingAndComments == null ? new ArrayList<>():modelRatingAndComments;
-        this.modelTags = modelTags == null ? new ArrayList<>():modelTags;
-        this.modelFeedbacks = modelFeedbacks == null ? new ArrayList<>():modelFeedbacks;
-        this.modelRelations = modelRelations == null ? new ArrayList<>():modelRelations;
-        this.dataTypeOptions = dataTypeOptions == null ? new ArrayList<>():dataTypeOptions;
+        this.modelMetadata = modelMetadata == null ? new ArrayList<>() : modelMetadata;
+        this.columnMetadata = columnMetadata == null ? new ArrayList<>() : columnMetadata;
+        this.dataSamples = dataSamples == null ? new ArrayList<>() : dataSamples;
+        this.modelRatingAndComments = modelRatingAndComments == null ? new ArrayList<>() : modelRatingAndComments;
+        this.modelTags = modelTags == null ? new ArrayList<>() : modelTags;
+        this.modelFeedbacks = modelFeedbacks == null ? new ArrayList<>() : modelFeedbacks;
+        this.modelRelations = modelRelations == null ? new ArrayList<>() : modelRelations;
+        this.dataFormatOptions = dataFormatOptions == null ? new ArrayList<>() : dataFormatOptions;
     }
 
     @Override

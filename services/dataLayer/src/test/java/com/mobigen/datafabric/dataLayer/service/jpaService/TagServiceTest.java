@@ -1,5 +1,6 @@
 package com.mobigen.datafabric.dataLayer.service.jpaService;
 
+import com.mobigen.datafabric.dataLayer.service.SyncService;
 import dto.StorageMetadataSchema;
 import dto.Tag;
 import jakarta.transaction.Transactional;
@@ -20,7 +21,7 @@ class TagServiceTest {
     private TagService tagService;
 
     @Autowired
-    private JpaService<Tag, UUID> jpaService;
+    private SyncService<Tag, UUID> syncService;
 
     private UUID tagId;
 
@@ -108,31 +109,31 @@ class TagServiceTest {
     @DisplayName("save success test V2 - JpaService ")
     @Test
     void successSaveTestV2() {
-        assertDoesNotThrow(() -> jpaService.save(tag));
-        assertDoesNotThrow(() -> jpaService.findById(tagId));
+        assertDoesNotThrow(() -> syncService.save(tag));
+        assertDoesNotThrow(() -> syncService.findById(tagId));
     }
 
     @DisplayName("update success test - V2")
     @Test
     void successUpdateTestV2() {
-        assertThrows(NullPointerException.class, () -> jpaService.save(null));
+        assertThrows(NullPointerException.class, () -> syncService.save(null));
     }
 
     @DisplayName("update success test - V2")
     @Test
     void failUpdateTestV2() {
         assertDoesNotThrow(() -> {
-            jpaService.save(tag);
-            var found = jpaService.findById(tagId);
+            syncService.save(tag);
+            var found = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
                 var oldTag = found.get();
                 var updateTag = oldTag.toBuilder().tagValue("update value").build();
-                jpaService.update(updateTag);
+                syncService.update(updateTag);
             });
 
-            assertEquals(1, jpaService.findAll().size());
+            assertEquals(1, syncService.findAll().size());
 
-            var updated = jpaService.findById(tagId);
+            var updated = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
                 assertEquals("update value", updated.get().getTagValue());
             });
@@ -143,17 +144,17 @@ class TagServiceTest {
     @Test
     void whatUpdateNothingEntityTestV2() {
         assertDoesNotThrow(() -> {
-            jpaService.save(tag);
-            var found = jpaService.findById(tagId);
+            syncService.save(tag);
+            var found = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
                 var oldTag = found.get();
                 var updateTag = oldTag.toBuilder().build();
-                jpaService.update(updateTag);
+                syncService.update(updateTag);
             });
 
-            assertEquals(1, jpaService.findAll().size());
+            assertEquals(1, syncService.findAll().size());
 
-            var updated = jpaService.findById(tagId);
+            var updated = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
                 assertEquals(tagId, updated.get().getTagId());
                 assertEquals("test Tag Value", updated.get().getTagValue());

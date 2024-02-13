@@ -1,7 +1,7 @@
 package dto;
 
 import dto.compositeKeys.StorageAdaptorConnInfoSchemaKey;
-import dto.enums.ValueType;
+import dto.enums.DataType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,8 +27,8 @@ public class StorageAdaptorConnInfoSchema implements generateKey{
     @Column(name = "adaptor_conn_schema_value")
     private String adaptorConnSchemaValue;
     @Enumerated(EnumType.STRING)
-    @Column(name = "value_type")
-    private ValueType valueType;
+    @Column(name = "data_type")
+    private DataType dataType;
     @Column(name = "default_value")
     private String defaultValue;
     private String description;
@@ -39,13 +39,13 @@ public class StorageAdaptorConnInfoSchema implements generateKey{
     private StorageAdaptorSchema storageAdaptorSchema;
 
     @Builder(toBuilder = true)
-    public StorageAdaptorConnInfoSchema(UUID adaptorId, String type, String adaptorConnSchemaKey, String adaptorConnSchemaValue, ValueType valueType,
+    public StorageAdaptorConnInfoSchema(UUID adaptorId, String type, String adaptorConnSchemaKey, String adaptorConnSchemaValue, DataType dataType,
                                         String defaultValue, String description, boolean required) {
         this.adaptorId = adaptorId;
         this.type = type;
         this.adaptorConnSchemaKey = adaptorConnSchemaKey;
         this.adaptorConnSchemaValue = adaptorConnSchemaValue;
-        this.valueType = valueType;
+        this.dataType = dataType;
         this.defaultValue = defaultValue;
         this.description = description;
         this.required = required;

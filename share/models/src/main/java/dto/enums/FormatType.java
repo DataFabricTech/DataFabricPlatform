@@ -1,5 +1,5 @@
 package dto.enums;
 
 public enum FormatType {
-    TABLE, VIEW, INDEX
+    CSV, EXCEL, WORD, TABLE, VIEW, INDEX
 }

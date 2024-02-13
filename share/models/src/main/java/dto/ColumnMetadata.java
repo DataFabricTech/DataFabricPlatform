@@ -1,7 +1,7 @@
 package dto;
 
 import dto.compositeKeys.ColumnMetadataKey;
-import dto.enums.ColumnType;
+import dto.enums.DataType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,8 +27,8 @@ public class ColumnMetadata implements generateKey {
     private String name;
     private String description;
     @Enumerated(EnumType.STRING)
-    @Column(name = "column_type")
-    private ColumnType columnType;
+    @Column(name = "data_type")
+    private DataType dataType;
     private Long length;
     @Column(name = "is_pk")
     private boolean isPK;
@@ -44,13 +44,13 @@ public class ColumnMetadata implements generateKey {
     private Model model;
 
     @Builder(toBuilder = true)
-    public ColumnMetadata(UUID modelId, int num, String name, String description, ColumnType columnType, Long length,
+    public ColumnMetadata(UUID modelId, int num, String name, String description, DataType dataType, Long length,
                           boolean isPK, boolean isFK, boolean nullable, List<TableDataQuality> tableDataQualities) {
         this.modelId = modelId;
         this.num = num;
         this.name = name;
         this.description = description;
-        this.columnType = columnType;
+        this.dataType = dataType;
         this.length = length;
         this.isPK = isPK;
         this.isFK = isFK;

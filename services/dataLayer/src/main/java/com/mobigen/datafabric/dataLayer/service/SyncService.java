@@ -1,5 +1,6 @@
-package com.mobigen.datafabric.dataLayer.service.jpaService;
+package com.mobigen.datafabric.dataLayer.service;
 
+import com.mobigen.datafabric.dataLayer.service.jpaService.JpaServiceInterface;
 import dto.generateKey;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,10 +9,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-public class JpaService<T, ID> implements JpaServiceInterface<T, ID> {
+public class SyncService<T, ID> implements JpaServiceInterface<T, ID> {
     private final JpaRepository<T, ID> repository;
 
-    public JpaService(JpaRepository<T, ID> repository) {
+    public SyncService(JpaRepository<T, ID> repository) {
         this.repository = repository;
     }
 

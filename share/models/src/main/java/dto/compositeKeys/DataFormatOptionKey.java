@@ -6,30 +6,30 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-public class DataTypeOptionKey implements Serializable {
+public class DataFormatOptionKey implements Serializable {
     private UUID modelId;
-    private String dataTypeOptionKey;
+    private String dataFormatOptionKey;
 
-    public DataTypeOptionKey() {
+    public DataFormatOptionKey() {
     }
 
     @Builder
-    public DataTypeOptionKey(UUID modelId, String dataTypeOptionKey) {
+    public DataFormatOptionKey(UUID modelId, String dataFormatOptionKey) {
         this.modelId = modelId;
-        this.dataTypeOptionKey = dataTypeOptionKey;
+        this.dataFormatOptionKey = dataFormatOptionKey;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        var that = (DataTypeOptionKey) o;
+        var that = (DataFormatOptionKey) o;
         return Objects.equals(that.modelId, this.modelId) &&
-                Objects.equals(that.dataTypeOptionKey, this.dataTypeOptionKey);
+                Objects.equals(that.dataFormatOptionKey, this.dataFormatOptionKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.modelId, this.dataTypeOptionKey);
+        return Objects.hash(this.modelId, this.dataFormatOptionKey);
     }
 }

@@ -1,6 +1,6 @@
 package com.mobigen.datafabric.jpaSample.service;
 
-import com.mobigen.datafabric.dataLayer.service.jpaService.JpaService;
+import com.mobigen.datafabric.dataLayer.service.SyncService;
 import com.mobigen.datafabric.dataLayer.service.jpaService.TagService;
 import dto.Tag;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +13,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class JpaServiceTest {
+class SyncServiceTest {
     @Autowired
     private TagService tagService;
 
@@ -31,7 +31,7 @@ class JpaServiceTest {
     }
 
     @Autowired
-    private JpaService<Tag, UUID> tagService2;
+    private SyncService<Tag, UUID> tagService2;
 
     @DisplayName("Entity Name과 Key가 뭔지 알 경우에 사용할 수 있는 Test")
     @Test

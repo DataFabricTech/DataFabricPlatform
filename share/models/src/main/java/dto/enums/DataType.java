@@ -1,5 +1,5 @@
 package dto.enums;
 
 public enum DataType {
-    CSV, EXCEL, WORD, TABLE, VIEW, INDEX
+    NUMBER, TEXT, VARCHAR, INT4, STRING, BOOLEAN
 }

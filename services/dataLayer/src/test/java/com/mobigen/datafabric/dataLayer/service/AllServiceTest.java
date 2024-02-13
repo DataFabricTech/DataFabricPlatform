@@ -34,9 +34,9 @@ public class AllServiceTest {
     @Autowired
     private TagService tagService;
     @Autowired
-    private DataTypeSchemaService dataTypeSchemaService;
+    private DataFormatSchemaService dataFormatSchemaService;
     @Autowired
-    private DataTypeOptionSchemaService dataTypeOptionSchemaService;
+    private DataFormatOptionSchemaService dataFormatOptionSchemaService;
 
     @DisplayName("All insert test")
     @Test
@@ -65,7 +65,7 @@ public class AllServiceTest {
                 .type("example_storage_adaptor_conn_info_schema_type")
                 .adaptorConnSchemaKey("example_storage_adaptor_conn_info_schema_key")
                 .adaptorConnSchemaValue("example_storage_adaptor_conn_info_schema_value")
-                .valueType(ValueType.BOOLEAN)
+                .dataType(DataType.BOOLEAN)
                 .defaultValue("example_storage_adaptor_conn_info_schema_default_value")
                 .description("example_storage_adaptor_conn_info_schema_description")
                 .required(false)
@@ -122,16 +122,16 @@ public class AllServiceTest {
                 .isOption(false)
                 .build();
 
-        var dataTypeSchema = DataTypeSchema.builder()
-                .dataType(DataType.CSV)
+        var dataTypeSchema = DataFormatSchema.builder()
+                .formatType(FormatType.CSV)
                 .name("csv")
                 .build();
 
-        var dataTypeOptionSchema = DataTypeOptionSchema.builder()
-                .dataType(DataType.CSV)
-                .dataTypeOptionSchemaKey("example_data_type_option_schema")
-                .dataTypeOptionSchemaValue("example_data_type_option_value")
-                .valueType(ValueType.STRING)
+        var dataTypeOptionSchema = DataFormatOptionSchema.builder()
+                .formatType(FormatType.CSV)
+                .dataFormatOptionSchemaKey("example_data_format_option_schema")
+                .dataFormatOptionSchemaValue("example_data_format_option_value")
+                .dataType(DataType.STRING)
                 .defaultValue("example_data_type_option_default_value")
                 .description("example_data_type_option_schema_description")
                 .build();
@@ -140,7 +140,7 @@ public class AllServiceTest {
                 .modelId(modelId)
                 .name("example_model_name")
                 .description("example_model_description")
-                .dataType(DataType.CSV)
+                .formatType(FormatType.CSV)
                 .storageId(storageId)
                 .status(StatusType.SUCCESS)
                 .createdAt(createdAt)
@@ -152,17 +152,17 @@ public class AllServiceTest {
                 .syncAt(null)
                 .build();
 
-        var dataTypeOption = DataTypeOption.builder()
+        var dataTypeOption = DataFormatOption.builder()
                 .modelId(modelId)
-                .dataTypeOptionKey("example_data_type_option_key")
-                .dataTypeOptionValue("example_data_type_option_value")
+                .dataFormatOptionKey("example_data_format_option_key")
+                .dataFormatOptionValue("example_data_format_option_value")
                 .build();
 
         var childModel = Model.builder()
                 .modelId(childModelId)
                 .name("example_child_model_name")
                 .description("example_child_model_description")
-                .dataType(DataType.CSV)
+                .formatType(FormatType.CSV)
                 .storageId(storageId)
                 .status(StatusType.SUCCESS)
                 .createdAt(createdAt)
@@ -196,7 +196,7 @@ public class AllServiceTest {
                 .num(1)
                 .name("name")
                 .description("example_name_description")
-                .columnType(ColumnType.VARCHAR)
+                .dataType(DataType.VARCHAR)
                 .length(2147483647L)
                 .isPK(true)
                 .isFK(false)
@@ -208,7 +208,7 @@ public class AllServiceTest {
                 .num(2)
                 .name("address")
                 .description("example_address_description")
-                .columnType(ColumnType.VARCHAR)
+                .dataType(DataType.VARCHAR)
                 .length(2147483647L)
                 .isPK(false)
                 .isFK(false)
@@ -220,7 +220,7 @@ public class AllServiceTest {
                 .num(3)
                 .name("test")
                 .description("example_test_description")
-                .columnType(ColumnType.INT4)
+                .dataType(DataType.INT4)
                 .length(2147483647L)
                 .isPK(false)
                 .isFK(false)
@@ -289,21 +289,21 @@ public class AllServiceTest {
 
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            dataTypeSchemaService.save(dataTypeSchema);
-            dataTypeOptionSchemaService.save(dataTypeOptionSchema);
+            dataFormatSchemaService.save(dataTypeSchema);
+            dataFormatOptionSchemaService.save(dataTypeOptionSchema);
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             modelMetadataSchemaService.save(modelMetadataSchema);
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             model.getModelRelations().add(relation);
-            model.getModelMetadatas().add(modelMetadata);
+            model.getModelMetadata().add(modelMetadata);
 
             testColumnMetadata.getTableDataQualities().add(tableDataQuality);
 
-            model.getColumnMetadatas().add(nameColumnMetadata);
-            model.getColumnMetadatas().add(addressColumnMetadata);
-            model.getColumnMetadatas().add(testColumnMetadata);
+            model.getColumnMetadata().add(nameColumnMetadata);
+            model.getColumnMetadata().add(addressColumnMetadata);
+            model.getColumnMetadata().add(testColumnMetadata);
 
             model.getDataSamples().add(dataSample);
 
@@ -313,7 +313,7 @@ public class AllServiceTest {
 
             model.getModelFeedbacks().add(modelFeedback);
 
-            model.getDataTypeOptions().add(dataTypeOption);
+            model.getDataFormatOptions().add(dataTypeOption);
 
             modelService.save(model);
             modelService.save(childModel);

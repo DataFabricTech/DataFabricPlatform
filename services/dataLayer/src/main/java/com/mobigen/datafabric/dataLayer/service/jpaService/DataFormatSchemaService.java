@@ -1,14 +1,15 @@
 package com.mobigen.datafabric.dataLayer.service.jpaService;
 
 import com.mobigen.datafabric.dataLayer.service.SyncService;
-import dto.ModelRelation;
-import dto.compositeKeys.ModelRelationKey;
+import dto.DataFormatSchema;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
-public class ModelRelationService extends SyncService<ModelRelation, ModelRelationKey> {
-    public ModelRelationService(JpaRepository<ModelRelation, ModelRelationKey> repository) {
+public class DataFormatSchemaService extends SyncService<DataFormatSchema, UUID> {
+    public DataFormatSchemaService(JpaRepository<DataFormatSchema, UUID> repository) {
         super(repository);
     }
 }

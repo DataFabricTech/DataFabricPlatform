@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
 @EntityScan("dto")
-public class dataLayerApplicaiton {
+public class dataLayerApplication {
     public static void main(String[] args) {
-        SpringApplication.run(dataLayerApplicaiton.class, args);
+        SpringApplication.run(dataLayerApplication.class, args);
     }
 }
