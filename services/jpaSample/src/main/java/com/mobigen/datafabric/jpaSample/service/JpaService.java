@@ -10,7 +10,7 @@ public class JpaService {
     @Autowired
     private TagService tagService;
 
-    void saveTag(Tag tag) {
+    public void saveTag(Tag tag) {
         tagService.save(tag);
     }
 }
