@@ -15,6 +15,7 @@ object Dependencies {
     }
 
     object GRPC {
+        const val SERVER    = "net.devh:grpc-server-spring-boot-starter:${Versions.GRPC_SPRING_VER}"
         const val API       = "io.grpc:grpc-api:${Versions.GRPC_VER}"
         const val STUB      = "io.grpc:grpc-stub:${Versions.GRPC_VER}"
         const val PROTOBUF  = "io.grpc:grpc-protobuf:${Versions.GRPC_VER}"

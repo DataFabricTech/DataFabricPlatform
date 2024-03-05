@@ -1,5 +1,9 @@
 package dto.enums;
 
 public enum StatusType {
-    SUCCESS, FAIL
+    CONNECTED,
+    DISCONNECTED,
+    ERROR,
+    SYNC,
+    INIT
 }

@@ -3,6 +3,7 @@ package com.mobigen.datafabric.dataLayer.service;
 import com.mobigen.datafabric.dataLayer.service.jpaService.JpaServiceInterface;
 import dto.generateKey;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -31,8 +32,9 @@ public class SyncService<T, ID> implements JpaServiceInterface<T, ID> {
     }
 
     @Override
-    public List<T> findAll() throws DataAccessException {
-        return repository.findAll();
+    public List<T> findAll(Pageable pageable) throws DataAccessException {
+        return pageable == null ? repository.findAll() : repository.findAll(pageable).getContent();
+
     }
 
     @Override

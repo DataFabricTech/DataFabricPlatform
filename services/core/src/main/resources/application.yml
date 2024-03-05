@@ -1,4 +1,27 @@
-data-layer:
-  host: 192.168.107.28
-  port: 46262
-  test: false
+logging:
+  level:
+    root: "info"
+    com:
+      mobigen:
+        ids: "info"
+
+spring:
+  application:
+    name: jpa-agent
+  profiles:
+    active: test
+  rabbitmq:
+    host: ${MQ_URL}
+    port: ${MQ_PORT}
+    queuename: ${MQ_QUEUE_NAME}
+    queueId: ${MQ_QUEUE_ID}
+  datasource:
+    url: jdbc:postgresql://192.168.107.28:14632/jpatest
+    username: testUser
+    password: testUser
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: none

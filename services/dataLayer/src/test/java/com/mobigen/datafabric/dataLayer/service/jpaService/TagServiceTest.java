@@ -75,7 +75,7 @@ class TagServiceTest {
                 tagService.update(updateTag);
             });
 
-            assertEquals(1, tagService.findAll().size());
+            assertEquals(1, tagService.findAll(null).size());
 
             var updated = tagService.findById(tagId);
             assertDoesNotThrow(() -> {
@@ -96,7 +96,7 @@ class TagServiceTest {
                 tagService.update(updateTag);
             });
 
-            assertEquals(1, tagService.findAll().size());
+            assertEquals(1, tagService.findAll(null).size());
 
             var updated = tagService.findById(tagId);
             assertDoesNotThrow(() -> {
@@ -131,7 +131,7 @@ class TagServiceTest {
                 syncService.update(updateTag);
             });
 
-            assertEquals(1, syncService.findAll().size());
+            assertEquals(1, syncService.findAll(null).size());
 
             var updated = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
@@ -152,7 +152,7 @@ class TagServiceTest {
                 syncService.update(updateTag);
             });
 
-            assertEquals(1, syncService.findAll().size());
+            assertEquals(1, syncService.findAll(null).size());
 
             var updated = syncService.findById(tagId);
             assertDoesNotThrow(() -> {
@@ -167,7 +167,7 @@ class TagServiceTest {
     void findByIdTest() {
         assertDoesNotThrow(() -> {
             tagService.save(tag);
-            assertEquals(1, tagService.findAll().size());
+            assertEquals(1, tagService.findAll(null).size());
             assertEquals(tagValue, tagService.findById(tagId).get().getTagValue());
         });
     }
@@ -199,7 +199,7 @@ class TagServiceTest {
     @DisplayName("find all entity success test")
     @Test
     void findAllEmptyTest() {
-        assertDoesNotThrow(() -> assertEquals(0, tagService.findAll().size()));
+        assertDoesNotThrow(() -> assertEquals(0, tagService.findAll(null).size()));
     }
 
     @DisplayName("delete by id success test")

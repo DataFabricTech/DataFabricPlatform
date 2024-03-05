@@ -25,7 +25,7 @@ public class Configuration {
     List<QueueConfig> queueConfigs;
     @Getter
     @Builder
-    static class QueueConfig {
+    public static class QueueConfig {
         Boolean isPublisher;            // 이 channel 의 역할
         Integer id;                     // Producer 는 필요에 따라 Channel 직접 사용(getChannel)을 위해 ID 설정
         // Channel 과 Queue 의 설정

@@ -5,6 +5,9 @@ object Versions {
 
     const val PROTOC_VER = "3.24.3"
     const val GRPC_VER = "1.56.1"
+    const val GRPC_SPRING_VER = "2.15.0.RELEASE"
+
+
 
     const val JUNIT_VER = "5.9.3"
     const val JUNIT_PLATFORM_LAUNCH = "1.10.1"

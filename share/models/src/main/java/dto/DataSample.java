@@ -23,6 +23,7 @@ public class DataSample implements generateKey{
     @Id
     @Column(name = "format_type")
     private FormatType formatType;
+    @Column(name = "file_path")
     private String filePath;
 
     @ManyToOne

@@ -27,9 +27,9 @@ public class StorageAdaptorSchema implements generateKey{
     private byte[] logo;
     private boolean enable;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema", fetch = FetchType.LAZY)
     private List<Storage> storage = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storageAdaptorSchema", fetch = FetchType.EAGER)
     private List<StorageAdaptorConnInfoSchema> storageAdaptorConnInfoSchemas = new ArrayList<>();
 
     @Builder(toBuilder = true)

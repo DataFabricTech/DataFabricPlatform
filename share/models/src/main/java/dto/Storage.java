@@ -55,16 +55,16 @@ public class Storage implements generateKey{
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage")
     private List<Model> models = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage", fetch = FetchType.EAGER)
     private List<DataAutoAdd> dataAutoAdds = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage")
-    private List<StorageMetadata> storageMetadatas = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage", fetch = FetchType.EAGER)
+    private List<StorageMetadata> storageMetadata = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage", fetch = FetchType.EAGER)
     private List<StorageTag> storageTags = new ArrayList<>();
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage")
-    private List<StorageConnInfo> storageConnInfo = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "storage", fetch = FetchType.EAGER)
+    private List<StorageConnInfo> storageConnInfos = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adaptor_id", insertable = false,updatable = false)
     private StorageAdaptorSchema storageAdaptorSchema;
 
@@ -73,8 +73,8 @@ public class Storage implements generateKey{
                    UUID modifiedBy, LocalDateTime modifiedAt, StatusType status, LocalDateTime lastSyncAt,
                    LocalDateTime lastMonitoringAt, boolean syncEnable, String syncTime, boolean monitoringEnable,
                    int monitoringPeriod, int monitoringFailThreshold, List<Model> models,
-                   List<DataAutoAdd> dataAutoAdds, List<StorageMetadata> storageMetadatas, List<StorageTag> storageTags,
-                   List<StorageConnInfo> storageConnInfo) {
+                   List<DataAutoAdd> dataAutoAdds, List<StorageMetadata> storageMetadata, List<StorageTag> storageTags,
+                   List<StorageConnInfo> storageConnInfos) {
         this.storageId = storageId;
         this.adaptorId = adaptorId;
         this.name = name;
@@ -93,9 +93,9 @@ public class Storage implements generateKey{
         this.monitoringFailThreshold = monitoringFailThreshold;
         this.models = models == null ? new ArrayList<>(): models;
         this.dataAutoAdds = dataAutoAdds== null ? new ArrayList<>():dataAutoAdds;
-        this.storageMetadatas = storageMetadatas== null ? new ArrayList<>():storageMetadatas;
+        this.storageMetadata = storageMetadata == null ? new ArrayList<>(): storageMetadata;
         this.storageTags = storageTags== null ? new ArrayList<>():storageTags;
-        this.storageConnInfo = storageConnInfo== null ? new ArrayList<>():storageConnInfo;
+        this.storageConnInfos = storageConnInfos == null ? new ArrayList<>(): storageConnInfos;
     }
 
     @Override

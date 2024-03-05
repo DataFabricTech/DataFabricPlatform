@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.mobigen.datafabric.share.interfaces";
+option java_outer_classname = "DataModelProto";
+
+import "google/protobuf/empty.proto";
+
+import "utilities.proto";
+
+service ModelService {
+  rpc AddModel(Model) returns (CommonResponse);
+  rpc GetModel(ReqId) returns (ResGetModel);
+  rpc GetModels(ReqGetModels) returns (ResGetModels);
+  rpc GetAllModels(ReqGetModels) returns (ResGetModels);
+  rpc UpdateModel(Model) returns (CommonResponse);
+  rpc DeleteModel(ReqId) returns (CommonResponse);
+
+  // todo line
+  rpc ExtractModelMetadata(ReqId) returns (CommonResponse); // Model의 Metadata 추출
+  // rpc DownloadRequest(ReqId) returns (CommonResponse); // download 요청
+  // rpc Overview(google.protobuf.Empty) returns (ResModelOverview);
+}
+
+// Model의 기본 정보를 위한 데이터
+message Model {
+  string model_id = 1;
+  string name = 2;
+  string desc = 3;
+  FormatType format_type = 4;
+  string storage_id = 5;
+  Status status = 6;
+  string created_by = 7;
+  DateTime created_at = 8;
+  string modified_by = 9;
+  DateTime modified_at = 10;
+  bool sync_enable = 11;
+  string sync_time = 12;
+  DateTime sync_at = 13;
+
+  repeated DataFormatOption data_format_option = 14;
+  repeated ModelMetadata model_meta_data = 15;
+  repeated ColumnMetadata column_meta_data = 16;
+  repeated DataSample data_sample = 17;
+  repeated ModelRatingAndComment model_rating_and_comment = 18;
+  repeated ModelTag model_tag = 19;
+  repeated ModelFeedback model_feedback = 20;
+  repeated Relation relation = 21;
+}
+
+// 데이터의 포맷 정보
+message DataFormatOption {
+  string data_format_option_key = 1;
+  string data_format_option_value = 2;
+}
+
+// 데이터의 메타 데이터
+message ModelMetadata {
+  string metadata_id = 1;
+  string metadata_value = 2;
+}
+
+// Table의 메타 데이터
+message ColumnMetadata {
+  int32 num = 1;
+  string name = 2;
+  string description = 3;
+  DataType data_type = 4;
+  int64 length = 5;
+  bool is_pk = 6;
+  bool is_fk = 7;
+  bool nullable = 8;
+  repeated TableDataQuality table_data_quailty = 9;
+}
+
+// Table의 데이터 품질 정보
+message TableDataQuality {
+  int32 num = 1;
+  QualityType quality_type = 2;
+  int32 quality_value = 3;
+}
+
+// Data의 Sample Data의 위치
+message DataSample {
+  FormatType format_type = 1;
+  string file_path = 2;
+}
+
+// Model에 대한 점수와 코멘트
+message ModelRatingAndComment{
+  string user_id = 1;
+  int32 rating = 2;
+  string comments = 3;
+  DateTime created_at = 4;
+}
+
+// Model의 tag
+message ModelTag {
+  string tag_id = 1;
+}
+
+// Model에 대한 피드백(건의 사항 등)
+message ModelFeedback {
+  string feed_id = 1;
+  string parent_feed_id = 2;
+  string user_id = 3;
+  DateTime time = 4;
+  string title = 5;
+  string body = 6;
+  bool is_resolved = 7;
+  string resolved_user_id = 8;
+  DateTime resolved_time = 9;
+}
+
+// Model간의 연결 관계
+message Relation {
+  string child_id = 1;
+}
+
+// Model 검색할 때 사용되는 filter들
+message ReqGetModels {
+  oneof ModelType {
+    string name = 1;
+    FormatType format_type = 2;
+    string storage_id = 3;
+    Status status = 4;
+    string created_by = 5;
+    string modified_by = 7;
+    bool sync_enable = 9;
+    string model_meta_data_value = 10;
+    string column_meta_data_name = 11;
+    string tag_value = 12;
+    string relation_parent_id = 13;
+    string relation_child_id = 14;
+    DateRange created_at_between = 15;
+    DateRange modified_at_between = 16;
+    DateTime created_at_before = 17;
+    DateTime modified_at_before = 18;
+    DateTime created_at_after = 19;
+    DateTime modified_at_after= 20;
+  }
+  Pageable pageable = 21;
+  message DateRange {
+    DateTime from = 1;
+    DateTime to = 2;
+  }
+}
+
+message ResGetModel {
+  string code = 1;
+  string err_msg = 2;
+  Model model = 3;
+}
+
+message ResGetModels {
+  string code = 1;
+  string err_msg = 2;
+  Data data = 3;
+  message Data {
+    Pageable pageable = 1;
+    repeated Model model = 2;
+  }
+}

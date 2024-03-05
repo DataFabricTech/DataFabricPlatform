@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.mobigen.datafabric.share.interfaces";
+option java_outer_classname = "MetadataProto";
+
+import "utilities.proto";
+import "model.proto";
+
+/*
+- 저장소 혹은 모델의 메타 데이터에 대한 Schema 관리 목적의 서비스
+- 제공 대상 : 일반 사용자와 관리자
+ */
+service MetadataSchemaService {
+  rpc AddStorageMetadataSchema(MetadataSchema) returns (CommonResponse); // Storage의 Metadata Schema 등록
+  rpc AddModelMetadataSchema(MetadataSchema) returns (CommonResponse); // Model의 Metadata Schema 등록
+  rpc AddStorageMetadataSchemas(ReqMetadataSchemas) returns (CommonResponse); // Storage의 Metadata Schema 여러개 등록
+  rpc AddModelMetadataSchemas(ReqMetadataSchemas) returns (CommonResponse); // Model의 Metadata Schema 여러개 등록
+  rpc GetStorageMetadataSchemas(ReqName) returns (ResGetMetas); // Storage의 Metadata 검색
+  rpc GetModelMetadataSchemas(ReqName) returns (ResGetMetas); // Model의 Meatadata 검색
+  rpc UpdateStorageMetadataSchema(MetadataSchema) returns (CommonResponse); // Storage의 Metadata Schema 업데이트
+  rpc UpdateModelMetadataSchema(MetadataSchema) returns (CommonResponse); // Model의 Metadata Schema 업데이트
+  rpc DeleteStorageMetadataSchema(ReqId) returns (CommonResponse); // Storage의 Metadata Schema 삭제
+  rpc DeleteModelMetadataSchema(ReqId) returns (CommonResponse); // Model의 Metadata Schema 삭제
+}
+
+// 저장소의 메타 데이터 Schema에 대한 정보
+message MetadataSchema{
+  string metadata_id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message ReqMetadataSchemas{
+  repeated MetadataSchema metadata_schema = 1;
+}
+
+message ReqName{
+    string name = 1;
+    Pageable pageable = 2;
+}
+
+message ResGetMetas {
+  string code = 1;
+  string err_msg = 2;
+  Data data = 3;
+  message Data {
+    repeated MetadataSchema metadata_schema = 1;
+  }
+}

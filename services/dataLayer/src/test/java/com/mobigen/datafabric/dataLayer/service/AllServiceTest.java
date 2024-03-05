@@ -80,7 +80,7 @@ public class AllServiceTest {
                 .createdBy(userId)
                 .modifiedAt(createdAt)
                 .modifiedBy(userId)
-                .status(StatusType.SUCCESS)
+                .status(StatusType.CONNECTED)
                 .lastSyncAt(null)
                 .lastMonitoringAt(null)
                 .syncEnable(true)
@@ -142,7 +142,7 @@ public class AllServiceTest {
                 .description("example_model_description")
                 .formatType(FormatType.CSV)
                 .storageId(storageId)
-                .status(StatusType.SUCCESS)
+                .status(StatusType.CONNECTED)
                 .createdAt(createdAt)
                 .createdBy(userId)
                 .modifiedAt(null)
@@ -164,7 +164,7 @@ public class AllServiceTest {
                 .description("example_child_model_description")
                 .formatType(FormatType.CSV)
                 .storageId(storageId)
-                .status(StatusType.SUCCESS)
+                .status(StatusType.CONNECTED)
                 .createdAt(createdAt)
                 .createdBy(userId)
                 .modifiedAt(null)
@@ -279,11 +279,11 @@ public class AllServiceTest {
             tagService.save(tag);
             // --
             storage.getDataAutoAdds().add(dataAutoAdd);
-            storage.getStorageMetadatas().add(storageMetadata);
+            storage.getStorageMetadata().add(storageMetadata);
 
             storage.getStorageTags().add(storageTag);
 
-            storage.getStorageConnInfo().add(storageConnInfo);
+            storage.getStorageConnInfos().add(storageConnInfo);
 
             storageService.save(storage);
 
@@ -338,7 +338,7 @@ public class AllServiceTest {
                     .createdBy(userId)
                     .modifiedAt(createdAt)
                     .modifiedBy(userId)
-                    .status(StatusType.SUCCESS)
+                    .status(StatusType.CONNECTED)
                     .lastSyncAt(null)
                     .lastMonitoringAt(null)
                     .syncEnable(true)

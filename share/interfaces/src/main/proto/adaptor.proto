@@ -5,61 +5,143 @@ option java_package = "com.mobigen.datafabric.share.interfaces";
 option java_outer_classname = "AdapterProto";
 
 import "google/protobuf/empty.proto";
-import "storage-common.proto";
+import "utilities.proto";
+import "storage.proto";
 
-// StorageType Management :  지원하는 저장소 종류 관리를 위한 서비스( 제공 대상 : 시스템 관리자 )
-
-// AdaptorService   :  저장소 유형 정보 제공과 어댑터 관리를 위한 서비스( 제공 대상 : 일반 사용자와 관리자 )
+/*
+- 저장소 유형 정보의 제공과 어탭터 관리 목적의 서비스
+- 제공 대상 : 일반 사용자와 관리자
+ */
 service AdaptorService {
-  // GET /storage/v1/storage-type
-  rpc GetStorageType(google.protobuf.Empty) returns (ResSupportedStorageType) {}
-  // GET /storage/v1/adaptors?storageType=xxx
-  rpc GetAdaptors(ReqAdaptors) returns (ResAdaptors) {}
+  rpc AddAdaptor(StorageAdaptorSchema) returns (CommonResponse);
+  rpc GetAdaptor(ReqId) returns (ResGetAdaptor);
+  rpc GetAdaptors(ReqGetAdaptors) returns (ResGetAdaptors);
+  rpc GetAllAdaptors(ReqGetAdaptors) returns (ResGetAdaptors);
+  rpc UpdateAdaptor(StorageAdaptorSchema) returns (CommonResponse);
+  rpc DeleteAdaptor(ReqId) returns (CommonResponse);
+
+  // todo line
+  rpc Overview(google.protobuf.Empty) returns (ResAdaptorOverview);
 }
 
-// SupportedStorageType    : 시스템에서 지원하는 저장소 유형과 저장소 유형 별 설정 정보
-message SupportedStorageType {
-  string name = 1;                              // 기본 정보(이름, 아이콘, 기타 등등)
-  bytes icon = 2;
-  repeated InputField connSchema = 3;          // 최소한(필수)으로 필요한 연결 설정 정보 리스트 ( HOST, PORT, DBNAME 등 )
-  repeated AuthSchema authSchema = 4;          // 지원하는 인증 리스트
-  // SSL
+// 시스템에서 지원하는 저장소 유형과 저장소 유형 별 설정 정보
+message StorageAdaptorSchema {
+  string adaptor_id = 1;
+  string name = 2;
+  AdaptorType type = 3; // 어뎁터의 유형
+  bytes logo = 4; // 어뎁터의 로고
+  bool enable = 5; // 어뎁터의 사용 유무
+  repeated StorageAdaptorConnInfoSchema storage_adaptor_conn_info_schema = 6;
 }
 
-// Adaptor 저장소 연결용 JDBC 드라이버
-message Adaptor {
-  string id = 1;                                  // 아이디
-  string name = 2;                                // 이름
-  string storageType = 3;                         // 저장소 유형 이름
-  string version = 4;                             // 버전
-  string path = 5;                                // JDBC 드라이버 경로
-  string class = 6;                               // Class 이름
-  repeated string supportedURL = 7;               // 연결에 사용되는 URL 리스트
-  string selectURL = 8;                           // 사용자가 선택(편집)한 URL
-  repeated InputField basicOptions = 9;           // 저장소 유형에 따라 요구되는 필수 정보와 + 어댑터(등록자)가 설정한 요구 설정
-//  repeated AuthSchema authOptions = 10;
-//  AuthSchema selectAuth = 10;
-  repeated InputField additionalOptions = 10;     // 저장소 유형에서 요구하는 입력 정보 + 어댑터에서 요구하는 입력 정보
+// 연결 설정에 필요한 정보 (HOST, PORT, DBNAME 등)
+message StorageAdaptorConnInfoSchema {
+  string type = 1; // id / pw / 인증서
+  string adaptor_conn_schema_key = 2; //  Host / Port
+  string adaptor_conn_schema_value = 3;
+  DataType data_type = 4; // Data의 형태 (String, Bool, ...)
+  string default_value = 5; // 초기 값
+  string desc = 6;
+  bool required = 7; // 필수 여부
 }
 
-message ResSupportedStorageType{
+// 어뎁터의 타입
+enum AdaptorType {
+  MINIO = 0;
+  POSTGRES = 1;
+  MARIADB = 2;
+  // ...
+}
+
+message ResGetAdaptor {
   string code = 1;
-  string errMsg = 2;
-  message Data {
-    repeated SupportedStorageType supportedStorageType = 1;
+  string err_msg = 2;
+  StorageAdaptorSchema storage_adaptor_schema = 3;
+}
+
+message ReqGetAdaptors {
+  oneof StorageAdaptorSchemaType {
+    string name = 1;
+    AdaptorType adaptor_type = 2;
+    bool enable = 3;
   }
-  Data data = 3;
+  Pageable pageable = 4;
 }
 
-message ReqAdaptors {
-  string storageType = 1;
-}
-
-message ResAdaptors {
+message ResGetAdaptors {
   string code = 1;
-  string errMsg = 2;
-  message Data {
-    repeated Adaptor adaptors = 1;
-  }
+  string err_msg = 2;
   Data data = 3;
+  message Data {
+    Pageable pageable = 1;
+    repeated StorageAdaptorSchema storage_adaptor_schema = 2;
+  }
+}
+
+// Adaptor 시스템의 전체적인 정보 전달
+// todo code review check
+message ResAdaptorOverview {
+  string code = 1;
+  string err_msg = 2;
+  Data data = 3;
+  message Data {
+    repeated AdaptorTypeCount adaptor_type_count = 1;
+    repeated AdaptorStatistics adaptor_statistics = 2;
+    repeated AdaptorStorageCount adaptor_storage_count = 3;
+    repeated AdaptorHistory adaptor_history = 4;
+    repeated AdaptorEvent adaptor_event = 5;
+  }
+}
+
+// 어뎁터의 타입 별 개수
+message AdaptorTypeCount {
+  string adaptor_type = 1;
+  int32 count = 2;
+}
+
+// 사용자 이벤트(검색, 조회, 데이터 조회)에 따른 어뎁터의 통계 정보
+// 단위(5분, 1시간, 6시간, 1일), 누적치 데이터 정보 모두 사용할 수 있도록 long(64bit)을 활용하여 데이터 정의
+message AdaptorStatistics {
+  string adaptor_id = 1;
+  string time = 2;
+  string name = 3;
+
+  int64 access = 4;
+  int64 total_data = 5;
+  int64 registered_data = 6;
+  double avg_response_time = 7;
+}
+
+// 어뎁터 별 저장소 수
+message AdaptorStorageCount {
+  string adaptor_id = 1;
+  int32 storage_count = 2;
+}
+
+// 어뎁터 정보 변경 기록
+message AdaptorHistory {
+  DateTime time = 1;
+  string adaptor_id = 2;
+  string modifiedBy = 3;
+  repeated AdaptorModifiedInfo modified_infos = 4;
+}
+
+message AdaptorModifiedInfo {
+  enum Cmd {
+    CREATE = 0;
+    UPDATE = 1;
+    DELETE = 2;
+  }
+  Cmd cmd = 1;
+  string field_name = 2;
+  string old_value = 3;
+  string new_value = 4;
+}
+
+message AdaptorEvent {
+  DateTime time = 1;
+  string id = 2;
+  string name = 3;
+  Status event_type = 4;
+  string description = 5;
 }

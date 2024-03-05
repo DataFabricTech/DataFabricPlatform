@@ -7,9 +7,9 @@ option java_outer_classname = "UtilitiesProto";
 // Page 페이지, 데이터 개수 정보
 message Page {
   int32 size = 1;                // 페이지당 데이터 수
-  int32 totalSize = 2;           // 전체 데이터 수
-  int32 selectPage = 3;          // 선택 페이지
-  int32 totalPage = 4;           // 전체 페이지 수
+  int32 total_size = 2;           // 전체 데이터 수
+  int32 select_page = 3;          // 선택 페이지
+  int32 total_page = 4;           // 전체 페이지 수
 }
 
 enum Direction {
@@ -38,20 +38,22 @@ message Meta {
 
 // DateTime 시간 데이터
 message DateTime {
-  string strDateTime = 1;        // 문자형 시간 정보 yyyy-MM-dd HH:mm:ss.SSS ( Asia/Seoul )
-  int64 utcTime = 2;             // UTC EPOCH MilliSecond
+  oneof DateTime{
+    string str_date_time = 1;        // 문자형 시간 정보 yyyy-MM-dd HH:mm:ss.SSS ( Asia/Seoul )
+    int64 utc_time = 2;             // UTC EPOCH MilliSecond
+  }
 }
 
 // DateTimeRange 시간 범위
 message DateTimeRange {
-  DateTime startDateTime = 1;    // 시작 시간
-  DateTime endDateTime = 2;      // 종료 시간
+  DateTime start_date_time = 1;    // 시작 시간
+  DateTime end_date_time = 2;      // 종료 시간
 }
 
 // 데이터가 없는 응답 메시지
 message CommonResponse {
   string code = 1;
-  string errMsg = 2;
+  string err_msg = 2;
 }
 
 // Data, Storage 상태
@@ -67,6 +69,11 @@ message ReqId {
   string id = 1;
 }
 
+message Tag {
+  string tag_id = 1;
+  string tag_value = 2;
+}
+
 enum DataType {
   STRING = 0;
   INT32 = 1;
@@ -76,4 +83,30 @@ enum DataType {
   FLOAT = 5;
   DOUBLE = 6;
   DATETIME = 7;
+  VARCHAR = 8;
+  TEXT = 9;
+  NUMBER = 10;
+}
+
+// file의 확장자 타입
+enum FormatType {
+  CSV = 0;
+  EXCEL = 1;
+  WORD = 2;
+  TABLE = 3;
+  VIEW = 4;
+  INDEX = 5;
+  TXT = 6;
+  HWP = 7;
+  DB = 8;
+  DIRECTORY = 9;
+  FILE = 10;
+  // ...
+}
+
+enum QualityType {
+  MIN = 0;
+  MAX = 1;
+  SUM = 2;
+  // ...
 }
