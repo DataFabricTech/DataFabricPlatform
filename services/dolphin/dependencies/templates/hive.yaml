@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hive
+  name: hive
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: hive
+  template:
+    metadata:
+      labels:
+        app: hive
+    spec:
+      containers:
+        - name: hive
+          image: {{.Values.image.hive.repo}}:{{.Values.image.hive.tag}}
+{{/*          command: ["/bin/sh", "-ec", "sleep 1000"]*/}}
+          env:
+            - name: SERVICE_NAME
+              value: metastore
+            - name: SERVICE_OPTS
+              value: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver \
+              -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres-svc:5432/metastore_db?createDatabaseIfNotExist=true \
+              -Djavax.jdo.option.ConnectionUserName=postgres \
+              -Djavax.jdo.option.ConnectionPassword=admin123 \
+              -Dfs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem \
+              -Dfs.s3a.endpoint=http://minio-svc:9000 \
+              -Dfs.s3a.access.key=admin \
+              -Dfs.s3a.secret.key=admin123 \
+              -Dfs.s3a.path.style.access=true"
+            - name: DB_DRIVER
+              value: postgres
+            - name: SCHEMA_COMMAND
+              value: upgradeSchema
+            - name: HIVE_AUX_JARS_PATH
+              value: file:///mount/libs/*
+{{/*            - name: DB_URL*/}}
+{{/*              value: "jdbc:postgresql://postgresql-svc:5432/metastore_db?createDatabaseIfNotExist=true"*/}}
+{{/*            - name: DB_USER*/}}
+{{/*              value: postgres*/}}
+{{/*            - name: DB_PASSWORD*/}}
+{{/*              valueFrom:*/}}
+{{/*                secretKeyRef:*/}}
+{{/*                  key: postgresql*/}}
+{{/*                  optional: false*/}}
+{{/*                  name: mysecrets*/}}
+{{/*            - name: MINIO_ENDPOINT*/}}
+{{/*              value: http://minio-svc:9000*/}}
+{{/*            - name: MINIO_USER*/}}
+{{/*              value: admin*/}}
+{{/*            - name: MINIO_PASSWORD*/}}
+{{/*              valueFrom:*/}}
+{{/*                secretKeyRef:*/}}
+{{/*                  key: minio*/}}
+{{/*                  optional: false*/}}
+{{/*                  name: mysecrets*/}}
+          ports:
+            - containerPort: 9083
+          volumeMounts:
+            - mountPath: /mount/libs/
+              name: ext-volume
+              subPath: libs/
+{{/*            - mountPath: /opt/hive/conf/hive-site.xml*/}}
+{{/*              name: hive-cm*/}}
+{{/*              subPath: hive-site.xml*/}}
+      volumes:
+{{/*        - name: hive-cm*/}}
+{{/*          configMap:*/}}
+{{/*            name: hive*/}}
+        - name: mysecrets
+          secret:
+            secretName: mysecrets
+            optional: false
+        - name: ext-volume
+          persistentVolumeClaim:
+            claimName: pvc-{{.Release.Namespace}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hive
+  name: hive-svc
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: hive
+  ports:
+    - port: 9083
+      targetPort: 9083
+      name: hive-metastore-port
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hive
+  namespace: {{ .Release.Namespace }}
+data:
+  hive-site.xml: |-
+    <configuration>
+        <property>
+            <name>javax.jdo.option.ConnectionDriverName</name>
+            <value>org.postgresql.Driver</value>
+            <description>JDBC Driver class</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionURL</name>
+            <value>${env:DB_URL}</value>
+            <description>JDBC Connection string</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionUserName</name>
+            <value>${env:DB_USER}</value>
+            <description>DB user name</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionPassword</name>
+            <value>${env:DB_PASSWORD}</value>
+            <description>DB user password</description>
+        </property>
+        <property>
+            <name>hive.server2.enable.doAs</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>hive.tez.exec.inplace.progress</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>hive.exec.scratchdir</name>
+            <value>/opt/hive/scratch_dir</value>
+        </property>
+        <property>
+            <name>hive.user.install.directory</name>
+            <value>/opt/hive/install_dir</value>
+        </property>
+        <property>
+            <name>tez.runtime.optimize.local.fetch</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hive.exec.submit.local.task.via.child</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>mapreduce.framework.name</name>
+            <value>local</value>
+        </property>
+        <property>
+            <name>tez.local.mode</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hive.execution.engine</name>
+            <value>tez</value>
+        </property>
+        <property>
+            <name>metastore.warehouse.dir</name>
+            <value>s3a://warehouse/test</value>
+        </property>
+        <property>
+            <name>metastore.metastore.event.db.notification.api.auth</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>fs.s3a.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+        </property>
+        <property>
+            <name>fs.s3a.endpoint</name>
+            <value>${env:MINIO_ENDPOINT}</value>
+        </property>
+        <property>
+            <name>fs.s3a.path.style.access</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>fs.s3a.access.key</name>
+            <value>${env:MINIO_USER}</value>
+        </property>
+        <property>
+            <name>fs.s3a.secret.key</name>
+            <value>${env:MINIO_PASSWORD}</value>
+        </property>
+        <property>
+            <name>fs.s3a.connection.ssl.enabled</name>
+            <value>false</value>
+        </property>
+    </configuration>

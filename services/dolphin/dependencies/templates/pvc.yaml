@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    pv-name: pv-{{.Release.Namespace}}
+  name: pv-{{.Release.Namespace}}
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 1Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: {{.Release.Namespace}}
+    name: pvc-{{.Release.Namespace}}
+  hostPath:
+    path: {{.Values.pvc.hostpath.path}}
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    pvc-name: pvc-{{.Release.Namespace}}
+  name: pvc-{{.Release.Namespace}}
+  namespace: {{.Release.Namespace}}
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      pv-name: pv-{{.Release.Namespace}}
+  volumeMode: Filesystem
+  volumeName: pv-{{.Release.Namespace}}

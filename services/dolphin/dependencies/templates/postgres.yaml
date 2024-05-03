@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postgres
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{.Values.image.postgresql.repo}}:{{.Values.image.postgresql.tag}}
+          env:
+            - name: PGDATA
+              value: /data/pgdata
+            - name: POSTGRES_DB
+              value: metastore_db
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: postgresql
+                  optional: false
+                  name: mysecrets
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /data/pgdata
+              name: ext-volume
+              subPath: test-base/postgres
+      volumes:
+        - name: mysecrets
+          secret:
+            secretName: mysecrets
+            optional: false
+        - name: ext-volume
+          persistentVolumeClaim:
+            claimName: pvc-{{.Release.Namespace}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres
+  name: postgres-svc
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres-port
+  type: NodePort

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: minio
+  name: minio
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          name: minio
+          image: {{.Values.image.minio.repo}}:{{.Values.image.minio.tag}}
+          env:
+            - name: MINIO_ROOT_USER
+              value: admin
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: minio
+                  optional: false
+                  name: mysecrets
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          volumeMounts:
+            - mountPath: /data
+              name: ext-volume
+              subPath: test-base/minio
+      volumes:
+        - name: mysecrets
+          secret:
+            secretName: mysecrets
+            optional: false
+        - name: ext-volume
+          persistentVolumeClaim:
+            claimName: pvc-{{.Release.Namespace}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: minio
+  name: minio-svc
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: minio
+  ports:
+    - port: 9000
+      targetPort: 9000
+      name: default-port
+    - port: 9001
+      targetPort: 9001
+      name: console-port
+  type: NodePort
