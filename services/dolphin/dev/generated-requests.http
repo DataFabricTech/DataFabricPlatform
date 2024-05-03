@@ -1,0 +1,24 @@
+###
+POST http://localhost:8080/dolphin/v1/query/execute
+Content-Type: application/json
+
+{
+  "query": "select * from test.s_test1.test2 a join test2.s_test3.test6 b on a.year = b.ptime limit 10"
+}
+
+###
+POST http://localhost:8080/dolphin/v1/query/execute
+Content-Type: application/json
+
+{
+  "query": "select * from test_table1 a join test_table2 b on a.year = b.ptime limit 10"
+}
+###
+GET http://localhost:8080/dolphin/v1/query/status/7078cbcd-16ad-4573-880f-af43e9157494
+
+
+###
+GET http://localhost:8080/dolphin/v1/query/read/7078cbcd-16ad-4573-880f-af43e9157494
+
+###
+GET http://localhost:8080/dolphin/v1/query/download/7078cbcd-16ad-4573-880f-af43e9157494
