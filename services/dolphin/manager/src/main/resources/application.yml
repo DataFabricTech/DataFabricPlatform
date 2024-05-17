@@ -1,4 +1,4 @@
 dolphin:
   model:
     catalog: internalhive
-    schema: '"default"'
+    schema: default

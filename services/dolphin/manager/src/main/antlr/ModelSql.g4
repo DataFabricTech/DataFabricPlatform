@@ -193,7 +193,7 @@ keyword  // https://sqlite.org/lang_keywords.html
 | K_CURRENT_TIME
 | K_CURRENT_TIMESTAMP
 //| K_DATABASE
-//| K_DEFAULT
+| K_DEFAULT
 //| K_DEFERRABLE
 //| K_DEFERRED
 //| K_DELETE
@@ -359,6 +359,7 @@ K_CURRENT: C U R R E N T;
 K_CURRENT_TIME: C U R R E N T '_' T I M E;
 K_CURRENT_DATE: C U R R E N T '_' D A T E;
 K_CURRENT_TIMESTAMP: C U R R E N T '_' T I M E S T A M P;
+K_DEFAULT: D E F A U L T;
 K_DESC: D E S C;
 K_DISTINCT: D I S T I N C T;
 K_ELSE: E L S E;

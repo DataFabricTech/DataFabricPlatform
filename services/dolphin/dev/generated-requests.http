@@ -29,7 +29,7 @@ POST http://localhost:8080/dolphin/v1/query/execute
 Content-Type: application/json
 
 {
-  "query": "select * from (select a.b.c.d from aa.`aa` left inner join test1) as aaaa"
+  "query": "select * from (select a.b.c.d from aa.`aa` left  join test1) as likse"
 }
 
 ###

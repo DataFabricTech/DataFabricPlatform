@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.VocabularyImpl;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @Getter
 @RequiredArgsConstructor
 public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
+    private final char SPECIAL_CHAR = '"';
     private final DolphinConfiguration dolphinConfiguration;
     private final Map<String, String> models = new HashMap<>();
     private JSONObject jsonTree;
@@ -151,26 +154,42 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
 
     @Override
     public String visitTable_or_subquery(ModelSqlParser.Table_or_subqueryContext ctx) {
+        String result;
         if (ctx.model_name() != null) {  // 심플 모델명
             String catalogName = dolphinConfiguration.getModel().getCatalog();
             if (ctx.catalog_name() != null) {
                 catalogName = ctx.catalog_name().getText();
             }
+            catalogName = convertKeywordName(catalogName);
             String schemaName = dolphinConfiguration.getModel().getSchema();
             if (ctx.schema_name() != null) {
                 schemaName = ctx.schema_name().getText();
             }
-            var modelName = ctx.model_name().getText();
+            schemaName = convertKeywordName(schemaName);
+            var modelName = convertKeywordName(ctx.model_name().getText());
             log.info("catalog : " + catalogName + " schema : " + schemaName + " modelName : " + modelName);
             // TODO modelName 을 이용해 모델의 실제 데이터 소스 가져 오기
             models.put(ctx.toString(), catalogName + "." + schemaName + "." + modelName);
-            return catalogName + "." + schemaName + "." + modelName;
+            result = catalogName + "." + schemaName + "." + modelName;
         } else if (ctx.select_stmt() != null) {
-            return "(" + visitSelect_stmt(ctx.select_stmt()) + ")";
+            result = "(" + visitSelect_stmt(ctx.select_stmt()) + ")";
         } else {
-            return "(" + visitJoin_clause(ctx.join_clause()) + ")"
-                    + " as " + ctx.table_alias().getText();
+            result = "(" + visitJoin_clause(ctx.join_clause()) + ")";
         }
+        if (ctx.table_alias() != null) {
+            result = result + " as " + convertKeywordName(ctx.table_alias().getText());
+        }
+        return result;
+    }
+
+    private String convertKeywordName(String name) {
+        if (name.startsWith("`")) {
+            name = SPECIAL_CHAR + name.substring(1, name.length() - 1) + SPECIAL_CHAR;
+        } else if (Arrays.asList(((VocabularyImpl) ModelSqlParser.VOCABULARY).getSymbolicNames())
+                .contains("K_" + name.toUpperCase())) {
+            name = SPECIAL_CHAR + name + SPECIAL_CHAR;
+        }
+        return name;
     }
 
     @Override
