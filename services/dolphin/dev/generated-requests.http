@@ -22,3 +22,21 @@ GET http://localhost:8080/dolphin/v1/query/read/7078cbcd-16ad-4573-880f-af43e915
 
 ###
 GET http://localhost:8080/dolphin/v1/query/download/7078cbcd-16ad-4573-880f-af43e9157494
+
+
+###
+POST http://localhost:8080/dolphin/v1/query/execute
+Content-Type: application/json
+
+{
+  "query": "select * from (select a.b.c.d from aa.`aa` left inner join test1) as aaaa"
+}
+
+###
+POST http://localhost:8080/dolphin/v1/query/execute
+Content-Type: application/json
+
+{
+  "query": "select * from  aa.`aa`"
+}
+
