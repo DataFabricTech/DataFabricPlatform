@@ -40,3 +40,8 @@ Content-Type: application/json
   "query": "select * from  aa.`aa`"
 }
 
+
+###
+GET http://localhost:8080/dolphin/v1/query/status/7078cbcd-16ad-4573-880f-af43e9157494
+###
+GET http://localhost:8080/dolphin/v1/query/status/70adsf
