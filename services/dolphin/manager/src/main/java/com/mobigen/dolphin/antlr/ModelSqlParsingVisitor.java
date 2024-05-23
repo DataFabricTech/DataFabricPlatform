@@ -156,17 +156,9 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
     public String visitTable_or_subquery(ModelSqlParser.Table_or_subqueryContext ctx) {
         String result;
         if (ctx.model_name() != null) {  // 심플 모델명
-            String catalogName = dolphinConfiguration.getModel().getCatalog();
-            if (ctx.catalog_name() != null) {
-                catalogName = ctx.catalog_name().getText();
-            }
-            catalogName = convertKeywordName(catalogName);
-            String schemaName = dolphinConfiguration.getModel().getSchema();
-            if (ctx.schema_name() != null) {
-                schemaName = ctx.schema_name().getText();
-            }
-            schemaName = convertKeywordName(schemaName);
-            var modelName = convertKeywordName(ctx.model_name().getText());
+            String catalogName = visitCatalog_name(ctx.catalog_name());
+            String schemaName = visitSchema_name(ctx.schema_name());
+            var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());
             log.info("catalog : " + catalogName + " schema : " + schemaName + " modelName : " + modelName);
             // TODO modelName 을 이용해 모델의 실제 데이터 소스 가져 오기
             models.put(ctx.toString(), catalogName + "." + schemaName + "." + modelName);
@@ -180,6 +172,27 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
             result = result + " as " + convertKeywordName(ctx.table_alias().getText());
         }
         return result;
+    }
+
+    @Override
+    public String visitCatalog_name(ModelSqlParser.Catalog_nameContext ctx) {
+        if (ctx == null) {
+            return dolphinConfiguration.getModel().getCatalog();
+        }
+        return visitAny_name(ctx.any_name());
+    }
+
+    @Override
+    public String visitSchema_name(ModelSqlParser.Schema_nameContext ctx) {
+        if (ctx == null) {
+            return dolphinConfiguration.getModel().getSchema();
+        }
+        return visitAny_name(ctx.any_name());
+    }
+
+    @Override
+    public String visitAny_name(ModelSqlParser.Any_nameContext ctx) {
+        return dolphinConfiguration.getModel().convertKeywordName(ctx.getText());
     }
 
     private String convertKeywordName(String name) {

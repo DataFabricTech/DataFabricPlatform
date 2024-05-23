@@ -9,6 +9,12 @@ dependencies {
     implementation("io.springfox:springfox-boot-starter:3.0.0")
     implementation(project(":utils"))
 
+    // trino
+    implementation("io.trino:trino-jdbc:439")
+    compileOnly("io.trino:trino-spi:439")
+    implementation("io.opentelemetry:opentelemetry-semconv:0.14.0")
+    implementation("io.opentelemetry:opentelemetry-api:0.14.0")
+
 //    implementation("org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE")
 
     antlr("org.antlr:antlr4:4.11.1")

@@ -26,7 +26,7 @@ Distributed Operations for Load Processing and Hive INtegration
 - 데이터 모델
     - 생성
         - Base 모델 생성 (실제 테이블 + SQL 로 구성된 것)
-            - 연결 정보
+            - 연결 정보 (OpenMetadata DB 에서 조회)
             - SQL
         - 복합 모델 생성 (view 개념, Base 모델을 융합한 것 + SQL)
             - 모델

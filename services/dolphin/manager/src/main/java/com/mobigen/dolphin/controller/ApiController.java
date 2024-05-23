@@ -1,10 +1,13 @@
 package com.mobigen.dolphin.controller;
 
 import com.mobigen.dolphin.model.request.ExecuteDto;
+import com.mobigen.dolphin.model.response.ModelDto;
+import com.mobigen.dolphin.service.ModelService;
 import com.mobigen.dolphin.service.QueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,7 +22,18 @@ import java.util.UUID;
 @RequestMapping("/dolphin/v1")
 public class ApiController {
     private final QueryService queryService;
+    private final ModelService modelService;
     private final String aa = UUID.randomUUID().toString();
+
+    @GetMapping("/model")
+    public List<ModelDto> getModels() {
+        return modelService.getModels();
+    }
+
+    @PostMapping("/model")
+    public ModelDto addModel(@RequestBody ModelDto modelDto) {
+        return null;
+    }
 
     @PostMapping("/query/execute")
     public Object execute(@RequestBody ExecuteDto executeDto) {
