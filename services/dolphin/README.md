@@ -11,15 +11,9 @@ Distributed Operations for Load Processing and Hive INtegration
         - spark 대신 trino 사용 시 spring boot 3.x 버전 테스트 필요
     - spring-boot-starter-data-jpa
     - spring-boot-starter-amqp
-- Manager (Rest API, RabbitMQ Producer)
-    - spring-boot-starter-web
-    - spring-boot-starter-logging
-    - Utils
-- Executor (RabbitMQ Consumer, Spark|Trino 동작)
-    - Spark 3.5.0 or Trino 439
-    - spring-boot-starter-logging
-    - Utils
-- Utils (RabbitMQ 연동 모듈)
+- Trino
+- Hive Metastore
+- MinIO
 
 ## Features
 

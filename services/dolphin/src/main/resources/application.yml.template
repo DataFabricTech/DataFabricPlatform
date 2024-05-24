@@ -1,0 +1,38 @@
+dolphin:
+  model:
+    catalog: internalhive
+    schema: default
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  datasource:
+    driver-class-name: org.h2.Driver
+    jdbcUrl: jdbc:h2:file:./dev/testdb;AUTO_SERVER=true
+    username: sa
+    password:
+  trino-datasource:
+    jdbcUrl: jdbc:trino://:9888
+    username: dolphin
+    password:
+  openmetadata-datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://:3306/openmetadata_db
+    username: openmetadata_user
+    password:
+#    hikari:
+#      maximum-pool-size: 30
+#      auto-commit: false
+#      connection-init-sql: false
+    read-only:
+      hiraki: org.hibernate.dialect.MySQLDialect
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+openmeta:
+  host:
+  port: 3306
+  user: openmetadata_user
+  password:
+  database: openmetadata_db
