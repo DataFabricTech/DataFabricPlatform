@@ -1,13 +1,13 @@
 package com.mobigen.dolphin.entity.local;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -26,9 +26,8 @@ import java.util.UUID;
 @Table(name = "job")
 public class JobEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    @Type(type = "uuid-char")
+    @Column(columnDefinition = "VARCHAR(36)")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     @Enumerated(value = EnumType.STRING)
     private JobStatus status;

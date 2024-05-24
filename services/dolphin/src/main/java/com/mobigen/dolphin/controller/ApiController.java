@@ -1,5 +1,6 @@
 package com.mobigen.dolphin.controller;
 
+import com.mobigen.dolphin.entity.request.CreateModelDto;
 import com.mobigen.dolphin.entity.request.ExecuteDto;
 import com.mobigen.dolphin.entity.response.ModelDto;
 import com.mobigen.dolphin.service.ModelService;
@@ -31,9 +32,8 @@ public class ApiController {
     }
 
     @PostMapping("/model")
-    public ModelDto addModel(@RequestBody ModelDto modelDto) {
-        modelService.getConnectorInfo();
-        return null;
+    public ModelDto addModel(@RequestBody CreateModelDto createModelDto) {
+        return modelService.createModel(createModelDto);
     }
 
     @PostMapping("/query/execute")

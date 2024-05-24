@@ -1,13 +1,16 @@
 package com.mobigen.dolphin.entity.local;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import javax.persistence.*;
 import java.util.UUID;
 
 /**
@@ -25,9 +28,8 @@ import java.util.UUID;
 @Table(name = "mapping")
 public class MappingEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    @Type(type = "uuid-char")
+    @Column(columnDefinition = "VARCHAR(36)")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     @Column(name = "user_id")
     private String userId;

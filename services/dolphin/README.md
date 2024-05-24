@@ -6,9 +6,9 @@ Distributed Operations for Load Processing and Hive INtegration
 
 - Gradle 8.2 (Kotlin)
 - Java 17
-- Spring Boot 2.7.18
-    - spark 와 spring boot 3.x 간 dependency 문제로 spring boot 2.7.x 사용
-        - spark 대신 trino 사용 시 spring boot 3.x 버전 테스트 필요
+- Spring Boot 3.3.0
+    - spark 와 spring boot 3.x 간 dependency 문제가 있음
+        - spark 대신 trino 사용 시 spring boot 3.x 버전 사용 가능
     - spring-boot-starter-data-jpa
     - spring-boot-starter-amqp
 - Trino
@@ -28,8 +28,8 @@ Distributed Operations for Load Processing and Hive INtegration
             - SQL
     - 조회
         - 리스트 조회
-          - 많이 열어본 ?
-          - 최근 열어본 ?
+            - 많이 열어본 ?
+            - 최근 열어본 ?
         - 정보 조회
         - 데이터 조회
         - 다운로드

@@ -2,9 +2,10 @@ plugins {
     antlr
     id("com.mobigen.java-library")
     id("com.mobigen.java-application")
-    id("org.springframework.boot") version "2.7.18"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot") version "3.3.0"
 }
+
+apply(plugin = "io.spring.dependency-management")
 
 allprojects {
     group = "${group}.dolphin"
@@ -15,10 +16,8 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    all {
-        exclude(module = "spring-boot-starter-logging")
-    }
+configurations.forEach {
+    it.exclude("org.springframework.boot", "spring-boot-starter-logging")
 }
 
 dependencies {
@@ -30,7 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
-    implementation("io.springfox:springfox-boot-starter:3.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
     // db
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -41,7 +40,7 @@ dependencies {
     // - trino
     implementation("io.trino:trino-jdbc:444")
     compileOnly("io.trino:trino-spi:448")
-    implementation("io.opentelemetry:opentelemetry-semconv:1.30.1-alpha")
+    implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.25.0-alpha")
     implementation("io.opentelemetry:opentelemetry-api:1.38.0")
 
     // - open metadata
