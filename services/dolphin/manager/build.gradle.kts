@@ -15,6 +15,8 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-semconv:0.14.0")
     implementation("io.opentelemetry:opentelemetry-api:0.14.0")
 
+    implementation("mysql:mysql-connector-java:8.0.33")
+
 //    implementation("org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE")
 
     antlr("org.antlr:antlr4:4.11.1")

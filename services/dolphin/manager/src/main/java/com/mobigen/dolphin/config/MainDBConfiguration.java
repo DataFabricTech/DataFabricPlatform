@@ -4,8 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -24,28 +24,25 @@ import java.util.Map;
  */
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.mobigen.dolphin.repository.trino",
-        entityManagerFactoryRef = "trinoEntityManager",
-        transactionManagerRef = "trinoTransactionManager"
+        basePackages = "com.mobigen.dolphin.repositories",
+        entityManagerFactoryRef = "entityManager",
+        transactionManagerRef = "transactionManager"
 )
-public class TrinoConfiguration {
+public class MainDBConfiguration {
     @Bean
-    @ConfigurationProperties(prefix = "spring.trino-datasource")
-    public DataSource trinoDataSource() {
+    @Primary
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource dataSource() {
         return DataSourceBuilder.create()
                 .build();
     }
 
-    @Bean(name = "trinoJdbcTemplate")
-    public JdbcTemplate trinoJdbcTemplate() {
-        return new JdbcTemplate(trinoDataSource());
-    }
-
     @Bean
-    public LocalContainerEntityManagerFactoryBean trinoEntityManager() {
+    @Primary
+    public LocalContainerEntityManagerFactoryBean entityManager() {
         var em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(trinoDataSource());
-        em.setPackagesToScan(new String[]{"com.mobigen.dolphin.model"});
+        em.setDataSource(dataSource());
+        em.setPackagesToScan(new String[]{"com.mobigen.dolphin.model", "com.mobigen.dolphin.models"});
         var vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
@@ -58,9 +55,10 @@ public class TrinoConfiguration {
     }
 
     @Bean
-    public PlatformTransactionManager trinoTransactionManager() {
+    @Primary
+    public PlatformTransactionManager transactionManager() {
         var transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(trinoEntityManager().getObject());
+        transactionManager.setEntityManagerFactory(entityManager().getObject());
         return transactionManager;
     }
 }

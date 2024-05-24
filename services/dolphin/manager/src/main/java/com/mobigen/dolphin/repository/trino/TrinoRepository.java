@@ -29,7 +29,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Repository
-public class JdbcTrinoRepository {
+public class TrinoRepository {
     private final DolphinConfiguration dolphinConfiguration;
     private final JdbcTemplate trinoJdbcTemplate;
 

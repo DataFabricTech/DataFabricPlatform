@@ -1,11 +1,14 @@
 package com.mobigen.dolphin.service;
 
+import com.mobigen.dolphin.model.DBServiceEntity;
 import com.mobigen.dolphin.model.response.ModelDto;
-import com.mobigen.dolphin.repository.trino.JdbcTrinoRepository;
+import com.mobigen.dolphin.repository.openmetadata.OMRepository;
+import com.mobigen.dolphin.repository.trino.TrinoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -17,9 +20,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class ModelService {
-    private final JdbcTrinoRepository jdbcTrinoRepository;
+    private final OMRepository omRepository;
+    private final TrinoRepository TrinoRepository;
 
     public List<ModelDto> getModels() {
-        return jdbcTrinoRepository.getModelList();
+        return TrinoRepository.getModelList();
+    }
+
+    public void getConnectorInfo() {
+        var data = omRepository.findAll();
+        System.out.println(data.stream().map(DBServiceEntity::toString).collect(Collectors.joining()));
     }
 }

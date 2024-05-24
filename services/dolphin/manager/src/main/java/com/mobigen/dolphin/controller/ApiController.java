@@ -32,6 +32,7 @@ public class ApiController {
 
     @PostMapping("/model")
     public ModelDto addModel(@RequestBody ModelDto modelDto) {
+        modelService.getConnectorInfo();
         return null;
     }
 
