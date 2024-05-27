@@ -44,6 +44,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:1.38.0")
 
     // - open metadata
+    implementation("org.open-metadata:openmetadata-service:1.4.0")
 
     // json?
     implementation("org.json:json:20240303")

@@ -46,6 +46,10 @@ public class TrinoRepository {
                 modelDtoRowMapper());
     }
 
+    public void execute(String sql) {
+        trinoJdbcTemplate.execute(sql);
+    }
+
 
     public String executeQuery(String jobId, String sql, Boolean direct) {
         if (!direct) {
