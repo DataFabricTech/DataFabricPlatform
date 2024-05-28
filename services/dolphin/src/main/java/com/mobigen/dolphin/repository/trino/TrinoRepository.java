@@ -10,7 +10,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -33,21 +32,22 @@ public class TrinoRepository {
     private final DolphinConfiguration dolphinConfiguration;
     private final JdbcTemplate trinoJdbcTemplate;
 
-    private RowMapper<ModelDto> modelDtoRowMapper() {
-        return ((rs, rowNum) -> ModelDto.builder()
-                .name(rs.getString("Table"))
-                .build());
-    }
-
     public List<ModelDto> getModelList() {
         // SHOW TABLES [ FROM schema ] [ LIKE pattern ]
         return trinoJdbcTemplate.query("show tables from " +
                         dolphinConfiguration.getModel().getCatalog() + "." + dolphinConfiguration.getModel().getSchema(),
-                modelDtoRowMapper());
+                (rs, rowNum) -> ModelDto.builder()
+                        .name(rs.getString("Table"))
+                        .build());
     }
 
     public void execute(String sql) {
         trinoJdbcTemplate.execute(sql);
+    }
+
+    public List<String> getCatalogs() {
+        return trinoJdbcTemplate.query("show catalogs",
+                (rs, rowNum) -> rs.getString("Catalog"));
     }
 
 

@@ -34,6 +34,7 @@ public class CreateModelDto {
         private String query;
         // CONNECTOR
         private UUID connectorId;
+        private String database;
         private String table;
     }
 
