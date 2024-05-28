@@ -97,7 +97,6 @@ public class ModelService {
         } else {
             sql = sql + " as " + createModelDto.getBaseModel().getQuery();
         }
-        System.out.println(sql);
         trinoRepository.execute(sql);
         return ModelDto.builder()
                 .name(createModelDto.getModelName())

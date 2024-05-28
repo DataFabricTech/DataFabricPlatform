@@ -24,6 +24,7 @@ import java.util.Arrays;
 @Configuration
 public class DolphinConfiguration {
     private Model model;
+    private OpenMetadataConfig openMetadata;
 
     @Getter
     @Setter
@@ -50,5 +51,11 @@ public class DolphinConfiguration {
             }
             return name;
         }
+    }
+
+    @Getter
+    @Setter
+    public static class OpenMetadataConfig {
+        private String fernetKey;
     }
 }

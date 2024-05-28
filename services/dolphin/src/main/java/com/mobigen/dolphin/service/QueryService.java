@@ -5,6 +5,7 @@ import com.mobigen.dolphin.antlr.ModelSqlParser;
 import com.mobigen.dolphin.antlr.ModelSqlParsingVisitor;
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.repository.local.JobRepository;
+import com.mobigen.dolphin.repository.trino.TrinoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
@@ -25,7 +26,7 @@ import java.util.UUID;
 @Service
 public class QueryService {
     private final DolphinConfiguration dolphinConfiguration;
-
+    private final TrinoRepository trinoRepository;
     private final JobRepository jobRepository;
 
     public Object execute(String sql) {
@@ -37,7 +38,7 @@ public class QueryService {
         var parseTree = parser.parse();
         sql = visitor.visit(parseTree);
         log.info("converted sql: {}", sql);
-        return sql;
+        return trinoRepository.executeQuery2(sql);
     }
 
     public Object status(UUID jobId) {

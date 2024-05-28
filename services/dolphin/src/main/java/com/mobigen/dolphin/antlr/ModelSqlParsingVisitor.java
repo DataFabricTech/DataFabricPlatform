@@ -48,7 +48,7 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
     @Override
     public String visitParse(ModelSqlParser.ParseContext ctx) {
         jsonTree = serializer.serialize(ctx);
-        return visitSql_stmt(ctx.sql_stmt()) + ";";
+        return visitSql_stmt(ctx.sql_stmt());
     }
 
     @Override

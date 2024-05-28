@@ -2,6 +2,7 @@ package com.mobigen.dolphin.repository.trino;
 
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.entity.response.ModelDto;
+import com.mobigen.dolphin.entity.response.QueryResultDTO;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.io.*;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,12 +44,40 @@ public class TrinoRepository {
     }
 
     public void execute(String sql) {
+        log.info("Executing {}", sql);
         trinoJdbcTemplate.execute(sql);
     }
 
     public List<String> getCatalogs() {
         return trinoJdbcTemplate.query("show catalogs",
                 (rs, rowNum) -> rs.getString("Catalog"));
+    }
+
+    public Object executeQuery2(String sql) {
+        // get model data
+        List<QueryResultDTO.Column> columns = new ArrayList<>();
+        var rows = trinoJdbcTemplate.query(sql, ((rs, rowNum) -> {
+            var rsmd = rs.getMetaData();
+            int numberOfColumns = rsmd.getColumnCount();
+            if (rowNum == 0) {
+                for (int i = 1; i <= numberOfColumns; i++) {
+                    columns.add(QueryResultDTO.Column.builder()
+                            .name(rsmd.getColumnName(i))
+                            .type(rsmd.getColumnTypeName(i))
+                            .build());
+                }
+            }
+            List<Object> row = new ArrayList<>();
+            for (int i = 1; i <= numberOfColumns; i++) {
+                row.add(rs.getObject(i));
+            }
+            return row;
+        }));
+        return QueryResultDTO.builder()
+                .columns(columns)
+                .rows(rows)
+                .totalCount(rows.size())
+                .build();
     }
 
 
