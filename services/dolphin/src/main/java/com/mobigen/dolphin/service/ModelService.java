@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -78,7 +79,10 @@ public class ModelService {
 
     public ModelDto createModel(CreateModelDto createModelDto) {
         var selectedColumns = !createModelDto.getBaseModel().getSelectedColumnNames().isEmpty() ?
-                String.join(", ", createModelDto.getBaseModel().getSelectedColumnNames()) : "*";
+                createModelDto.getBaseModel().getSelectedColumnNames().stream()
+                        .map(dolphinConfiguration.getModel()::convertKeywordName)
+                        .collect(Collectors.joining(", "))
+                : "*";
         String sql = "create view " + dolphinConfiguration.getModel().getCatalog()
                 + "." + dolphinConfiguration.getModel().getSchema()
                 + "." + createModelDto.getModelName();
@@ -93,7 +97,9 @@ public class ModelService {
                     + "." + createModelDto.getBaseModel().getTable();
         } else if (createModelDto.getBaseModel().getType() == ModelType.MODEL) {
             sql = sql + " as select " + selectedColumns
-                    + " from " + createModelDto.getBaseModel().getModel();
+                    + " from " + dolphinConfiguration.getModel().getCatalog()
+                    + "." + dolphinConfiguration.getModel().getSchema()
+                    + "." + createModelDto.getBaseModel().getModel();
         } else {
             sql = sql + " as " + createModelDto.getBaseModel().getQuery();
         }
