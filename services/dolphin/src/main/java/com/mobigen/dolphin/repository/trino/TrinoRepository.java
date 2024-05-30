@@ -19,6 +19,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <p>
@@ -56,32 +57,38 @@ public class TrinoRepository {
     public QueryResultDTO executeQuery2(String sql) {
         // get model data
         List<QueryResultDTO.Column> columns = new ArrayList<>();
-        var rows = trinoJdbcTemplate.query(sql, ((rs, rowNum) -> {
-            var rsmd = rs.getMetaData();
-            int numberOfColumns = rsmd.getColumnCount();
-            if (rowNum == 0) {
-                for (int i = 1; i <= numberOfColumns; i++) {
-                    columns.add(QueryResultDTO.Column.builder()
-                            .name(rsmd.getColumnName(i))
-                            .type(rsmd.getColumnTypeName(i))
-                            .build());
+        try{
+
+            var rows = trinoJdbcTemplate.query(sql, ((rs, rowNum) -> {
+                var rsmd = rs.getMetaData();
+                int numberOfColumns = rsmd.getColumnCount();
+                if (rowNum == 0) {
+                    for (int i = 1; i <= numberOfColumns; i++) {
+                        columns.add(QueryResultDTO.Column.builder()
+                                .name(rsmd.getColumnName(i))
+                                .type(rsmd.getColumnTypeName(i))
+                                .build());
+                    }
                 }
-            }
-            List<Object> row = new ArrayList<>();
-            for (int i = 1; i <= numberOfColumns; i++) {
-                row.add(rs.getObject(i));
-            }
-            return row;
-        }));
-        return QueryResultDTO.builder()
-                .columns(columns)
-                .rows(rows)
-                .totalCount(rows.size())
-                .build();
+                List<Object> row = new ArrayList<>();
+                for (int i = 1; i <= numberOfColumns; i++) {
+                    row.add(rs.getObject(i));
+                }
+                return row;
+            }));
+            return QueryResultDTO.builder()
+                    .columns(columns)
+                    .rows(rows)
+                    .totalCount(rows.size())
+                    .build();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
     }
 
 
-    public String executeQuery(String jobId, String sql, Boolean direct) {
+    public String executeQuery(UUID jobId, String sql, Boolean direct) {
         if (!direct) {
             // 결과를 가져와서 파일로 저장
             try {
@@ -105,7 +112,7 @@ public class TrinoRepository {
         }
     }
 
-    public String executeQuery(String jobId, String sql) {
+    public String executeQuery(UUID jobId, String sql) {
         return executeQuery(jobId, sql, false);
     }
 

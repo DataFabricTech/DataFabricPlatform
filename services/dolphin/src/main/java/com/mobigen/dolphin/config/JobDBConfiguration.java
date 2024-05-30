@@ -1,7 +1,8 @@
 package com.mobigen.dolphin.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -25,40 +26,47 @@ import java.util.Map;
 @Configuration
 @EnableJpaRepositories(
         basePackages = "com.mobigen.dolphin.repository.local",
-        entityManagerFactoryRef = "entityManager",
-        transactionManagerRef = "transactionManager"
+        entityManagerFactoryRef = "jobEntityManager",
+        transactionManagerRef = "jobTransactionManager"
 )
-public class MainDBConfiguration {
-    @Bean
-    @Primary
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSource dataSource() {
-        return DataSourceBuilder.create()
-                .build();
+public class JobDBConfiguration {
+    @Bean(value = "jobHibernateProperties")
+    @ConfigurationProperties("dolphin.job.hibernate.property")
+    public Map<String, Object> jobHibernateProperties() {
+        return new HashMap<>();
     }
 
-    @Bean
+    @Bean(value = "jobHikariConfig")
+    @ConfigurationProperties("dolphin.job.datasource.hikari")
+    public HikariConfig hikariConfig() {
+        return new HikariConfig();
+    }
+
     @Primary
-    public LocalContainerEntityManagerFactoryBean entityManager() {
+    @Bean(value = "jobDataSource")
+    public DataSource dataSource() {
+        return new HikariDataSource(hikariConfig());
+    }
+
+    @Primary
+    @Bean
+    public LocalContainerEntityManagerFactoryBean jobEntityManager() {
         var em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
-        em.setPackagesToScan(new String[]{"com.mobigen.dolphin.entity.local"});
+        em.setPackagesToScan("com.mobigen.dolphin.entity.local");
         var vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
-        //Hibernate 설정
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "none");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        var properties = jobHibernateProperties();
         em.setJpaPropertyMap(properties);
         return em;
     }
 
-    @Bean
     @Primary
-    public PlatformTransactionManager transactionManager() {
+    @Bean
+    public PlatformTransactionManager jobTransactionManager() {
         var transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManager().getObject());
+        transactionManager.setEntityManagerFactory(jobEntityManager().getObject());
         return transactionManager;
     }
 }

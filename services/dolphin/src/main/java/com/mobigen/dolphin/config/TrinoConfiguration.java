@@ -1,7 +1,8 @@
 package com.mobigen.dolphin.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -29,11 +30,21 @@ import java.util.Map;
         transactionManagerRef = "trinoTransactionManager"
 )
 public class TrinoConfiguration {
-    @Bean
-    @ConfigurationProperties(prefix = "spring.trino-datasource")
+    @Bean(value = "trinoHibernateProperties")
+    @ConfigurationProperties("dolphin.trino.hibernate.property")
+    public Map<String, Object> trinoHibernateProperties() {
+        return new HashMap<>();
+    }
+
+    @Bean(value = "trinoHikariConfig")
+    @ConfigurationProperties("dolphin.trino.datasource.hikari")
+    public HikariConfig hikariConfig() {
+        return new HikariConfig();
+    }
+
+    @Bean(name = "trinoDataSource")
     public DataSource trinoDataSource() {
-        return DataSourceBuilder.create()
-                .build();
+        return new HikariDataSource(hikariConfig());
     }
 
     @Bean(name = "trinoJdbcTemplate")
@@ -45,14 +56,12 @@ public class TrinoConfiguration {
     public LocalContainerEntityManagerFactoryBean trinoEntityManager() {
         var em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(trinoDataSource());
-        em.setPackagesToScan(new String[]{"com.mobigen.dolphin.entity.trino"});
+        em.setPackagesToScan("com.mobigen.dolphin.entity.trino");
         var vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
         //Hibernate 설정
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "none");
-        properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        var properties = trinoHibernateProperties();
         em.setJpaPropertyMap(properties);
         return em;
     }

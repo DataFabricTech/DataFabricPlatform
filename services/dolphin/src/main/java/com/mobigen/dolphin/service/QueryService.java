@@ -32,6 +32,8 @@ public class QueryService {
     private final TrinoRepository trinoRepository;
     private final JobRepository jobRepository;
 
+    private final AsyncService asyncService;
+
     @Transactional
     public JobEntity createJob(String sql) {
         log.info("Create job. origin sql: {}", sql);
@@ -62,9 +64,13 @@ public class QueryService {
         return result;
     }
 
-    public Object executeAsync(String sql) {
+    @Transactional
+    public QueryResultDTO executeAsync(String sql) {
         var job = createJob(sql);
-        return trinoRepository.executeQuery("", job.getConvertedQuery());
+        asyncService.executeAsync(job);
+        return QueryResultDTO.builder()
+                .jobId(job.getId())
+                .build();
     }
 
     public Object status(UUID jobId) {

@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <p>
@@ -15,6 +16,7 @@ import java.util.List;
 @Data
 @Builder
 public class QueryResultDTO {
+    private UUID jobId;
     private List<Column> columns;
     private List<List<Object>> rows;
     private int totalCount;

@@ -30,6 +30,7 @@ public class JobEntity {
     @Id
     @Column(columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(SqlTypes.VARCHAR)
+    @GeneratedValue(generator = "uuid")
     private UUID id;
     @Enumerated(value = EnumType.STRING)
     private JobStatus status;

@@ -1,7 +1,8 @@
 package com.mobigen.dolphin.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -28,24 +29,33 @@ import java.util.Map;
         transactionManagerRef = "openMetadataTransactionManager"
 )
 public class OpenMetadataConfiguration {
-    @Bean(name = "openmetadata")
-    @ConfigurationProperties(prefix = "spring.openmetadata-datasource")
-    public DataSource openMetadataDataSource() {
-        return DataSourceBuilder.create()
-                .build();
+    @Bean(value = "openmetadataHibernateProperties")
+    @ConfigurationProperties("dolphin.openmetadata.hibernate.property")
+    public Map<String, Object> openmetadataHibernateProperties() {
+        return new HashMap<>();
     }
+
+    @Bean(value = "openmetadataHikariConfig")
+    @ConfigurationProperties("dolphin.openmetadata.datasource.hikari")
+    public HikariConfig hikariConfig() {
+        return new HikariConfig();
+    }
+
+    @Bean(name = "openmetadataDataSource")
+    public DataSource openMetadataDataSource() {
+        return new HikariDataSource(hikariConfig());
+    }
+
     @Bean
     public LocalContainerEntityManagerFactoryBean openMetadataEntityManager() {
         var em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(openMetadataDataSource());
-        em.setPackagesToScan(new String[]{"com.mobigen.dolphin.entity.openmetadata"});
+        em.setPackagesToScan("com.mobigen.dolphin.entity.openmetadata");
         var vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
 
         //Hibernate 설정
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto","none");
-        properties.put("hibernate.dialect","org.hibernate.dialect.H2Dialect");
+        var properties = openmetadataHibernateProperties();
         em.setJpaPropertyMap(properties);
         return em;
     }
