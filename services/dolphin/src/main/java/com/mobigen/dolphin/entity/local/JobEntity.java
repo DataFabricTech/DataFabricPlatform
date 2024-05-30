@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.sql.Timestamp;
@@ -31,9 +33,13 @@ public class JobEntity {
     private UUID id;
     @Enumerated(value = EnumType.STRING)
     private JobStatus status;
-    private String query;
-    private String query2;
+    @Column(name = "user_query")
+    private String userQuery;
+    @Column(name = "converted_query")
+    private String convertedQuery;
+    @CreationTimestamp
     private Timestamp created;
+    @UpdateTimestamp
     private Timestamp updated;
 
     @Column(name = "result_name")
@@ -46,13 +52,15 @@ public class JobEntity {
     private WorkerEntity worker;
 
     public enum JobStatus {
-        DENIED,
-        ACCEPT,
+        QUEUED,
         RUNNING,
-        SUCCEED,
         FINISHED,
         FAILED,
         CANCELED
+
+//        DENIED,
+//        ACCEPT,
+//        SUCCEED,
     }
 
 }

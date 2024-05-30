@@ -2,8 +2,8 @@ package com.mobigen.dolphin.service;
 
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.entity.openmetadata.DBServiceEntity;
-import com.mobigen.dolphin.entity.request.CreateModelDto;
-import com.mobigen.dolphin.entity.response.ModelDto;
+import com.mobigen.dolphin.dto.request.CreateModelDto;
+import com.mobigen.dolphin.dto.response.ModelDto;
 import com.mobigen.dolphin.repository.openmetadata.OMRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
 import com.mobigen.dolphin.util.ModelType;

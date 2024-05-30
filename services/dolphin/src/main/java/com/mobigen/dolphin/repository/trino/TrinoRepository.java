@@ -1,8 +1,8 @@
 package com.mobigen.dolphin.repository.trino;
 
 import com.mobigen.dolphin.config.DolphinConfiguration;
-import com.mobigen.dolphin.entity.response.ModelDto;
-import com.mobigen.dolphin.entity.response.QueryResultDTO;
+import com.mobigen.dolphin.dto.response.ModelDto;
+import com.mobigen.dolphin.dto.response.QueryResultDTO;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -53,7 +53,7 @@ public class TrinoRepository {
                 (rs, rowNum) -> rs.getString("Catalog"));
     }
 
-    public Object executeQuery2(String sql) {
+    public QueryResultDTO executeQuery2(String sql) {
         // get model data
         List<QueryResultDTO.Column> columns = new ArrayList<>();
         var rows = trinoJdbcTemplate.query(sql, ((rs, rowNum) -> {

@@ -1,4 +1,4 @@
-package com.mobigen.dolphin.entity.response;
+package com.mobigen.dolphin.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

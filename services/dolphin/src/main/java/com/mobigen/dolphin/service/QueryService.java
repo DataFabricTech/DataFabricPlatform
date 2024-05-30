@@ -4,8 +4,11 @@ import com.mobigen.dolphin.antlr.ModelSqlLexer;
 import com.mobigen.dolphin.antlr.ModelSqlParser;
 import com.mobigen.dolphin.antlr.ModelSqlParsingVisitor;
 import com.mobigen.dolphin.config.DolphinConfiguration;
+import com.mobigen.dolphin.dto.response.QueryResultDTO;
+import com.mobigen.dolphin.entity.local.JobEntity;
 import com.mobigen.dolphin.repository.local.JobRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
@@ -29,16 +32,39 @@ public class QueryService {
     private final TrinoRepository trinoRepository;
     private final JobRepository jobRepository;
 
-    public Object execute(String sql) {
-        log.info("origin sql: {}", sql);
+    @Transactional
+    public JobEntity createJob(String sql) {
+        log.info("Create job. origin sql: {}", sql);
         var lexer = new ModelSqlLexer(CharStreams.fromString(sql));
         var tokens = new CommonTokenStream(lexer);
         var parser = new ModelSqlParser(tokens);
         var visitor = new ModelSqlParsingVisitor(dolphinConfiguration);
         var parseTree = parser.parse();
-        sql = visitor.visit(parseTree);
-        log.info("converted sql: {}", sql);
-        return trinoRepository.executeQuery2(sql);
+        var convertedQuery = visitor.visit(parseTree);
+        log.info("Converted sql: {}", convertedQuery);
+        var job = JobEntity.builder()
+                .status(JobEntity.JobStatus.QUEUED)
+                .userQuery(sql)
+                .convertedQuery(convertedQuery)
+                .build();
+        jobRepository.save(job);
+        return job;
+    }
+
+    @Transactional
+    public QueryResultDTO execute(String sql) {
+        var job = createJob(sql);
+        job.setStatus(JobEntity.JobStatus.RUNNING);
+        jobRepository.save(job);
+        var result = trinoRepository.executeQuery2(job.getConvertedQuery());
+        job.setStatus(JobEntity.JobStatus.FINISHED);
+        jobRepository.save(job);
+        return result;
+    }
+
+    public Object executeAsync(String sql) {
+        var job = createJob(sql);
+        return trinoRepository.executeQuery("", job.getConvertedQuery());
     }
 
     public Object status(UUID jobId) {
