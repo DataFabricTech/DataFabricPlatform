@@ -13,7 +13,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -57,8 +60,7 @@ public class TrinoRepository {
     public QueryResultDTO executeQuery2(String sql) {
         // get model data
         List<QueryResultDTO.Column> columns = new ArrayList<>();
-        try{
-
+        try {
             var rows = trinoJdbcTemplate.query(sql, ((rs, rowNum) -> {
                 var rsmd = rs.getMetaData();
                 int numberOfColumns = rsmd.getColumnCount();
@@ -93,10 +95,8 @@ public class TrinoRepository {
             // 결과를 가져와서 파일로 저장
             try {
                 var path = new ClassPathResource("dev/" + jobId + ".csv");
-                FileOutputStream outputStream = new FileOutputStream(path.getFile().getPath());
+                FileOutputStream outputStream = new FileOutputStream(path.getPath());
                 trinoJdbcTemplate.query(sql, new StreamingCsvResultSetExtractor(outputStream));
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

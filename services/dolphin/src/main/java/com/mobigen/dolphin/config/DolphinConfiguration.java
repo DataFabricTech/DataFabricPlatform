@@ -57,5 +57,6 @@ public class DolphinConfiguration {
     @Setter
     public static class OpenMetadataConfig {
         private String fernetKey;
+        private String apiUrl;
     }
 }

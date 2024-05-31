@@ -29,6 +29,11 @@ public class ApiController {
     private final QueryService queryService;
     private final ModelService modelService;
 
+    @GetMapping("/connection/{id}")
+    public Object getConnectionInfo(@PathVariable UUID id) {
+        return modelService.getConnectorInfo(id);
+    }
+
     @Operation(summary = "Get dataModels", description = "Returns list of dataModels")
     @GetMapping("/model")
     public List<ModelDto> getModels() {

@@ -29,6 +29,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
+
+    // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
     // db
@@ -44,7 +46,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:1.38.0")
 
     // - open metadata
-    implementation("org.open-metadata:openmetadata-service:1.4.0")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // json?
     implementation("org.json:json:20240303")
