@@ -11,7 +11,7 @@ Distributed Operations for Load Processing and Hive INtegration
         - spark 대신 trino 사용 시 spring boot 3.x 버전 사용 가능
     - spring-boot-starter-data-jpa
     - spring-boot-starter-amqp
-- Trino
+- Trino 435 (Java 17 을 지원하는 마지막 버전)
 - Hive Metastore
 - MinIO
 
