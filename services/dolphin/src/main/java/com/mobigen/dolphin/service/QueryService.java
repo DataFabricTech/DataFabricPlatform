@@ -8,13 +8,18 @@ import com.mobigen.dolphin.dto.response.QueryResultDTO;
 import com.mobigen.dolphin.entity.local.JobEntity;
 import com.mobigen.dolphin.repository.local.JobRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,7 +39,6 @@ public class QueryService {
 
     private final AsyncService asyncService;
 
-    @Transactional
     public JobEntity createJob(String sql) {
         log.info("Create job. origin sql: {}", sql);
         var lexer = new ModelSqlLexer(CharStreams.fromString(sql));
@@ -53,7 +57,6 @@ public class QueryService {
         return job;
     }
 
-    @Transactional
     public QueryResultDTO execute(String sql) {
         var job = createJob(sql);
         job.setStatus(JobEntity.JobStatus.RUNNING);
@@ -64,7 +67,6 @@ public class QueryService {
         return result;
     }
 
-    @Transactional
     public QueryResultDTO executeAsync(String sql) {
         var job = createJob(sql);
         asyncService.executeAsync(job);
@@ -79,5 +81,25 @@ public class QueryService {
             throw new RuntimeException("job not found");
         }
         return job.get().getStatus();
+    }
+
+    public QueryResultDTO read(UUID jobId) {
+        var job = jobRepository.findById(jobId);
+        if (job.isEmpty()) {
+            throw new RuntimeException("job not found");
+        }
+        List<List<Object>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(job.get().getResultPath()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return QueryResultDTO.builder()
+                .rows(records)
+                .build();
     }
 }

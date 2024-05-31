@@ -29,11 +29,6 @@ public class ApiController {
     private final QueryService queryService;
     private final ModelService modelService;
 
-    @GetMapping("/connection/{id}")
-    public Object getConnectionInfo(@PathVariable UUID id) {
-        return modelService.getConnectorInfo(id);
-    }
-
     @Operation(summary = "Get dataModels", description = "Returns list of dataModels")
     @GetMapping("/model")
     public List<ModelDto> getModels() {
@@ -57,17 +52,17 @@ public class ApiController {
     }
 
     @GetMapping("/query/read/{job_id:^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$}")
-    public Object read(@PathVariable("job_id") String jobId) {
-        return null;
+    public Object read(@PathVariable("job_id") UUID jobId) {
+        return queryService.read(jobId);
     }
 
     @GetMapping("/query/download/{job_id:^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$}")
-    public Object download(@PathVariable("job_id") String jobId) {
+    public Object download(@PathVariable("job_id") UUID jobId) {
         return null;
     }
 
     @GetMapping("/query/status/{job_id:^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$}")
-    public Object status(@PathVariable("job_id") String jobId) {
-        return queryService.status(UUID.fromString(jobId));
+    public Object status(@PathVariable("job_id") UUID jobId) {
+        return queryService.status(jobId);
     }
 }

@@ -40,8 +40,8 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
 
     // - trino
-    implementation("io.trino:trino-jdbc:444")
-    compileOnly("io.trino:trino-spi:448")
+    implementation("io.trino:trino-jdbc:435")
+    compileOnly("io.trino:trino-spi:435")
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.25.0-alpha")
     implementation("io.opentelemetry:opentelemetry-api:1.38.0")
 

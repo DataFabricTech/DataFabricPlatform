@@ -97,10 +97,10 @@ public class TrinoRepository {
                 var path = new ClassPathResource("dev/" + jobId + ".csv");
                 FileOutputStream outputStream = new FileOutputStream(path.getPath());
                 trinoJdbcTemplate.query(sql, new StreamingCsvResultSetExtractor(outputStream));
+                return path.getPath();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            return "";
         } else {
             // trino 가 직접 hive table 생성을 통해서 결과 데이터 저장
             var resultTableName = "internalhive.dolphin_cache.data_" + (jobId.hashCode() & 0xfffffff);
