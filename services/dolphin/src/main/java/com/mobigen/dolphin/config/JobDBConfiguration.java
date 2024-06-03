@@ -2,6 +2,7 @@ package com.mobigen.dolphin.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ import java.util.Map;
  * @version 0.0.1
  * @since 0.0.1
  */
+@Slf4j
 @Configuration
 @EnableJpaRepositories(
         basePackages = "com.mobigen.dolphin.repository.local",
@@ -68,5 +71,17 @@ public class JobDBConfiguration {
         var transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(jobEntityManager().getObject());
         return transactionManager;
+    }
+
+    public boolean isDBConnected() {
+        boolean isConnected = false;
+        try (var connection = dataSource().getConnection();
+             var statement = connection.prepareStatement("select 1")) {
+            log.info("DB is connected : {}", statement.execute());
+            isConnected = true;
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+        return isConnected;
     }
 }

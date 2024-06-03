@@ -2,6 +2,8 @@ package com.mobigen.dolphin.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +33,8 @@ import java.util.Map;
         transactionManagerRef = "trinoTransactionManager"
 )
 public class TrinoConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(TrinoConfiguration.class);
+
     @Bean(value = "trinoHibernateProperties")
     @ConfigurationProperties("dolphin.trino.hibernate.property")
     public Map<String, Object> trinoHibernateProperties() {
@@ -71,5 +76,17 @@ public class TrinoConfiguration {
         var transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(trinoEntityManager().getObject());
         return transactionManager;
+    }
+
+    public boolean isDBConnected() {
+        boolean isConnected = false;
+        try (var connection = trinoDataSource().getConnection();
+             var statement = connection.prepareStatement("select 1")) {
+            log.info("DB is connected : {}", statement.execute());
+            isConnected = true;
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+        }
+        return isConnected;
     }
 }

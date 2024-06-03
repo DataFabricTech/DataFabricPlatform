@@ -1,6 +1,7 @@
 package com.mobigen.dolphin.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ErrorDto {
+@Builder
+public class MessageDto {
     private int code;
     private String message;
 }
