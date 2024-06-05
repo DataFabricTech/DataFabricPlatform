@@ -6,13 +6,14 @@ import com.mobigen.dolphin.dto.response.ModelDto;
 import com.mobigen.dolphin.entity.openmetadata.DBServiceEntity;
 import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
+import com.mobigen.dolphin.util.Functions;
 import com.mobigen.dolphin.util.ModelType;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -34,9 +35,9 @@ public class ModelService {
         return trinoRepository.getModelList();
     }
 
-    private String getOrCreateTrinoCatalog(DBServiceEntity dbServiceEntity) {
+    public String getOrCreateTrinoCatalog(DBServiceEntity dbServiceEntity) {
         var catalogs = trinoRepository.getCatalogs();
-        var catalogName = dbServiceEntity.getId().toString().replace("-", "_");
+        var catalogName = Functions.getCatalogName(dbServiceEntity.getId());
         boolean makeCatalog = true;
         for (var catalog : catalogs) {
             if (catalog.equals(catalogName)) {
@@ -46,28 +47,38 @@ public class ModelService {
             }
         }
         if (makeCatalog) {
-            var createQuery = getQuery(dbServiceEntity, catalogName);
+            var connInfo = dbServiceEntity.getConnection().getConfig();
+            var username = connInfo.getUsername();
+            String dbms;
+            String password;
+            if ("postgres".equalsIgnoreCase(dbServiceEntity.getServiceType())) {
+                dbms = "postgresql";
+                password = connInfo.getAuthType().getPassword();
+            } else {
+                dbms = dbServiceEntity.getServiceType().toLowerCase();
+                password = connInfo.getPassword();
+            }
+            var jdbcURL = "jdbc:" + dbms + "://" + connInfo.getHostPort();
+            if (!List.of("mariadb", "mysql").contains(dbms)  // mariadb/mysql 의 경우 trino 에서 jdbc-url 에 db 세팅을 하지 않도록 되어 있어서 제외
+                    && !connInfo.getDatabase().isEmpty()) {
+                jdbcURL = jdbcURL + "/" + connInfo.getDatabase();
+            }
+
+            var createQuery = "create catalog " + catalogName
+                    + " using " + dbms
+                    + " with ("
+                    + " \"connection-url\" = '" + jdbcURL + "', "
+                    + " \"connection-user\" = '" + username + "', "
+                    + " \"connection-password\" = '" + password + "')";
             trinoRepository.execute(createQuery);
         }
         return catalogName;
     }
 
-    private static @NotNull String getQuery(DBServiceEntity dbServiceEntity, String catalogName) {
-        var connInfo = dbServiceEntity.getConnection().getConfig();
-        var dbms = dbServiceEntity.getServiceType().toLowerCase();
-        var jdbcURL = "jdbc:" + dbms + "://" + connInfo.getHostPort();
-        if (!List.of("mariadb", "mysql").contains(dbms)  // mariadb/mysql 의 경우 trino 에서 jdbc-url 에 db 세팅을 하지 않도록 되어 있어서 제외
-                && !connInfo.getDatabaseName().isEmpty()) {
-            jdbcURL = jdbcURL + "/" + connInfo.getDatabaseName();
-        }
-        var username = connInfo.getUsername();
-        var password = connInfo.getPassword();
-        return "create catalog " + catalogName
-                + " using " + dbms
-                + " with ("
-                + " \"connection-url\" = '" + jdbcURL + "', "
-                + " \"connection-user\" = '" + username + "', "
-                + " \"connection-password\" = '" + password + "')";
+    public void deleteTrinoCatalog(UUID entityId) {
+        var catalogName = Functions.getCatalogName(entityId);
+        var deleteQuery = "drop catalog if exists " + catalogName;
+        trinoRepository.execute(deleteQuery);
     }
 
     public ModelDto createModel(CreateModelDto createModelDto) {

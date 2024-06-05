@@ -13,7 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ErrorCode {
-    INVALID_SQL(400, "잘 못 된 SQL 입니다.");
+    INVALID_SQL(400, "잘 못 된 SQL 입니다."),
+    UNSUPPORTED(400, "지원하지 않는 동작입니다.");
     private final int status;
     private final String message;
 }

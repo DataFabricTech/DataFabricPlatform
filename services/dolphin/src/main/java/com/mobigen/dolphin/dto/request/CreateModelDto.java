@@ -52,6 +52,7 @@ public class CreateModelDto {
     @Getter
     @Setter
     public static class JoinModel {
+        // TODO create model: join 모델/컨넥터/쿼리 등 할 수 있게 추가 필요
         private JoinType joinType;
         private String model;
         private String on;

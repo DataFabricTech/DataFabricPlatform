@@ -25,9 +25,6 @@ public class OMNotifyController {
     @Operation(summary = "Handle processing of OpenMetadata Notification")
     @PostMapping(value = "", consumes = "application/json")
     public String notify(@RequestBody OMNotifyDto omNotifyDto) {
-        if (omNotifyDto.getEntityType().equals("databaseService")) {
-            return omNotifyService.runDBService(omNotifyDto);
-        }
-        return "not implemented";
+        return omNotifyService.handle(omNotifyDto);
     }
 }

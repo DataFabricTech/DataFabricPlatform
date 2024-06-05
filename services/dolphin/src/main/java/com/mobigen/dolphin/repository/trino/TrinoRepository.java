@@ -3,12 +3,15 @@ package com.mobigen.dolphin.repository.trino;
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.dto.response.ModelDto;
 import com.mobigen.dolphin.dto.response.QueryResultDTO;
+import com.mobigen.dolphin.exception.ErrorCode;
+import com.mobigen.dolphin.exception.SqlParseException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
@@ -22,6 +25,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -83,9 +87,12 @@ public class TrinoRepository {
                     .rows(rows)
                     .totalCount(rows.size())
                     .build();
+        } catch (UncategorizedSQLException e) {
+            log.error(e.getMessage(), e);
+            throw new SqlParseException(ErrorCode.INVALID_SQL, Objects.requireNonNull(e.getSQLException()).getCause().getMessage());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return null;
+            throw new SqlParseException(ErrorCode.INVALID_SQL, e.getMessage());
         }
     }
 

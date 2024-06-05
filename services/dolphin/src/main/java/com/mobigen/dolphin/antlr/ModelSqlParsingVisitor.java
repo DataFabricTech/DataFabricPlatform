@@ -156,6 +156,9 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
     public String visitTable_or_subquery(ModelSqlParser.Table_or_subqueryContext ctx) {
         String result;
         if (ctx.model_name() != null) {  // 심플 모델명
+            if (ctx.schema_name() != null && ctx.catalog_name() == null) {
+                throw new SqlParseException(ErrorCode.INVALID_SQL, "schema 를 사용한 경우 catalog 를 반드시 설정 해야 합니다.");
+            }
             String catalogName = visitCatalog_name(ctx.catalog_name());
             String schemaName = visitSchema_name(ctx.schema_name());
             var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());

@@ -31,6 +31,7 @@ public class DBServiceEntity {
     private Float version;
     private Long updatedAt;
     private String updatedBy;
+    private OwnerEntity owner;
     private String href;
     private ChangeDescriptionEntity changeDescription;
     private Boolean deleted;
@@ -45,13 +46,29 @@ public class DBServiceEntity {
             private String scheme;
             private String username;
             private String password;
+            private AuthType authType;
             private String hostPort;
-            private String databaseName;
+            private String database;
             private Boolean supportsMetadataExtraction;
             private Boolean supportsDBTExtraction;
             private Boolean supportsProfiler;
             private Boolean supportsQueryComment;
         }
+
+        @Data
+        public static class AuthType {
+            private String password;
+        }
+    }
+
+    @Data
+    public static class OwnerEntity {
+        private UUID id;
+        private String type;
+        private String name;
+        private String fullyQualifiedName;
+        private Boolean deleted;
+        private String href;
     }
 
     @Data
