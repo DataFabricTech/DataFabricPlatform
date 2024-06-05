@@ -4,9 +4,11 @@ import com.mobigen.dolphin.antlr.ModelSqlLexer;
 import com.mobigen.dolphin.antlr.ModelSqlParser;
 import com.mobigen.dolphin.antlr.ModelSqlParsingVisitor;
 import com.mobigen.dolphin.config.DolphinConfiguration;
+import com.mobigen.dolphin.dto.request.ExecuteDto;
 import com.mobigen.dolphin.dto.response.QueryResultDTO;
 import com.mobigen.dolphin.entity.local.JobEntity;
 import com.mobigen.dolphin.repository.local.JobRepository;
+import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,32 +35,33 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 public class QueryService {
+    private final OpenMetadataRepository openMetadataRepository;
     private final DolphinConfiguration dolphinConfiguration;
     private final TrinoRepository trinoRepository;
     private final JobRepository jobRepository;
 
     private final AsyncService asyncService;
 
-    public JobEntity createJob(String sql) {
-        log.info("Create job. origin sql: {}", sql);
-        var lexer = new ModelSqlLexer(CharStreams.fromString(sql));
+    public JobEntity createJob(ExecuteDto executeDto) {
+        log.info("Create job. origin sql: {}", executeDto.getQuery());
+        var lexer = new ModelSqlLexer(CharStreams.fromString(executeDto.getQuery()));
         var tokens = new CommonTokenStream(lexer);
         var parser = new ModelSqlParser(tokens);
-        var visitor = new ModelSqlParsingVisitor(dolphinConfiguration);
+        var visitor = new ModelSqlParsingVisitor(openMetadataRepository, dolphinConfiguration, executeDto.getReferenceModels());
         var parseTree = parser.parse();
         var convertedQuery = visitor.visit(parseTree);
         log.info("Converted sql: {}", convertedQuery);
         var job = JobEntity.builder()
                 .status(JobEntity.JobStatus.QUEUED)
-                .userQuery(sql)
+                .userQuery(executeDto.getQuery())
                 .convertedQuery(convertedQuery)
                 .build();
         jobRepository.save(job);
         return job;
     }
 
-    public QueryResultDTO execute(String sql) {
-        var job = createJob(sql);
+    public QueryResultDTO execute(ExecuteDto executeDto) {
+        var job = createJob(executeDto);
         job.setStatus(JobEntity.JobStatus.RUNNING);
         jobRepository.save(job);
         var result = trinoRepository.executeQuery2(job.getConvertedQuery());
@@ -67,8 +70,8 @@ public class QueryService {
         return result;
     }
 
-    public QueryResultDTO executeAsync(String sql) {
-        var job = createJob(sql);
+    public QueryResultDTO executeAsync(ExecuteDto executeDto) {
+        var job = createJob(executeDto);
         asyncService.executeAsync(job);
         return QueryResultDTO.builder()
                 .jobId(job.getId())

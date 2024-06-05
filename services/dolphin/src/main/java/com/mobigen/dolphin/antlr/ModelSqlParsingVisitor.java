@@ -1,8 +1,11 @@
 package com.mobigen.dolphin.antlr;
 
 import com.mobigen.dolphin.config.DolphinConfiguration;
+import com.mobigen.dolphin.dto.request.ExecuteDto;
 import com.mobigen.dolphin.exception.ErrorCode;
 import com.mobigen.dolphin.exception.SqlParseException;
+import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
+import com.mobigen.dolphin.util.Functions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,10 +14,10 @@ import org.antlr.v4.runtime.VocabularyImpl;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,11 +32,12 @@ import java.util.stream.Collectors;
 @Getter
 @RequiredArgsConstructor
 public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
-    private final char SPECIAL_CHAR = '"';
+    private final OpenMetadataRepository openMetadataRepository;
     private final DolphinConfiguration dolphinConfiguration;
+    private final List<ExecuteDto.ReferenceModel> referenceModels;
+
+    private final char SPECIAL_CHAR = '"';
     private final Map<String, String> models = new HashMap<>();
-    private JSONObject jsonTree;
-    private final QueryTreeJsonSerializer serializer = new QueryTreeJsonSerializer();
 
     @Override
     public String visitErrorNode(ErrorNode node) {
@@ -47,7 +51,6 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
 
     @Override
     public String visitParse(ModelSqlParser.ParseContext ctx) {
-        jsonTree = serializer.serialize(ctx);
         return visitSql_stmt(ctx.sql_stmt());
     }
 
@@ -154,18 +157,35 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
 
     @Override
     public String visitTable_or_subquery(ModelSqlParser.Table_or_subqueryContext ctx) {
-        String result;
+        String result = null;
         if (ctx.model_name() != null) {  // 심플 모델명
             if (ctx.schema_name() != null && ctx.catalog_name() == null) {
                 throw new SqlParseException(ErrorCode.INVALID_SQL, "schema 를 사용한 경우 catalog 를 반드시 설정 해야 합니다.");
             }
-            String catalogName = visitCatalog_name(ctx.catalog_name());
-            String schemaName = visitSchema_name(ctx.schema_name());
-            var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());
-            log.info("catalog : " + catalogName + " schema : " + schemaName + " modelName : " + modelName);
-            // TODO modelName 을 이용해 모델의 실제 데이터 소스 가져 오기
-            models.put(ctx.toString(), catalogName + "." + schemaName + "." + modelName);
-            result = catalogName + "." + schemaName + "." + modelName;
+            for (var referenceModel : referenceModels) {
+                if (ctx.model_name().getText().equalsIgnoreCase(referenceModel.getName())) {
+                    var tableInfo = referenceModel.getId() == null ?
+                            openMetadataRepository.getTable(referenceModel.getFullyQualifiedName()) :
+                            openMetadataRepository.getTable(referenceModel.getId());
+                    var catalogName = Functions.getCatalogName(tableInfo.getService().getId());
+                    String schemaName;
+                    if ("postgres".equalsIgnoreCase(tableInfo.getServiceType())) {
+                        schemaName = tableInfo.getDatabaseSchema().getName();
+                    } else {
+                        schemaName = tableInfo.getDatabase().getName();
+                    }
+                    result = catalogName + "." + schemaName + "." + tableInfo.getName();
+                    break;
+                }
+            }
+            if (result == null) {
+                var catalogName = visitCatalog_name(ctx.catalog_name());
+                var schemaName = visitSchema_name(ctx.schema_name());
+                var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());
+                log.info("catalog : {} schema : {} modelName : {}", catalogName, schemaName, modelName);
+                models.put(ctx.toString(), catalogName + "." + schemaName + "." + modelName);
+                result = catalogName + "." + schemaName + "." + modelName;
+            }
         } else if (ctx.select_stmt() != null) {
             result = "(" + visitSelect_stmt(ctx.select_stmt()) + ")";
         } else {

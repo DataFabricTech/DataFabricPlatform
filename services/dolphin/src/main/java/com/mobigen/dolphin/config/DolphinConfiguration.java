@@ -58,5 +58,6 @@ public class DolphinConfiguration {
     public static class OpenMetadataConfig {
         private String fernetKey;
         private String apiUrl;
+        private String botToken;
     }
 }

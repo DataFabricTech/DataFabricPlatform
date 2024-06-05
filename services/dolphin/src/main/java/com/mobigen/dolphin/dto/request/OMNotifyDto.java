@@ -2,6 +2,7 @@ package com.mobigen.dolphin.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mobigen.dolphin.entity.openmetadata.EntityType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -52,31 +53,6 @@ public class OMNotifyDto {
                 }
             }
             log.warn("Unsupported event type: {}", value);
-            return UNSUPPORTED;
-        }
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum EntityType {
-        DATABASE_SERVICE("databaseService"),
-        DATABASE_SCHEMA("databaseSchema"),
-        DATABASE("database"),
-        TABLE("table"),
-        INGESTION_PIPELINE("ingestionPipeline"),
-        UNSUPPORTED("unsupported"),
-        ;
-
-        private final String value;
-
-        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-        public static EntityType from(String value) {
-            for (EntityType type : EntityType.values()) {
-                if (type.getValue().equals(value)) {
-                    return type;
-                }
-            }
-            log.warn("Unsupported entity type: {}", value);
             return UNSUPPORTED;
         }
     }

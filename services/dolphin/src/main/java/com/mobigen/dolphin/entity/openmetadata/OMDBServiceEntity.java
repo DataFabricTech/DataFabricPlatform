@@ -6,7 +6,6 @@ import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -17,7 +16,7 @@ import java.util.UUID;
  * @since 0.0.1
  */
 @Data
-public class DBServiceEntity {
+public class OMDBServiceEntity {
     @Id
     @Column(columnDefinition = "VARCHAR(36)")
     @JdbcTypeCode(SqlTypes.VARCHAR)
@@ -33,7 +32,7 @@ public class DBServiceEntity {
     private String updatedBy;
     private OwnerEntity owner;
     private String href;
-    private ChangeDescriptionEntity changeDescription;
+    private OMChangeDescriptionEntity changeDescription;
     private Boolean deleted;
 
     @Data
@@ -71,18 +70,4 @@ public class DBServiceEntity {
         private String href;
     }
 
-    @Data
-    public static class ChangeDescriptionEntity {
-        private List<String> fieldsAdded;
-        private List<FieldsUpdatedEntity> fieldsUpdated;
-        private List<String> fieldsDeleted;
-        private Float previousVersion;
-
-        @Data
-        public static class FieldsUpdatedEntity {
-            private String name;
-            private Boolean oldValue;
-            private Boolean newValue;
-        }
-    }
 }

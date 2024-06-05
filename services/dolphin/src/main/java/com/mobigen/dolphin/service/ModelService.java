@@ -3,7 +3,7 @@ package com.mobigen.dolphin.service;
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.dto.request.CreateModelDto;
 import com.mobigen.dolphin.dto.response.ModelDto;
-import com.mobigen.dolphin.entity.openmetadata.DBServiceEntity;
+import com.mobigen.dolphin.entity.openmetadata.OMDBServiceEntity;
 import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
 import com.mobigen.dolphin.repository.trino.TrinoRepository;
 import com.mobigen.dolphin.util.Functions;
@@ -35,9 +35,9 @@ public class ModelService {
         return trinoRepository.getModelList();
     }
 
-    public String getOrCreateTrinoCatalog(DBServiceEntity dbServiceEntity) {
+    public String getOrCreateTrinoCatalog(OMDBServiceEntity OMDBServiceEntity) {
         var catalogs = trinoRepository.getCatalogs();
-        var catalogName = Functions.getCatalogName(dbServiceEntity.getId());
+        var catalogName = Functions.getCatalogName(OMDBServiceEntity.getId());
         boolean makeCatalog = true;
         for (var catalog : catalogs) {
             if (catalog.equals(catalogName)) {
@@ -47,15 +47,15 @@ public class ModelService {
             }
         }
         if (makeCatalog) {
-            var connInfo = dbServiceEntity.getConnection().getConfig();
+            var connInfo = OMDBServiceEntity.getConnection().getConfig();
             var username = connInfo.getUsername();
             String dbms;
             String password;
-            if ("postgres".equalsIgnoreCase(dbServiceEntity.getServiceType())) {
+            if ("postgres".equalsIgnoreCase(OMDBServiceEntity.getServiceType())) {
                 dbms = "postgresql";
                 password = connInfo.getAuthType().getPassword();
             } else {
-                dbms = dbServiceEntity.getServiceType().toLowerCase();
+                dbms = OMDBServiceEntity.getServiceType().toLowerCase();
                 password = connInfo.getPassword();
             }
             var jdbcURL = "jdbc:" + dbms + "://" + connInfo.getHostPort();

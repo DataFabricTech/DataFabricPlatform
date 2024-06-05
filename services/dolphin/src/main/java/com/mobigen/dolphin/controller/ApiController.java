@@ -44,13 +44,13 @@ public class ApiController {
     @Operation(summary = "Execute Query using DataModel")
     @PostMapping("/query/execute")
     public QueryResultDTO execute(@RequestBody ExecuteDto executeDto) {
-        return queryService.execute(executeDto.getQuery());
+        return queryService.execute(executeDto);
     }
 
     @Operation(summary = "Async Execute Query using DataModel")
     @PostMapping("/query/async/execute")
     public Object asyncExecute(@RequestBody ExecuteDto executeDto) {
-        return queryService.executeAsync(executeDto.getQuery());
+        return queryService.executeAsync(executeDto);
     }
 
     @Operation(summary = "Read result data of asynchronous query using JobId")

@@ -2,6 +2,7 @@ package com.mobigen.dolphin.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mobigen.dolphin.dto.request.OMNotifyDto;
+import com.mobigen.dolphin.entity.openmetadata.EntityType;
 import com.mobigen.dolphin.exception.ErrorCode;
 import com.mobigen.dolphin.exception.SqlParseException;
 import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
@@ -25,6 +26,7 @@ public class OMNotifyService {
 
     public String runDBService(OMNotifyDto omNotifyDto) throws JsonProcessingException {
         if (omNotifyDto.getEventType().equals(OMNotifyDto.EventType.ENTITY_CREATED)) {
+            log.info("Create catalog of {}", omNotifyDto.getEntityId());
             var connInfo = openMetadataRepository.getConnectorInfo(omNotifyDto.getEntityId());
             var catalog = modelService.getOrCreateTrinoCatalog(connInfo);
             return "Success to create catalog [" + catalog + "]";
@@ -42,7 +44,7 @@ public class OMNotifyService {
 
     public String handle(OMNotifyDto omNotifyDto) {
         try {
-            if (omNotifyDto.getEntityType().equals(OMNotifyDto.EntityType.DATABASE_SERVICE)) {
+            if (omNotifyDto.getEntityType().equals(EntityType.DATABASE_SERVICE)) {
                 return runDBService(omNotifyDto);
             }
             throw new SqlParseException(ErrorCode.UNSUPPORTED, "현재 지원하지 않는 entityType 입니다. " + omNotifyDto.getEntityType());
