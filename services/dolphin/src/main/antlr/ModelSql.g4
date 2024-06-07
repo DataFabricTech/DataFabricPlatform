@@ -95,7 +95,7 @@ expr
 : literal_value
 | BIND_PARAMETER
 | function_name OPEN_PAR function_arguments CLOSE_PAR
-| (((catalog_name DOT)? schema_name DOT)? model_name DOT)? column_name
+| (model_term DOT)? column_name
 | unary_operator expr
 | expr PIPE2 expr
 | expr (STAR | DIV | MOD) expr
@@ -111,7 +111,7 @@ expr
 | expr K_IS K_NOT? (K_DISTINCT K_FROM)? expr
 | expr K_NOT? K_BETWEEN expr K_AND expr
 | expr K_NOT? K_IN (OPEN_PAR (select_stmt | expr (COMMA expr)*)? CLOSE_PAR
-                   | ((catalog_name DOT)? schema_name DOT)? model_name)  // schema_name.function(...) 은 사용 안함
+                   | model_term)  // schema_name.function(...) 은 사용 안함
 | (K_NOT? K_EXISTS)? OPEN_PAR select_stmt CLOSE_PAR
 | K_CASE expr? (K_WHEN expr K_THEN expr)+ (K_ELSE expr)? K_END
 | expr K_AND expr
@@ -131,13 +131,17 @@ ordering_term
 result_column
 : expr (K_AS? column_alias)?
 | STAR
-| model_name DOT STAR
+| model_term DOT STAR
 ;
 
 table_or_subquery
-: (((catalog_name DOT)? schema_name DOT)? model_name
+: (model_term
 | OPEN_PAR select_stmt CLOSE_PAR
 | OPEN_PAR join_clause CLOSE_PAR) (K_AS? table_alias)?
+;
+
+model_term
+: ((catalog_name DOT)? schema_name DOT)? model_name
 ;
 
 function_arguments
@@ -211,6 +215,10 @@ keyword  // https://sqlite.org/lang_keywords.html
 | K_EXISTS
 | K_EXPLAIN
 | K_FAIL
+| K_FALSE
+//| K_FILTER
+| K_FIRST
+//| K_FOLLOWING
 //| K_FOR
 //| K_FOREIGN
 | K_FROM
@@ -233,27 +241,35 @@ keyword  // https://sqlite.org/lang_keywords.html
 | K_IS
 | K_ISNULL
 | K_JOIN
-//| K_KEY
+| K_KEY
+| K_LAST
 | K_LEFT
 | K_LIKE
 | K_LIMIT
 | K_MATCH
+//| K_MATERIALIZED
 | K_NATURAL
 | K_NO
 | K_NOT
 | K_NOTNULL
 | K_NULL
+| K_NULLS
 //| K_OF
 | K_OFFSET
 | K_ON
 | K_OR
 | K_ORDER
+| K_OTHERS
 | K_OUTER
+| K_OVER
+| K_PARTITION
 | K_PLAN
+| K_PRECEDING
 //| K_PRAGMA
 //| K_PRIMARY
 | K_QUERY
 | K_RAISE
+| K_RANGE
 | K_RECURSIVE
 //| K_REFERENCES
 | K_REGEXP
@@ -265,6 +281,7 @@ keyword  // https://sqlite.org/lang_keywords.html
 | K_RIGHT
 | K_ROLLBACK
 | K_ROW
+| K_ROWS
 //| K_SAVEPOINT
 | K_SELECT
 //| K_SET
@@ -272,9 +289,12 @@ keyword  // https://sqlite.org/lang_keywords.html
 //| K_TEMP
 //| K_TEMPORARY
 | K_THEN
+| K_TIES
+| K_TRUE
 //| K_TO
 //| K_TRANSACTION
 //| K_TRIGGER
+| K_UNBOUNDED
 | K_UNION
 //| K_UNIQUE
 //| K_UPDATE
@@ -285,6 +305,7 @@ keyword  // https://sqlite.org/lang_keywords.html
 //| K_VIRTUAL
 | K_WHEN
 | K_WHERE
+| K_WINDOW
 | K_WITH
 //| K_WITHOUT
 //| K_NEXTVAL
@@ -355,7 +376,7 @@ K_CASE: C A S E;
 K_CAST: C A S T;
 K_COLLATE: C O L L A T E;
 K_CROSS: C R O S S;
-K_CURRENT: C U R R E N T;
+//K_CURRENT: C U R R E N T;
 K_CURRENT_TIME: C U R R E N T '_' T I M E;
 K_CURRENT_DATE: C U R R E N T '_' D A T E;
 K_CURRENT_TIMESTAMP: C U R R E N T '_' T I M E S T A M P;
@@ -366,14 +387,14 @@ K_ELSE: E L S E;
 K_END: E N D;
 K_ESCAPE: E S C A P E;
 K_EXCEPT: E X C E P T;
-K_EXCLUDE: E X C L U D E;
+//K_EXCLUDE: E X C L U D E;
 K_EXISTS: E X I S T S;
 K_EXPLAIN: E X P L A I N;
 K_FAIL: F A I L;
 K_FALSE: F A L S E;
-K_FILTER: F I L T E R;
+//K_FILTER: F I L T E R;
 K_FIRST: F I R S T;
-K_FOLLOWING: F O L L O W I N G;
+//K_FOLLOWING: F O L L O W I N G;
 K_FROM: F R O M;
 K_FULL: F U L L;
 K_GLOB: G L O B;
@@ -388,12 +409,13 @@ K_INTERSECT: I N T E R S E C T;
 K_IS: I S;
 K_ISNULL: I S N U L L;
 K_JOIN: J O I N;
+K_KEY: K E Y;
 K_LAST: L A S T;
 K_LEFT: L E F T;
 K_LIKE: L I K E;
 K_LIMIT: L I M I T;
 K_MATCH: M A T C H;
-K_MATERIALIZED: M A T E R I A L I Z E D;
+//K_MATERIALIZED: M A T E R I A L I Z E D;
 K_NATURAL: N A T U R A L;
 K_NO: N O;
 K_NOT: N O T;
