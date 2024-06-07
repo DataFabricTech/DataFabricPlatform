@@ -172,6 +172,13 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
     }
 
     @Override
+    public String visitJoin_constraint(ModelSqlParser.Join_constraintContext ctx) {
+        return ctx.children.stream()
+                .map(x -> x.accept(this))
+                .collect(Collectors.joining(" "));
+    }
+
+    @Override
     public String visitResult_column(ModelSqlParser.Result_columnContext ctx) {
         if (ctx.expr() != null) {
             var expr = visitExpr(ctx.expr());
@@ -186,21 +193,8 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
 
     @Override
     public String visitExpr(ModelSqlParser.ExprContext ctx) {
-        // TODO : expr 의 처리가 부족함
-        if (ctx.literal_value() != null) {
-            return ctx.literal_value().accept(this);
-        } else if (ctx.column_name() != null) {
-            String modelName = "";
-            if (ctx.model_term() != null && ctx.DOT() != null) {
-                modelName = visitModel_term(ctx.model_term()) + ".";
-            }
-            return modelName + convertKeywordName(ctx.column_name().getText());
-        }
-        StringBuilder result = new StringBuilder();
-        for (var i = 0; i < ctx.expr().size(); i++) {
-            result.append(visitExpr(ctx.expr(i)));
-        }
-        return result.toString();
+        return ctx.children.stream().map(x -> x.accept(this))
+                .collect(Collectors.joining(" "));
     }
 
     @Override
@@ -254,6 +248,11 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
         var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());
         log.info("catalog : {} schema : {} modelName : {}", catalogName, schemaName, modelName);
         return catalogName + "." + schemaName + "." + modelName;
+    }
+
+    @Override
+    public String visitColumn_name(ModelSqlParser.Column_nameContext ctx) {
+        return visitAny_name(ctx.any_name());
     }
 
     @Override

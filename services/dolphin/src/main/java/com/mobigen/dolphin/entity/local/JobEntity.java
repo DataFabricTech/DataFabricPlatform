@@ -36,7 +36,7 @@ public class JobEntity {
     private JobStatus status;
     @Column(name = "user_query")
     private String userQuery;
-    @Column(name = "converted_query")
+    @Column(name = "converted_query", length = 2048)
     private String convertedQuery;
     @CreationTimestamp
     private Timestamp created;
