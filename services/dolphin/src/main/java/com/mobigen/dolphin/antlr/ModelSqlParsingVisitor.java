@@ -10,16 +10,16 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.RuleContext;
-import org.antlr.v4.runtime.VocabularyImpl;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.mobigen.dolphin.util.Functions.convertKeywordName;
 
 /**
  * <p>
@@ -245,7 +245,7 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
         // OpenMetadata 에서 참조 되지 않은 경우, 사용자가 작성한 대로 인식
         var catalogName = visitCatalog_name(ctx.catalog_name());
         var schemaName = visitSchema_name(ctx.schema_name());
-        var modelName = dolphinConfiguration.getModel().convertKeywordName(ctx.model_name().getText());
+        var modelName = convertKeywordName(ctx.model_name().getText());
         log.info("catalog : {} schema : {} modelName : {}", catalogName, schemaName, modelName);
         return catalogName + "." + schemaName + "." + modelName;
     }
@@ -283,17 +283,7 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
 
     @Override
     public String visitAny_name(ModelSqlParser.Any_nameContext ctx) {
-        return dolphinConfiguration.getModel().convertKeywordName(ctx.getText());
-    }
-
-    private String convertKeywordName(String name) {
-        if (name.startsWith("`")) {
-            name = SPECIAL_CHAR + name.substring(1, name.length() - 1) + SPECIAL_CHAR;
-        } else if (Arrays.asList(((VocabularyImpl) ModelSqlParser.VOCABULARY).getSymbolicNames())
-                .contains("K_" + name.toUpperCase())) {
-            name = SPECIAL_CHAR + name + SPECIAL_CHAR;
-        }
-        return name;
+        return convertKeywordName(ctx.getText());
     }
 
     private String combineKeywordsAndPad(String... keywords) {

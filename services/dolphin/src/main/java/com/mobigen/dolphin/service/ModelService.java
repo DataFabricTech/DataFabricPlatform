@@ -84,7 +84,7 @@ public class ModelService {
     public ModelDto createModel(CreateModelDto createModelDto) {
         var selectedColumns = !createModelDto.getBaseModel().getSelectedColumnNames().isEmpty() ?
                 createModelDto.getBaseModel().getSelectedColumnNames().stream()
-                        .map(dolphinConfiguration.getModel()::convertKeywordName)
+                        .map(Functions::convertKeywordName)
                         .collect(Collectors.joining(", "))
                 : "*";
         String sql = "create view " + dolphinConfiguration.getModel().getCatalog()

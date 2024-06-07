@@ -1,14 +1,12 @@
 package com.mobigen.dolphin.config;
 
-import com.mobigen.dolphin.antlr.ModelSqlParser;
 import lombok.Getter;
 import lombok.Setter;
-import org.antlr.v4.runtime.VocabularyImpl;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
+import static com.mobigen.dolphin.util.Functions.convertKeywordName;
 
 /**
  * <p>
@@ -40,16 +38,6 @@ public class DolphinConfiguration {
 
         public String getSchema() {
             return convertKeywordName(schema);
-        }
-
-        public String convertKeywordName(String name) {
-            if (name.startsWith("`")) {
-                name = specialChar + name.substring(1, name.length() - 1) + specialChar;
-            } else if (Arrays.asList(((VocabularyImpl) ModelSqlParser.VOCABULARY).getSymbolicNames())
-                    .contains("K_" + name.toUpperCase())) {
-                name = specialChar + name + specialChar;
-            }
-            return name;
         }
     }
 
