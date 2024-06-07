@@ -63,15 +63,33 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
         return explain + query + plan + visitSelect_stmt(ctx.select_stmt());
     }
 
-
     @Override
     public String visitSelect_stmt(ModelSqlParser.Select_stmtContext ctx) {
-        var selectCore_ = ctx.select_core().stream()
-                .map(this::visitSelect_core)
-                .collect(Collectors.joining(" union "));
+        var selectCoreBuilder = new StringBuilder(visitSelect_core(ctx.select_core(0)));
+        for (var i = 0; i < ctx.compound_operator().size(); i++) {
+            selectCoreBuilder.append(" ").append(visitCompound_operator(ctx.compound_operator(i))).append(" ")
+                    .append(visitSelect_core(ctx.select_core(i + 1)));
+        }
+        var selectCore_ = selectCoreBuilder.toString();
         var orderBy_ = visitOrder_by_(ctx.order_by_());
         var limit_ = visitLimit_(ctx.limit_());
         return selectCore_ + orderBy_ + limit_;
+    }
+
+    @Override
+    public String visitCompound_operator(ModelSqlParser.Compound_operatorContext ctx) {
+        String operator;
+        if (ctx.K_UNION() != null) {
+            operator = ctx.K_UNION().getText();
+            if (ctx.K_ALL() != null) {
+                operator = operator + " " + ctx.K_ALL().getText();
+            }
+        } else if (ctx.K_INTERSECT() != null) {
+            operator = ctx.K_INTERSECT().getText();
+        } else {
+            operator = ctx.K_EXCEPT().getText();
+        }
+        return operator;
     }
 
     @Override
