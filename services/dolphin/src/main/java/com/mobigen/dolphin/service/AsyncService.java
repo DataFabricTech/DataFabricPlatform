@@ -25,11 +25,6 @@ public class AsyncService {
         jobEntity.setStatus(JobEntity.JobStatus.RUNNING);
         jobRepository.save(jobEntity);
         var result = trinoRepository.executeQuery(jobEntity.getId(), jobEntity.getConvertedQuery());
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         jobEntity.setResultPath(result);
         jobEntity.setStatus(JobEntity.JobStatus.FINISHED);
         jobRepository.save(jobEntity);
