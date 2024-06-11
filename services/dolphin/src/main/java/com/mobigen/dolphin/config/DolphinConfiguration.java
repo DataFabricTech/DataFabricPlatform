@@ -29,16 +29,28 @@ public class DolphinConfiguration {
     public static class Model {
         private String prefix;
         private String catalog;
-        private String schema;
+        private ModelSchema schema;
+        private String dbSchema;
+        private String fileSchema;
         private Character specialChar = '"';
 
         public String getCatalog() {
             return convertKeywordName(catalog);
         }
 
-        public String getSchema() {
-            return convertKeywordName(schema);
+        public String getDBSchema() {
+            return convertKeywordName(dbSchema);
         }
+        public String getFileSchema() {
+            return convertKeywordName(fileSchema);
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class ModelSchema {
+        private String db;
+        private String file;
     }
 
     @Getter

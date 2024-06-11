@@ -2,6 +2,7 @@ package com.mobigen.dolphin.service;
 
 import com.mobigen.dolphin.config.DolphinConfiguration;
 import com.mobigen.dolphin.dto.request.CreateModelDto;
+import com.mobigen.dolphin.dto.request.CreateModelWithFileDto;
 import com.mobigen.dolphin.dto.response.ModelDto;
 import com.mobigen.dolphin.entity.openmetadata.OMDBServiceEntity;
 import com.mobigen.dolphin.repository.openmetadata.OpenMetadataRepository;
@@ -11,6 +12,7 @@ import com.mobigen.dolphin.util.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -88,7 +90,7 @@ public class ModelService {
                         .collect(Collectors.joining(", "))
                 : "*";
         String sql = "create view " + dolphinConfiguration.getModel().getCatalog()
-                + "." + dolphinConfiguration.getModel().getSchema()
+                + "." + dolphinConfiguration.getModel().getDBSchema()
                 + "." + createModelDto.getModelName();
 
         if (createModelDto.getBaseModel().getType() == ModelType.CONNECTOR) {
@@ -102,12 +104,28 @@ public class ModelService {
         } else if (createModelDto.getBaseModel().getType() == ModelType.MODEL) {
             sql = sql + " as select " + selectedColumns
                     + " from " + dolphinConfiguration.getModel().getCatalog()
-                    + "." + dolphinConfiguration.getModel().getSchema()
+                    + "." + dolphinConfiguration.getModel().getDBSchema()
                     + "." + createModelDto.getBaseModel().getModel();
         } else {
             sql = sql + " as " + createModelDto.getBaseModel().getQuery();
         }
         trinoRepository.execute(sql);
+        return ModelDto.builder()
+                .name(createModelDto.getModelName())
+                .build();
+    }
+
+    public ModelDto createModelWithFile(CreateModelWithFileDto createModelDto, MultipartFile file) {
+        // TODO : upload file to s3(minio) - FMS 로 대체 가능?
+        // TODO : create model using trino-hive-s3(minio)
+
+//        String sql = "create table " + dolphinConfiguration.getModel().getCatalog()
+//                + "." + dolphinConfiguration.getModel().getDBSchema()
+//                + "." + createModelDto.getModelName();
+//        sql = sql + " as select " + selectedColumns
+//        + " from " + catalogName
+//                + "." + createModelDto.getBaseModel().getDatabase()
+//                + "." + createModelDto.getBaseModel().getTable();
         return ModelDto.builder()
                 .name(createModelDto.getModelName())
                 .build();

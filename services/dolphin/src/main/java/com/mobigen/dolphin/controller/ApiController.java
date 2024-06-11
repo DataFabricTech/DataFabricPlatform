@@ -1,6 +1,7 @@
 package com.mobigen.dolphin.controller;
 
 import com.mobigen.dolphin.dto.request.CreateModelDto;
+import com.mobigen.dolphin.dto.request.CreateModelWithFileDto;
 import com.mobigen.dolphin.dto.request.ExecuteDto;
 import com.mobigen.dolphin.dto.response.ModelDto;
 import com.mobigen.dolphin.dto.response.QueryResultDTO;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +41,13 @@ public class ApiController {
     @PostMapping("/model")
     public ModelDto addModel(@RequestBody CreateModelDto createModelDto) {
         return modelService.createModel(createModelDto);
+    }
+    @Operation(summary = "Create dataModel with File", description = "Create a dataModel by method (MODEL, QUERY, CONNECTOR)")
+    @PostMapping("/model/file")
+    public ModelDto addModelWithFile(@RequestPart CreateModelWithFileDto createModelDto,
+                                     @RequestPart MultipartFile file
+    ) {
+        return modelService.createModelWithFile(createModelDto, file);
     }
 
     @Operation(summary = "Execute Query using DataModel")

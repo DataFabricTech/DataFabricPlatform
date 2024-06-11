@@ -1,6 +1,6 @@
 # Dolphin Project
 
-Distributed Operations for Load Processing and Hive INtegration
+Data Operations and Processing with Logically Integrated High-performance INtegration
 
 ## Tools
 

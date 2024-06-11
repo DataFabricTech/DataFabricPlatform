@@ -271,7 +271,7 @@ public class ModelSqlParsingVisitor extends ModelSqlBaseVisitor<String> {
     @Override
     public String visitSchema_name(ModelSqlParser.Schema_nameContext ctx) {
         if (ctx == null) {
-            return dolphinConfiguration.getModel().getSchema();
+            return dolphinConfiguration.getModel().getDBSchema();
         }
         return visitAny_name(ctx.any_name());
     }
