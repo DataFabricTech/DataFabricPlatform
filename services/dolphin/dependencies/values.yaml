@@ -1,0 +1,52 @@
+# Default values for dependencies-helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+pvc:
+  hostpath:
+    path: /data
+
+images:
+  minio: quay.io/minio/minio
+  hive: apache/hive:4.0.0
+  postgresql: postgres:16.0
+  rabbitmq: rabbitmq:3-management
+  trino: trinodb/trino
+
+image:
+  minio:
+    repo: quay.io/minio/minio
+    tag: latest
+  hive:
+    repo: apache/hive
+    tag: "4.0.0"
+  postgresql:
+    repo: postgres
+    tag: "16.0"
+  rabbitmq:
+    repo: rabbitmq
+    tag: 3-management
+
+trino:
+  server:
+    workers: 1
+  additionalCatalogs:
+    test: |-
+      connector.name=postgresql
+      connection-url=jdbc:postgresql://localhost:65432/test
+      connection-user=postgres
+      connection-password=admin123
+  coordinator:
+    resources:
+      limits:
+        cpu: "2m"
+        memory: "8G"
+    jvm:
+      maxHeapSize: 4G
+  worker:
+    resources:
+      limits:
+        cpu: "2m"
+        memory: "8G"
+    jvm:
+      maxHeapSize: 4G

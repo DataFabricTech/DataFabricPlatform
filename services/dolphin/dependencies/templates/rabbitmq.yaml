@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: rabbitmq
+  name: rabbitmq
+  namespace: {{.Release.Namespace}}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: rabbitmq
+  serviceName: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: admin
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: rabbitmq
+                  name: mysecrets
+          image: {{.Values.image.rabbitmq.repo}}:{{.Values.image.rabbitmq.tag}}
+          name: rabbitmq
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          volumeMounts:
+            - mountPath: /var/lib/rabbitmq
+              name: ext-volume
+              subPath: test-base/rabbitmq/
+      volumes:
+        - name: ext-volume
+          persistentVolumeClaim:
+            claimName: pvc-{{.Release.Namespace}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-svc
+  namespace: {{.Release.Namespace}}
+spec:
+  ports:
+    - name: http
+      port: 15672
+      targetPort: 15672
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+  selector:
+    app: rabbitmq
+  type: NodePort
