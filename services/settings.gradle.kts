@@ -21,8 +21,8 @@ includeBuild("../libs")
 rootProject.name = "services" // the component name
 
 // sub module
-include("core")
-include("dataLayer")
-include("extraction")
-include("jpaSample")
-//include("springSample")
+//include("core")
+//include("dataLayer")
+//include("extraction")
+//include("jpaSample")
+include("dataRelationshipTrigger")

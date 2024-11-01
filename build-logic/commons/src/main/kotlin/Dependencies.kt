@@ -29,6 +29,7 @@ object Dependencies {
         const val PLATFORM_LAUNCH = "org.junit.platform:junit-platform-launcher:${Versions.JUNIT_PLATFORM_LAUNCH}"
         const val JUPITER_ENGINE = "org.junit.jupiter:junit-jupiter-engine:${Versions.JUNIT_VER}"
         const val MOCKITO   = "org.mockito:mockito-core:${Versions.MOCKITO_VER}"
+        const val MOCKITO_JUPITER   = "org.mockito:mockito-junit-jupiter:${Versions.MOCKITO_VER}"
     }
 
     object Spring {
@@ -37,6 +38,7 @@ object Dependencies {
         const val BOOT_STARTER = "org.springframework.boot:spring-boot-starter:${Versions.SPRING_BOOT_VER}"
         const val STARTER_WEB = "org.springframework.boot:spring-boot-starter-web:${Versions.SPRING_BOOT_VER}"
         const val JPA = "org.springframework.boot:spring-boot-starter-data-jpa:${Versions.SPRING_BOOT_VER}"
+        const val VALIDATION = "org.springframework.boot:spring-boot-starter-validation:${Versions.SPRING_BOOT_VER}"
         const val TEST = "org.springframework.boot:spring-boot-starter-test:${Versions.SPRING_BOOT_VER}"
     }
 

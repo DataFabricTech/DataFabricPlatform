@@ -1,6 +1,7 @@
 plugins {
     id("com.mobigen.commons")
     id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
 dependencies {
@@ -10,6 +11,7 @@ dependencies {
     implementation(Dependencies.Spring.BOOT_STARTER)
     implementation(Dependencies.Spring.STARTER_WEB)
     implementation(Dependencies.Spring.JPA)
+    implementation(Dependencies.Spring.VALIDATION)
 
     testImplementation(Dependencies.Spring.TEST)
 }
