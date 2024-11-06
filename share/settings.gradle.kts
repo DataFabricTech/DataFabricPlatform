@@ -6,11 +6,11 @@ pluginManagement {
 }
 
 // == Define locations for components ==
-//dependencyResolutionManagement {
-//    repositories {
-//        mavenCentral()
-//    }
-//}
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
 
 // == Define the inner structure of this component ==
 rootProject.name = "share" // the component name

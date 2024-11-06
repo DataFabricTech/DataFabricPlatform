@@ -16,4 +16,14 @@ public class SampleController {
     public String getSample() {
         return service.getSample();
     }
+
+    @GetMapping("/get-table")
+    public String getTable() {
+        return service.testGetTableData();
+    }
+
+    @GetMapping("/get-fusion")
+    public String getFusion() {
+        return service.testGetFusionData();
+    }
 }

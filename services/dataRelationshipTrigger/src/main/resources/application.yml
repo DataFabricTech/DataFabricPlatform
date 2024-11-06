@@ -1,0 +1,66 @@
+configuration:
+#  crontab 형식으로 설정
+  default-period: "*/5 * * * * *"
+  dolphin:
+    storage:
+      schema: ${DOLPHIN_STORAGE_SCHEMA:postgresql}
+      host: ${DOLPHIN_STORAGE_HOST:ovp-db}
+      port: ${DOLPHIN_STORAGE_PORT:5432}
+      database: ${DOLPHIN_STORAGE_DB:dolphin}
+      user: ${DOLPHIN_STORAGE_USER:ovp-user}
+      password: ${DOLPHIN_STORAGE_PASSWORD:biris.manse}
+  fabric:
+    storage:
+      schema: ${FABRIC_STORAGE_SCHEMA:mysql}
+      host: ${FABRIC_STORAGE_HOST:mysql}
+      port: ${FABRIC_STORAGE_PORT:3306}
+      database: ${FABRIC_STORAGE_DB:openmetadata_db}
+      user: ${FABRIC_STORAGE_USER:openmetadata_user}
+      password: ${FABRIC_STORAGE_PASSWORD:openmetadata_password}
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: DataRelationship
+
+logging:
+  level:
+    root: debug
+    web: info
+    sql: info
+    com.mobigen: info
+    org.hibernate: info
+    org.springframework: info
+    io.opentelemetry: info
+    com.zaxxer.hikari: info
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /docs
+
+otel:
+  service:
+    name: data-relationship
+  java:
+    disabled:
+      resource:
+        providers: io.opentelemetry.instrumentation.resources.OsResourceProvider
+  exporter:
+    otlp:
+      protocol: grpc
+      endpoint: http://${JAEGER_HOST:jaeger-svc}:${JAEGER_PORT:4317}
+  traces:
+    exporter: otlp
+  metrics:
+    exporter: none
+  logs:
+    exporter: none
+  instrumentation:
+    jdbc:
+      enabled: false

@@ -1,12 +1,11 @@
 package com.mobigen.datafabric.relationship;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringSample {
+public class SpringApplication {
 
     public static void main( String[] args ) {
-        SpringApplication.run( SpringSample.class, args );
+        org.springframework.boot.SpringApplication.run( SpringApplication.class, args );
     }
 }

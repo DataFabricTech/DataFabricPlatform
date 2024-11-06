@@ -23,6 +23,17 @@ dependencies {
 
     implementation(files("../../external-libs/openmetadata-spec-1.4.0.jar"))
 
+    // JPA
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:${Versions.SPRING_BOOT_VER}")
+    // DataSource Driver: MySQL, Postgresql
+    implementation("com.mysql:mysql-connector-j:${Versions.MYSQL}")
+    implementation("org.postgresql:postgresql:${Versions.POSTGRESQL}")
+
+    // For FullyQualifiedClassName
+    implementation("commons-codec:commons-codec:1.17.0")
+
+    // Model
+    implementation("com.mobigen.datafabric.share:models")
 }
 
 //tasks.withType<Test>().configureEach {

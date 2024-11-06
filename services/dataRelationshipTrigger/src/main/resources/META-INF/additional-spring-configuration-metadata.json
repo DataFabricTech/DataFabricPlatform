@@ -1,0 +1,122 @@
+{
+  "properties": [
+    {
+      "name": "configuration.default-period",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석 요청 실행 시간."
+    },
+    {
+      "name": "configuration.dolphin",
+      "type": "com.mobigen.datafabric.relationship.configurations.dolphin.DolphinConfiguration",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.dolphin.DolphinConfiguration",
+      "description": "데이터 융합/정제 서비스 연동을 위한 설정 정보."
+    },
+    {
+      "name": "configuration.dolphin.storage",
+      "type": "com.mobigen.datafabric.relationship.configurations.dolphin.DolphinStorage",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.dolphin.DolphinStorage",
+      "description": "데이터 융합/정제 서비스 저장소 정보."
+    },
+    {
+      "name": "configuration.dolphin.storage.schema",
+      "type": "com.mobigen.datafabric.relationship.configurations.dolphin.StorageType",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.dolphin.StorageType",
+      "description": "데이터 융합/정제 서비스 저장소 타입."
+    },
+    {
+      "name": "configuration.dolphin.storage.host",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소 호스트."
+    },
+    {
+      "name": "configuration.dolphin.storage.port",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소의 포트."
+    },
+    {
+      "name": "configuration.dolphin.storage.database",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소의 데이터베이스 이름."
+    },
+    {
+      "name": "configuration.dolphin.storage.user",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소의 사용자 정보."
+    },
+    {
+      "name": "configuration.dolphin.storage.password",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소의 사용자 정보."
+    },
+    {
+      "name": "configuration.fabric",
+      "type": "com.mobigen.datafabric.relationship.configurations.fabric.FabricConfiguration",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.fabric.FabricConfiguration",
+      "description": "데이터 패브릭 서버 연동을 위한 설정 정보."
+    },
+    {
+      "name": "configuration.fabric.storage.schema",
+      "type": "com.mobigen.datafabric.relationship.configurations.fabric.StorageType",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.fabric.StorageType",
+      "description": "데이터 패브릭 서버 저장소 타입(mysql, postgresql)."
+    },
+    {
+      "name": "configuration.fabric.storage.host",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 프로세스의 저장소 호스트."
+    },
+    {
+      "name": "configuration.fabric.storage.port",
+      "type": "java.lang.String",
+      "description": "데이터 패브릭 서버 저장소의 포트."
+    },
+    {
+      "name": "configuration.fabric.storage.database",
+      "type": "java.lang.String",
+      "description": "데이터 융합/정제 서비스 저장소의 데이터베이스 이름."
+    },
+    {
+      "name": "configuration.fabric.storage.user",
+      "type": "java.lang.String",
+      "description": "데이터 패브릭 서버 저장소의 사용자 정보."
+    },
+    {
+      "name": "configuration.fabric.storage.password",
+      "type": "java.lang.String",
+      "description": "데이터 패브릭 서버 저장소의 사용자 정보."
+    }
+  ],
+  "hints": [
+    {
+      "name": "configuration.default-period",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석 요청 실행 시간."
+    },
+    {
+      "name": "configuration.dolphin.storage.schema",
+      "values": [
+        {
+          "value": "mysql",
+          "description": "데이터 융합/정제 프로세스의 저장소 타입."
+        },
+        {
+          "value": "postgresql",
+          "description": "데이터 융합/정제 프로세스의 저장소 타입."
+        }
+      ]
+    },
+    {
+      "name": "configuration.fabric.storage.schema",
+      "values": [
+        {
+          "value": "mysql",
+          "description": "데이터 패브릭의 저장소 타입."
+        },
+        {
+          "value": "postgresql",
+          "description": "데이터 패브릭의 저장소 타입."
+        }
+      ]
+    }
+  ]
+}

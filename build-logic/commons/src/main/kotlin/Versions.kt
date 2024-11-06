@@ -13,4 +13,7 @@ object Versions {
     const val SPRING_BOOT_VER = "3.2.1"
 
     const val RABBITMQ_VER = "5.20.0"
+
+    const val MYSQL = "8.3.0"
+    const val POSTGRESQL = "42.7.2"
 }
