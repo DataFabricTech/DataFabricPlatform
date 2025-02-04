@@ -8,7 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FusionModelRepository extends CrudRepository<FusionModel, Long> {
-
     Page<FusionModel> findAll(Pageable pageable);
-
 }

@@ -1,0 +1,125 @@
+@startuml vdap_usecase
+allowmixing
+left to right direction
+actor Admin
+
+note left of (Admin)
+  AccessControl에 접근 가능한 사용자
+end note
+
+package AccessControl {
+  usecase "Resource\nManagement" as resource_management
+  ' 설정된 리소스 리스트
+  usecase "Resource\nList" as res_list
+  usecase "Resource\nLoad" as res_load
+  note "서비스들로부터 리소스 정보를 로드하여 출력" as res_load_note
+  res_load .. res_load_note
+  usecase "Resource\nAdd" as res_add
+  usecase "Resource\nDel" as res_del
+  usecase "Resource\nModify" as res_mod
+  resource_management <|-- res_list
+  resource_management <|-- res_add
+  resource_management <|-- res_del
+  resource_management <|-- res_mod
+  resource_management <|-- res_load
+  usecase "Role\nManagement" as role_management
+  usecase "Role\nList" as role_list
+  usecase "Role\nAdd" as role_add
+  usecase "Role\nDel" as role_del
+  usecase "Role\nModify" as role_mod
+  role_management <|-- role_list
+  role_management <|-- role_add
+  role_management <|-- role_del
+  role_management <|-- role_mod
+  usecase "Attribute\nManagement" as attr_management
+  usecase "Attribute\nList" as attr_list
+  usecase "Attribute\nAdd" as attr_add
+  usecase "Attribute\nDel" as attr_del
+  usecase "Attribute\nModify" as attr_mod
+  attr_management <|-- attr_list
+  attr_management <|-- attr_add
+  attr_management <|-- attr_del
+  attr_management <|-- attr_mod
+  note "Role, Attribute 의 경우 화면 내에서 그룹, 사용자와 연결할 수 있도록 화면 필요" as relation_note
+  role_management .. relation_note
+  relation_note .. attr_management
+  usecase "Permission\nManagement" as permission_management
+  usecase "Permission\nAdd" as permission_add
+  usecase "Permission\nDel" as permission_del
+  usecase "Permission\nModify" as permission_mod
+  permission_management <|-- permission_add
+  permission_management <|-- permission_del
+  permission_management <|-- permission_mod
+}
+
+Admin --> resource_management
+Admin --> role_management
+Admin --> attr_management
+Admin --> permission_management
+
+
+json User {
+  "id": "ID"
+}
+
+json Group {
+  "id": "ID"
+}
+
+json Resource {
+  "id": "ID",
+  "name": "Name",
+  "desc": "Description",
+  "uri": "uri",
+  "createdAt": "create time",
+  "updatedAt": "update time"
+}
+
+json Role {
+  "id": "ID",
+  "name": "Name",
+  "desc": "Description",
+  "createdAt": "create time",
+  "updatedAt": "update time"
+}
+
+json Attribute {
+  "id": "ID",
+  "name": "속성 이름(Department)",
+  "value": "속성 값(HR, Finance)",
+  "createAt": "create time"
+}
+
+json Authorization {
+  "leftType": ["role", "attribute"],
+  "leftId": "roleId or attrId",
+  "rightType": ["user", "group"],
+  "rightId": "userId or groupId",
+  "createAt": "create time"
+}
+
+Role <-- Authorization
+Attribute <-- Authorization
+User <-- Authorization
+Group <-- Authorization
+
+json Permission {
+  "id": "ID",
+  "name": "Permission Name(read user)",
+  "resource": ["resource id", "resource id"],
+  "action": ["readonly", "write"]
+}
+
+Resource <-- Permission
+
+json AccessControl_ {
+  "leftType": ["role", "attr"],
+  "leftId": "roleId or attrId", 
+  "permissionId": "Permission ID"
+}
+
+Permission <-- AccessControl_
+Role <-- AccessControl_
+Attribute <-- AccessControl_
+
+@enduml

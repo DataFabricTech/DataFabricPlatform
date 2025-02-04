@@ -39,7 +39,7 @@
       "description": "데이터 융합/정제 서비스 저장소의 데이터베이스 이름."
     },
     {
-      "name": "configuration.dolphin.storage.user",
+      "name": "configuration.dolphin.storage.username",
       "type": "java.lang.String",
       "description": "데이터 융합/정제 서비스 저장소의 사용자 정보."
     },
@@ -76,7 +76,7 @@
       "description": "데이터 융합/정제 서비스 저장소의 데이터베이스 이름."
     },
     {
-      "name": "configuration.fabric.storage.user",
+      "name": "configuration.fabric.storage.username",
       "type": "java.lang.String",
       "description": "데이터 패브릭 서버 저장소의 사용자 정보."
     },
@@ -84,6 +84,62 @@
       "name": "configuration.fabric.storage.password",
       "type": "java.lang.String",
       "description": "데이터 패브릭 서버 저장소의 사용자 정보."
+    },
+    {
+      "name": "configuration.storage",
+      "type": "com.mobigen.datafabric.relationship.configurations.StorageConfiguration",
+      "sourceType": "com.mobigen.datafabric.relationship.configurations.StorageConfiguration",
+      "description": "데이터 융합/정제 서비스 저장소 정보."
+    },
+    {
+      "name": "configuration.storage.host",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 호스트."
+    },
+    {
+      "name": "configuration.storage.port",
+      "type": "java.lang.Integer",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 포트."
+    },
+    {
+      "name": "configuration.storage.region",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 리전."
+    },
+    {
+      "name": "configuration.storage.bucket",
+      "type": "java.lang.Integer",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 버켓."
+    },
+    {
+      "name": "configuration.storage.username",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 사용자 이름."
+    },
+    {
+      "name": "configuration.storage.password",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소 사용자 비밀번호."
+    },
+    {
+      "name": "configuration.storage.prefix",
+      "type": "java.lang.String",
+      "description": "데이터 연관 관계 분석을 위해 파일들을 저장할 저장소의 디렉토리 경로."
+    },
+    {
+      "name": "configuration.temporarySpace.path",
+      "type": "java.lang.String",
+      "description": "연관관계 분석을 위한 파일의 임시 저장(로컬) 디렉토리 경로."
+    },
+    {
+      "name": "configuration.dataRelationship.host",
+      "type": "java.lang.String",
+      "description": "연관관계 분석 서버의 연결정보(host)."
+    },
+    {
+      "name": "configuration.dataRelationship.port",
+      "type": "java.lang.Integer",
+      "description": "연관관계 분석 서버의 연결정보(port)."
     }
   ],
   "hints": [

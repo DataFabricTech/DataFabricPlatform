@@ -1,26 +1,64 @@
-# DataFabricPlatform
+# Open VDAP Platform Core
+
+## 개요
+
+'IITP 분산된 데이터에 대한 논리적 데이터 통합과 복합분석을 지원하는 데이터 패브릭 기술 개발' 과제 수행을 통해 개발되었다.
+데이터패브릭 기술을 적용한 서비스 명칭은 "Open VDAP" 이며, 본 저장소는 Open VDAP을 구성하는 요소 중 vdap-server 이다. 
+
+## 기능
+
+- 사용자 인증과 접근 제어 : Authentication / Authorization 
+- 데이터 저장소 가상화
+  - 등록 / 수정
+    - 필터링 설정
+      - 스케줄링
+    - 샘플링 설정
+      - 스케줄링
+    - 프로파일링 설정
+      - 스케줄링
+  - 삭제
+- 데이터 저장소 모니터링
+  - 모니터링 설정
+  - ...
+- 데이터 탐색/검색
+  - 데이터 저장소 레벨 탐색
+  - 검색
+- 데이터 카탈로그
+  - 데이터 카테고리
+  - 
+- 표준메타데이터
 
 ## 스펙
 
-- Java 17
+- Java 21
+- Gradle 8.12
 
-## 소개
+## 구성  
 
-본 저장소는 데이터 패브릭 구성요소 중 데이터플랫폼연구팀에서 개발하는 모듈들의 저장소이다.  
-
-## 모듈 구성  
-
-Gradle (Kotlin DSL활용)이용한 멀티 프로젝트 구조로 구성되어 있다.
-
-- data-fabric-platform
-    - libs
-        - Configuration
-    - services
-        - Monitoring
-    - Share
-        - ...
-
-## Lib 설명
+```md
+.
+├── build-logic
+│   └── build.gradle.kts        - build-logic을 위한 빌드 설정
+│   └── settings.gradle.kts     - build-logic을 root로 하는 프로젝트 설정
+│   └── src
+│       └── main
+│           └── kotlin
+│               └── mobigen.java-common-conventions.gradle.kts                 - application, library 의 공통 설정
+│               └── mobigen.java-application-conventions.gradle.kts            - application 공통 설정
+│               └── mobigen.java-library-conventions.gradle.kts                - library 공통 설정
+├── libs
+│   └── settings.gradle.kts     - libs를 root로 하는 프로젝트 설정, build-logic을 로드 (includeBuild)
+│   └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+│   └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+├── services
+│   └── settings.gradle.kts     - 여타 설정과 다르게 내부에서 사용되는 라이브러리 의존성 설정이 추가됨(libs, utilities)
+│   └── sample                  - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+│   └── sample                  - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+└── share
+└── settings.gradle.kts
+└── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+└── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
+```
 
 ## Service 별 설명
 
@@ -53,30 +91,6 @@ Gradle 을 활용한 멀티 프로젝트 구조로 빌드와 관련하여 공통
 
 ### 빌드 로직 구성
 
-```md
-.
-├── build-logic
-│   └── build.gradle.kts        - build-logic을 위한 빌드 설정
-│   └── settings.gradle.kts     - build-logic을 root로 하는 프로젝트 설정
-│   └── src
-│       └── main
-│           └── kotlin
-│               └── mobigen.java-application-conventions.gradle.kts            - application 공통 설정 
-│               └── mobigen.java-common-conventions.gradle.kts                 - application, library 의 공통 설정 
-│               └── mobigen.java-library-conventions.gradle.kts                - library 공통 설정 
-├── libs
-│   └── settings.gradle.kts     - libs를 root로 하는 프로젝트 설정, build-logic을 로드 (includeBuild)
-│   └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-│   └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-├── services
-│   └── settings.gradle.kts     - 여타 설정과 다르게 내부에서 사용되는 라이브러리 의존성 설정이 추가됨(libs, utilities)
-│   └── sample                  - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-│   └── sample                  - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-└── share
-    └── settings.gradle.kts
-    └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-    └── list                    - 멀티 프로젝트 구조와 Gradle Plugin 공유 구조 설명을 위한 Sample
-```
 
 ### CI/CD
 

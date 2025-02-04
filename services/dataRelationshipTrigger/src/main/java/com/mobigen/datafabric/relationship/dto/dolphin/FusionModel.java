@@ -19,15 +19,15 @@ public class FusionModel {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Size(max = 255)
     @Column(name = "fullyqualifiedname")
     private String fullyqualifiedname;
 
     @Column(name = "modelidofom")
     private UUID modelidofom;
 
-    @Size(max = 255)
     @Column(name = "trinomodelname")
     private String trinomodelname;
 
+    @Column(name = "job_id")
+    private String jobId;
 }

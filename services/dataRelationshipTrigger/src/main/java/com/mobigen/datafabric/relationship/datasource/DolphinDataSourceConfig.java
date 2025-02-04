@@ -3,14 +3,12 @@ package com.mobigen.datafabric.relationship.datasource;
 import com.mobigen.datafabric.relationship.configurations.Configurations;
 import com.mobigen.datafabric.relationship.configurations.dolphin.DolphinStorage;
 import com.mobigen.datafabric.relationship.configurations.dolphin.StorageType;
-import com.mobigen.datafabric.relationship.configurations.fabric.FabricStorage;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -81,7 +79,7 @@ public class DolphinDataSourceConfig {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
-        config.setUsername(dolphinStorage.getUser());
+        config.setUsername(dolphinStorage.getUsername());
         config.setPassword(dolphinStorage.getPassword());
         config.setDriverClassName(driver);
 

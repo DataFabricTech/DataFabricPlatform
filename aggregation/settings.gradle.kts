@@ -12,10 +12,10 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+includeBuild("../platforms")
+//includeBuild("../admin-feature")
+//includeBuild("../user-feature")
 
-includeBuild("../share")
-includeBuild("../libs")
-includeBuild("../services")
 
 // == Define the inner structure of this component ==
 rootProject.name = "aggregation"

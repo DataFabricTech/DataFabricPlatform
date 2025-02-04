@@ -15,4 +15,7 @@ public class Configurations {
     private String defaultPeriod;
     private DolphinConfiguration dolphin;
     private FabricConfiguration fabric;
+    private StorageConfiguration storage;
+    private TemporarySpace temporarySpace;
+    private DataRelationshipServer dataRelationship;
 }

@@ -1,17 +1,15 @@
 plugins {
     id("com.mobigen.commons")
     id("org.springframework.boot")
-    id("io.spring.dependency-management")
 }
 
 dependencies {
-    annotationProcessor(Dependencies.Spring.CONFIG_PROC)
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+//    implementation("org.springframework.boot:spring-boot")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation( "org.springframework.boot:spring-boot-starter-web")
+    implementation( "org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    implementation(Dependencies.Spring.BOOT)
-    implementation(Dependencies.Spring.BOOT_STARTER)
-    implementation(Dependencies.Spring.STARTER_WEB)
-    implementation(Dependencies.Spring.JPA)
-    implementation(Dependencies.Spring.VALIDATION)
-
-    testImplementation(Dependencies.Spring.TEST)
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

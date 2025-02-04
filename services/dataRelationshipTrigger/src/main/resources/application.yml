@@ -4,19 +4,32 @@ configuration:
   dolphin:
     storage:
       schema: ${DOLPHIN_STORAGE_SCHEMA:postgresql}
-      host: ${DOLPHIN_STORAGE_HOST:ovp-db}
+      host: ${DOLPHIN_STORAGE_HOST:dolphin-svc}
       port: ${DOLPHIN_STORAGE_PORT:5432}
       database: ${DOLPHIN_STORAGE_DB:dolphin}
-      user: ${DOLPHIN_STORAGE_USER:ovp-user}
+      username: ${DOLPHIN_STORAGE_USER:ovp-user}
       password: ${DOLPHIN_STORAGE_PASSWORD:biris.manse}
   fabric:
     storage:
       schema: ${FABRIC_STORAGE_SCHEMA:mysql}
-      host: ${FABRIC_STORAGE_HOST:mysql}
+      host: ${FABRIC_STORAGE_HOST:mysql-svc}
       port: ${FABRIC_STORAGE_PORT:3306}
       database: ${FABRIC_STORAGE_DB:openmetadata_db}
-      user: ${FABRIC_STORAGE_USER:openmetadata_user}
+      username: ${FABRIC_STORAGE_USER:openmetadata_user}
       password: ${FABRIC_STORAGE_PASSWORD:openmetadata_password}
+  storage:
+    host: ${STORAGE_HOST:minio-svc}
+    port: ${STORAGE_PORT:9000}
+    bucket: ${STORAGE_BUCKET:datarelationship}
+    region: ${STORAGE_REGION:ap-northeast-2}
+    username: ${STORAGE_USER:fabric_user}
+    password: ${STORAGE_PASSWORD:fabric_password}
+    prefix: ${STORAGE_PREFIX:/relationship}
+  temporarySpace:
+    path: ${WORKSPACE_PATH:/app/temp}
+  dataRelationship:
+    host: ${DATA_RELATIONSHIP_HOST:data-relationship}
+    port: ${DATA_RELATIONSHIP_PORT:8080}
 
 server:
   port: 8080
@@ -32,7 +45,7 @@ logging:
     root: debug
     web: info
     sql: info
-    com.mobigen: info
+    com.mobigen: debug
     org.hibernate: info
     org.springframework: info
     io.opentelemetry: info

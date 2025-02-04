@@ -32,8 +32,11 @@ dependencies {
     // For FullyQualifiedClassName
     implementation("commons-codec:commons-codec:1.17.0")
 
+    // For MinIO
+    implementation("io.minio:minio:8.5.13")
+
     // Model
-    implementation("com.mobigen.datafabric.share:models")
+//    implementation("com.mobigen.datafabric.share:models")
 }
 
 //tasks.withType<Test>().configureEach {

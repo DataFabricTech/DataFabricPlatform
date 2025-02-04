@@ -82,7 +82,7 @@ public class FabricDataSourceConfig {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
-        config.setUsername(fabricStorage.getUser());
+        config.setUsername(fabricStorage.getUsername());
         config.setPassword(fabricStorage.getPassword());
         config.setDriverClassName(driver);
 

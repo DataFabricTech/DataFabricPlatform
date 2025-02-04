@@ -12,6 +12,6 @@ public class DolphinStorage {
     private String host;
     private int port;
     private String database;
-    private String user;
+    private String username;
     private String password;
 }
