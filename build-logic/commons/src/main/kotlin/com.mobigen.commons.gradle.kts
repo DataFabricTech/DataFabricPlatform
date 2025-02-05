@@ -4,36 +4,31 @@ plugins {
     idea
 }
 
+group = "com.mobigen.vdap"
+
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
-group = "com.mobigen.datafabric"
-
 dependencies {
+    implementation(platform("com.mobigen.platform:product-platform"))
+    /*
     // For Annotation
-    compileOnly(Dependencies.LOMBOK)
-    annotationProcessor(Dependencies.LOMBOK)
-    // For Unit Test Code Annotation
-    testAnnotationProcessor(Dependencies.LOMBOK)
-    testImplementation(Dependencies.LOMBOK)
-
+    implementation("org.projectlombok:lombok:1.18.30")
     // For Log
-    implementation(Dependencies.Log4j.API)
-    implementation(Dependencies.Log4j.CORE)
-    implementation(Dependencies.Log4j.SLF4J_IMPL)
+    implementation("org.apache.logging.log4j:log4j-api")
+    implementation("org.apache.logging.log4j:log4j-core")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl")
     // For YAML Format Configurations - For To Using Log4j2
-    implementation(Dependencies.Log4j.JACKSON_YAML)
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+     */
 
     // For Test
-    testImplementation(platform(Dependencies.JUNIT.BOM))
-    testImplementation(Dependencies.JUNIT.JUPITER)
-    testRuntimeOnly(Dependencies.JUNIT.PLATFORM_LAUNCH)
-    testRuntimeOnly(Dependencies.JUNIT.JUPITER_ENGINE)
-//    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.10.1")
-    testImplementation(Dependencies.JUNIT.MOCKITO)
+    testImplementation(platform("com.mobigen.platform:test-platform"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.named<Test>("test") {

@@ -1,0 +1,68 @@
+@startjson
+{
+    "id": "uuid",
+    "name": "name",
+    "displayName": "displayName",
+    "description": "service description",
+    "serviceType": ["mysql", "mariadb", "postgresql", "oracledb", "minio", "iris", "hadoop"],
+    "connection": {
+        "config": {
+            "username": "userName",
+            
+        }
+    },
+    "pipelines": {
+      "description": "References to pipelines deployed for this database service to extract metadata, usage, lineage etc..",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "testConnectionResult": {
+      "description": "Last test connection results for this service",
+      "$ref": "connections/testConnectionResult.json"
+    },
+    "tags": {
+      "description": "Tags for this Database Service.",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/tagLabel.json"
+      },
+      "default": []
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "owners": {
+      "description": "Owners of this database service.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this database service.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    },
+    "dataProducts" : {
+      "description": "List of data products this entity is part of.",
+      "$ref" : "../../type/entityReferenceList.json"
+    },
+    "domain" : {
+      "description": "Domain the Database service belongs to.",
+      "$ref": "../../type/entityReference.json"
+    }
+}
+@endjson

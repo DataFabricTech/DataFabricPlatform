@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <springProperty name="rootLevel" source="logging.level.root" defaultValue="debug"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 로그 포맷 변경을 원할 경우 다음 사이트에서 확인 : https://logback.qos.ch/manual/layouts.html -->
+            <pattern>%d{yy-MM-dd HH:mm:ss.SSS} [%5.5level] [%-25.-25replace(%file){'.java', ''}:%3line] : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${rootLevel}">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

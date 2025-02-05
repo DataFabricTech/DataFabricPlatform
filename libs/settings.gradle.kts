@@ -12,9 +12,6 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../share")
-
-// == Define the inner structure of this component ==
 rootProject.name = "libs" // the component name
 
-include("rabbitmq")
+include("common")

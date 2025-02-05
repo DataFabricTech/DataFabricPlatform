@@ -1,0 +1,141 @@
+package com.mobigen.vdap.common.utils;
+
+import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+
+@Slf4j
+public final class CommonUtil {
+
+    private CommonUtil() {
+    }
+
+    /**
+     * Get date after {@code days} from the given date or before i{@code days} when it is negative
+     */
+    public static LocalDate getDateByOffset(LocalDate localDate, int days) {
+        return localDate.plusDays(days);
+    }
+
+    /**
+     * Get date after {@code days} from the given date or before i{@code days} when it is negative
+     */
+    public static LocalDate getDateByOffset(DateTimeFormatter dateFormat, String strDate, int days) {
+        LocalDate localDate;
+        try {
+            localDate = LocalDate.parse(strDate, dateFormat);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Failed to parse date " + strDate, e);
+        }
+        return getDateByOffset(localDate, days);
+    }
+
+    /**
+     * Get date after {@code days} from the given date or before i{@code days} when it is negative
+     */
+    public static String getDateStringByOffset(
+            DateTimeFormatter dateFormat, String strDate, int days) {
+        LocalDate localDate = getDateByOffset(dateFormat, strDate, days);
+        return localDate.format(dateFormat);
+    }
+
+    /**
+     * Check if given date is with in today - pastDays and today + futureDays
+     */
+    public static boolean dateInRange(
+            DateTimeFormatter dateFormat, String date, int futureDays, int pastDays) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = getDateByOffset(today, -pastDays);
+        LocalDate endDate = getDateByOffset(today, futureDays);
+        LocalDate givenDate;
+        try {
+            givenDate = LocalDate.parse(date, dateFormat);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Failed to parse date " + date, e);
+        }
+        return (givenDate.isAfter(startDate) || givenDate.equals(startDate))
+                && (givenDate.isBefore(endDate) || givenDate.equals(endDate));
+    }
+
+    public static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
+
+    /**
+     * Get SHA256 Hash-based Message Authentication Code
+     */
+    public static String calculateHMAC(String secretKey, String message) {
+        try {
+            Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
+            SecretKeySpec secretKeySpec =
+                    new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_SHA256_ALGORITHM);
+            mac.init(secretKeySpec);
+            byte[] hmacSha256 = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hmacSha256);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to calculate " + HMAC_SHA256_ALGORITHM, e);
+        }
+    }
+
+    public static <T> List<T> listOrEmpty(List<T> list) {
+        return Optional.ofNullable(list).orElse(Collections.emptyList());
+    }
+
+    public static <T> List<T> listOrEmptyMutable(List<T> list) {
+        return nullOrEmpty(list) ? new ArrayList<>() : new ArrayList<>(list);
+    }
+
+    public static boolean nullOrEmpty(String string) {
+        return string == null || string.isEmpty();
+    }
+
+    public static boolean nullOrEmpty(List<?> list) {
+        return list == null || list.isEmpty();
+    }
+
+    public static boolean nullOrEmpty(Map<?, ?> m) {
+        return m == null || m.isEmpty();
+    }
+
+    public static boolean nullOrEmpty(Object object) {
+        return object == null || nullOrEmpty(object.toString());
+    }
+
+    public static List<String> uuidListToStrings(List<UUID> list) {
+        return list.stream().map(UUID::toString).toList();
+    }
+
+    public static <T> T nullOrDefault(T object, T defaultValue) {
+        if (object == null || (nullOrEmpty(object.toString()))) {
+            return defaultValue;
+        } else {
+            return object;
+        }
+    }
+
+    /**
+     * Return list of entries that are modifiable for performing sort and other operations
+     */
+    @SafeVarargs
+    public static <T> List<T> listOf(T... entries) {
+        if (entries == null) {
+            return Collections.emptyList();
+        }
+        return new ArrayList<>(Arrays.asList(entries));
+    }
+
+    public static URI getUri(String uri) {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            log.error("Error creating URI ", e);
+        }
+        return null;
+    }
+}

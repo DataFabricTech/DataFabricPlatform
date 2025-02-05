@@ -1,12 +1,10 @@
-rootProject.name = "data-fabric-platform"
-
+includeBuild("platforms")
 includeBuild("build-logic")
 
 includeBuild("aggregation")
 
-includeBuild("share")
-includeBuild("libs")
-includeBuild("services")
+//includeBuild("user-feature")
+//includeBuild("admin-feature")
 
-//System.setProperty( "user.dir", project.projectDir.toString() )
-System.setProperty("datafabric.platform.root", rootDir.absolutePath)
+includeBuild("libs")
+includeBuild("share")

@@ -1,0 +1,191 @@
+@startuml vdap_usecase
+allowmixing
+left to right direction
+actor Nonmember
+actor Member
+actor Admin
+
+package NonMemberFunc{
+  usecase "Join the\nMembership" as join
+  usecase "Email Verification" as email_verification
+  email_verification -right-|> join
+}
+
+package MemberFunc{
+  usecase "Login" as login
+  usecase "Find ID" as find_id
+  usecase "Find Password" as find_pw
+  usecase "Modify\nUserInfo" as modify_user_info
+  usecase "Logout" as logout
+  usecase "Withdraw\nMembership" as withdraw
+}
+
+package AdminFunc{
+  usecase "User\nManagement" as user_management
+  usecase "UserAdd" as user_add
+  usecase "UserDel" as user_del
+  usecase "UserPasswordSet" as user_password_set
+  user_management <|-down- user_add
+  user_management <|-down- user_del
+  user_management <|-down- user_password_set 
+  usecase "Group\nManagement" as group_management
+  usecase "GroupAdd" as group_add
+  usecase "GroupDel" as group_del
+  usecase "Group\nModify" as group_modify
+  group_management <|-- group_add 
+  group_management <|-- group_del
+  group_management <|-- group_modify
+  usecase "Group\nRelation" as group_relation
+  usecase "GroupAddToGroup" as group_add_group
+  usecase "GroupDelFromFroup" as group_del_group
+  usecase "UserAddToGroup" as user_add_group
+  usecase "UserDelFromGroup" as user_del_group
+  group_relation <|-- group_add_group
+  group_relation <|-- group_del_group
+  group_relation <|-- user_add_group
+  group_relation <|-- user_del_group
+}
+
+Nonmember --> join
+
+Member --> login
+Member --> find_id
+Member --> find_pw
+Member --> logout
+Member --> modify_user_info
+Member --> withdraw
+
+Member <|-- Admin
+
+Admin --> user_management
+Admin --> group_management
+Admin --> group_relation
+
+json User {
+  "id": "uuid",
+  "email": "email address",
+  "pw": "password",
+  "name": "name",
+  "nickname": "nickname",
+  "phone": "phone",
+  "status": ["active", "inactive", "etc"],
+  "createdAt": "create time",
+  "updatedAt": "update time"
+}
+
+json Group {
+  "id": "uuid",
+  "name": "name",
+  "nickname": "nickname",
+  "desc": "description",
+  "createdAt": "create time",
+  "updatedAt": "update time"
+}
+
+json UserGroupRelation {
+  "parentID": "group id",
+  "childType": ["group", "user"],
+  "childID": ["group id", "user id"],
+  "joined_at": "join time"
+}
+
+json SignUpReq {
+  "id": "email address",
+  "pw": "password",
+  "name": "name",
+  "nickname": "nickname",
+  "phone": "phone",
+  "etc": "etc"
+}
+
+json SignUpRes {
+  "code": ["success", "error"],
+  "errMsg": "error message",
+  "body": {
+    "message": "User registered successfully"
+  }
+}
+
+SignUpReq --> SignUpRes
+
+note "SignUp 완료 후 이메일 전송과 이메일 내 링크 연결을 통해 이메일 인증을 완료" as signup_note
+
+SignUpReq .. signup_note
+
+json LoginReq {
+  "id": "user@example.com",
+  "password": "securepassword",
+  "device_info": "Chrome - Windows"
+	' Device Info: 사용자가 로그인한 기기 정보를 DB에 저장
+}
+
+note "다중 세션을 위해 추가적인 정보 `device_info`를 사용(예시)" as login_note
+LoginReq .. login_note
+
+json LoginRes {
+  "access_token": "eyJhbGciOiJIUzI1...",
+  "refresh_token": "d1f13c1c-bc87...",
+  "expires_in": 3600
+  ' Access Token: 짧은 수명의 JWT (예: 1시간)
+	' Refresh Token: 기기별 고유한 UUID 기반 토큰 (DB 또는 Redis에 저장)
+}
+LoginReq -> LoginRes
+
+' 이메일 인증이 완료되지 않은 사용자의 경우 이메일 인증 요청 화면으로 이동
+json EmailVerificationReq {
+  "request": "..."
+}
+
+' 이메일 인증은 5분 내로 완료되지 못하는 경우 인증 링크로 접속하더라도 인증 실패 
+
+json TokenRefreshReq {
+  "refresh_token": "d1f13c1c-bc87..."
+}
+
+json TokenRefreshRes {
+  "access_token": "new-access-token",
+  "expires_in": 3600
+}
+
+note "Refresh Token이 유효하지 않으면 로그아웃 처리" as token_refresh_note
+TokenRefreshReq .. token_refresh_note
+
+TokenRefreshReq --> TokenRefreshRes
+
+' 세션 테이블은 Audit Log와 연결된다.
+json sessionTable {
+  "id": "session id", 
+  "userId": "userId",
+  "refresh_token": "token...",
+  "device_info": "device info",
+  "status": ["active", "inactive"],
+  "createdAt": "create time",
+  "ipAddress": "IP Address", 
+  "expiresAt": "token 만료 시간"
+}
+
+note "현재 접속된 기기 정보 조회" as session_list_note
+
+json SessionList {
+  "SessionList": [
+    {
+      "device_info": "Chrome - Windows",
+      "last_active": "2024-02-03T12:00:00Z"
+    },
+    {
+      "device_info": "Safari - iPhone",
+      "last_active": "2024-02-02T23:45:00Z"
+    }
+  ]
+}
+
+SessionList .. session_list_note
+
+' 1.	Access Token은 짧은 만료 시간 (1시간 이하)
+' 2.	Refresh Token은 DB 또는 Redis에 저장 (기기별 관리)
+' 3.	로그아웃 시 Refresh Token을 삭제하여 세션 종료
+' 4.	Blacklist를 활용하여 강제 로그아웃 가능
+' 5.	JWT 서명키는 안전하게 관리 (환경 변수 사용)
+' 6.	Rate Limiting 적용 (특히 로그인, 토큰 갱신 API에 적용)" as security_note
+
+@enduml
