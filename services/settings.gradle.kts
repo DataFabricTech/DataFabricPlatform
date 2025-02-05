@@ -2,7 +2,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        mavenLocal()
+        google()
     }
     includeBuild("../build-logic")
 }
@@ -14,6 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("../platforms")
 includeBuild("../share")
 includeBuild("../libs")
 
@@ -25,4 +26,7 @@ rootProject.name = "services" // the component name
 //include("dataLayer")
 //include("extraction")
 //include("jpaSample")
-include("dataRelationshipTrigger")
+//include("dataRelationshipTrigger")
+include("new-spring-boot-sample")
+
+
