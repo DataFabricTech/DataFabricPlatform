@@ -2,80 +2,9 @@
 
 ## 1. 개요
 
-본 문서는 사용자 관리를 위한 설계 문서로 유스케이스, 요구사항, 시퀀스, 인터페이스, 클래스, 데이터베이스 설계서를 포함한다.
+본 문서는 사용자 관리 설계 문서로 유스케이스, 요구사항, 시퀀스, 인터페이스, 클래스, 데이터베이스 설계서를 포함한다.
 
-## 2. Usecase
-
-사용자는 크게 비회원, 회원, 관리자로 구분하고 각 회원 유형 별 유스케이스를 작성함.
-
-```plantuml
-@startuml vdap_usecase
-allowmixing
-left to right direction
-actor Nonmember
-actor Member
-actor Admin
-
-package NonMemberFunc{
-  usecase "Join the\nMembership" as join
-  usecase "Email Verification" as email_verification
-  email_verification -right-|> join
-}
-
-package MemberFunc{
-  usecase "Login" as login
-  usecase "Find ID" as find_id
-  usecase "Find Password" as find_pw
-  usecase "Modify\nUserInfo" as modify_user_info
-  usecase "Logout" as logout
-  usecase "Withdraw\nMembership" as withdraw
-}
-
-package AdminFunc{
-  usecase "User\nManagement" as user_management
-  usecase "UserAdd" as user_add
-  usecase "UserDel" as user_del
-  usecase "UserPasswordSet" as user_password_set
-  user_management <|-down- user_add
-  user_management <|-down- user_del
-  user_management <|-down- user_password_set 
-  usecase "Group\nManagement" as group_management
-  usecase "GroupAdd" as group_add
-  usecase "GroupDel" as group_del
-  usecase "Group\nModify" as group_modify
-  group_management <|-- group_add 
-  group_management <|-- group_del
-  group_management <|-- group_modify
-  usecase "Group\nRelation" as group_relation
-  usecase "GroupAddToGroup" as group_add_group
-  usecase "GroupDelFromFroup" as group_del_group
-  usecase "UserAddToGroup" as user_add_group
-  usecase "UserDelFromGroup" as user_del_group
-  group_relation <|-- group_add_group
-  group_relation <|-- group_del_group
-  group_relation <|-- user_add_group
-  group_relation <|-- user_del_group
-}
-
-Nonmember --> join
-
-Member --> login
-Member --> find_id
-Member --> find_pw
-Member --> logout
-Member --> modify_user_info
-Member --> withdraw
-
-Member <|-- Admin
-
-Admin --> user_management
-Admin --> group_management
-Admin --> group_relation
-
-@enduml
-```
-
-## 3. 요구사항
+## 2. 요구사항
 
 - 일반 요구사항  
   - 아이디는 이메일 형태  
@@ -136,7 +65,7 @@ Admin --> group_relation
     - 사용자가 계정을 탈퇴하면 모든 관련 데이터를 안전하게 삭제해야 한다.
     - 일부 데이터(법적 요구사항에 따라 보존해야 하는 기록)는 별도로 관리해야 한다.
 
-### 3.1. Rate Limiting
+### 2.1. Rate Limiting
 
 사용자 관련 API에서 Rate Limit(속도 제한) 을 적용해야 하는 주요 부분
 
@@ -208,6 +137,77 @@ API 키 및 토큰 생성 남용 방지
     - 클라이언트가 남은 요청 횟수를 알 수 있도록 X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset 헤더 추가
 5. 서버 측 로그 기록 및 알림
     - 이상 탐지 시 관리자에게 알림 (예: 특정 계정에서 짧은 시간 동안 로그인 시도 100회)
+
+## 3. Usecase
+
+사용자는 크게 비회원, 회원, 관리자로 구분하고 각 회원 유형 별 유스케이스를 작성함.
+
+```plantuml
+@startuml vdap_usecase
+allowmixing
+left to right direction
+actor Nonmember
+actor Member
+actor Admin
+
+package NonMemberFunc{
+  usecase "Join the\nMembership" as join
+  usecase "Email Verification" as email_verification
+  email_verification -right-|> join
+}
+
+package MemberFunc{
+  usecase "Login" as login
+  usecase "Find ID" as find_id
+  usecase "Find Password" as find_pw
+  usecase "Modify\nUserInfo" as modify_user_info
+  usecase "Logout" as logout
+  usecase "Withdraw\nMembership" as withdraw
+}
+
+package AdminFunc{
+  usecase "User\nManagement" as user_management
+  usecase "UserAdd" as user_add
+  usecase "UserDel" as user_del
+  usecase "UserPasswordSet" as user_password_set
+  user_management <|-down- user_add
+  user_management <|-down- user_del
+  user_management <|-down- user_password_set 
+  usecase "Group\nManagement" as group_management
+  usecase "GroupAdd" as group_add
+  usecase "GroupDel" as group_del
+  usecase "Group\nModify" as group_modify
+  group_management <|-- group_add 
+  group_management <|-- group_del
+  group_management <|-- group_modify
+  usecase "Group\nRelation" as group_relation
+  usecase "GroupAddToGroup" as group_add_group
+  usecase "GroupDelFromFroup" as group_del_group
+  usecase "UserAddToGroup" as user_add_group
+  usecase "UserDelFromGroup" as user_del_group
+  group_relation <|-- group_add_group
+  group_relation <|-- group_del_group
+  group_relation <|-- user_add_group
+  group_relation <|-- user_del_group
+}
+
+Nonmember --> join
+
+Member --> login
+Member --> find_id
+Member --> find_pw
+Member --> logout
+Member --> modify_user_info
+Member --> withdraw
+
+Member <|-- Admin
+
+Admin --> user_management
+Admin --> group_management
+Admin --> group_relation
+
+@enduml
+```
 
 ## 4. 시퀀스
 
@@ -514,58 +514,37 @@ class           Relation
 | `user_id`         | UUID        | FOREIGN KEY → `User(id)`, NOT NULL            |   v   | 사용자 테이블의 아이디               |
 | `access_token`    | TEXT        | NOT NULL                                      |       | 세션 액세스 토큰(JWT 또는 랜덤 토큰) |
 | `refresh_token`   | TEXT        | NOT NULL                                      |       | 리프레시 토큰                        |
-| `ip_address`      | VARCHAR(45) | NOT NULL                                      |       | 사용자 로그인 IP                     |
+| `ip_address`      | VARCHAR(45) | NOT NULL                                      |   v   | 사용자 로그인 IP                     |
 | `user_agent`      | TEXT        | NOT NULL                                      |       | 사용자의 브라우저/기기 정보          |
 | `created_at`      | DATETIME    | NOT NULL, DEFAULT CURRENT_TIMESTAMP           |       | 세션 생성 시간                       |
-| `expires_at`      | DAATTIME    | NOT NULL                                      |       | 세션 만료 시간                       |
+| `expires_at`      | DAATTIME    | NOT NULL                                      |   v   | 세션 만료 시간                       |
 | `last_activity`   | DATETIME    | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE |       | 마지막 요청 시간                     |
-| `is_active`       | BOOLEAN     | NOT NULL, DEFAULT TRUE                        |       | 세션 활성 여부(로그아웃 FALSE)       |
-| `failed_attempts` | INT         | NOT NULL, DEFAULT 0                           |       | 로그인 실패 횟수                     |
+
+**SessionHistory**  
+
+| Column       | Data Type   | Constraints                         | Index | Desc                          |
+| ------------ | ----------- | ----------------------------------- | :---: | ----------------------------- |
+| `session_id` | CHAR(64)    | PRIMARY KEY                         |   v   | 세션 고유 식별자(sha256 해시) |
+| `user_id`    | UUID        | FOREIGN KEY → `User(id)`, NOT NULL  |   v   | 사용자 테이블의 아이디        |
+| `role_id`    | UUID        | FOREIGN KEY → `Role(id)`, NOT NULL  |   v   | 역할 테이블의 아이디          |
+| `ip_address` | VARCHAR(45) | NOT NULL                            |   v   | 사용자 로그인 IP              |
+| `user_agent` | TEXT        | NOT NULL                            |       | 사용자의 브라우저/기기 정보   |
+| `created_at` | DATETIME    | NOT NULL, DEFAULT CURRENT_TIMESTAMP |       | 세션 생성 시간                |
+| `ended_at`   | DAATTIME    | NOT NULL                            |   v   | 세션 로그아웃/만료 시간       |
+
+**Security**  
+
+로그인 보안 테이블
+
+| Column            | Data Type | Constraints                         | Index | Desc             |
+| ----------------- | --------- | ----------------------------------- | :---: | ---------------- |
+| `user_id`         | CHAR(64)  | NOT NULL                            |       | 로그인 아이디    |
+| `failed_attempts` | INT       | NOT NULL, DEFAULT 0                 |       | 로그인 실패 횟수 |
+| `last_time`       | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |       | 마지막 실패 시간 |
 
 ---
 
-## 11. Session (사용자 세션)
+**추가적인 데이터베이스 최적화**  
 
-| Column       | Data Type   | Constraints                          | Index |
-|-------------|------------|--------------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                          | ✅    |
-| `user_id`   | UUID       | FOREIGN KEY → `User(id)`, NOT NULL  | ✅    |
-| `device_info` | TEXT     | NOT NULL                            |       |
-| `ip_address` | VARCHAR(255) | NOT NULL                            | ✅    |
-| `created_at` | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP            |       |
-| `expires_at` | TIMESTAMP | NOT NULL                             | ✅    |
-
----
-
-## 12. Audit_Log (감사 로그)
-
-| Column        | Data Type   | Constraints                              | Index |
-|--------------|------------|------------------------------------------|-------|
-| `id`         | UUID       | PRIMARY KEY                              | ✅    |
-| `user_id`    | UUID       | FOREIGN KEY → `User(id)`, NULL 가능      | ✅    |
-| `session_id` | UUID       | FOREIGN KEY → `Session(id)`, NULL 가능   | ✅    |
-| `role_id`    | UUID       | FOREIGN KEY → `Role(id)`, NULL 가능      |       |
-| `resource`   | VARCHAR(255) | NOT NULL                                | ✅    |
-| `action`     | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE') | NOT NULL |       |
-| `status`     | ENUM('SUCCESS', 'ACCESS_DENIED', 'INVALID_SESSION') | NOT NULL | |
-| `reason`     | TEXT       | NULL 가능                                |       |
-| `timestamp`  | TIMESTAMP  | DEFAULT CURRENT_TIMESTAMP                | ✅    |
-
----
-
-# 🔹 추가적인 데이터베이스 최적화
 1. **Index 적용**
    - 자주 검색되는 `user_id`, `session_id`, `role_id`, `resource` 등에 인덱스 적용
-   - `Audit_Log`의 `timestamp`에 인덱스 추가하여 로그 조회 성능 향상
-
-2. **데이터 보존 정책**
-   - `Audit_Log` 테이블은 일정 기간(예: 6개월) 후 `archive_audit_log` 테이블로 이전
-
-3. **Partitioning (파티셔닝)**
-   - `Audit_Log`을 월별 파티셔닝하여 대용량 데이터 최적화 (`audit_log_2024_02` 등)
-
-4. **Foreign Key 제약 적용**
-   - 데이터 무결성을 유지하기 위해 외래 키 설정 (`ON DELETE CASCADE` 옵션 고려 가능)
-   - 
-
-# 2. 저장소 가상화 
