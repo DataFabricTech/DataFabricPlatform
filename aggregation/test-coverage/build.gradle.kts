@@ -8,6 +8,3 @@ dependencies {
 //    aggregate("com.mobigen.vdap.share:models")
 //    aggregate("com.example.myproduct.admin-feature:config")
 }
-
-tasks
-

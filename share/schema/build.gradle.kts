@@ -240,7 +240,7 @@ jsonSchema2Pojo {
     // What Java version to target with generated source code (1.6, 1.8, 9, 11, etc).
     // By default, the version will be taken from the Gradle Java plugin's 'sourceCompatibility',
     // which (if unset) itself defaults to the current JVM version
-    // ex> targetVersion = "1.8"
+    targetVersion = "21"
 
     // boolean useCommonsLang3
     // deprecated, since we no longer use commons-lang for equals, hashCode, toString

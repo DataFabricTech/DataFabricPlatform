@@ -1,3 +1,9 @@
+dependencyResolutionManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
+}
 rootProject.name = "platforms"
 
 include("product-platform")
