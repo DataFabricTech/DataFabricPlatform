@@ -468,17 +468,21 @@ class           Relation
 
 **User**  
 
-| Column       | Data Type                             | Constraints               | Index | Desc                  |
-| ------------ | ------------------------------------- | ------------------------- | :---: | --------------------- |
-| `id`         | UUID                                  | PRIMARY KEY               |   v   | 사용자 테이블 PK Key  |
-| `email`      | VARCHAR(255)                          | UNIQUE, NOT NULL          |   v   | 사용자 아이디(이메일) |
-| `password`   | VARCHAR(255)                          | NOT NULL                  |       | 사용자 암호           |
-| `name`       | VARCHAR(255)                          | NOT NULL                  |       | 사용자 이름           |
-| `nickname`   | VARCHAR(255)                          | NOT NULL                  |       | 사용자 별칭           |
-| `phone`      | VARCHAR(255)                          |                           |       | 사용자 연락처         |
-| `status`     | ENUM('Active', 'Inactive', 'Dormant') | DEFAULT 'Inactive'        |       | 사용자 계정 상태      |
-| `created_at` | TIMESTAMP                             | NOT NULL                  |       | 사용자 계정 생성일    |
-| `updated_at` | TIMESTAMP                             | DEFAULT CURRENT_TIMESTAMP |       | 사용자 계정 수정일    |
+사용자, 세션, 로그인 기록 관리 테이블은 구현 단계에서 다시 검토  
+또한, 키클락의 도움으로 처리할 수 있다면 대부분의 내용을 키클락에 위임할 수 있도록 한다.  
+
+| Column           | Data Type                             | Constraints               | Index | Desc                    |
+| ---------------- | ------------------------------------- | ------------------------- | :---: | ----------------------- |
+| `id`             | UUID                                  | PRIMARY KEY               |   v   | 사용자 테이블 PK Key    |
+| `email`          | VARCHAR(255)                          | UNIQUE, NOT NULL          |   v   | 사용자 아이디(이메일)   |
+| `password`       | VARCHAR(255)                          | NOT NULL                  |       | 사용자 암호(암호화)     |
+| `name`           | VARCHAR(255)                          | NOT NULL                  |       | 사용자 이름             |
+| `nickname`       | VARCHAR(255)                          | NOT NULL                  |       | 사용자 별칭             |
+| `phone`          | VARCHAR(255)                          |                           |       | 사용자 연락처           |
+| `email_verified` | BOOLEAN                               | DEFAULT FALSE             |       | 사용자 이메일 인증 상태 |
+| `status`         | ENUM('Active', 'Inactive', 'Dormant') | DEFAULT 'Inactive'        |       | 사용자 계정 상태        |
+| `created_at`     | TIMESTAMP                             | NOT NULL                  |       | 사용자 계정 생성일      |
+| `updated_at`     | TIMESTAMP                             | DEFAULT CURRENT_TIMESTAMP |       | 사용자 계정 수정일      |
 
 ---
 

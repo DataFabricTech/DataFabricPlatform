@@ -11,6 +11,18 @@
 검색 추천  
 검색 클러스터 구성  
 
+- 저장소 탐색
+  - 저장소 리스트  
+  - 저장소 정보 열람  
+  - 즐겨찾기
+  - 카테고리  
+  - 사전  
+  - 태그  
+
+추상화 된 데이터 스키마의 메타 정보를 이용하여 검색 기능 개발
+추상화된 데이터의 원본 데이터를 샘플링하여 제공
+데이터 검색 수행 시 클러스터링된 검색엔진에서 검색에 필요한 다중 저장소에 동시에 접근하여 검색 결과에 대한 비동기 조합으로 성능 최적화
+
 - 보안
   - 접근 제어(RBAC, Attribute(User, Group))
     - 초기 컨셉은 최초 모두 검색 가능하고, 특이 행동에 대해서 접근제어를 수행하고자 하였었음.
@@ -110,6 +122,22 @@ Admin --> group_relation
 
 ```plantuml
 @startuml
+Actor User as user
+box "OpenVDAP Service" #Lightblue
+participant Server as server
+participant Metadata as metadata
+participant Monitoring as monitoring
+database Database as database
+database ElasticSearch as search 
+end box
+
+user -> server ++ : StorageList
+user <- server -- : Res : []ResStorageInfo
+|||
+user -> server ++ : Get Storage(getbyid, getbyname)
+server -> database ++ : Get Storage Info
+server <-- database --: Res
+user <-- server --: Res : ResStorageInfo
 actor NonMember as non_member
 participant Server as server
 participant AuthServer as auth_server
