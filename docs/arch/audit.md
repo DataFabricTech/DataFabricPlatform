@@ -307,17 +307,17 @@ Audit : SendNoti()
 
 **Audit_Setting**  
 
-| Column       | Data Type                                           | Constraints                            | Index | Desc |
-| ------------ | --------------------------------------------------- | -------------------------------------- | ----- | ---- |
-| `id`         | UUID                                                | PRIMARY KEY                            | v     |      |
-| `user_id`    | VARCHAR(255)                                        | NOT NULL                               | v     |      |
-| `user_id`    | UUID                                                | FOREIGN KEY → `User(id)`, NULL 가능    | v     |      |
-| `session_id` | UUID                                                | FOREIGN KEY → `Session(id)`, NULL 가능 | v     |      |
-| `role_id`    | UUID                                                | FOREIGN KEY → `Role(id)`, NULL 가능    |       |      |
-| `action`     | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE')           | NOT NULL                               |       |      |
-| `status`     | ENUM('SUCCESS', 'ACCESS_DENIED', 'INVALID_SESSION') | NOT NULL                               |       |      |
-| `reason`     | TEXT                                                | NULL 가능                              |       |      |
-| `timestamp`  | TIMESTAMP                                           | DEFAULT CURRENT_TIMESTAMP              | v    |      |
+| Column       | Data Type                                           | Constraints                            | Index | Desc                            |
+| ------------ | --------------------------------------------------- | -------------------------------------- | :---: | ------------------------------- |
+| `id`         | UUID                                                | PRIMARY KEY                            |   v   |                                 |
+| `event`      | VARCHAR(255)                                        | NOT NULL                               |   v   | 이벤트 타입을 적용할 지 고민임. |
+| `user_id`    | UUID                                                | FOREIGN KEY → `User(id)`, NULL 가능    |   v   |                                 |
+| `session_id` | UUID                                                | FOREIGN KEY → `Session(id)`, NULL 가능 |   v   |                                 |
+| `role_id`    | UUID                                                | FOREIGN KEY → `Role(id)`, NULL 가능    |       |                                 |
+| `action`     | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE')           | NOT NULL                               |       |                                 |
+| `status`     | ENUM('SUCCESS', 'ACCESS_DENIED', 'INVALID_SESSION') | NOT NULL                               |       |                                 |
+| `reason`     | TEXT                                                | NULL 가능                              |       |                                 |
+| `timestamp`  | TIMESTAMP                                           | DEFAULT CURRENT_TIMESTAMP              |   v   |                                 |
 
 
 {

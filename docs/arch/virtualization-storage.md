@@ -18,13 +18,15 @@
    - MinIO
    - Oracle
    - Hadoop
+   - MongoDB
+   - MS-SQL
    - ...
    - 다양한 인증 방식 지원 - 지원 고려  
 2. 사용자 설정 가능한 메타데이터  
    1. 태그  
-   2. 카테고리  
-   3. 사전  
-   4. 즐겨찾기  
+   2. 사전  
+   3. 카테고리 -> openmetadata 미지원
+   4. 즐겨찾기 -> openmetadata 미지원
 3. 카탈로그  
    1. 저장소 내 데이터 정보를 바탕으로 데이터 카탈로그 생성  
    2. 저장된 데이터들의 카테고리와 태그를 이용해 데이터 정보 제공?
@@ -312,6 +314,8 @@ user <- server -- : Success
 | 집합(Aggregation)       | `o--`   | 부분이 전체와 독립적으로 존재할 수 있음( 클래스 `o--` 부분 클래스)     |
 | 컴포지션(Composition)   | `*--`   | 부분이 전체 없이 존재할 수 없음( 클래스 `*--` 부분 클래스)             |
 
+- 통합 저장소 연결 정보  
+
 ```plantuml
 @startuml
 left to right direction
@@ -329,61 +333,51 @@ enum ServiceType {
   Custom
 }
 
-enum Scheme {
-  String driverName
-  String dcescription
-  String path
-  String className
+class ServiceScheme {
+  String driver
 }
 
-abstract class "ServiceConnectionEntityInterface" {
+class SSLClientConfig {
+  ' ".pem", ".crt", ".cer", ".der", ".p12"
+  File caCertificate
+  File sslCertificate
+  File sslKey
+}
+
+class ServiceConnection {
   ServiceType type
-  Scheme scheme
-  __
+  ' scheme 은 구현하지 않음. 향 후 확장을 위한 부분  
+  ServiceScheme scheme
   String username
   String password
   String hostPort
-  String databaseName
-  String bucketNames
+  String database
+  ' Option
   String databaseSchema
+  String bucket
+  ' Option
   String prefix
+  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
+  Boolean ingestAllDatabases
   Map<String, String> connectionOptions
   Map<String, Object> connectionArguments
+  Boolean isSSL
+  SSLClientConfig sslClientConfig
+  __
+  getPassword()
 }
 
-
+ServiceConnection -down-> ServiceType
+ServiceConnection -down-> ServiceScheme
+ServiceConnection -up-> SSLClientConfig
 @enduml
 ```
+
+- 통합 저장소 정보  
 
 ```plantuml
 @startuml
 left to right direction
-
-' abstract        abstract
-' abstract class  "abstract class"
-' annotation      annotation
-' circle          circle
-' ()              circle_short_form
-' class           class
-' class           class_stereo  <<stereotype>>
-' diamond         diamond
-' <>              diamond_short_form
-' entity          entity
-' enum            enum
-' exception       exception
-' interface       interface
-' metaclass       metaclass
-' protocol        protocol
-' stereotype      stereotype
-' struct          struct
-
-
-enum DataType {
-  Database
-  DatabaseSchema
-  Table
-  File
-}
 
 class EntityReference {
   UUID id
@@ -397,35 +391,32 @@ class EntityReference {
   String href
 }
 
-enum StorageServiceType {
-  Mysql
-  MariaDB
-  Postgres
+enum ServiceType {
   Mssql
+  Mysql
+  Postgres
   Oracle
-  Hive
-  Druid
-  SQLite
-  MongoDB
-  S3
   MinIO
+  S3
+  Hive
+  MariaDB
+  MongoDB
+  Custom
 }
 
-class StorageConnection {
-  StorageServiceType type
-  Connection Scheme
-  String username
-  String password
-  String hostPort
-  String databaseName
-  String bucketNames
-  String databaseSchema
-  String prefix
-  Map<String, String> connectionOptions
-  Map<String, Object> connectionArguments
+enum DataType {
+  Database
+  DatabaseSchema
+  Table
+  File
 }
 
-StorageConnection ..> StorageServiceType
+enum DataFormat {
+  Database
+  DatabaseSchema
+  Table
+  File
+}
 
 enum TagSource {
   Classification
@@ -444,7 +435,7 @@ enum TagState {
   Confirmed
 }
 
-class Tag {
+class TagLabel {
   String tagFQN
   String  name
   String displayName
@@ -455,9 +446,9 @@ class Tag {
   URI href
 }
 
-Tag -> TagSource
-Tag -> TagType
-Tag -> TagState
+TagLabel -> TagSource
+TagLabel -> TagType
+TagLabel -> TagState
 
 class  StorageService {
   UUID id

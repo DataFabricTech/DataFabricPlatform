@@ -300,8 +300,6 @@ end
 
 ## 5. 클래스
 
-<img src="image.png" width="300" height="200" alt="클래스 관계 화살표">
-
 | 유형                    | 기호    | 목적                                                                   |
 | ----------------------- | ------- | ---------------------------------------------------------------------- |
 | 의존성(Association)     | `-->`   | 객체가 다른 객체를 사용함. ( A `-->` B)                                |
@@ -331,9 +329,6 @@ end
 ' stereotype      stereotype
 ' struct          struct
 
-class           User
-class           Group
-class           Relation
 @enduml
 ```
 
@@ -397,106 +392,91 @@ class           Relation
 
 ---
 
-
 ## 4. Role (역할)
 
-| Column       | Data Type   | Constraints                  | Index |
-|-------------|------------|------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                  | ✅    |
-| `name`      | VARCHAR(255) | UNIQUE, NOT NULL            | ✅    |
-| `description` | TEXT      |                              |       |
+| Column        | Data Type    | Constraints      | Index |
+| ------------- | ------------ | ---------------- | :---: |
+| `id`          | UUID         | PRIMARY KEY      |   v   |
+| `name`        | VARCHAR(255) | UNIQUE, NOT NULL |   v   |
+| `description` | TEXT         |                  |       |
 
 ---
 
 ## 5. User_Role (사용자 - 역할 관계)
 
-| Column    | Data Type | Constraints                       | Index |
-|-----------|----------|-----------------------------------|-------|
-| `user_id` | UUID     | FOREIGN KEY → `User(id)`, NOT NULL | ✅    |
-| `role_id` | UUID     | FOREIGN KEY → `Role(id)`, NOT NULL | ✅    |
+| Column    | Data Type | Constraints                        | Index |
+| --------- | --------- | ---------------------------------- | :---: |
+| `user_id` | UUID      | FOREIGN KEY → `User(id)`, NOT NULL |   v   |
+| `role_id` | UUID      | FOREIGN KEY → `Role(id)`, NOT NULL |   v   |
 
 ---
 
 ## 6. Group_Role (그룹 - 역할 관계)
 
-| Column    | Data Type | Constraints                       | Index |
-|-----------|----------|-----------------------------------|-------|
-| `group_id` | UUID    | FOREIGN KEY → `Group(id)`, NOT NULL | ✅    |
-| `role_id`  | UUID    | FOREIGN KEY → `Role(id)`, NOT NULL | ✅    |
+| Column     | Data Type | Constraints                         | Index |
+| ---------- | --------- | ----------------------------------- | :---: |
+| `group_id` | UUID      | FOREIGN KEY → `Group(id)`, NOT NULL |   v   |
+| `role_id`  | UUID      | FOREIGN KEY → `Role(id)`, NOT NULL  |   v   |
 
 ---
 
 ## 7. Permissions (권한)
 
-| Column      | Data Type   | Constraints                          | Index |
-|------------|------------|--------------------------------------|-------|
-| `id`       | UUID       | PRIMARY KEY                          | ✅    |
-| `name`     | VARCHAR(255) | UNIQUE, NOT NULL                    | ✅    |
-| `resource` | VARCHAR(255) | NOT NULL                            | ✅    |
-| `action`   | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE') | NOT NULL |       |
+| Column     | Data Type              | Constraints      | Index |
+| ---------- | ---------------------- | ---------------- | :---: |
+| `id`       | UUID                   | PRIMARY KEY      |   v   |
+| `name`     | VARCHAR(255)           | UNIQUE, NOT NULL |   v   |
+| `resource` | VARCHAR(255)           | NOT NULL         |   v   |
+| `action`   | ENUM('READ', 'WRITE'') | NOT NULL         |       |
 
 ---
 
 ## 8. Role_Permission (역할 - 권한 관계)
 
-| Column       | Data Type | Constraints                          | Index |
-|-------------|----------|--------------------------------------|-------|
-| `role_id`   | UUID     | FOREIGN KEY → `Role(id)`, NOT NULL  | ✅    |
-| `permission_id` | UUID  | FOREIGN KEY → `Permissions(id)`, NOT NULL | ✅    |
+| Column          | Data Type | Constraints                               | Index |
+| --------------- | --------- | ----------------------------------------- | :---: |
+| `role_id`       | UUID      | FOREIGN KEY → `Role(id)`, NOT NULL        |   v   |
+| `permission_id` | UUID      | FOREIGN KEY → `Permissions(id)`, NOT NULL |   v   |
 
 ---
 
 ## 9. Attributes (속성)
 
-| Column       | Data Type   | Constraints                          | Index |
-|-------------|------------|--------------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                          | ✅    |
-| `name`      | VARCHAR(255) | NOT NULL                            | ✅    |
-| `value`     | TEXT       | NOT NULL                            |       |
-| `entity_type` | ENUM('User', 'Group', 'Role', 'Resource') | NOT NULL |       |
-| `entity_id`  | UUID      | NOT NULL                             | ✅    |
+| Column        | Data Type                                 | Constraints | Index |
+| ------------- | ----------------------------------------- | ----------- | :---: |
+| `id`          | UUID                                      | PRIMARY KEY |   v   |
+| `name`        | VARCHAR(255)                              | NOT NULL    |   v   |
+| `value`       | TEXT                                      | NOT NULL    |       |
+| `entity_type` | ENUM('User', 'Group', 'Role', 'Resource') | NOT NULL    |       |
+| `entity_id`   | UUID                                      | NOT NULL    |   v   |
 
 ---
 
 ## 10. Permission_Attributes (권한 - 속성 관계)
 
-| Column         | Data Type | Constraints                           | Index |
-|--------------|----------|---------------------------------------|-------|
-| `permission_id` | UUID  | FOREIGN KEY → `Permissions(id)`, NOT NULL | ✅    |
-| `attribute_id`  | UUID  | FOREIGN KEY → `Attributes(id)`, NOT NULL | ✅    |
+| Column          | Data Type | Constraints                               | Index |
+| --------------- | --------- | ----------------------------------------- | :---: |
+| `permission_id` | UUID      | FOREIGN KEY → `Permissions(id)`, NOT NULL |   v   |
+| `attribute_id`  | UUID      | FOREIGN KEY → `Attributes(id)`, NOT NULL  |   v   |
 
 ---
 
 ## 11. Session (사용자 세션)
 
-| Column       | Data Type   | Constraints                          | Index |
-|-------------|------------|--------------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                          | ✅    |
-| `user_id`   | UUID       | FOREIGN KEY → `User(id)`, NOT NULL  | ✅    |
-| `device_info` | TEXT     | NOT NULL                            |       |
-| `ip_address` | VARCHAR(255) | NOT NULL                            | ✅    |
-| `created_at` | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP            |       |
-| `expires_at` | TIMESTAMP | NOT NULL                             | ✅    |
+| Column        | Data Type    | Constraints                        | Index |
+| ------------- | ------------ | ---------------------------------- | :---: |
+| `id`          | UUID         | PRIMARY KEY                        |   v   |
+| `user_id`     | UUID         | FOREIGN KEY → `User(id)`, NOT NULL |   v   |
+| `device_info` | TEXT         | NOT NULL                           |       |
+| `ip_address`  | VARCHAR(255) | NOT NULL                           |   v   |
+| `created_at`  | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP          |       |
+| `expires_at`  | TIMESTAMP    | NOT NULL                           |   v   |
+|               |              |                                    |       |
 
 ---
 
-## 12. Audit_Log (감사 로그)
+> 추가적인 데이터베이스 최적화
 
-| Column        | Data Type   | Constraints                              | Index |
-|--------------|------------|------------------------------------------|-------|
-| `id`         | UUID       | PRIMARY KEY                              | ✅    |
-| `user_id`    | UUID       | FOREIGN KEY → `User(id)`, NULL 가능      | ✅    |
-| `session_id` | UUID       | FOREIGN KEY → `Session(id)`, NULL 가능   | ✅    |
-| `role_id`    | UUID       | FOREIGN KEY → `Role(id)`, NULL 가능      |       |
-| `resource`   | VARCHAR(255) | NOT NULL                                | ✅    |
-| `action`     | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE') | NOT NULL |       |
-| `status`     | ENUM('SUCCESS', 'ACCESS_DENIED', 'INVALID_SESSION') | NOT NULL | |
-| `reason`     | TEXT       | NULL 가능                                |       |
-| `timestamp`  | TIMESTAMP  | DEFAULT CURRENT_TIMESTAMP                | ✅    |
-
----
-
-# 🔹 추가적인 데이터베이스 최적화
 1. **Index 적용**
    - 자주 검색되는 `user_id`, `session_id`, `role_id`, `resource` 등에 인덱스 적용
    - `Audit_Log`의 `timestamp`에 인덱스 추가하여 로그 조회 성능 향상
@@ -509,75 +489,3 @@ class           Relation
 
 4. **Foreign Key 제약 적용**
    - 데이터 무결성을 유지하기 위해 외래 키 설정 (`ON DELETE CASCADE` 옵션 고려 가능)
-   - 
-
-# 2. 저장소 가상화 
-
-## 4. Role (역할)
-
-| Column       | Data Type   | Constraints                  | Index |
-|-------------|------------|------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                  | ✅    |
-| `name`      | VARCHAR(255) | UNIQUE, NOT NULL            | ✅    |
-| `description` | TEXT      |                              |       |
-
----
-
-## 5. User_Role (사용자 - 역할 관계)
-
-| Column    | Data Type | Constraints                       | Index |
-|-----------|----------|-----------------------------------|-------|
-| `user_id` | UUID     | FOREIGN KEY → `User(id)`, NOT NULL | ✅    |
-| `role_id` | UUID     | FOREIGN KEY → `Role(id)`, NOT NULL | ✅    |
-
----
-
-## 6. Group_Role (그룹 - 역할 관계)
-
-| Column    | Data Type | Constraints                       | Index |
-|-----------|----------|-----------------------------------|-------|
-| `group_id` | UUID    | FOREIGN KEY → `Group(id)`, NOT NULL | ✅    |
-| `role_id`  | UUID    | FOREIGN KEY → `Role(id)`, NOT NULL | ✅    |
-
----
-
-## 7. Permissions (권한)
-
-| Column      | Data Type   | Constraints                          | Index |
-|------------|------------|--------------------------------------|-------|
-| `id`       | UUID       | PRIMARY KEY                          | ✅    |
-| `name`     | VARCHAR(255) | UNIQUE, NOT NULL                    | ✅    |
-| `resource` | VARCHAR(255) | NOT NULL                            | ✅    |
-| `action`   | ENUM('READ', 'WRITE', 'UPDATE', 'DELETE') | NOT NULL |       |
-
----
-
-## 8. Role_Permission (역할 - 권한 관계)
-
-| Column       | Data Type | Constraints                          | Index |
-|-------------|----------|--------------------------------------|-------|
-| `role_id`   | UUID     | FOREIGN KEY → `Role(id)`, NOT NULL  | ✅    |
-| `permission_id` | UUID  | FOREIGN KEY → `Permissions(id)`, NOT NULL | ✅    |
-
----
-
-## 9. Attributes (속성)
-
-| Column       | Data Type   | Constraints                          | Index |
-|-------------|------------|--------------------------------------|-------|
-| `id`        | UUID       | PRIMARY KEY                          | ✅    |
-| `name`      | VARCHAR(255) | NOT NULL                            | ✅    |
-| `value`     | TEXT       | NOT NULL                            |       |
-| `entity_type` | ENUM('User', 'Group', 'Role', 'Resource') | NOT NULL |       |
-| `entity_id`  | UUID      | NOT NULL                             | ✅    |
-
----
-
-## 10. Permission_Attributes (권한 - 속성 관계)
-
-| Column         | Data Type | Constraints                           | Index |
-|--------------|----------|---------------------------------------|-------|
-| `permission_id` | UUID  | FOREIGN KEY → `Permissions(id)`, NOT NULL | ✅    |
-| `attribute_id`  | UUID  | FOREIGN KEY → `Attributes(id)`, NOT NULL | ✅    |
-
----

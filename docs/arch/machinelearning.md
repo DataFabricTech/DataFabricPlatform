@@ -1,30 +1,22 @@
-# 데이터 가상화
+# 머신러닝 기반 데이터 카탈로그
 
 ## 1. 개요
 
-본 문서는 데이터 가상화 설계 문서로 유스케이스, 인터페이스, 시퀀스, 클래스, 데이터베이스 설계서를 포함한다.
+본 문서는 작업 관리 설계 문서로 유스케이스, 인터페이스, 시퀀스, 클래스, 데이터베이스 설계서를 포함한다.
 
 ## 2. 요구사항
-
-일반 요구사항
-
-1. 다양한 형태의 데이터를 위한 메타데이터
-2. 다양한 형태의 데이터로부터 메타데이터 수집
-3. 표준 메타데이터  
-   1. 표준 용어 사전  
-   2. 불용어 -> 검색과도 연관있음  
-4. 데이터 변경을 감지 자동으로 업데이트하는 기능 개발  
 
 ## 3. Usecase
 
 ```plantuml
 @startuml
+allowmixing
 left to right direction
 
 @enduml
 ```
 
-## 4. 클래스
+## 3. 클래스
 
 | 유형                    | 기호    | 목적                                                                   |
 | ----------------------- | ------- | ---------------------------------------------------------------------- |
@@ -37,17 +29,38 @@ left to right direction
 
 ```plantuml
 @startuml
+allowmixing
+left to right direction
 
 @enduml
 ```
 
-## 5. 시퀀스
+## 4. 시퀀스
 
 ```plantuml
 @startuml
 @enduml
 ```
 
-## 6. 인터페이스  
+```plantuml
+@startuml
 
-## 7. 데이터베이스
+@enduml
+```
+
+## 5. 인터페이스
+
+현 시점(25.02.07)에서는 인터페이스를 모두 정의할 수 없어 개발 과정에서 추가한다.  
+
+## 6. 데이터베이스
+
+- 작업히스토리
+  - 내 작업 상태  
+    - 모니터링은 작업 정보를 수신하여 관리해주면 됨.
+    - Job Create : service A : Monitoring
+    - Job Success : service A : Monitoring
+    - Job Error : service A : Monitoring
+  - 상태 조회
+    - UI <- Monitoring
+  - 명령 수행  
+    - start, restart, stop, remove  
