@@ -54,8 +54,22 @@ user --> setting
 - 시작 및 프로세스 연동(모니터링 시작)  
 - 모니터링  
   - 연결 상태
+    - select 1;
+    - http connect
+    - icmp : X
   - 데이터 수
-  - 데이터 변경
+    - show database
+    - show databaseSchema
+    - show tables
+  - 데이터 변경 감지
+    - 기존 데이터 정보 로드
+    - 현재 데이터 상태 확인  
+      - schema 변경 확인  
+      - 데이터 변경 확인  
+        - table updatetime 확인 방법
+        - table size 변경 확인  
+        - file updatetime
+  - 평균 응답 시간  
   - 기타  
 
 ```plantuml
@@ -108,17 +122,18 @@ monitoring <-- database --: Success
 - Monitoring
   - Dashboard
     - 상태
-      - 저장소 타입 별 등록 상태(수)  
-      - 연결 상태  
-      - 가상화 상태(메타데이터 수집 프로세스 상태)  
+      - 저장소 타입 별 등록 상태(수) - fabric  
+      - 연결 상태 - 수집  
+      - 가상화 상태(메타데이터 수집 프로세스 상태) - fabric  
     - 통계  
       - 데이터 정보
-        - 저장소 별 전체 데이터 수  
-        - 저장소 별 등록 데이터 수  
-        - 저장소 별 데이터 변경 감지 수 (Hour, Day, Month)
-        - 저장소 별 등록 데이터 사이즈 Total  
-        - 저장소 별 등록 데이터 사이트 Avg
-        - 데이터 종류 별 등록 수  
+        - 저장소 별 전체 데이터 수 - 수집
+        - 저장소 별 등록 데이터 수 - fabric  
+        - 저장소 별 데이터 변경 감지 수 (Hour, Day, Month)  
+          - 데이터 변경 감지 - 개발  
+        - 저장소 별 등록 데이터 사이즈 Total - table rows/mb, file size  
+        - 저장소 별 등록 데이터 사이트 Avg - ...  
+        - 데이터 종류 별 등록 수 - fabric  
         - 그 외 사용자 요구 혹은 필요에 따른 정보 추가  
       - 데이터 가상화  
         - 데이터 가상화 프로세스 실행 히스토리  

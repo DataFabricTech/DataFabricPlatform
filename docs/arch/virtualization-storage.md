@@ -295,37 +295,11 @@ user <- server -- : Success
 @enduml
 ```
 
-## 5. 인터페이스 설계
+## 5. 클래스 다이어그램
 
-> 본 문서에서는 현 시점(25.02.06)에서는 필요한 인터페이스만을 나열한다.
-> 상세한 내용에 대해서는 Swagger를 활용하거나 본 문서에 내용을 업데이트 한다.  
+**참고용 OpenMetadata Service 객체**  
 
-### 5.1. 저장소 관리
-
-**저장소 리스트**  
-
-**저장소 정보 조회**  
-**연결테스트**  
-**추가**  
-**연결정보 수정**  
-**메타데이터 설정(업데이트)**  
-**삭제**  
-
-### 5.2. 저장소 설정
-
-- 설정  
-  - 기본설정  
-    - 조회  
-    - 수정  
-      - 메타데이터 수집  
-      - 샘플링  
-      - 모니터링  
-  - 검색/공유 설정  
-  - 메타데이터(프로파일링) 수집 설정  
-  - 샘플 수집 설정  
-  - 모니터링 설정  
-
-## 6. 클래스 다이어그램
+![databaseservice](/share/schema/src/main/resources/json/schema/entity/services/databaseService.json)
 
 | 유형                    | 기호    | 목적                                                                   |
 | ----------------------- | ------- | ---------------------------------------------------------------------- |
@@ -338,6 +312,8 @@ user <- server -- : Success
 
 ```plantuml
 @startuml
+left to right direction
+
 ' abstract        abstract
 ' abstract class  "abstract class"
 ' annotation      annotation
@@ -356,16 +332,137 @@ user <- server -- : Success
 ' stereotype      stereotype
 ' struct          struct
 
-class           StorageService
-class           Database
-class           DatabaseSchema
-class           Table
-class           Bucket
-class           Path
-class           Entity
+
+enum DataType {
+  Database
+  DatabaseSchema
+  Table
+  File
+}
+
+class EntityReference {
+  UUID id
+  DataType type
+  String name
+  String fullyQualifiedName
+  String description
+  String displayName
+  Boolean deleted
+  ' Boolean inherited
+  String href
+}
+
+
+enum StorageServiceType {
+  Mysql
+  MariaDB
+  Postgres
+  Mssql
+  Oracle
+  Hive
+  Druid
+  SQLite
+  MongoDB
+  S3
+  MinIO
+}
+
+class StorageConnection {
+  StorageServiceType type
+  Connection Scheme
+  String username
+  String password
+  String hostPort
+  String databaseName
+  String bucketNames
+  String databaseSchema
+  String prefix
+  Map<String, String> connectionOptions
+  Map<String, Object> connectionArguments
+}
+
+StorageConnection ..> StorageServiceType
+
+enum TagSource {
+  Classification
+  Glossary
+}
+
+enum TagType {
+  
+}
+
+class Tag {
+  String tagFQN
+  String  name
+  String displayName
+  String description
+  TagSource source
+  TagType labelType
+  TagState state
+  URI href
+}
+
+Tag -> TagSource
+
+class  StorageService {
+  UUID id
+  String name
+  String fullyQualifiedName
+  String displayName
+  StorageServiceType serviceType
+  String description
+  StorageConnection connection
+  TestConnectionResult testConnectionResult
+  Tag[] tags
+  String version
+  Datetime updatedAt
+  String updatedBy
+  EntityReference[] owners
+  URI href
+  String changeDescription
+  Boolean deleted
+  ..
+  Settings 
+  EntityReference[] pipelines
+}
+
+EntityReference ..> DataType
+StorageService -> EntityReference
+StorageService ..> StorageServiceType
+StorageService -> StorageConnection
 
 @enduml
 ```
+
+## 6. 인터페이스 설계
+
+> 본 문서에서는 현 시점(25.02.06)에서는 필요한 인터페이스만을 나열한다.
+> 상세한 내용에 대해서는 Swagger를 활용하거나 본 문서에 내용을 업데이트 한다.  
+
+### 6.1. 저장소 관리
+
+**저장소 리스트**  
+**저장소 정보 조회**  
+**연결테스트**  
+**추가**  
+**연결정보 수정**  
+**메타데이터 설정(업데이트)**  
+**삭제**  
+
+### 6.2. 저장소 설정
+
+- 설정  
+  - 기본설정  
+    - 조회  
+    - 수정  
+      - 메타데이터 수집  
+      - 샘플링  
+      - 모니터링  
+  - 검색/공유 설정  
+  - 메타데이터(프로파일링) 수집 설정  
+  - 샘플 수집 설정  
+  - 모니터링 설정  
 
 ## 7. 데이터베이스
 
