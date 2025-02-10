@@ -19,6 +19,7 @@
    - Oracle
    - Hadoop
    - ...
+   - 다양한 인증 방식 지원 - 지원 고려  
 2. 사용자 설정 가능한 메타데이터  
    1. 태그  
    2. 카테고리  
@@ -26,9 +27,7 @@
    4. 즐겨찾기  
 3. 카탈로그  
    1. 저장소 내 데이터 정보를 바탕으로 데이터 카탈로그 생성  
-
-4. 자동으로 메타 데이터를 생성하는 기능 개발  
-5. 다양한 인증 방식 지원 - 지원 고려  
+   2. 저장된 데이터들의 카테고리와 태그를 이용해 데이터 정보 제공?
 
 보안 요구사항
 
@@ -299,7 +298,10 @@ user <- server -- : Success
 
 **참고용 OpenMetadata Service 객체**  
 
-![databaseservice](/share/schema/src/main/resources/json/schema/entity/services/databaseService.json)
+![database_service](/share/schema/src/main/resources/json/schema/entity/services/databaseService.json)
+![storage_service](/share/schema/src/main/resources/json/schema/entity/services/storageService.json)
+![create_database_service](/share/schema/src/main/resources/json/schema/api/services/createDatabaseService.json)
+![create_storage_service](/share/schema/src/main/resources/json/schema/api/services/createStorageService.json)
 
 | 유형                    | 기호    | 목적                                                                   |
 | ----------------------- | ------- | ---------------------------------------------------------------------- |
@@ -309,6 +311,49 @@ user <- server -- : Success
 | 약한 의존성(Dependency) | `..>`   | 더 약한 형태의 의존성. A 클래스 메소스 파라미터로 B를 사용( A `..>` B) |
 | 집합(Aggregation)       | `o--`   | 부분이 전체와 독립적으로 존재할 수 있음( 클래스 `o--` 부분 클래스)     |
 | 컴포지션(Composition)   | `*--`   | 부분이 전체 없이 존재할 수 없음( 클래스 `*--` 부분 클래스)             |
+
+```plantuml
+@startuml
+left to right direction
+
+enum ServiceType {
+  Mssql
+  Mysql
+  Postgres
+  Oracle
+  MinIO
+  S3
+  Hive
+  MariaDB
+  MongoDB
+  Custom
+}
+
+enum Scheme {
+  String driverName
+  String dcescription
+  String path
+  String className
+}
+
+abstract class "ServiceConnectionEntityInterface" {
+  ServiceType type
+  Scheme scheme
+  __
+  String username
+  String password
+  String hostPort
+  String databaseName
+  String bucketNames
+  String databaseSchema
+  String prefix
+  Map<String, String> connectionOptions
+  Map<String, Object> connectionArguments
+}
+
+
+@enduml
+```
 
 ```plantuml
 @startuml
@@ -352,7 +397,6 @@ class EntityReference {
   String href
 }
 
-
 enum StorageServiceType {
   Mysql
   MariaDB
@@ -389,7 +433,15 @@ enum TagSource {
 }
 
 enum TagType {
-  
+  MANUAL
+  PROPAGATED
+  AUTOMATED
+  DERIVED  
+}
+
+enum TagState {
+  Suggested
+  Confirmed
 }
 
 class Tag {
@@ -404,6 +456,8 @@ class Tag {
 }
 
 Tag -> TagSource
+Tag -> TagType
+Tag -> TagState
 
 class  StorageService {
   UUID id
@@ -431,24 +485,34 @@ EntityReference ..> DataType
 StorageService -> EntityReference
 StorageService ..> StorageServiceType
 StorageService -> StorageConnection
+StorageService -> Tag
 
 @enduml
 ```
 
 ## 6. 인터페이스 설계
 
-> 본 문서에서는 현 시점(25.02.06)에서는 필요한 인터페이스만을 나열한다.
-> 상세한 내용에 대해서는 Swagger를 활용하거나 본 문서에 내용을 업데이트 한다.  
+> 본 문서에서는 현 시점(25.02.06)에서는 인터페이스 리스트만을 작성한다.  
+> 상세한 내용에 대해서는 Swagger를 활용하거나 본 문서에 내용을 업데이트하여 제공한다.  
 
 ### 6.1. 저장소 관리
 
-**저장소 리스트**  
-**저장소 정보 조회**  
-**연결테스트**  
-**추가**  
-**연결정보 수정**  
-**메타데이터 설정(업데이트)**  
-**삭제**  
+OpenMetadata 의 DatabaseService, StorageService 를 StorageService 통합
+
+- 저장소 리스트  
+  - ResultList<StorageService> 
+- 저장소 정보  
+  - StorageService
+- 추가  
+  - CreateStorageService
+- 연결테스트  
+  - CreateWorkflow -> ConnectionTest 로 변경
+- 연결정보 수정  
+  - StorageService
+- 메타데이터 설정(업데이트)  
+  - StorageService
+- 삭제  
+  - ID or Name
 
 ### 6.2. 저장소 설정
 
@@ -460,33 +524,18 @@ StorageService -> StorageConnection
       - 샘플링  
       - 모니터링  
   - 검색/공유 설정  
-  - 메타데이터(프로파일링) 수집 설정  
-  - 샘플 수집 설정  
-  - 모니터링 설정  
+    - 전체 공개  
+    - 비공개  
+  - 파이프라인
+    - [파이프라인] - docs/arch/virtualization-pipeline.md
+  - 모니터링
+    - [모니터링] - docs/arch/monitoring.md
 
 ## 7. 데이터베이스
 
-Database, Storage 가 분리되어 있었으나 통합.
-UserDefine Driver를 사용할 수 있는 구조로 변경.
+- Storage
 
-**StorageCommonConfiguration**  
-
-| Column       | Data Type | Constraints                      | Desc                                   |
-| ------------ | --------- | -------------------------------- | -------------------------------------- |
-| `id`         | UUID      | PRIMARY_KEY                      | 아이디                                 |
-| `json`       | JSON      | NOT NULL                         | 저장소 공통 설정 정보                  |
-| `version`    | INT       | NOT NULL                         | 저장소 업데이트 정보 |
-| `updated_at` | DATETIME  | NOT NULL, CURRENT_TIME ON UPDAET | 저장소 공통 설정 정보 업데이트 시간    |
-| `updated_by` | UUID      | NOT NULL, FK('user.id')          | 저장소 공통 설정 정보 변경 사용자 정보 |
-
-**Storage**  
-
-| Column | Data Type | Constraints | Index | Desc               |
-| ------ | --------- | ----------- | :---: | ------------------ |
-| `id`   | CHAR(64)  | PRIMARY KEY |   v   | 저장소 고유 식별자 |
-|        |           |             |       |                    |
-
-**Driver**  
-**Metadata**  
-**Tag**  
-**Glossary**  
+  | Column | Data Type | Constraints | Index | Desc               |
+  | ------ | --------- | ----------- | :---: | ------------------ |
+  | `id`   | CHAR(64)  | PRIMARY KEY |   v   | 저장소 고유 식별자 |
+  |        |           |             |       |                    |

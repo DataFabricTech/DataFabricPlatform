@@ -320,7 +320,6 @@ Audit : SendNoti()
 | `timestamp`  | TIMESTAMP                                           | DEFAULT CURRENT_TIMESTAMP              | v    |      |
 
 
-
 {
   "timestamp": "2025-02-05T12:34:56Z",
   "user_id": "john_doe",

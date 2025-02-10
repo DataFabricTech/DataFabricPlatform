@@ -100,11 +100,11 @@ server -> search ++ : 저장소 정보 저장
 server <- search -- : Success
 user <- server : Success
 monitoring <- server ++ : 저장소 추가 이벤트  
-monitoring -> database ++: 저장소 정보 조회  
-monitoring <-- database --: Success
-monitoring -> monitoring : 저장소 정보 기반\n모니터링 대상 정보 업데이트
-monitoring -> server -- : OK
+monitoring -> server : OK
 server --
+monitoring -> server ++: 저장소 정보 조회  
+monitoring <-- server --: Success
+monitoring -> monitoring -- : 저장소 정보 기반\n모니터링 대상 정보 업데이트
 
 == Monitoring ==
 monitoring -> monitoring ++ : Timer(Scheduler)에\n의해 모니터링 시작
@@ -219,6 +219,24 @@ user <-- monitoring -- : Success
 ## 5. 인터페이스
 
 현 시점(25.02.07)에서는 인터페이스를 모두 정의할 수 없어 개발 과정에서 추가한다.  
+
+### 5.1. Monitoring <-> Fabric Server
+
+- GetServiceList  
+Monitoring -> FabricServer : 서비스(연결정보) 리스트 조회  
+- GetService  
+Monitoring -> FabricServer  : 서비스(연결정보) 조회  
+- ServiceChangeEvent  
+FabricServer -> Monitoring : 서비스(연결정보) 업데이트에 따른 모니터링 요청  
+- DataChangeEvent  
+Monitoring -> FabricServer : 데이터 변경에 따른 메타데이터 수집 요청  
+
+### 5.2. UI <-> Monitoring
+
+- Dashboard
+
+- Setting
+
 
 ## 6. 클래스
 
