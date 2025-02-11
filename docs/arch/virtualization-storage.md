@@ -27,7 +27,7 @@
    2. 사전  
    3. 카테고리 -> openmetadata 미지원
    4. 즐겨찾기 -> openmetadata 미지원
-3. 카탈로그  
+3. 카탈로그 -> 개발 미 확정  
    1. 저장소 내 데이터 정보를 바탕으로 데이터 카탈로그 생성  
    2. 저장된 데이터들의 카테고리와 태그를 이용해 데이터 정보 제공?
 
@@ -218,17 +218,14 @@ user <-- server --: Success
 @enduml
 ```
   
-- 설정  
-  - 기본설정  
-    - 조회  
-    - 수정  
-      - 메타데이터 수집  
-      - 샘플링  
-      - 모니터링  
+- 저장소 설정
   - 검색/공유 설정  
   - 메타데이터(프로파일링) 수집 설정  
+    - 자세한 내용은 virtualzation-pipeline.md 을 참고
   - 샘플 수집 설정  
+    - 자세한 내용은 virtualzation-pipeline.md 파일을 참고
   - 모니터링 설정  
+    - 자세한 내용은 monitoring.md 파일을 참고
 
 ```plantuml
 @startuml
@@ -241,24 +238,7 @@ database Database as database
 database ElasticSearch as search 
 end box
 
-' 저장소 공통 설정 정보 조회
-user -> server ++ : 기본 설정 정보 조회
-note right
-자동 메타데이터 수집 설정 정보
-샘플링 기본 설정 정보
-모니터링 설정 정보
-end note
-user <-- server -- : 
-|||
-
-' 저장소 공통 설정 정보 변경
-user -> server ++ : 저장소 설정 업데이트 요청
-server -> database ++ : 저장소 설정 업데이트 
-server <-- database -- : 
-user <- server -- : Success
-|||
-
-' 저장소 별 설정
+' 저장소 설정
 ' 저장소 공유 및 검색 설정  
 -> user : 저장소 공유 설정
 user -> server ++ : 저장소 설정 정보
@@ -314,13 +294,13 @@ user <- server -- : Success
 | 집합(Aggregation)       | `o--`   | 부분이 전체와 독립적으로 존재할 수 있음( 클래스 `o--` 부분 클래스)     |
 | 컴포지션(Composition)   | `*--`   | 부분이 전체 없이 존재할 수 없음( 클래스 `*--` 부분 클래스)             |
 
-- 통합 저장소 연결 정보  
+- 저장소 연결 정보  
 
 ```plantuml
 @startuml
 left to right direction
 
-enum ServiceType {
+enum StorageType {
   Mssql
   Mysql
   Postgres
@@ -333,7 +313,7 @@ enum ServiceType {
   Custom
 }
 
-class ServiceScheme {
+class StorageConnectDriver {
   String driver
 }
 
@@ -344,10 +324,10 @@ class SSLClientConfig {
   File sslKey
 }
 
-class ServiceConnection {
-  ServiceType type
-  ' scheme 은 구현하지 않음. 향 후 확장을 위한 부분  
-  ServiceScheme scheme
+class StorageConnection {
+  StorageType type
+  ' driver 은 구현하지 않음. 향 후 확장을 위한 부분  
+  StorageCopnnectDriver driver
   String username
   String password
   String hostPort
@@ -357,8 +337,6 @@ class ServiceConnection {
   String bucket
   ' Option
   String prefix
-  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
-  Boolean ingestAllDatabases
   Map<String, String> connectionOptions
   Map<String, Object> connectionArguments
   Boolean isSSL
@@ -367,13 +345,14 @@ class ServiceConnection {
   getPassword()
 }
 
-ServiceConnection -down-> ServiceType
-ServiceConnection -down-> ServiceScheme
-ServiceConnection -up-> SSLClientConfig
+StorageConnection -down-> ServiceType
+StorageConnection -down-> ServiceScheme
+StorageConnection -up-> SSLClientConfig
 @enduml
 ```
 
-- 통합 저장소 정보  
+- 저장소 정보  
+저장소 정보는 저장소 연결 정보를 포함한다.
 
 ```plantuml
 @startuml
@@ -391,31 +370,7 @@ class EntityReference {
   String href
 }
 
-enum ServiceType {
-  Mssql
-  Mysql
-  Postgres
-  Oracle
-  MinIO
-  S3
-  Hive
-  MariaDB
-  MongoDB
-  Custom
-}
-
-enum DataType {
-  Database
-  DatabaseSchema
-  Table
-  File
-}
-
-enum DataFormat {
-  Database
-  DatabaseSchema
-  Table
-  File
+enum StorageType {
 }
 
 enum TagSource {
@@ -450,16 +405,37 @@ TagLabel -> TagSource
 TagLabel -> TagType
 TagLabel -> TagState
 
-class  StorageService {
+enum DataType {
+  DATABASE
+  BUCKET
+  DATABASESCHEMA
+  FOLDER 
+  TABLE
+  FILE
+}
+
+enum DataFormat {
+  TABLE
+  VIEW
+  CSV
+  DOCX
+  HWP
+  PNG
+  JPG
+  MP4
+  MPEG
+}
+
+class StorageService {
   UUID id
   String name
   String fullyQualifiedName
   String displayName
-  StorageServiceType serviceType
+  StorageType storageType
   String description
   StorageConnection connection
   TestConnectionResult testConnectionResult
-  Tag[] tags
+  TagLabel[] tags
   String version
   Datetime updatedAt
   String updatedBy
@@ -468,15 +444,17 @@ class  StorageService {
   String changeDescription
   Boolean deleted
   ..
-  Settings 
+  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
+  Boolean ingestAllDatabases
+  StorageServiceSetting setting
   EntityReference[] pipelines
 }
 
 EntityReference ..> DataType
 StorageService -> EntityReference
-StorageService ..> StorageServiceType
+StorageService ..> StorageType
 StorageService -> StorageConnection
-StorageService -> Tag
+StorageService -> TagLabel
 
 @enduml
 ```
@@ -508,25 +486,61 @@ OpenMetadata 의 DatabaseService, StorageService 를 StorageService 통합
 ### 6.2. 저장소 설정
 
 - 설정  
-  - 기본설정  
-    - 조회  
-    - 수정  
-      - 메타데이터 수집  
-      - 샘플링  
-      - 모니터링  
   - 검색/공유 설정  
     - 전체 공개  
     - 비공개  
-  - 파이프라인
+  - 파이프라인(메타데이터, 프로파일링, 로그, 샘플)  
     - [파이프라인] - docs/arch/virtualization-pipeline.md
   - 모니터링
     - [모니터링] - docs/arch/monitoring.md
 
 ## 7. 데이터베이스
 
-- Storage
+- StorageConnection  
 
-  | Column | Data Type | Constraints | Index | Desc               |
-  | ------ | --------- | ----------- | :---: | ------------------ |
-  | `id`   | CHAR(64)  | PRIMARY KEY |   v   | 저장소 고유 식별자 |
-  |        |           |             |       |                    |
+| Column            | Data Type | Constraints | Index | Desc                      |
+| ----------------- | --------- | ----------- | :---: | ------------------------- |
+| `id`              | UUID      | PRIMARY KEY |   v   | 저장소 연결 정보 식별자   |
+| `storage_type`    | ENUM      | NOT NULL    |       | 저장소 타입               |
+| `username`        | CHAR(128) |             |       | 사용자 이름               |
+| `password`        | CHAR(256) |             |       | 비밀번호(암호화된 데이터) |
+| `host_port`       | CHAR(512) | NOT NULL    |   v   | 저장소 Host, Port         |
+| `database`        | CHAR(512) |             |       | 데이터베이스              |
+| `bucket`          | CHAR(512) |             |       | 버켓                      |
+| `database_schema` | CHAR(512) |             |       |                           |
+| `prefix`          | CHAR(512) |             |       |                           |
+| `is_ssl`          | BOOLEAN   |             |       |                           |
+| `ssl_ca_cert`     | BINARY    |             |       |                           |
+| `ssl_ssl_cert`    | BINARY    |             |       |                           |
+| `ssl_key`         | BINARY    |             |       |                           |
+
+- StorageService
+
+| Column         | Data Type | Constraints | Index | Desc                            |
+| -------------- | --------- | ----------- | :---: | ------------------------------- |
+| `id`           | UUID      | PRIMARY KEY |   v   | 저장소 고유 식별자              |
+| `storage_type` | ENUM      | NOT NULL    |       | 저장소 타입                     |
+| `name`         | CHAR(256) | NOT NULL    |   v   | 저장소 이름                     |
+| `display_name` | CHAR(512) |             |       | 저장소 별칭(화면에 출력할 이름) |
+| `description`  | TEXT      |             |       | 저장소 설명                     |
+| `conn_id`      | UUID      | FK          |       | 저장소 설명                     |
+| `conn_id`      | UUID      | FK          |       | 저장소 설명                     |
+
+- entity_relation
+- tags
+
+  StorageConnection connection
+  TestConnectionResult testConnectionResult
+  TagLabel[] tags
+  String version
+  Datetime updatedAt
+  String updatedBy
+  EntityReference[] owners
+  URI href
+  String changeDescription
+  Boolean deleted
+  ..
+  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
+  Boolean ingestAllDatabases
+  StorageServiceSetting setting
+  EntityReference[] pipelines

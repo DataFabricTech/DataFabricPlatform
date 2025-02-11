@@ -13,8 +13,11 @@
     참고로 최근에는 Eclipse 재단의 Temurin을 설치하여 사용한다.  
   - graphviz  
     `brew install graphviz`  
+  - 고정폭 폰트  
+    폰트를 고정폭 폰트(한글, 영문, 숫자가 동일한 폭을 가짐)로
+    설정하면 Markdown Table 작업이 편안해진다.  
 
-- 플러그인  
+- VSCode 플러그인  
   - Markdown All in One
   - Markdown Preview Enhanced
   - Markdown Table
