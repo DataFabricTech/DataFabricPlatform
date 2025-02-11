@@ -1,4 +1,5 @@
 import base64
+import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from hashlib import sha256
 
@@ -36,9 +37,9 @@ class CryptHandler:
     @staticmethod
     def decryptWithcryptkey(cryptkey,result: str) -> str:
         if str(result).find('ENC(') >= 0:
-            result = SecurityManager.decrypt_value(cryptkey,str(result).replace('ENC(', '').replace(')', ''))
+            result = CryptHandler.decodeWithcryptkey(cryptkey,str(result).replace('ENC(', '').replace(')', ''))
         return result
 
     @staticmethod
     def encryptWithcryptkey(cryptkey,data: str) -> str:
-        return f"ENC({SecurityManager.encrypt_value(cryptkey,data)})"
+        return f"ENC({CryptHandler.encodeWithcryptkey(cryptkey,data)})"
