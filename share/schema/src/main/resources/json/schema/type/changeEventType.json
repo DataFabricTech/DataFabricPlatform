@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/type/changeEventTyoe.json",
+  "$id": "https://mobigen.com/schema/type/changeEventTyoe.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EventType",
   "description": "Type of event.",
   "type": "string",
-  "javaType": "org.openmetadata.schema.type.EventType",
+  "javaType": "com.mobigen.vdap.schema.type.EventType",
   "enum": [
     "entityCreated",
     "entityUpdated",

@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/security/ssl/verifySSLConfig.json",
+  "$id": "https://mobigen.com/schema/security/ssl/verifySSLConfig.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Verify SSL Config",
   "description": "Client configuration to validate SSL certificates.",
@@ -7,7 +7,7 @@
     "verifySSL": {
       "title": "Verify SSL",
       "description": "Client SSL verification. Make sure to configure the SSLConfig if enabled.",
-      "javaType": "org.openmetadata.schema.security.ssl.VerifySSL",
+      "javaType": "com.mobigen.vdap.schema.security.ssl.VerifySSL",
       "type": "string",
       "enum": [
         "no-ssl",
@@ -19,7 +19,7 @@
     "sslMode": {
       "title": "SSL Mode",
       "description": "SSL Mode to connect to database.",
-      "javaType": "org.openmetadata.schema.security.ssl.SSLMode",
+      "javaType": "com.mobigen.vdap.schema.security.ssl.SSLMode",
       "enum": [
         "disable",
         "allow",
@@ -33,7 +33,7 @@
     "sslConfig": {
       "title": "SSL Config",
       "description": "Client SSL configuration",
-      "javaType": "org.openmetadata.schema.security.ssl.SSLConfig",
+      "javaType": "com.mobigen.vdap.schema.security.ssl.SSLConfig",
       "mask": true,
       "oneOf": [
         {

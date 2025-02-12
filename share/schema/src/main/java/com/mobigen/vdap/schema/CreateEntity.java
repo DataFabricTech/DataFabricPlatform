@@ -30,10 +30,6 @@ public interface CreateEntity {
     return null;
   }
 
-  default String getDomain() {
-    return null;
-  }
-
   default List<String> getDataProducts() {
     return null;
   }
@@ -57,10 +53,6 @@ public interface CreateEntity {
   default void setReviewers(List<EntityReference> reviewers) {}
 
   default <K extends CreateEntity> K withExtension(Object extension) {
-    return (K) this;
-  }
-
-  default <K extends CreateEntity> K withDomain(String domain) {
     return (K) this;
   }
 

@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/type/lifeCycle.json",
+  "$id": "https://mobigen.com/schema/type/lifeCycle.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Life Cycle",
   "description": "This schema defines Life Cycle Properties.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.LifeCycle",
+  "javaType": "com.mobigen.vdap.schema.type.LifeCycle",
   "definitions": {
     "accessDetails": {
       "description": "Access details of an entity ",
@@ -27,7 +27,9 @@
         }
       },
       "additionalProperties": false,
-      "required": ["timestamp"]
+      "required": [
+        "timestamp"
+      ]
     }
   },
   "properties": {

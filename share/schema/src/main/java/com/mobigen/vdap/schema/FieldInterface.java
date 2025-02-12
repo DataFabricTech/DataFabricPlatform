@@ -13,8 +13,6 @@ public interface FieldInterface {
 
   String getDataTypeDisplay();
 
-  String getFullyQualifiedName();
-
   List<TagLabel> getTags();
 
   default void setTags(List<TagLabel> tags) {

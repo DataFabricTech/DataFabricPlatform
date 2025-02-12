@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/type/customProperty.json",
+  "$id": "https://mobigen.com/schema/type/customProperty.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CustomProperty",
   "description": "This schema defines the custom property to an entity to extend it.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.type.CustomProperty",
+  "javaType": "com.mobigen.vdap.schema.entity.type.CustomProperty",
   "definitions": {
     "format": {
       "description": "Applies to date interval, date, time format.",
@@ -19,7 +19,7 @@
     },
     "customPropertyConfig": {
       "type": "object",
-      "javaType": "org.openmetadata.schema.type.CustomPropertyConfig",
+      "javaType": "com.mobigen.vdap.schema.type.CustomPropertyConfig",
       "title": "CustomPropertyConfig",
       "description": "Config to define constraints around CustomProperty",
       "properties": {
@@ -66,6 +66,10 @@
       "$ref": "#/definitions/customPropertyConfig"
     }
   },
-  "required": ["name", "description", "propertyType"],
+  "required": [
+    "name",
+    "description",
+    "propertyType"
+  ],
   "additionalProperties": false
 }

@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/type/entityReference.json",
+  "$id": "https://mobigen.com/schema/type/entityReference.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Entity Reference",
   "description": "This schema defines the EntityReference type used for referencing an entity. EntityReference is used for capturing relationships from one entity to another. For example, a table has an attribute called database of type EntityReference that captures the relationship of a table `belongs to a` database.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.EntityReference",
+  "javaType": "com.mobigen.vdap.schema.type.EntityReference",
   "properties": {
     "id": {
       "description": "Unique identifier that identifies an entity instance.",
@@ -43,6 +43,9 @@
       "$ref": "basic.json#/definitions/href"
     }
   },
-  "required": ["id", "type"],
+  "required": [
+    "id",
+    "type"
+  ],
   "additionalProperties": false
 }

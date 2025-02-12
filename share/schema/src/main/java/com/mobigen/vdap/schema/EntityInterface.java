@@ -1,10 +1,23 @@
+/*
+ *  Copyright 2021 Collate
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.mobigen.vdap.schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mobigen.vdap.common.utils.CommonUtil;
-import com.mobigen.vdap.schema.entity.type.Style;
-import com.mobigen.vdap.schema.type.*;
-import com.mobigen.vdap.schema.utils.EntityInterfaceUtil;
+import org.openmetadata.common.utils.CommonUtil;
+import org.openmetadata.schema.entity.type.Style;
+import org.openmetadata.schema.type.*;
+import org.openmetadata.schema.utils.EntityInterfaceUtil;
 
 import java.net.URI;
 import java.util.*;
@@ -58,6 +71,8 @@ public interface EntityInterface {
     return null;
   }
 
+  String getFullyQualifiedName();
+
   default Object getExtension() {
     return null;
   }
@@ -74,15 +89,7 @@ public interface EntityInterface {
     return null;
   }
 
-  default EntityReference getDomain() {
-    return null;
-  }
-
   default List<EntityReference> getDataProducts() {
-    return null;
-  }
-
-  default Style getStyle() {
     return null;
   }
 
@@ -105,6 +112,8 @@ public interface EntityInterface {
   void setVersion(Double newVersion);
 
   void setChangeDescription(ChangeDescription changeDescription);
+
+  void setFullyQualifiedName(String fullyQualifiedName);
 
   default void setDeleted(Boolean flag) {}
 
@@ -135,10 +144,6 @@ public interface EntityInterface {
   }
 
   default void setExperts(List<EntityReference> entityReference) {
-    /* no-op implementation to be overridden */
-  }
-
-  default void setDomain(EntityReference entityReference) {
     /* no-op implementation to be overridden */
   }
 
@@ -173,6 +178,10 @@ public interface EntityInterface {
     return new EntityReference()
         .withId(getId())
         .withName(getName())
+        .withFullyQualifiedName(
+            getFullyQualifiedName() == null
+                ? EntityInterfaceUtil.quoteName(getName())
+                : getFullyQualifiedName())
         .withDescription(getDescription())
         .withDisplayName(CommonUtil.nullOrEmpty(getDisplayName()) ? getName() : getDisplayName())
         .withType(

@@ -1,12 +1,13 @@
 {
-  "$id": "https://open-metadata.org/schema/api/services/createStorageService.json",
+  "$id": "https://mobigen.com/schema/api/services/createStorageService.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CreateStorageServiceRequest",
   "description": "Create Storage Service entity request",
   "type": "object",
-  "javaType": "org.openmetadata.schema.api.services.CreateStorageService",
-  "javaInterfaces": ["org.openmetadata.schema.CreateEntity"],
-
+  "javaType": "com.mobigen.vdap.schema.api.services.CreateStorageService",
+  "javaInterfaces": [
+    "com.mobigen.vdap.schema.CreateEntity"
+  ],
   "properties": {
     "name": {
       "description": "Name that identifies the this entity instance uniquely",
@@ -23,9 +24,6 @@
     "serviceType": {
       "$ref": "../../entity/services/storageService.json#/definitions/storageServiceType"
     },
-    "connection": {
-      "$ref": "../../entity/services/storageService.json#/definitions/storageConnection"
-    },
     "tags": {
       "description": "Tags for this Object Store Service.",
       "type": "array",
@@ -38,19 +36,11 @@
       "description": "Owners of this object store service.",
       "$ref": "../../type/entityReferenceList.json",
       "default": null
-    },
-    "dataProducts" : {
-      "description": "List of fully qualified names of data products this entity is part of.",
-      "type": "array",
-      "items" : {
-        "$ref" : "../../type/basic.json#/definitions/fullyQualifiedEntityName"
-      }
-    },
-    "domain" : {
-      "description": "Fully qualified name of the domain the Storage Service belongs to.",
-      "type": "string"
     }
   },
-  "required": ["name", "serviceType"],
+  "required": [
+    "name",
+    "serviceType"
+  ],
   "additionalProperties": false
 }

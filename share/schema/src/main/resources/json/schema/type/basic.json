@@ -1,23 +1,20 @@
 {
-  "$id": "https://open-metadata.org/schema/type/basic.json",
+  "$id": "https://mobigen.com/schema/type/basic.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Basic",
   "description": "This schema defines basic common types that are used by other schemas.",
   "definitions": {
-    "integer" : {
-      "$comment" : "@om-field-type",
+    "integer": {
       "description": "An integer type.",
-      "type" : "integer"
+      "type": "integer"
     },
-    "number" : {
-      "$comment" : "@om-field-type",
+    "number": {
       "description": "A numeric type that includes integer or floating point numbers.",
-      "type" : "integer"
+      "type": "integer"
     },
-    "string" : {
-      "$comment" : "@om-field-type",
+    "string": {
       "description": "A String type.",
-      "type" : "string"
+      "type": "string"
     },
     "uuid": {
       "description": "Unique id used to identify an entity.",
@@ -25,16 +22,14 @@
       "format": "uuid"
     },
     "email": {
-      "$comment" : "@om-field-type",
       "description": "Email address of a user or other entities.",
       "type": "string",
       "format": "email",
-      "pattern": "^[\\S.!#$%&’*+/=?^_`{|}~-]+@\\S+\\.\\S+$",
+      "pattern": "^[\\S.!#$%&\u2019*+/=?^_`{|}~-]+@\\S+\\.\\S+$",
       "minLength": 6,
       "maxLength": 127
     },
     "timestamp": {
-      "$comment" : "@om-field-type",
       "description": "Timestamp in Unix epoch time milliseconds.",
       "@comment": "Note that during code generation this is converted into long",
       "type": "integer",
@@ -46,10 +41,9 @@
       "format": "uri"
     },
     "timeInterval": {
-      "$comment" : "@om-field-type",
       "type": "object",
       "description": "Time interval in unixTimeMillis.",
-      "javaType": "org.openmetadata.schema.type.TimeInterval",
+      "javaType": "com.mobigen.vdap.schema.type.TimeInterval",
       "properties": {
         "start": {
           "description": "Start time in unixTimeMillis.",
@@ -63,7 +57,6 @@
       "additionalProperties": false
     },
     "duration": {
-      "$comment" : "@om-field-type",
       "description": "Duration in ISO 8601 format in UTC. Example - 'P23DT23H'.",
       "type": "string"
     },
@@ -82,23 +75,7 @@
       "type": "string",
       "format": "time"
     },
-    "date-cp": {
-      "$comment" : "@om-field-type",
-      "description": "Date as defined in custom property.",
-      "type": "string"
-    },
-    "dateTime-cp": {
-      "$comment" : "@om-field-type",
-      "description": "Date and time as defined in custom property.",
-      "type": "string"
-    },
-    "time-cp": {
-      "$comment" : "@om-field-type",
-      "description": "Time as defined in custom property.",
-      "type": "string"
-    },
     "enum": {
-      "$comment" : "@om-field-type",
       "description": "List of values in Enum.",
       "type": "array",
       "items": {
@@ -135,7 +112,6 @@
       "maxLength": 3072
     },
     "sqlQuery": {
-      "$comment" : "@om-field-type",
       "description": "SQL query statement. Example - 'select * from orders'.",
       "type": "string"
     },
@@ -144,7 +120,6 @@
       "type": "string"
     },
     "markdown": {
-      "$comment" : "@om-field-type",
       "description": "Text in Markdown format.",
       "type": "string"
     },
@@ -156,50 +131,43 @@
       "description": "JSON schema encoded as string. This will be used to validate the JSON fields using this schema.",
       "type": "string"
     },
-    "entityExtension" : {
+    "entityExtension": {
       "description": "Entity extension data with custom attributes added to the entity."
     },
     "providerType": {
-      "javaType": "org.openmetadata.schema.type.ProviderType",
+      "javaType": "com.mobigen.vdap.schema.type.ProviderType",
       "description": "Type of provider of an entity. Some entities are provided by the `system`. Some are entities created and provided by the `user`. Typically `system` provide entities can't be deleted and can only be disabled.",
       "type": "string",
-      "enum": ["system", "user"],
+      "enum": [
+        "system",
+        "user"
+      ],
       "default": "user"
     },
     "componentConfig": {
       "description": "key/value pairs to pass to workflow component.",
       "type": "object",
       "additionalProperties": {
-        ".{1,}": { "type": "string" }
+        ".{1,}": {
+          "type": "string"
+        }
       }
     },
-    "status" : {
-      "javaType": "org.openmetadata.schema.type.ApiStatus",
+    "status": {
+      "javaType": "com.mobigen.vdap.schema.type.ApiStatus",
       "description": "State of an action over API.",
-      "type" : "string",
-      "enum" : ["success", "failure", "aborted", "partialSuccess"]
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "aborted",
+        "partialSuccess"
+      ]
     },
-    "sourceUrl" : {
+    "sourceUrl": {
       "description": "Source Url of the respective entity.",
-      "type" : "string",
+      "type": "string",
       "format": "url"
-    },
-    "style": {
-      "description": "UI Style is used to associate a color code and/or icon to entity to customize the look of that entity in UI.",
-      "type": "object",
-      "javaType": "org.openmetadata.schema.entity.type.Style",
-      "properties": {
-        "color": {
-          "description": "Hex Color Code to mark an entity such as GlossaryTerm, Tag, Domain or Data Product.",
-          "type": "string"
-        },
-        "iconURL": {
-          "description": "An icon to associate with GlossaryTerm, Tag, Domain or Data Product.",
-          "type" : "string",
-          "format": "url"
-        }
-      },
-      "additionalProperties": false
     }
   }
 }
