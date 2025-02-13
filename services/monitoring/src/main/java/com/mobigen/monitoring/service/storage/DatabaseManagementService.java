@@ -5,6 +5,7 @@ import com.mobigen.monitoring.vo.Queries;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
 import com.mobigen.monitoring.vo.TableInfo;
 import com.mobigen.monitoring.vo.TableRowInfo;
+import com.mobigen.monitoring.vo.TableSchemaInfo;
 import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
@@ -189,6 +190,26 @@ public class DatabaseManagementService {
         }
 
         return results;
+    }
+
+    public Object getSchema(DatabaseConnectionRequest request) {
+        String query = GET_SCHEMA.getQueryString();
+        final List<Map<String, Object>> maps = executeQuery(request, query);
+        Map<String, List<TableSchemaInfo>> response = new HashMap<>();
+
+        for (Map<String, Object> entry : maps) {
+            String key = String.format("%s.%s", entry.get("table_schema"), entry.get("table_name"));
+
+            response.computeIfAbsent(key, k -> new ArrayList<>())
+                    .add(TableSchemaInfo.builder()
+                            .columnName(entry.get("column_name").toString())
+                            .dataType(entry.get("data_type").toString())
+                            .isNullable(entry.get("is_nullable").toString())
+                            .columnDefault(entry.get("column_default") == null? "null" : entry.get("column_default").toString())
+                            .build());
+        }
+
+        return response;
     }
 
     public List<Map<String, Object>> executeQuery(DatabaseConnectionRequest request, String query) {

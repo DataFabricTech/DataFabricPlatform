@@ -55,4 +55,10 @@ public class DatabaseConnectionController {
     public Object getRows(@RequestBody GetDatabaseRequestDto request) {
         return databaseConnectionService.getRows(request.getDatabaseConnection());
     }
+
+    @PostMapping("/test-schema")
+    @CommonResponse
+    public Object getSchema(@RequestBody GetDatabaseRequestDto request) {
+        return databaseConnectionService.getSchema(request.getDatabaseConnection());
+    }
 }
