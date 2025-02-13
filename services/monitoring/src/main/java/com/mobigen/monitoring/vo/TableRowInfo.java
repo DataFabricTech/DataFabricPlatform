@@ -1,0 +1,13 @@
+package com.mobigen.monitoring.vo;
+
+import lombok.*;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@Setter
+public class TableRowInfo {
+    private String tableName;
+    private Long rowCount;
+}
