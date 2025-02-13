@@ -21,7 +21,7 @@
           "default": null
         },
         "accessedByAProcess": {
-          "description": "Any process that accessed the data asset that is not captured in OpenMetadata.",
+          "description": "Any process that accessed the data asset that is not captured in Open VDAP.",
           "type": "string",
           "default": null
         }

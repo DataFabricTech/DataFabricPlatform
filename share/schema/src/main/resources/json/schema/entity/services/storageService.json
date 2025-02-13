@@ -2,58 +2,19 @@
   "$id": "https://mobigen.com/schema/entity/services/storageService.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Storage Service",
-  "description": "This schema defines the Storage Service entity. MySQL, PostgreSQL MinIO, ",
+  "description": "This schema defines the Storage Service entity, such as MinIO.",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.entity.services.StorageService",
-  "javaInterfaces": [
-    "com.mobigen.vdap.schema.EntityInterface",
-    "com.mobigen.vdap.schema.ServiceEntityInterface"
-  ],
   "definitions": {
     "storageServiceType": {
-      "description": "Type of storage service such as S3, GFS, AZURE...",
-      "javaInterfaces": [
-        "com.mobigen.vdap.schema.EnumInterface"
-      ],
+      "description": "Type of storage service such as MinIO...",
       "type": "string",
       "enum": [
-        "S3",
-        "MinIO",
-        "Mysql",
-        "Postgres",
-        "Mssql",
-        "Oracle",
-        "MariaDB",
-        "SQLite",
-        "MongoDB"
+        "MinIO"
       ],
       "javaEnums": [
         {
-          "name": "S3"
-        },
-        {
           "name": "MinIO"
-        },
-        {
-          "name": "Mysql"
-        },
-        {
-          "name": "Postgres"
-        },
-        {
-          "name": "Mssql"
-        },
-        {
-          "name": "Oracle"
-        },
-        {
-          "name": "MariaDB"
-        },
-        {
-          "name": "SQLite"
-        },
-        {
-          "name": "MongoDB"
         }
       ]
     },
@@ -61,45 +22,12 @@
       "type": "object",
       "javaType": "com.mobigen.vdap.schema.type.StorageConnection",
       "description": "Storage Connection.",
-      "javaInterfaces": [
-        "com.mobigen.vdap.schema.StorageConnectionEntityInterface"
-      ],
       "properties": {
         "config": {
           "mask": true,
           "oneOf": [
             {
-              "$ref": "connections/storage/s3Connection.json"
-            },
-            {
               "$ref": "connections/storage/minioConnection.json"
-            },
-            {
-              "$ref": "./connections/database/hiveConnection.json"
-            },
-            {
-              "$ref": "./connections/database/mariaDBConnection.json"
-            },
-            {
-              "$ref": "./connections/database/mssqlConnection.json"
-            },
-            {
-              "$ref": "./connections/database/mysqlConnection.json"
-            },
-            {
-              "$ref": "./connections/database/sqliteConnection.json"
-            },
-            {
-              "$ref": "./connections/database/oracleConnection.json"
-            },
-            {
-              "$ref": "./connections/database/postgresConnection.json"
-            },
-            {
-              "$ref": "./connections/database/trinoConnection.json"
-            },
-            {
-              "$ref": "./connections/database/mongoDBConnection.json"
             }
           ]
         }
@@ -116,16 +44,12 @@
       "description": "Name that identifies this storage service.",
       "$ref": "../../type/basic.json#/definitions/entityName"
     },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
-    },
     "displayName": {
       "description": "Display Name that identifies this storage service.",
       "type": "string"
     },
     "serviceType": {
-      "description": "Type of storage service such as S3, GCS, AZURE...",
+      "description": "Type of storage service such as MinIO, GCS, AZURE...",
       "$ref": "#/definitions/storageServiceType"
     },
     "description": {
@@ -179,20 +103,8 @@
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
-    },
-    "dataProducts": {
-      "description": "List of data products this entity is part of.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
-    "domain": {
-      "description": "Domain the Storage service belongs to.",
-      "$ref": "../../type/entityReference.json"
     }
   },
-  "required": [
-    "id",
-    "name",
-    "serviceType"
-  ],
+  "required": ["id", "name", "serviceType"],
   "additionalProperties": false
 }

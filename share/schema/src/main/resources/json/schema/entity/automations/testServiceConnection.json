@@ -1,0 +1,41 @@
+{
+  "$id": "https://mobigen.com/schema/entity/automations/workflow/testServiceConnection.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestServiceConnectionRequest",
+  "javaType": "com.mobigen.vdap.schema.entity.automations.TestServiceConnectionRequest",
+  "description": "Test Service Connection to test user provided configuration is valid or not.",
+  "type": "object",
+  "properties": {
+    "connection": {
+      "description": "Connection object.",
+      "oneOf": [
+        {
+          "$ref": "../services/apiService.json#/definitions/apiConnection"
+        },
+        {
+          "$ref": "../services/databaseService.json#/definitions/databaseConnection"
+        },
+        {
+          "$ref": "../services/storageService.json#/definitions/storageConnection"
+        },
+        {
+          "$ref": "../services/searchService.json#/definitions/searchConnection"
+        }
+      ]
+    },
+    "serviceType": {
+      "description": "Type of service such as Database, Dashboard, Messaging, etc.",
+      "$ref": "../services/serviceType.json"
+    },
+    "connectionType": {
+      "description": "Type of the connection to test such as Snowflake, MySQL, Looker, etc.",
+      "type": "string"
+    },
+    "serviceName": {
+      "description": "Optional value that identifies this service name.",
+      "$ref": "../../type/basic.json#/definitions/entityName",
+      "default": null
+    }
+  },
+  "additionalProperties": false
+}

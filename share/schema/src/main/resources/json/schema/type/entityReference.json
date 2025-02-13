@@ -11,15 +11,11 @@
       "$ref": "basic.json#/definitions/uuid"
     },
     "type": {
-      "description": "Entity type/class name - Examples: `database`, `table`, `metrics`, `databaseService`, `dashboardService`...",
+      "description": "Entity type/class name - Examples: `storageService`, `database`, `bucket`, `table`, `file`...",
       "type": "string"
     },
     "name": {
       "description": "Name of the entity instance.",
-      "type": "string"
-    },
-    "fullyQualifiedName": {
-      "description": "Fully qualified name of the entity instance. For entities such as tables, databases fullyQualifiedName is returned in this field. For entities that don't have name hierarchy such as `user` and `team` this will be same as the `name` field.",
       "type": "string"
     },
     "description": {

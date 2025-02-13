@@ -5,76 +5,24 @@
   "description": "This schema defines the `Database Service` is a service such as MySQL, BigQuery, Redshift, Postgres, or Snowflake. Alternative terms such as Database Cluster, Database Server instance are also used for database service.",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.entity.services.DatabaseService",
-  "javaInterfaces": [
-    "com.mobigen.vdap.schema.EntityInterface",
-    "com.mobigen.vdap.schema.ServiceEntityInterface"
-  ],
   "definitions": {
     "databaseServiceType": {
       "description": "Type of database service such as MySQL, BigQuery, Snowflake, Redshift, Postgres...",
-      "javaInterfaces": ["com.mobigen.vdap.schema.EnumInterface"],
       "type": "string",
       "enum": [
-        "BigQuery",
-        "BigTable",
         "Mysql",
-        "Redshift",
-        "Snowflake",
         "Postgres",
         "Mssql",
         "Oracle",
-        "Athena",
         "Hive",
-        "Impala",
-        "Presto",
         "Trino",
-        "Vertica",
-        "Glue",
         "MariaDB",
-        "Druid",
-        "Db2",
-        "Clickhouse",
-        "Databricks",
-        "AzureSQL",
-        "DynamoDB",
-        "SingleStore",
         "SQLite",
-        "DeltaLake",
-        "Salesforce",
-        "PinotDB",
-        "Datalake",
-        "DomoDatabase",
-        "QueryLog",
-        "CustomDatabase",
-        "Dbt",
-        "SapHana",
-        "MongoDB",
-        "Couchbase",
-        "Greenplum",
-        "Doris",
-        "UnityCatalog",
-        "SAS",
-        "Iceberg",
-        "Teradata",
-        "SapErp",
-        "Synapse",
-        "Exasol"
+        "MongoDB"
       ],
       "javaEnums": [
         {
-          "name": "BigQuery"
-        },
-        {
-          "name": "BigTable"
-        },
-        {
           "name": "Mysql"
-        },
-        {
-          "name": "Redshift"
-        },
-        {
-          "name": "Snowflake"
         },
         {
           "name": "Postgres"
@@ -86,163 +34,31 @@
           "name": "Oracle"
         },
         {
-          "name": "Athena"
-        },
-        {
           "name": "Hive"
-        },
-        {
-          "name": "Impala"
-        },
-        {
-          "name": "Presto"
         },
         {
           "name": "Trino"
         },
         {
-          "name": "Vertica"
-        },
-        {
-          "name": "Glue"
-        },
-        {
           "name": "MariaDB"
-        },
-        {
-          "name": "Druid"
-        },
-        {
-          "name": "Db2"
-        },
-        {
-          "name": "Clickhouse"
-        },
-        {
-          "name": "Databricks"
-        },
-        {
-          "name": "AzureSQL"
-        },
-        {
-          "name": "DynamoDB"
-        },
-        {
-          "name": "SingleStore"
         },
         {
           "name": "SQLite"
         },
         {
-          "name": "DeltaLake"
-        },
-        {
-          "name": "Salesforce"
-        },
-        {
-          "name": "PinotDB"
-        },
-        {
-          "name": "Datalake"
-        },
-        {
-          "name": "DomoDatabase"
-        },
-        {
-          "name": "QueryLog"
-        },
-        {
-          "name": "CustomDatabase"
-        },
-        {
-          "name": "Dbt"
-        },
-        {
-          "name": "SapHana"
-        },
-        {
           "name": "MongoDB"
-        },
-        {
-          "name": "Couchbase"
-        },
-        {
-          "name": "Greenplum"
-        },
-        {
-          "name": "Doris"
-        },
-        {
-          "name": "UnityCatalog"
-        },
-        {
-          "name": "SAS"
-        },
-        {
-          "name": "Iceberg"
-        },
-        {
-          "name": "Teradata"
-        },
-        {
-          "name": "SapErp"
-        },
-        {
-          "name": "Synapse"
-        },
-        {
-          "name": "Exasol"
         }
       ]
     },
     "databaseConnection": {
       "type": "object",
       "description": "Database Connection.",
-      "javaInterfaces": [
-        "com.mobigen.vdap.schema.ServiceConnectionEntityInterface"
-      ],
       "properties": {
         "config": {
           "mask": true,
           "oneOf": [
             {
-              "$ref": "./connections/database/bigQueryConnection.json"
-            },
-            {
-              "$ref": "./connections/database/bigTableConnection.json"
-            },
-            {
-              "$ref": "./connections/database/athenaConnection.json"
-            },
-            {
-              "$ref": "./connections/database/azureSQLConnection.json"
-            },
-            {
-              "$ref": "./connections/database/clickhouseConnection.json"
-            },
-            {
-              "$ref": "./connections/database/databricksConnection.json"
-            },
-            {
-              "$ref": "./connections/database/db2Connection.json"
-            },
-            {
-              "$ref": "./connections/database/deltaLakeConnection.json"
-            },
-            {
-              "$ref": "./connections/database/druidConnection.json"
-            },
-            {
-              "$ref": "./connections/database/dynamoDBConnection.json"
-            },
-            {
-              "$ref": "./connections/database/glueConnection.json"
-            },
-            {
               "$ref": "./connections/database/hiveConnection.json"
-            },
-            {
-              "$ref": "./connections/database/impalaConnection.json"
             },
             {
               "$ref": "./connections/database/mariaDBConnection.json"
@@ -263,73 +79,10 @@
               "$ref": "./connections/database/postgresConnection.json"
             },
             {
-              "$ref": "./connections/database/prestoConnection.json"
-            },
-            {
-              "$ref": "./connections/database/redshiftConnection.json"
-            },
-            {
-              "$ref": "./connections/database/salesforceConnection.json"
-            },
-            {
-              "$ref": "./connections/database/singleStoreConnection.json"
-            },
-            {
-              "$ref": "./connections/database/snowflakeConnection.json"
-            },
-            {
               "$ref": "./connections/database/trinoConnection.json"
             },
             {
-              "$ref": "./connections/database/verticaConnection.json"
-            },
-            {
-              "$ref": "./connections/database/pinotDBConnection.json"
-            },
-            {
-              "$ref": "./connections/database/datalakeConnection.json"
-            },
-            {
-              "$ref": "./connections/database/domoDatabaseConnection.json"
-            },
-            {
-              "$ref": "./connections/database/customDatabaseConnection.json"
-            },
-            {
-              "$ref": "./connections/database/sapHanaConnection.json"
-            },
-            {
               "$ref": "./connections/database/mongoDBConnection.json"
-            },
-            {
-              "$ref": "./connections/database/couchbaseConnection.json"
-            },
-            {
-              "$ref": "./connections/database/greenplumConnection.json"
-            },
-            {
-              "$ref": "./connections/database/dorisConnection.json"
-            },
-            {
-              "$ref": "./connections/database/unityCatalogConnection.json"
-            },
-            {
-              "$ref": "./connections/database/sasConnection.json"
-            },
-            {
-              "$ref": "./connections/database/icebergConnection.json"
-            },
-            {
-              "$ref": "./connections/database/teradataConnection.json"
-            },
-            {
-              "$ref": "./connections/database/sapErpConnection.json"
-            },
-            {
-              "$ref": "./connections/database/synapseConnection.json"
-            },
-            {
-              "$ref": "./connections/database/exasolConnection.json"
             }
           ]
         }
@@ -345,10 +98,6 @@
     "name": {
       "description": "Name that identifies this database service.",
       "$ref": "../../type/basic.json#/definitions/entityName"
-    },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "displayName": {
       "description": "Display Name that identifies this database service.",
@@ -409,10 +158,6 @@
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
-    },
-    "dataProducts" : {
-      "description": "List of data products this entity is part of.",
-      "$ref" : "../../type/entityReferenceList.json"
     }
   },
   "required": ["id", "name", "serviceType"],

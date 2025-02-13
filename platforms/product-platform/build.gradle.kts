@@ -9,9 +9,20 @@ javaPlatform.allowDependencies()
 
 dependencies {
     api(platform("org.springframework.boot:spring-boot-dependencies:3.4.0"))
+    api(platform("org.springframework.boot:spring-boot-dependencies:3.4.0"))
     api(platform("org.apache.logging.log4j:log4j-bom:2.24.2"))
     api(platform("com.fasterxml.jackson:jackson-bom:2.18.1"))
     constraints {
         api("org.projectlombok:lombok:1.18.30")
+        // relative jsonschema2pojo
+        api("jakarta.validation:jakarta.validation-api:3.1.0")
+        // MySQL
+        api("com.mysql:mysql-connector-j:9.1.0")
+        // flyway
+        api("org.flywaydb:flyway-core:11.0.1")
+        // MyBatis
+        api("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4")
+        // SpringBoot DevTools
+        api("org.springframework.boot:spring-boot-devtools:3.4.0")
     }
 }

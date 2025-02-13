@@ -1,0 +1,90 @@
+{
+  "$id": "https://mobigen.com/schema/entity/services/connections/metadata/vdapServerConnection.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VDAPServerConnection",
+  "description": "Open VDAP Connection Config",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.services.connections.metadata.VdapServerConnection",
+  "properties": {
+    "hostPort": {
+      "description": "Open VDAP Server Config. Must include API end point ex: http://localhost:8585/api",
+      "type": "string",
+      "default": "http://localhost:8585/api"
+    },
+    "includeTopics": {
+      "description": "Include Topics for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeTables": {
+      "description": "Include Tables for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeUsers": {
+      "description": "Include Users for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeTeams": {
+      "description": "Include Teams for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeGlossaryTerms": {
+      "description": "Include Glossary Terms for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeTags": {
+      "description": "Include Tags for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "includeDatabaseServices": {
+      "description": "Include Database Services for Indexing",
+      "type": "boolean",
+      "default": true
+    },
+    "limitRecords": {
+      "description": "Limit the number of records for Indexing.",
+      "type": "integer",
+      "default": 1000
+    },
+    "forceEntityOverwriting": {
+      "description": "Force the overwriting of any entity during the ingestion.",
+      "type": "boolean",
+      "default": false
+    },
+    "storeServiceConnection": {
+      "description": "If set to true, when creating a service during the ingestion we will store its Service Connection. Otherwise, the ingestion will create a bare service without connection details.",
+      "type": "boolean",
+      "default": true
+    },
+    "elasticsSearch": {
+      "description": "Configuration for Sink Component in the Open VDAP Ingestion Framework.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Type of sink component ex: metadata",
+          "type": "string"
+        },
+        "config": {
+          "$ref": "../../../../type/basic.json#/definitions/componentConfig"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["type"]
+    },
+    "supportsDataInsightExtraction": {
+      "description": "Flag to enable Data Insight Extraction",
+      "$ref": "../connectionBasicType.json#/definitions/supportsDataInsightExtraction"
+    },
+    "supportsElasticSearchReindexingExtraction": {
+      "description": "Flag to enable ElasticSearch Reindexing Extraction",
+      "$ref": "../connectionBasicType.json#/definitions/supportsElasticSearchReindexingExtraction"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["hostPort"]
+}

@@ -2,7 +2,7 @@
   "$id": "https://mobigen.com/schema/type/filterPattern.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "FilterPatternModel",
-  "description": "OpenMetadata Ingestion Framework definition.",
+  "description": "Open VDAP Ingestion Framework definition.",
   "type": "object",
   "definitions": {
     "filterPattern": {

@@ -69,7 +69,7 @@
   },
   "properties": {
     "entityType": {
-      "description": "Entity type, such as `database`, `table`, `dashboard`, for which this version history is produced.",
+      "description": "Entity type, such as `database`, `table`, for which this version history is produced.",
       "type": "string"
     },
     "versions": {

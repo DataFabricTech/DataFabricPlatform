@@ -3,7 +3,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EntityHierarchy",
   "description": "This schema defines the entity hierarchy structure.",
-  "$comment": "@om-entity-type",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.entity.data.EntityHierarchy",
   "definitions": {
@@ -25,10 +24,6 @@
         "description": {
           "description": "Description of the entity hierarchy.",
           "$ref": "../type/basic.json#/definitions/markdown"
-        },
-        "fullyQualifiedName": {
-          "description": "A unique name that identifies an entity within the hierarchy. It captures name hierarchy in the form of `rootEntity.childEntity`.",
-          "$ref": "../type/basic.json#/definitions/fullyQualifiedEntityName"
         },
         "children": {
           "description": "Other entities that are children of this entity.",
@@ -61,10 +56,6 @@
     "description": {
       "description": "Description of the entity hierarchy.",
       "$ref": "../type/basic.json#/definitions/markdown"
-    },
-    "fullyQualifiedName": {
-      "description": "A unique name that identifies an entity within the hierarchy. It captures name hierarchy in the form of `rootEntity.childEntity`.",
-      "$ref": "../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "children": {
       "description": "Other entities that are children of this entity.",

@@ -2,7 +2,7 @@
   "$id": "https://mobigen.com/schema/security/ssl/validateSSLClientConfig.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Validate SSL Client Config",
-  "description": "OpenMetadata Client configured to validate SSL certificates.",
+  "description": "Open VDAP Client configured to validate SSL certificates.",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.security.ssl.ValidateSSLClientConfig",
   "additionalProperties": false,

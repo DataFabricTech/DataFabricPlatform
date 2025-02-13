@@ -6,19 +6,32 @@
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.type.EntityLineage",
   "definitions": {
+    "columnLocation": {
+      "type": "object",
+      "properties": {
+        "tableId": {
+          "description": "Unique identifier of this table instance.",
+          "$ref": "../type/basic.json#/definitions/uuid"
+        },
+        "columnName": {
+          "description": "Column Name of the table to be included.",
+          "type": "string"
+        }
+      }
+    },
     "columnLineage": {
       "type": "object",
       "properties": {
         "fromColumns": {
-          "description": "One or more source columns identified by fully qualified column name used by transformation function to create destination column.",
+          "description": "One or more source columns identified by Table ID And ColumnName.",
           "type": "array",
           "items": {
-            "$ref": "../type/basic.json#/definitions/fullyQualifiedEntityName"
+            "$ref": "#/definitions/columnLocation"
           }
         },
         "toColumn": {
-          "description": "Destination column identified by fully qualified column name created by the transformation of source columns.",
-          "$ref": "../type/basic.json#/definitions/fullyQualifiedEntityName"
+          "description": "Destination column identified by Table ID And ColumnName.",
+          "$ref": "#/definitions/columnLocation"
         },
         "function": {
           "description": "Transformation function applied to source columns to create destination column. That is `function(fromColumns) -> toColumn`.",

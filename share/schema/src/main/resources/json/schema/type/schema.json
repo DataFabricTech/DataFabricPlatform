@@ -2,7 +2,6 @@
   "$id": "https://mobigen.com/schema/type/schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Topic",
-  "$comment": "@om-entity-type",
   "description": "This schema defines the Topic entity. A topic is a feed into which message are published to by publishers and read from by consumers in a messaging service.",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.type.MessageSchema",
@@ -71,9 +70,6 @@
     "field": {
       "type": "object",
       "javaType": "com.mobigen.vdap.schema.type.Field",
-      "javaInterfaces": [
-        "com.mobigen.vdap.schema.FieldInterface"
-      ],
       "description": "This schema defines the nested object to capture protobuf/avro/jsonschema of topic's schema.",
       "properties": {
         "name": {
@@ -94,9 +90,6 @@
         "description": {
           "description": "Description of the column.",
           "$ref": "basic.json#/definitions/markdown"
-        },
-        "fullyQualifiedName": {
-          "$ref": "basic.json#/definitions/fullyQualifiedEntityName"
         },
         "tags": {
           "description": "Tags associated with the column.",

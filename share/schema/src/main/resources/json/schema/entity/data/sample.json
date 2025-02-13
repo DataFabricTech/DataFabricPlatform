@@ -1,0 +1,27 @@
+{
+  "$id": "https://mobigen.com/schema/entity/data/sample.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sample",
+  "description": "For Sample.",
+  "type": "object",
+  "definitions": {
+    "profileSampleType": {
+      "description": "Type of Profile Sample (percentage or rows)",
+      "type": "string",
+      "enum": [
+        "PERCENTAGE",
+        "ROWS"
+      ],
+      "default": "PERCENTAGE"
+    },
+    "samplingMethodType": {
+      "description": "Type of Sampling Method (BERNOULLI or SYSTEM)",
+      "type": "string",
+      "enum": [
+        "BERNOULLI",
+        "SYSTEM"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

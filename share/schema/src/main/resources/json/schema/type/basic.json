@@ -25,7 +25,7 @@
       "description": "Email address of a user or other entities.",
       "type": "string",
       "format": "email",
-      "pattern": "^[\\S.!#$%&\u2019*+/=?^_`{|}~-]+@\\S+\\.\\S+$",
+      "pattern": "^[\\S.!#$%&’*+/=?^_`{|}~-]+@\\S+\\.\\S+$",
       "minLength": 6,
       "maxLength": 127
     },
@@ -74,6 +74,21 @@
       "description": "time in ISO 8601 format. Example - '20:20:39+00:00'.",
       "type": "string",
       "format": "time"
+    },
+    "date-cp": {
+      "$comment" : "@om-field-type",
+      "description": "Date as defined in custom property.",
+      "type": "string"
+    },
+    "dateTime-cp": {
+      "$comment" : "@om-field-type",
+      "description": "Date and time as defined in custom property.",
+      "type": "string"
+    },
+    "time-cp": {
+      "$comment" : "@om-field-type",
+      "description": "Time as defined in custom property.",
+      "type": "string"
     },
     "enum": {
       "description": "List of values in Enum.",
@@ -152,6 +167,12 @@
           "type": "string"
         }
       }
+    },
+    "map":  {
+      "description": "A generic map that can be deserialized later.",
+      "existingJavaType" : "java.util.Map<String,Object>",
+      "type" : "object",
+      "additionalProperties": true
     },
     "status": {
       "javaType": "com.mobigen.vdap.schema.type.ApiStatus",

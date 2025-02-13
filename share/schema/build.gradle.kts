@@ -17,16 +17,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     implementation("org.projectlombok:lombok")
 
-    // For Log
-    implementation("org.apache.logging.log4j:log4j-api")
-    implementation("org.apache.logging.log4j:log4j-core")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl")
     // Jsonschema
     implementation("com.fasterxml.jackson.core:jackson-databind")
-    implementation("jakarta.validation:jakarta.validation-api:3.1.0")
-
-    // Common Utils
-    implementation("com.mobigen.vdap.libs:common")
+    implementation("jakarta.validation:jakarta.validation-api")
 }
 
 jsonSchema2Pojo {
@@ -345,5 +338,5 @@ jsonSchema2Pojo {
     // boolean useJakartaValidation
     // Whether to use annotations from jakarta.validation package instead of javax.validation package
     // when adding JSR-303 annotations to generated Java types
-    // ex> useJakartaValidation = false
+    useJakartaValidation = true
 }

@@ -1,0 +1,59 @@
+{
+  "$id": "https://mobigen.com/schema/entity/services/connections/storage/minIOConnection.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MinIO Connection",
+  "description": "MinIO Connection.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.services.connections.storage.MinIOConnection",
+  "definitions": {
+    "minioType": {
+      "description": "MinIO service type",
+      "type": "string",
+      "enum": [
+        "MinIO"
+      ],
+      "default": "MinIO"
+    }
+  },
+  "properties": {
+    "type": {
+      "title": "Service Type",
+      "description": "Service Type",
+      "$ref": "#/definitions/minioType",
+      "default": "MinIO"
+    },
+    "credentialsConfig": {
+      "title": "Credentials Configuration",
+      "$ref": "../../../../security/credentials/minioCredentials.json"
+    },
+    "bucketNames": {
+      "title": "Bucket Names",
+      "description": "Bucket Names of the data source.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": null
+    },
+    "connectionOptions": {
+      "title": "Connection Options",
+      "$ref": "../connectionBasicType.json#/definitions/connectionOptions"
+    },
+    "connectionArguments": {
+      "title": "Connection Arguments",
+      "$ref": "../connectionBasicType.json#/definitions/connectionArguments"
+    },
+    "supportsMetadataExtraction": {
+      "title": "Supports Metadata Extraction",
+      "$ref": "../connectionBasicType.json#/definitions/supportsMetadataExtraction"
+    },
+    "supportsProfiler": {
+      "title": "Supports Profiler",
+      "$ref": "../connectionBasicType.json#/definitions/supportsProfiler"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "awsConfig"
+  ]
+}
