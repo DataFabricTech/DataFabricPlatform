@@ -54,7 +54,7 @@
       "description": "UserName of the user running the query.",
       "type" : "array",
       "items": {
-        "$ref" : "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+        "$ref" : "../../type/user.json#/definitions/fullyQualifiedEntityName"
       }
     },
     "usedBy" : {
@@ -87,12 +87,8 @@
       "default": false
     },
     "service": {
-      "description": "Link to the database service fully qualified name where this query has been run",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
-    },
-    "domain" : {
-      "description": "Fully qualified name of the domain the Table belongs to.",
-      "type": "string"
+      "description": "Link to the database service id where this query has been run",
+      "$ref": "../../type/basic.json#/definitions/uuid"
     }
   },
   "required": ["query", "service"],

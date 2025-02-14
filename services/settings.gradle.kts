@@ -22,8 +22,8 @@ includeBuild("../libs")
 rootProject.name = "services" // the component name
 
 // module
-//include("core")
 //include("dataRelationshipTrigger")
-include("new-spring-boot-sample")
+//include("new-spring-boot-sample")
+include("vdap-server")
 
 

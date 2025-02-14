@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  shutdown: graceful
+  servlet:
+    context-path: "/vdap/v1/"
+  tomcat:
+    threads:
+      max: 20
+
+logging:
+  level:
+    root: "info"
+    #org.springframework: "info"
+    #java.net: "debug"
+
+
+spring:
+  application:
+    name: vdap-server
+  datasource:
+    url: "jdbc:mysql://${DB_URL}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC"
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-test-query: SELECT 1
+      minimum-idle: 10
+      maximum-pool-size: 100
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  mybatis:
+    mapper-locations: classpath:mapper/**/*.xml
+    configuration:
+      map-underscore-to-camel-case: true
+otel:
+# service.name: 설정하지 않을 경우 spring.application.name 을 사용 함.
+  exporter:
+    otlp:
+      protocol: grpc
+      endpoint: http://${JAEGER_HOST:jaeger-svc}:${JAEGER_PORT:4317}
+  traces:
+    exporter: otlp
+  # jaeger : log, metric 수집을 지원하지 않음.
+  logs:
+    exporter: none
+  metrics:
+    exporter: none

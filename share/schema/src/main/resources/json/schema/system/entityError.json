@@ -1,0 +1,16 @@
+{
+  "$id": "https://mobigen.com/schema/system/entityError.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EntityError",
+  "description": "Entity And Message Scehma in case of failures.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.system.EntityError",
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "entity": {
+    }
+  },
+  "additionalProperties": false
+}
