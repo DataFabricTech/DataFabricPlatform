@@ -1,6 +1,8 @@
 package com.mobigen.monitoring.controller;
 
 import com.mobigen.monitoring.annotation.CommonResponse;
+import com.mobigen.monitoring.domain.ConnectionHistory;
+import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.request.TaskId;
 import com.mobigen.monitoring.dto.response.CommonResponseDto;
 import com.mobigen.monitoring.enums.DatabaseType;
@@ -18,17 +20,27 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/monitoring")
 public class MonitoringController {
     private final MonitoringService monitoringService;
     private final ConnectionService connectionService;
     private final ServicesService servicesService;
+    private final ConnectionHistoryService connectionHistoryService;
 
 
-    public MonitoringController(final ServicesService servicesService, final ConnectionService connectionService, final ConnectionHistoryService connectionHistoryService, final ModelRegistrationService modelRegistrationService, final MetadataService metadataService, final IngestionHistoryService ingestionHistoryService, final ServicesService servicesService1) {
+    public MonitoringController(
+            final ConnectionService connectionService,
+            final ConnectionHistoryService connectionHistoryService,
+            final ServicesService servicesService
+    ) {
         this.connectionService = connectionService;
-        this.servicesService = servicesService1;
+        this.servicesService = servicesService;
+        this.connectionHistoryService = connectionHistoryService;
         this.monitoringService = new MonitoringService(null);
     }
 
@@ -92,6 +104,7 @@ public class MonitoringController {
                     )
             })
     @GetMapping("/connectStatus/summary")
+    @CommonResponse
     public Object connectStatusSummary() {
         return connectionService.getConnectionStatusSummary();
     }
@@ -136,5 +149,48 @@ public class MonitoringController {
                         Sort.by("createdAt").descending()
                 )
         );
+    }
+
+    @Operation(
+            operationId = "targetConnectStatus",
+            summary = "Target Connect Status",
+            description =
+                    "특정 서비스의 연결 상태를 위한 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "특정 서비스의 연결 상태에 대한 히스토리 정보",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "data",
+                                                    schema = @Schema(implementation = CommonResponseDto.class)
+                                            )
+                                    }
+                            )
+                    )
+            })
+    @CommonResponse
+    @GetMapping("/connectStatus/{serviceID}")
+    public Object connectStatus(
+            @Parameter(description = "연결 상태 히스토리를 얻을 서비스의 아이디",
+                    schema = @Schema(type = "string"))
+            @PathVariable("serviceID") String serviceID,
+            @Parameter(description = "요청된 데이터의 페이지 번호를 위한 매개변수",
+                    schema = @Schema(type = "int", example = "0"))
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.connect.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "5"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.connect.page_size}") @Min(1) int pageSize) {
+
+        UUID serviceId = UUID.fromString(serviceID);
+
+        Optional<Services> serviceOpt = servicesService.getServices(serviceId);
+        final List<ConnectionHistory> connectionHistories = connectionHistoryService.getConnectionHistories(serviceId, PageRequest.of(pageNumber, pageSize));
+
+        return connectionService.getConnectStatus(serviceOpt, connectionHistories);
     }
 }
