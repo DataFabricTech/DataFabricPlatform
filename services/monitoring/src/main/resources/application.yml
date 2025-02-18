@@ -1,1 +1,99 @@
-spring.application.name=monitoring
+spring:
+  application:
+    name: monitoring
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  messages:
+    basename: i18n/message
+    encoding: UTF-8
+  flyway:
+    enabled: false
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:h2:mem:testdb}
+    username: ${DATASOURCE_USERNAME:sa}
+    password: ${DATASOURCE_PASSWORD:password}
+    driver-class-name: ${DATASOURCE_CLASS_NAME:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+        show_sql: true
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://${JAEGER_HOST:0.0.0.0}:${JAEGER_PORT:14250}
+  metrics:
+    exporter: none
+  logs:
+    exporter: none
+springdoc:
+  api-docs:
+    path: /api-docs
+    groups:
+      enabled: true
+  swagger-ui:
+    #path: /swagger-ui-custom.html
+    groups-order: ASC
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  cache:
+    disabled: true
+  model-and-view-allowed: true
+
+server:
+  port: 8080
+  shutdown: "graceful"
+  tomcat:
+    connection-timeout: -1
+
+logging:
+  level:
+    root: info
+
+scheduler:
+  collect_expression: ${COLLECT_EXPRESSION:0 0/5 * * * *}
+  save_expression: ${SAVE_EXPRESSION:0 0/30 * * * *}
+  delete_expression: ${DELETE_EXPRESSION:0 0/30 2 * * *}
+
+open-metadata:
+  path:
+    database_service: "/api/v1/services/databaseServices?limit=1000000"
+    storage_service: "/api/v1/services/storageServices?limit=1000000"
+    ingestion_pipeline: "/api/v1/services/ingestionPipelines"
+    query: "/api/v1/search/query"
+    login: "/api/v1/users/login"
+    bot: "/api/v1/bots/name/ingestion-bot"
+    auth_mechanism: "/api/v1/users/auth-mechanism"
+  origin: ${TARGET_SERVER_URL}
+  auth:
+    id: ${TARGET_SERVER_ID:admin}
+    passwd: ${TARGET_SERVER_PW:admin}
+
+data-cleanup-condition:
+  retention_days: 90
+  maximum_rows: 30
+
+pageable-config:
+  connection-history:
+    page_number: ${CONNECTION_HISTORY_PAGING_PAGE:0}
+    page_size: ${CONNECTION_HISTORY_PAGING_SIZE:30}
+  ingestion-history:
+    page_number: ${INGESTION_HISTORY_PAGING_PAGE:0}
+    page_size: ${INGESTION_HISTORY_PAGING_SIZE:30}
+  connect:
+    page_number: ${CONNECT_PAGING_PAGE:0}
+    page_size: ${CONNECT_PAGING_SIZE:5}
+  event:
+    page_number: ${EVENT_PAGING_PAGE:0}
+    page_size: ${EVENT_PAGING_SIZE:5}
+  registration:
+    page_number: ${REGISTRATION_PAGING_PAGE:0}
+    page_size: ${REGISTRATION_PAGING_SIZE:5}
