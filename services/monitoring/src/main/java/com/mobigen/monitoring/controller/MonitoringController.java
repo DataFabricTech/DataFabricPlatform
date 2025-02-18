@@ -11,6 +11,7 @@ import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.timer.TaskInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
@@ -129,6 +130,7 @@ public class MonitoringController {
                             )
                     )
             })
+    @CommonResponse
     @GetMapping("/connectStatus")
     public Object connectStatus(
             @Parameter(description = "서비스의 삭제 유무를 위한 매개변수",
@@ -192,5 +194,104 @@ public class MonitoringController {
         final List<ConnectionHistory> connectionHistories = connectionHistoryService.getConnectionHistories(serviceId, PageRequest.of(pageNumber, pageSize));
 
         return connectionService.getConnectStatus(serviceOpt, connectionHistories);
+    }
+
+    @Operation(
+            operationId = "avgResponseTime",
+            summary = "Average Response Time",
+            description =
+                    "모든 서비스들의 평균 응답 시간을 얻기 위한 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모든 서비스들의 평균 응답 시간 정보",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "totalSize",
+                                                    schema = @Schema(implementation = Long.class)),
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    }
+                            )
+                    )
+            })
+    @CommonResponse
+    @GetMapping("/avgResponseTime")
+    public Object avgResponseTimes(
+            @Parameter(description = "평균 응답 시간의 내림차순 혹은 오름차순을 정하기 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "orderByAsc", required = false,
+                    defaultValue = "false") boolean orderBy,
+            @Parameter(description = "서비스의 삭제 유무를 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "deleted", required = false,
+                    defaultValue = "false") boolean deleted,
+            @Parameter(description = "요청된 데이터의 페이지 번호를 위한 매개변수",
+                    schema = @Schema(type = "int", example = "0"))
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.connect.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "5"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.connect.page_size}") @Min(1) int pageSize) {
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                orderBy ? Sort.by("queryExecutionTime").ascending() : Sort.by("queryExecutionTime").descending()
+        );
+        return connectionService.getAvgResponseTimes(deleted, pageRequest);
+    }
+
+    @Operation(
+            operationId = "recResponseTime",
+            summary = "Recent Response Time",
+            description =
+                    "모든 서비스들의 최신 응답 시간을 얻기 위한 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모든 서비스들의 최신 응답 시간 정보",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "totalSize",
+                                                    schema = @Schema(implementation = Long.class)),
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    }
+                            )
+                    )
+            })
+    @CommonResponse
+    @GetMapping("/recResponseTime")
+    public Object recentResponseTimes(
+            @Parameter(description = "최신 응답 시간의 내림차순 혹은 오름차순을 정하기 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "orderByAsc", required = false,
+                    defaultValue = "false") boolean orderBy,
+            @Parameter(description = "서비스의 삭제 유무를 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "deleted", required = false,
+                    defaultValue = "false") boolean deleted,
+            @Parameter(description = "요청된 데이터의 페이지 번호를 위한 매개변수",
+                    schema = @Schema(type = "int", example = "0"))
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.connect.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "5"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.connect.page_size}") @Min(1) int pageSize) {
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                orderBy ? Sort.by("queryExecutionTime").ascending() : Sort.by("queryExecutionTime").descending()
+        );
+
+        return connectionService.getRecentResponseTime(deleted, pageRequest);
     }
 }

@@ -18,19 +18,28 @@ public class Services {
     @Id
     @Column(name = "service_id", nullable = false)
     private UUID serviceID;
+
     @Column(name = "service_name", nullable = false)
     private String name;
+
     @Column(name = "service_display_name")
     private String displayName;
+
     @Column(name = "service_type", nullable = false)
     private String serviceType;
+
     @Column(name = "owner_name")
     private String ownerName;
+
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private Long updatedAt;
+
+    @Column(name = "deleted")
     private boolean deleted = false;
+
     @Enumerated(EnumType.STRING)
     private ConnectionStatus connectionStatus;
 
