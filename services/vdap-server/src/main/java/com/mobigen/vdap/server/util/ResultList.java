@@ -17,138 +17,84 @@ import java.util.stream.Collectors;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultList<T> {
 
-  @JsonProperty("data")
-  @NotNull
-  private List<T> data;
+    @JsonProperty("data")
+    @NotNull
+    private List<T> data;
 
-  @JsonProperty("paging")
-  private Paging paging;
+    @JsonProperty("paging")
+    private Paging paging;
 
-  @JsonProperty("errors")
-  private List<EntityError> errors;
+    @JsonProperty("errors")
+    private List<EntityError> errors;
 
-  public ResultList() {}
+    public ResultList() {
+    }
 
-  public ResultList(List<T> data) {
-    this.data = data;
-    this.paging = null;
-    this.errors = null;
-  }
+    public ResultList(List<T> data) {
+        this.data = data;
+        this.paging = null;
+        this.errors = null;
+    }
 
-  /**
-   * Cursor functionality. User has request 'limit' number of entries. The data provided must have 'limit' + 1 number of
-   * entries.
-   *
-   * <p>--------------------------------------------------------------------------------------------------------------
-   * Consider forward scrolling:
-   * --------------------------------------------------------------------------------------------------------------
-   * Query GET .../entities?limit=pagesize CASE 0: No before or after parameters in the query Returns: page1
-   * beforeCursor = null, -> Indicates first page afterCursor = last record in page1
-   *
-   * <p>Query GET .../entities?limit=pagesize&after={last record in page1} Returns: page2 beforeCursor = first record in
-   * page2 afterCursor = last record in page2
-   *
-   * <p>Query GET .../entities?limit=pagesize&after={last record in page2} CASE 1: Page 3 has less than limit number of
-   * entries and hence partial page is returned Returns: partial page 3 beforeCursor = first record in page3 afterCursor
-   * = null -------- FORWARD SCROLLING ENDS -------------
-   *
-   * <p>CASE 2: Page 3 has exactly page number of entries and not entries to follow after Returns: page3 beforeCursor =
-   * first record in page3 afterCursor = null -------- FORWARD SCROLLING ENDS -------------
-   *
-   * <p>--------------------------------------------------------------------------------------------------------------
-   * Consider backward scrolling from the previous state:
-   * --------------------------------------------------------------------------------------------------------------
-   *
-   * <p>Query GET .../entities?limit=pagesize&before={last record in page2 + 1} Returns: page2 beforeCursor = first
-   * record in page2 afterCursor = last record in page2
-   *
-   * <p>Query GET .../entities?limit=pagesize&before={first record page 2} CASE 3: Page 1 does not have {@code limit}
-   * number entries and hence partial page is returned Returns: page1 beforeCursor = null afterCursor = last record in
-   * page1 -------- BACKWARD SCROLLING ENDS -------------
-   *
-   * <p>CASE 4: Page 1 has exactly page number of entries Returns: page1 beforeCursor = null afterCursor = Empty string
-   * to start at page1 -------- BACKWARD SCROLLING ENDS -------------
-   */
-  public ResultList(List<T> data, String beforeCursor, String afterCursor, int total) {
-    this.data = data;
-    paging =
-        new Paging()
-            .withBefore(RestUtil.encodeCursor(beforeCursor))
-            .withAfter(RestUtil.encodeCursor(afterCursor))
-            .withTotal(total);
-  }
+    public ResultList(List<T> data, Integer page, Integer size, Integer total_elements, Integer total_page) {
+        this.data = data;
+        paging = new Paging()
+                        .withPage(page)
+                        .withSize(size)
+                        .withTotalElements(total_elements)
+                        .withTotalPages(total_page);
+    }
 
-  public ResultList(List<T> data, Integer offset, int total) {
-    this.data = data;
-    paging = new Paging().withBefore(null).withAfter(null).withTotal(total).withOffset(offset);
-  }
+    public ResultList(List<T> data, Integer offset, Integer limit, Integer total_elements) {
+        this.data = data;
+        paging = new Paging().withOffset(offset).withLimit(limit).withTotalElements(total_elements);
+    }
 
-  /* Conveniently map the data to another type without the need to create a new ResultList */
-  public <S> ResultList<S> map(Function<T, S> mapper) {
-    return new ResultList<>(data.stream().map(mapper).collect(Collectors.toList()), paging);
-  }
+    /* Conveniently map the data to another type without the need to create a new ResultList */
+    public <S> ResultList<S> map(Function<T, S> mapper) {
+        return new ResultList<>(data.stream().map(mapper).collect(Collectors.toList()), paging);
+    }
 
-  public ResultList(List<T> data, Integer offset, Integer limit, Integer total) {
-    this.data = data;
-    paging =
-        new Paging()
-            .withBefore(null)
-            .withAfter(null)
-            .withTotal(total)
-            .withOffset(offset)
-            .withLimit(limit);
-  }
+    public ResultList(List<T> data, Paging other) {
+        this.data = data;
+        paging =
+                new Paging()
+                        .withPage(null)
+                        .withSize(null)
+                        .withTotalPages(other.getTotalPages())
+                        .withOffset(other.getOffset())
+                        .withLimit(other.getLimit())
+                        .withTotalElements(other.getTotalElements());
+    }
 
-  public ResultList(List<T> data, Paging other) {
-    this.data = data;
-    paging =
-        new Paging()
-            .withBefore(null)
-            .withAfter(null)
-            .withTotal(other.getTotal())
-            .withOffset(other.getOffset())
-            .withLimit(other.getLimit());
-  }
+    @JsonProperty("data")
+    public List<T> getData() {
+        return data;
+    }
 
-  public ResultList(
-      List<T> data, List<EntityError> errors, String beforeCursor, String afterCursor, int total) {
-    this.data = data;
-    this.errors = errors;
-    paging =
-        new Paging()
-            .withBefore(RestUtil.encodeCursor(beforeCursor))
-            .withAfter(RestUtil.encodeCursor(afterCursor))
-            .withTotal(total);
-  }
+    @JsonProperty("data")
+    public void setData(List<T> data) {
+        this.data = data;
+    }
 
-  @JsonProperty("data")
-  public List<T> getData() {
-    return data;
-  }
+    @JsonProperty("errors")
+    public List<EntityError> getErrors() {
+        return errors;
+    }
 
-  @JsonProperty("data")
-  public void setData(List<T> data) {
-    this.data = data;
-  }
+    @JsonProperty("errors")
+    public void setErrors(List<EntityError> data) {
+        this.errors = data;
+    }
 
-  @JsonProperty("errors")
-  public List<EntityError> getErrors() {
-    return errors;
-  }
+    @JsonProperty("paging")
+    public Paging getPaging() {
+        return paging;
+    }
 
-  @JsonProperty("errors")
-  public void setErrors(List<EntityError> data) {
-    this.errors = data;
-  }
-
-  @JsonProperty("paging")
-  public Paging getPaging() {
-    return paging;
-  }
-
-  @JsonProperty("paging")
-  public ResultList<T> setPaging(Paging paging) {
-    this.paging = paging;
-    return this;
-  }
+    @JsonProperty("paging")
+    public ResultList<T> setPaging(Paging paging) {
+        this.paging = paging;
+        return this;
+    }
 }

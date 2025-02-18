@@ -18,6 +18,9 @@
       "description": "Description of storage service entity.",
       "$ref": "../../type/basic.json#/definitions/markdown"
     },
+    "kindOfService": {
+      "$ref": "../../entity/services/serviceType.json"
+    },
     "serviceType": {
       "$ref": "../../entity/services/storageService.json#/definitions/storageServiceType"
     },
@@ -40,6 +43,7 @@
   },
   "required": [
     "name",
+    "kindOfService",
     "serviceType"
   ],
   "additionalProperties": false

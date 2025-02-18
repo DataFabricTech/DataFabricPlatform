@@ -54,6 +54,6 @@
   },
   "additionalProperties": false,
   "required": [
-    "awsConfig"
+    "credentialsConfig"
   ]
 }

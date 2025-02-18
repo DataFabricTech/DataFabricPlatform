@@ -24,5 +24,7 @@ dependencies {
         api("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4")
         // SpringBoot DevTools
         api("org.springframework.boot:spring-boot-devtools:3.4.0")
+        // RestAPI - Swagger Document
+        api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
     }
 }

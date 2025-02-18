@@ -10,11 +10,63 @@
       "description": "Type of storage service such as MinIO...",
       "type": "string",
       "enum": [
-        "MinIO"
+        "Mysql",
+        "Postgres",
+        "Mssql",
+        "Oracle",
+        "Hive",
+        "Trino",
+        "MariaDB",
+        "SQLite",
+        "MongoDB",
+        "MinIO",
+        "ElasticSearch",
+        "OpenSearch",
+        "Rest",
+        "WEBHOOK"
       ],
       "javaEnums": [
         {
+          "name": "Mysql"
+        },
+        {
+          "name": "Postgres"
+        },
+        {
+          "name": "Mssql"
+        },
+        {
+          "name": "Oracle"
+        },
+        {
+          "name": "Hive"
+        },
+        {
+          "name": "Trino"
+        },
+        {
+          "name": "MariaDB"
+        },
+        {
+          "name": "SQLite"
+        },
+        {
+          "name": "MongoDB"
+        },
+        {
           "name": "MinIO"
+        },
+        {
+          "name": "ElasticSearch"
+        },
+        {
+          "name": "OpenSearch"
+        },
+        {
+          "name": "Rest"
+        },
+        {
+          "name": "WEBHOOK"
         }
       ]
     },
@@ -27,7 +79,43 @@
           "mask": true,
           "oneOf": [
             {
+              "$ref": "./connections/database/hiveConnection.json"
+            },
+            {
+              "$ref": "./connections/database/mariaDBConnection.json"
+            },
+            {
+              "$ref": "./connections/database/mssqlConnection.json"
+            },
+            {
+              "$ref": "./connections/database/mysqlConnection.json"
+            },
+            {
+              "$ref": "./connections/database/sqliteConnection.json"
+            },
+            {
+              "$ref": "./connections/database/oracleConnection.json"
+            },
+            {
+              "$ref": "./connections/database/postgresConnection.json"
+            },
+            {
+              "$ref": "./connections/database/trinoConnection.json"
+            },
+            {
+              "$ref": "./connections/database/mongoDBConnection.json"
+            },
+            {
               "$ref": "connections/storage/minioConnection.json"
+            },
+            {
+              "$ref": "connections/search/elasticSearchConnection.json"
+            },
+            {
+              "$ref": "connections/search/openSearchConnection.json"
+            },
+            {
+              "$ref": "./connections/api/restConnection.json"
             }
           ]
         }
@@ -47,6 +135,10 @@
     "displayName": {
       "description": "Display Name that identifies this storage service.",
       "type": "string"
+    },
+    "kindOfService": {
+      "description": "Type of service such as database, storage, search, api..",
+      "$ref": "../../entity/services/serviceType.json"
     },
     "serviceType": {
       "description": "Type of storage service such as MinIO, GCS, AZURE...",
@@ -87,13 +179,13 @@
       "description": "User who made the update.",
       "type": "string"
     },
-    "href": {
-      "description": "Link to the resource corresponding to this storage service.",
-      "$ref": "../../type/basic.json#/definitions/href"
-    },
     "owners": {
       "description": "Owners of this storage service.",
       "$ref": "../../type/entityReferenceList.json"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this storage service.",
+      "$ref": "../../type/basic.json#/definitions/href"
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",

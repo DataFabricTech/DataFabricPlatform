@@ -11,7 +11,7 @@
       "$ref": "basic.json#/definitions/uuid"
     },
     "type": {
-      "description": "Entity type/class name - Examples: `storageService`, `database`, `bucket`, `table`, `file`...",
+      "description": "Entity type/class name - Examples: `storage_service`, `data_model`, `etc`...",
       "type": "string"
     },
     "name": {

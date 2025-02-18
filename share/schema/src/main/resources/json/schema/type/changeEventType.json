@@ -13,17 +13,8 @@
     "entitySoftDeleted",
     "entityDeleted",
     "entityRestored",
-    "threadCreated",
-    "threadUpdated",
     "postCreated",
     "postUpdated",
-    "taskResolved",
-    "taskClosed",
-    "logicalTestCaseAdded",
-    "suggestionCreated",
-    "suggestionUpdated",
-    "suggestionAccepted",
-    "suggestionRejected",
-    "suggestionDeleted"
+    "logicalTestCaseAdded"
   ]
 }

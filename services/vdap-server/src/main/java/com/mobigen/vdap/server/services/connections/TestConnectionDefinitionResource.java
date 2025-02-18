@@ -1,11 +1,14 @@
 package com.mobigen.vdap.server.services.connections;
 
+import com.mobigen.vdap.server.util.ResultList;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import com.mobigen.vdap.schema.entity.services.connections.TestConnectionDefinition;
 import com.mobigen.vdap.schema.type.Include;
@@ -13,6 +16,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -24,6 +28,10 @@ import java.util.UUID;
         produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class TestConnectionDefinitionResource {
   public static final String COLLECTION_PATH = "/v1/services/testConnectionDefinitions";
+
+  public static class TestConnectionDefinitionList extends ResultList<TestConnectionDefinition> {
+        /* Required for serde */
+ }
 
   @GetMapping
   @Operation(
@@ -45,18 +53,16 @@ public class TestConnectionDefinitionResource {
                                     TestConnectionDefinitionResource.TestConnectionDefinitionList.class)))
       })
   public ResultList<TestConnectionDefinition> list(
-      @Context UriInfo uriInfo,
-      @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
-          @QueryParam("fields")
+          @RequestParam("fields")
           String fieldsParam,
       @Parameter(
               description =
                   "Limit the number test connection definitions returned. (1 to 1000000, default = 10)")
           @DefaultValue("10")
-          @("limit")
+          @RequestParam("limit")
           @Min(0)
           @Max(1000000)
           int limitParam,

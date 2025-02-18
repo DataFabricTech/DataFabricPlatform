@@ -6,16 +6,18 @@
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.type.Paging",
   "properties": {
-    "before": {
-      "description": "Before cursor used for getting the previous page (see API pagination for details).",
-      "type": "string"
-    },
-    "after": {
-      "description": "After cursor used for getting the next page (see API pagination for details).",
-      "type": "string"
+    "page": {
+      "description": "Select Page Number",
+      "type": "integer",
+      "default": null
     },
     "offset": {
       "description": "Offset used in case of offset based pagination.",
+      "type": "integer",
+      "default": null
+    },
+    "size": {
+      "description": "Page Size",
       "type": "integer",
       "default": null
     },
@@ -24,13 +26,15 @@
       "type": "integer",
       "default": null
     },
-    "total": {
-      "description": "Total number of entries available to page through.",
+    "total_elements": {
+      "description": "Total Elements Count",
+      "type": "integer"
+    },
+    "total_pages": {
+      "description": "Total Page Count",
       "type": "integer"
     }
   },
-  "required": [
-    "total"
-  ],
+  "required": [],
   "additionalProperties": false
 }

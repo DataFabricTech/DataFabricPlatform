@@ -6,9 +6,6 @@
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.type.TagLabel",
   "definitions": {
-    "tagFQN": {
-      "type": "string"
-    },
     "TagSource": {
       "type": "string",
       "default": "Classification",
@@ -19,8 +16,8 @@
     }
   },
   "properties": {
-    "tagFQN": {
-      "$ref": "#/definitions/tagFQN"
+    "id": {
+      "$ref": "./basic.json#/definitions/uuid"
     },
     "name": {
       "description": "Name of the tag or glossary term.",
@@ -64,7 +61,6 @@
     }
   },
   "required": [
-    "tagFQN",
     "source",
     "labelType",
     "state"
