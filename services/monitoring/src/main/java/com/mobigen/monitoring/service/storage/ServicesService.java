@@ -1,4 +1,4 @@
-package com.mobigen.monitoring.service;
+package com.mobigen.monitoring.service.storage;
 
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.vo.ServicesResponse;

@@ -1,4 +1,4 @@
-package com.mobigen.monitoring.service;
+package com.mobigen.monitoring.service.storage;
 
 import com.mobigen.monitoring.repository.MetadataRepository;
 import lombok.RequiredArgsConstructor;

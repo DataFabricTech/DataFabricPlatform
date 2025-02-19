@@ -1,4 +1,4 @@
-package com.mobigen.monitoring.service.timer;
+package com.mobigen.monitoring.service.scheduler;
 
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;

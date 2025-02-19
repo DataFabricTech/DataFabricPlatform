@@ -1,6 +1,6 @@
 package com.mobigen.monitoring.config;
 
-import com.mobigen.monitoring.service.timer.TaskInfo;
+import com.mobigen.monitoring.service.scheduler.TaskInfo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

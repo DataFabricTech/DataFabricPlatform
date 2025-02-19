@@ -1,4 +1,4 @@
-package com.mobigen.monitoring.service.timer;
+package com.mobigen.monitoring.service.scheduler;
 
 public class ConnectionInfo {
     private String serviceId;

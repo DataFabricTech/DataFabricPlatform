@@ -1,6 +1,5 @@
-package com.mobigen.monitoring.service;
+package com.mobigen.monitoring.service.storage;
 
-import com.mobigen.monitoring.domain.IngestionHistory;
 import com.mobigen.monitoring.dto.response.IngestionHistoryResponseDto;
 import com.mobigen.monitoring.repository.IngestionHistoryRepository;
 import com.mobigen.monitoring.vo.IngestionHistoryVo;
@@ -11,8 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

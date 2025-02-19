@@ -1,8 +1,8 @@
 package com.mobigen.monitoring.service.monitoring;
 
-import com.mobigen.monitoring.service.timer.ConnectionInfo;
-import com.mobigen.monitoring.service.timer.MonitoringTask;
-import com.mobigen.monitoring.service.timer.TaskInfo;
+import com.mobigen.monitoring.service.scheduler.ConnectionInfo;
+import com.mobigen.monitoring.service.scheduler.MonitoringTask;
+import com.mobigen.monitoring.service.scheduler.TaskInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Timer;

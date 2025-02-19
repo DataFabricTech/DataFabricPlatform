@@ -1,6 +1,5 @@
-package com.mobigen.monitoring.service;
+package com.mobigen.monitoring.service.storage;
 
-import com.mobigen.monitoring.domain.ModelRegistration;
 import com.mobigen.monitoring.dto.response.ModelRegistrationResponseDto;
 import com.mobigen.monitoring.repository.ModelRegistrationRepository;
 import com.mobigen.monitoring.vo.ModelRegistrationVo;
