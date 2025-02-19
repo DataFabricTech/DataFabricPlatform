@@ -294,4 +294,50 @@ public class MonitoringController {
 
         return connectionService.getRecentResponseTime(deleted, pageRequest);
     }
+
+    @Operation(
+            operationId = "targetResponseTime",
+            summary = "Target Response Time",
+            description =
+                    "특정 서비스의 응답 시간 히스토리를 얻기 위한 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "특정 서비스들의 응답 시간 히스토리 정보",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "totalSize",
+                                                    schema = @Schema(implementation = Long.class)),
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    }
+                            )
+                    )
+            })
+    @GetMapping("/responseTime/{serviceID}")
+    public Object targetResponseTimes(
+            @Parameter(description = "응답 시간 히스토리를 얻을 특정 서비스의 아이디",
+                    schema = @Schema(type = "string"))
+            @PathVariable("serviceID") String serviceID,
+            @Parameter(description = "요청된 데이터의 페이지 번호를 위한 매개변수",
+                    schema = @Schema(type = "int", example = "0"))
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.connect.page_number}") int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "5"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.connect.page_size}") int pageSize
+    ) {
+        UUID serviceId = UUID.fromString(serviceID);
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by("queryExecutionTime").descending()
+        );
+
+        return connectionService.getResponseTimes(serviceId, pageRequest);
+    }
 }
