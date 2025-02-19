@@ -9,6 +9,7 @@ import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.service.*;
 import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.timer.TaskInfo;
+import com.mobigen.monitoring.vo.ResponseTimeVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -32,16 +33,18 @@ public class MonitoringController {
     private final ConnectionService connectionService;
     private final ServicesService servicesService;
     private final ConnectionHistoryService connectionHistoryService;
+    private final MetadataService metadataService;
 
 
     public MonitoringController(
             final ConnectionService connectionService,
             final ConnectionHistoryService connectionHistoryService,
-            final ServicesService servicesService
+            final ServicesService servicesService, final MetadataService metadataService
     ) {
         this.connectionService = connectionService;
         this.servicesService = servicesService;
         this.connectionHistoryService = connectionHistoryService;
+        this.metadataService = metadataService;
         this.monitoringService = new MonitoringService(null);
     }
 
@@ -317,6 +320,7 @@ public class MonitoringController {
                             )
                     )
             })
+    @CommonResponse
     @GetMapping("/responseTime/{serviceID}")
     public Object targetResponseTimes(
             @Parameter(description = "응답 시간 히스토리를 얻을 특정 서비스의 아이디",
@@ -339,5 +343,44 @@ public class MonitoringController {
         );
 
         return connectionService.getResponseTimes(serviceId, pageRequest);
+    }
+
+    @Operation(
+            operationId = "connectionHistory",
+            summary = "Connection History",
+            description =
+                    "연결 상태 히스토리를 위한 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "연결 상태 히스토리 정보",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    }
+                            )
+                    )
+            })
+    @CommonResponse
+    @GetMapping("/connectionHistory")
+    public Object connectionHistory(
+            @Parameter(description = "요청된 데이터의 페이지 번호를 위한 매개변수",
+                    schema = @Schema(type = "int", example = "0"))
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.connect.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "30"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.connect.page_size}") @Min(1) int pageSize) {
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by("updated_at").descending()
+        );
+
+        return connectionHistoryService.getAllConnectionHistory(pageRequest);
     }
 }
