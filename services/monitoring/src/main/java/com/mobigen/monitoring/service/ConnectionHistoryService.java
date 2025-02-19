@@ -53,4 +53,8 @@ public class ConnectionHistoryService {
                 .connectionHistories(connectionHistoriesResponse)
                 .build();
     }
+
+    public List<ConnectionHistoryVo> getConnectionHistory(final UUID serviceId, final PageRequest pageRequest) {
+        return connectionHistoryRepository.findConnectHistoryResponse(serviceId, pageRequest);
+    }
 }
