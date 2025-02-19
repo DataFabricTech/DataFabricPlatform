@@ -9,7 +9,6 @@ import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.service.*;
 import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.timer.TaskInfo;
-import com.mobigen.monitoring.vo.ResponseTimeVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -34,17 +33,21 @@ public class MonitoringController {
     private final ServicesService servicesService;
     private final ConnectionHistoryService connectionHistoryService;
     private final ModelRegistrationService modelRegistrationService;
+    private final IngestionHistoryService ingestionHistoryService;
 
 
     public MonitoringController(
             final ConnectionService connectionService,
             final ConnectionHistoryService connectionHistoryService,
-            final ServicesService servicesService, final ModelRegistrationService modelRegistrationService
+            final ServicesService servicesService,
+            final ModelRegistrationService modelRegistrationService,
+            final IngestionHistoryService ingestionHistoryService
     ) {
         this.connectionService = connectionService;
         this.servicesService = servicesService;
         this.connectionHistoryService = connectionHistoryService;
         this.modelRegistrationService = modelRegistrationService;
+        this.ingestionHistoryService = ingestionHistoryService;
         this.monitoringService = new MonitoringService(null);
     }
 
@@ -444,6 +447,7 @@ public class MonitoringController {
                                     })
                     )
             })
+    @CommonResponse
     @GetMapping("/models")
     public Object models(
             @Parameter(description = "평균 응답 시간의 내림차순 혹은 오름차순을 정하기 위한 매개변수",
@@ -467,5 +471,47 @@ public class MonitoringController {
                 orderBy ? Sort.by("updated_at").ascending() : Sort.by("updated_at").descending());
 
         return modelRegistrationService.getAllModelRegistration(deleted, pageRequest);
+    }
+
+    @Operation(
+            operationId = "ingestionHistory",
+            summary = "History of ingestion",
+            description =
+                    "수집 히스토리 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "수집 히스토리 정보",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "totalSize",
+                                                    schema = @Schema(implementation = Long.class)),
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    })
+                    )
+            })
+    @CommonResponse
+    @GetMapping("/ingestionHistory")
+    public Object ingestionHistory(
+            @Parameter(description = "평균 응답 시간의 내림차순 혹은 오름차순을 정하기 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "orderByAsc", required = false,
+                    defaultValue = "false") boolean orderBy,
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.ingestion-history.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "30"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.ingestion-history.page_size}") @Min(1) int pageSize
+    ) {
+        final PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                orderBy ? Sort.by("eventAt").ascending() : Sort.by("eventAt").descending());
+
+        return ingestionHistoryService.getIngestionHistory(pageRequest);
     }
 }
