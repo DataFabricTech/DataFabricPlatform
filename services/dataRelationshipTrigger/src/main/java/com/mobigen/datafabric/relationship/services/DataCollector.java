@@ -22,7 +22,6 @@ import org.openmetadata.schema.entity.data.Container;
 import org.openmetadata.schema.entity.data.GlossaryTerm;
 import org.openmetadata.schema.entity.data.Table;
 import org.openmetadata.schema.entity.teams.User;
-import org.openmetadata.schema.type.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

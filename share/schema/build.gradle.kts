@@ -20,6 +20,7 @@ dependencies {
     // Jsonschema
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("jakarta.validation:jakarta.validation-api")
+
 }
 
 jsonSchema2Pojo {

@@ -8,47 +8,66 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Aspect
 @Component
 public class CommonResponseAspect {
 
     @Around("@annotation(com.mobigen.vdap.server.annotations.CommonResponse)")
-    public CommonResponse responseJsonSuccess( ProceedingJoinPoint point ) throws Throwable {
+    public CommonResponseDto responseJsonSuccess(ProceedingJoinPoint point) throws Throwable {
         Object results = point.proceed();
-        return CommonResponse.builder().code( ResponseCode.SUCCESS.getName() ).data( results ).build();
+        return CommonResponseDto.builder().code("success").data(results).build();
     }
 
     @Around("execution(* com.mobigen.vdap.server.response.GlobalExceptionHandler.*(..))")
-    public CommonResponse responseJsonFail( ProceedingJoinPoint point ) throws Throwable {
+    public CommonResponseDto responseJsonFail(ProceedingJoinPoint point) throws Throwable {
         Object results = point.proceed();
-        String errorCode;
-        String errorMsg;
-        List<String> errorVars = new ArrayList<>();
-        if( results instanceof CustomException ) {
-            CustomException customException = ( CustomException )results;
-            errorCode = ( ( CustomException )results ).getErrorCode().getName();
-            errorMsg = messageSource.getMessage( errorCode, customException.getErrorVars(), customException.getMessage() );
-            if( customException.getErrorVars() != null && customException.getErrorVars().length > 0 ) {
-                errorVars.addAll( Arrays.asList( customException.getErrorVars() ) );
+        CommonResponseDto response = new CommonResponseDto();
+        Map<String, Object> errData = new HashMap<>();
+        switch (results) {
+            case CustomException customException -> {
+                errData.put("error", customException.getClass().getSimpleName());
+                errData.put("causedByObject", customException.getCausedObject()); // 예외가 발생한 객체 포함
+
+                // Stacktrace를 String으로 변환하여 포함
+                StringWriter sw = new StringWriter();
+                customException.printStackTrace(new PrintWriter(sw));
+                errData.put("stacktrace", sw.toString());
+
+                response.setCode("Error");
+                response.setErrorMsg(customException.getMessage());
+                response.setErrorData(errData);
             }
-        } else if( results instanceof BindException ) {
-            errorCode = ResponseCode.ERROR_BIND.getName();
-            errorMsg = messageSource.getMessage( errorCode );
-        } else if( results instanceof HttpRequestMethodNotSupportedException  ) {
-            errorCode = ResponseCode.ERROR_METHOD_NOT_SUPPORTED.getName();
-            errorMsg = messageSource.getMessage( errorCode );
-        } else {
-            errorCode = ResponseCode.ERROR_UNKNOWN.getName();
-            errorMsg = messageSource.getMessage( errorCode );
+            case BindException exception -> {
+                // Stacktrace를 String으로 변환하여 포함
+                StringWriter sw = new StringWriter();
+                exception.printStackTrace(new PrintWriter(sw));
+                errData.put("stacktrace", sw.toString());
+
+                response.setCode("Error");
+                response.setErrorMsg(exception.getMessage());
+                response.setErrorData(errData);
+            }
+            case HttpRequestMethodNotSupportedException exception -> {
+                // Stacktrace를 String으로 변환하여 포함
+                StringWriter sw = new StringWriter();
+                exception.printStackTrace(new PrintWriter(sw));
+                errData.put("stacktrace", sw.toString());
+
+                response.setCode("Error");
+                response.setErrorMsg(exception.getMessage());
+                response.setErrorData(errData);
+            }
+            case null, default -> {
+                errData.put("errData", results);
+                response.setCode("Error");
+                response.setErrorData(errData);
+            }
         }
-        return CommonResponse.builder()
-                .code( errorCode )
-                .errorMsg( errorMsg )
-                .errorVars( errorVars )
-                .build();
+        return response;
     }
 }

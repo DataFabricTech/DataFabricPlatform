@@ -1,22 +1,27 @@
 package com.mobigen.vdap.server.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mobigen.vdap.schema.type.Paging;
 import lombok.*;
 
-import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonResponse {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class CommonResponseDto {
     @JsonProperty("code")
     private String code;
     @JsonProperty("errorMsg")
     private String errorMsg;
-    @JsonProperty("errorVars")
-    private List<String> errorVars;
+    @JsonProperty("errorData")
+    private Map<String, Object> errorData;
+    @JsonProperty("page")
+    private Paging page;
     @JsonProperty("data")
     private Object data;
 }

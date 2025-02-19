@@ -41,6 +41,7 @@ dependencies {
     implementation("com.mysql:mysql-connector-j")
     // Flyway Database Migration
     implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-mysql")
     // MyBatis
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter")
 

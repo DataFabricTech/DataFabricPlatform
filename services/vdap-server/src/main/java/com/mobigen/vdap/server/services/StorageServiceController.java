@@ -4,31 +4,26 @@ import com.mobigen.vdap.schema.api.services.CreateStorageService;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
 import com.mobigen.vdap.schema.entity.services.connections.TestConnectionResult;
-import com.mobigen.vdap.schema.system.EntityError;
-import com.mobigen.vdap.schema.type.EntityHistory;
+import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Include;
-import com.mobigen.vdap.server.util.ResultList;
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import com.mobigen.vdap.server.annotations.CommonResponse;
+import com.mobigen.vdap.server.response.CommonResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Tag(
@@ -36,14 +31,20 @@ import java.util.stream.Collectors;
         description = "Storage Service is `Database, Storage, Api, Search Service`. such as MySQL, MariaDB, Postgres, MinIO, Elasticsearch, etc.")
 @RestController
 @RequestMapping(value = "/v1/services")
-public class StorageController {
-    static final String FIELDS = "pipelines,owners,tags";
+public class StorageServiceController {
+    private static final String FIELDS = "pipelines,owners,tags";
+    private final StorageServiceApp service;
 
-    public static class StorageServiceList extends ResultList<StorageService> {
+    public StorageServiceController(StorageServiceApp service) {
+        this.service = service;
+    }
+
+    public static class StorageServiceList extends ArrayList<StorageService> {
         /* For RestAPI Doc */
     }
 
     @GetMapping
+    @CommonResponse
     @Operation(
             operationId = "getAllServices",
             summary = "Get All Services",
@@ -62,36 +63,45 @@ public class StorageController {
     public Object getAllServices(
             @Parameter(
                     description = "Kind Of StorageService(database, storage, search, api).",
-                    schema = @Schema(type = "string", example = "database"))
-            @RequestParam("kind_of_service")
-            ServiceType kindOfService,
+                    schema = @Schema(implementation = ServiceType.class, example = "database"))
+                @RequestParam(name = "kind_of_service", required = false)
+                ServiceType kindOfService,
             @Parameter(
                     description = "StorageService Type(Mysql, Mariadb, Minio, etc ...)",
-                    schema = @Schema(type = "string", example = "Mysql"))
-            @RequestParam("service_type")
+                    schema = @Schema(implementation = CreateStorageService.StorageServiceType.class, example = "Mysql"))
+                @RequestParam(value = "service_type", required = false)
             CreateStorageService.StorageServiceType service_type,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam("fields")
-            String fields,
+                @RequestParam(value = "fields", required = false)
+                String fields,
             @Parameter(
+                    name = "page",
                     description = "Select Page Number",
-                    schema = @Schema(type = "Integer"))
-            @RequestParam("page") Integer page,
+                    schema = @Schema(type = "Integer", defaultValue = "0"))
+                @RequestParam(value = "page", required = false)
+                Integer page,
             @Parameter(
-                    description = "Offset",
+                    description = "offset",
                     schema = @Schema(type = "Integer"))
-            @RequestParam("offset") Integer offset,
-            @RequestParam("size") Integer size,
-            @RequestParam("limit") Integer limit,
+                @RequestParam(value = "offset", required = false)
+                Integer offset,
+            @Parameter(
+                    description = "Page Size",
+                    schema = @Schema(type = "Integer", defaultValue = "20"))
+                @RequestParam(value = "size", required = false)
+                Integer size,
+            @Parameter(
+                    description = "data element limit",
+                    schema = @Schema(type = "Integer"))
+                @RequestParam(value = "limit", required = false)
+                Integer limit,
             @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-            @RequestParam("include")
-            @DefaultValue("non-deleted")
-            Include include
-    ) {
+                    schema = @Schema(implementation = Include.class, defaultValue = "non-deleted"))
+                @RequestParam(value = "include", required = false)
+                Include include) {
         return "get all services";
 //        return service.getAllServices(kindOfService, service_type, page, offset, size, limit, include);
     }
@@ -113,6 +123,7 @@ public class StorageController {
     // PUT /restore -> POST /restore
 
     @GetMapping("/{id}")
+    @CommonResponse
     @Operation(
             operationId = "getStorageServiceByID",
             summary = "Get a storage service",
@@ -131,26 +142,27 @@ public class StorageController {
                             description = "Storage service for instance {id} is not found")
             })
     public Object getById(
-            @Parameter(description = "Id of the storage service", schema = @Schema(type = "UUID"))
-            @PathVariable UUID id,
+            @Parameter(
+                    description = "Id of the storage service",
+                    schema = @Schema(type = "UUID"))
+                @PathVariable
+                UUID id,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam("fields")
-            String fieldsParam,
+                @RequestParam("fields")
+                String fieldsParam,
             @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
                     schema = @Schema(implementation = Include.class))
-            @RequestParam("include")
-            @DefaultValue("non-deleted")
-            Include include) {
+                @RequestParam("include")
+                @DefaultValue("non-deleted")
+                Include include) {
         return "get by id storage service";
-//        DatabaseService databaseService =
-//                getInternal(uriInfo, securityContext, id, fieldsParam, include);
-//        return decryptOrNullify(securityContext, databaseService);
     }
 
     @GetMapping("/name/{name}")
+    @CommonResponse
     @Operation(
             operationId = "getStorageServiceByName",
             summary = "Get storage service(database, storage, search, api) by name",
@@ -171,32 +183,32 @@ public class StorageController {
                             content =
                             @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = EntityError.class)
+                                    schema = @Schema(implementation = CommonResponseDto.class)
                             )
                     )
             })
     public Object getByName(
-            @Parameter(description = "Name of the storage service", schema = @Schema(type = "string"))
-            @PathVariable("name")
-            String name,
+            @Parameter(
+                    description = "Name of the storage service",
+                    schema = @Schema(type = "string"))
+                @PathVariable("name")
+                String name,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam("fields")
-            String fields,
+                @RequestParam("fields")
+                String fields,
             @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
                     schema = @Schema(implementation = Include.class))
-            @QueryParam("include")
-            @DefaultValue("non-deleted")
-            Include include) {
-//        DatabaseService databaseService =
-//                getByNameInternal(uriInfo, securityContext, name, fieldsParam, include);
-//        return decryptOrNullify(securityContext, databaseService);
+                @QueryParam("include")
+                @DefaultValue("non-deleted")
+                Include include) {
         return "get by name storage service";
     }
 
     @PostMapping("/{id}/testConnectionResult")
+    @CommonResponse
     @Operation(
             operationId = "addTestConnectionResult",
             summary = "Add test connection result",
@@ -211,14 +223,17 @@ public class StorageController {
                                     schema = @Schema(implementation = StorageService.class)))
             })
     public Object addTestConnectionResult(
-            @Parameter(description = "Id of the service", schema = @Schema(type = "UUID"))
-            @PathVariable("id") UUID id,
+            @Parameter(
+                    description = "Id of the service",
+                    schema = @Schema(type = "UUID"))
+                @PathVariable("id")
+                UUID id,
             @Valid TestConnectionResult testConnectionResult) {
 //        DatabaseService service = repository.addTestConnectionResult(id, testConnectionResult);
 //        return decryptOrNullify(securityContext, service);
         return "add test connection result";
     }
-
+/*
     @GetMapping("/{id}/versions")
     @Operation(
             operationId = "listAllStorageServiceVersion",
@@ -234,10 +249,11 @@ public class StorageController {
                                     schema = @Schema(implementation = EntityHistory.class)))
             })
     public EntityHistory listVersions(
-            @Parameter(description = "Id of the database service", schema = @Schema(type = "UUID"))
-            @PathVariable("id") UUID id) {
+            @Parameter(
+                    description = "Id of the database service",
+                    schema = @Schema(type = "UUID"))
+                @PathVariable("id") UUID id) {
 //        EntityHistory entityHistory = super.listVersionsInternal(securityContext, id);
-//
 //        List<Object> versions =
 //                entityHistory.getVersions().stream()
 //                        .map(
@@ -294,6 +310,7 @@ public class StorageController {
 //        return decryptOrNullify(securityContext, databaseService);
         return "get specific version storage service";
     }
+    */
 
     @PostMapping
     @Operation(
@@ -306,26 +323,31 @@ public class StorageController {
                             description = "Storage service instance",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = Response.class))),
+                                    schema = @Schema(implementation = StorageService.class))),
                     @ApiResponse(
                             responseCode = "200",
                             description = "Bad request",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = EntityError.class)
+                                    schema = @Schema(implementation = CommonResponseDto.class)
                             )
                     )
             })
-    public Response create(
-            @Valid CreateStorageService create) {
-//        DatabaseService service =
-//                mapper.createToEntity(create, securityContext.getUserPrincipal().getName());
-//        Response response = service.create(createService);
+    public Object create(@RequestHeader Map<String, String> header, @Valid CreateStorageService create) {
+        // TODO : 요청 사용자 정보 처리
+//        String userId = header.get("X-VDAP-User-Id");
+//        String userName = header.get("X-VDAP-User-Name");
+
+        List<EntityReference> owners = validateOwners(create.getOwners());
+        StorageService storage = createToEntity(create, "admin");
+        StorageService response = service.create(storage);
 //        decryptOrNullify(securityContext, (DatabaseService) response.getEntity());
         return response;
     }
 
-    @PUT
+
+    /*
+    @PostMapping("/update")
     @Operation(
             operationId = "createOrUpdateDatabaseService",
             summary = "Update database service",
@@ -618,5 +640,25 @@ public class StorageController {
     @Override
     protected String extractServiceType(DatabaseService service) {
         return service.getServiceType().value();
+    }
+    */
+    public StorageService createToEntity(CreateStorageService request, String user) {
+        StorageService entity = new StorageService();
+        entity.setOwners(request.getOwners());
+        entity.setId(UUID.randomUUID());
+        entity.setKindOfService(request.getKindOfService());
+        entity.setServiceType(request.getServiceType());
+        entity.setName(request.getName());
+        entity.setDisplayName(request.getDisplayName());
+        entity.setDescription(request.getDescription());
+        entity.setTags(request.getTags());
+        entity.setUpdatedBy(user);
+        entity.setUpdatedAt(System.currentTimeMillis());
+        return entity;
+    }
+
+    private List<EntityReference> validateOwners(List<EntityReference> owners) {
+        // TODO : 사용자 검증
+        return owners;
     }
 }

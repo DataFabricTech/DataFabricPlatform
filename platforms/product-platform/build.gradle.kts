@@ -20,6 +20,7 @@ dependencies {
         api("com.mysql:mysql-connector-j:9.1.0")
         // flyway
         api("org.flywaydb:flyway-core:11.0.1")
+        api("org.flywaydb:flyway-mysql:11.0.1")
         // MyBatis
         api("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4")
         // SpringBoot DevTools

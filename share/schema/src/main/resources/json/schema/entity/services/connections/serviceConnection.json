@@ -9,16 +9,7 @@
       "description": "Supported services",
       "oneOf": [
         {
-          "$ref": "../apiService.json#/definitions/apiConnection"
-        },
-        {
-          "$ref": "../databaseService.json#/definitions/databaseConnection"
-        },
-        {
           "$ref": "../storageService.json#/definitions/storageConnection"
-        },
-        {
-          "$ref": "../searchService.json#/definitions/searchConnection"
         }
       ]
     }
