@@ -35,7 +35,7 @@ public class GlobalExceptionAdvice {
     @ResponseBody
     @ExceptionHandler(CustomException.class)
     public Object CustomExceptionHandler( CustomException e ) {
-        log.error( "User(Service)Define Exception[ {} ][ {} ]", e.getErrorCode().getName(), e.getMessage(), e );
+        log.error( "User(Services)Define Exception[ {} ][ {} ]", e.getErrorCode().getName(), e.getMessage(), e );
         e.printStackTrace();
 //        Sentry.captureException( e );
         return e;

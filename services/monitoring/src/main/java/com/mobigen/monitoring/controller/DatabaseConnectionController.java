@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/database")
+@RequestMapping("/api/v1/database")
 public class DatabaseConnectionController {
 
     private final DatabaseManagementService databaseConnectionService;

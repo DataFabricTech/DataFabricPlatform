@@ -1,5 +1,8 @@
 package com.mobigen.monitoring.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum DatabaseType {
     ORACLE("Oracle"),
     MINIO("Minio"),

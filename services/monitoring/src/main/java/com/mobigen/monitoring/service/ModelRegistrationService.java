@@ -15,20 +15,8 @@ import java.util.List;
 public class ModelRegistrationService {
     private final ModelRegistrationRepository modelRegistrationRepository;
 
-    public void saveModelRegistrations(List<ModelRegistration> modelRegistrationList) {
-        modelRegistrationRepository.saveAll(modelRegistrationList);
-    }
-
-    public List<Object> getModelRegistrations(boolean deleted, PageRequest pageRequest) {
-        return null;
-    }
-
     public Long getCount() {
         return modelRegistrationRepository.count();
-    }
-
-    public void deleteAll() {
-        modelRegistrationRepository.deleteAll();
     }
 
     public ModelRegistrationResponseDto getAllModelRegistration(final boolean deleted, final PageRequest pageRequest) {
