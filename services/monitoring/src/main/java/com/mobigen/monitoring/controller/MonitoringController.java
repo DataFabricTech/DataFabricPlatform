@@ -33,16 +33,18 @@ public class MonitoringController {
     private final ConnectionService connectionService;
     private final ServicesService servicesService;
     private final ConnectionHistoryService connectionHistoryService;
+    private final ModelRegistrationService modelRegistrationService;
 
 
     public MonitoringController(
             final ConnectionService connectionService,
             final ConnectionHistoryService connectionHistoryService,
-            final ServicesService servicesService
+            final ServicesService servicesService, final ModelRegistrationService modelRegistrationService
     ) {
         this.connectionService = connectionService;
         this.servicesService = servicesService;
         this.connectionHistoryService = connectionHistoryService;
+        this.modelRegistrationService = modelRegistrationService;
         this.monitoringService = new MonitoringService(null);
     }
 
@@ -420,5 +422,50 @@ public class MonitoringController {
         final PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 
         return connectionHistoryService.getConnectionHistory(serviceId, pageRequest);
+    }
+
+    @Operation(
+            operationId = "model",
+            summary = "Registrations of Model",
+            description =
+                    "데이터 모델 등록 현황 API",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "데이터 모델의 등록 현황 정보",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schemaProperties = {
+                                            @SchemaProperty(name = "totalSize",
+                                                    schema = @Schema(implementation = Long.class)),
+                                            @SchemaProperty(name = "data",
+                                                    array = @ArraySchema(
+                                                            schema = @Schema(implementation = CommonResponseDto.class)))
+                                    })
+                    )
+            })
+    @GetMapping("/models")
+    public Object models(
+            @Parameter(description = "평균 응답 시간의 내림차순 혹은 오름차순을 정하기 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "orderByAsc", required = false,
+                    defaultValue = "false") boolean orderBy,
+            @Parameter(description = "서비스의 삭제 유무를 위한 매개변수",
+                    schema = @Schema(type = "boolean", example = "true"))
+            @RequestParam(value = "deleted", required = false,
+                    defaultValue = "false") boolean deleted,
+            @RequestParam(value = "pageNumber", required = false,
+                    defaultValue = "${pageable-config.registration.page_number}") @Min(0) int pageNumber,
+            @Parameter(description = "한 페이지에 표시할 데이터의 수를 나타내는 매개변수",
+                    schema = @Schema(type = "int", example = "5"))
+            @RequestParam(value = "pageSize", required = false,
+                    defaultValue = "${pageable-config.registration.page_size}") @Min(1) int pageSize
+    ) {
+        final PageRequest pageRequest = PageRequest.of(
+                pageNumber,
+                pageSize,
+                orderBy ? Sort.by("updated_at").ascending() : Sort.by("updated_at").descending());
+
+        return modelRegistrationService.getAllModelRegistration(deleted, pageRequest);
     }
 }
