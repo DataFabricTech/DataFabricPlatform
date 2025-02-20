@@ -18,12 +18,12 @@ public class SwaggerConfig {
                         .version("1.0")
                         .description("API documentation using springdoc-openapi and Swagger UI"));
     }
-
-    @Bean
-    public GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-                .group("v1")
-                .pathsToMatch("/api/v1/**") // 특정 경로만 API 문서에 포함
-                .build();
-    }
+//
+//    @Bean
+//    public GroupedOpenApi publicApi() {
+//        return GroupedOpenApi.builder()
+//                .group("v1")
+//                .pathsToMatch("/api/v1/**") // 특정 경로만 API 문서에 포함
+//                .build();
+//    }
 }
