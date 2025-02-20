@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Object unknownExceptionHandler( Exception e ) {
         log.error("Unknown Exception[ {} ]", e.getMessage(), e);
-        return new CustomException( "unknown exception", e);
+        return new CustomException( "unknown exception", e, null);
     }
 
     /*

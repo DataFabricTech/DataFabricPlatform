@@ -10,6 +10,13 @@ plugins {
 group = "${group}.share"
 version = "1.0.0"
 
+// Custom Annotation : Reflection 처리와 Password 필드로 인해 필요
+buildscript {
+    dependencies {
+        classpath("com.mobigen.vdap.libs:common")
+    }
+}
+
 dependencies {
     annotationProcessor(platform("com.mobigen.platform:product-platform"))
     implementation(platform("com.mobigen.platform:product-platform"))
@@ -21,6 +28,10 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("jakarta.validation:jakarta.validation-api")
 
+    // Custom Annotation : Reflection 처리와 Password 필드로 인해 필요
+    implementation("com.mobigen.vdap.libs:common")
+    implementation("org.jsonschema2pojo:jsonschema2pojo-core")
+    implementation("org.glassfish.jaxb:codemodel")
 }
 
 jsonSchema2Pojo {
@@ -64,7 +75,6 @@ jsonSchema2Pojo {
     // Whether to add a prefix to generated classes.
     classNamePrefix = ""
 
-
     // String classNameSuffix
     // Whether to add a suffix to generated classes.
     classNameSuffix = ""
@@ -76,7 +86,8 @@ jsonSchema2Pojo {
     // A fully qualified class name, referring to a custom annotator class that implements
     // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
     // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
-    // ex > customAnnotator = 'org.jsonschema2pojo.NoopAnnotator'
+//    customAnnotator = 'com.mobigen.vdap.common.JsonAnnotator'
+    setCustomAnnotator("com.mobigen.vdap.common.annotations.JsonAnnotator")
 
     // Class<? extends RuleFactory> customRuleFactory
     // A class that extends org.jsonschema2pojo.rules.RuleFactory and will be used to

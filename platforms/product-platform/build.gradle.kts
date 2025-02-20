@@ -27,5 +27,8 @@ dependencies {
         api("org.springframework.boot:spring-boot-devtools:3.4.0")
         // RestAPI - Swagger Document
         api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
+        // For JSONSchema2Pojo + Annotation
+        api("org.jsonschema2pojo:jsonschema2pojo-core:1.2.2")
+        api("org.glassfish.jaxb:codemodel:4.0.5")
     }
 }

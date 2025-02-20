@@ -73,6 +73,9 @@
     "storageConnection": {
       "type": "object",
       "javaType": "com.mobigen.vdap.schema.type.StorageConnection",
+      "javaInterfaces": [
+        "com.mobigen.vdap.schema.ServiceConnectionEntityInterface"
+      ],
       "description": "Storage Connection.",
       "properties": {
         "config": {

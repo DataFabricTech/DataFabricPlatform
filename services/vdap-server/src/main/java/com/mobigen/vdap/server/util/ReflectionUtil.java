@@ -1,7 +1,10 @@
 package com.mobigen.vdap.server.util;
 
 import com.mobigen.vdap.schema.entity.services.ServiceType;
+import com.mobigen.vdap.server.exception.CustomException;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Locale;
 
 public class ReflectionUtil {
@@ -31,35 +34,35 @@ public class ReflectionUtil {
         return Class.forName(clazzName);
     }
 
-//  public static void setValueInMethod(Object toEncryptObject, String fieldValue, Method toSet) {
-//    try {
-//      toSet.invoke(toEncryptObject, fieldValue);
-//    } catch (IllegalAccessException | InvocationTargetException e) {
-//      throw new CustomException(e.getMessage(), toEncryptObject);
-//    }
-//  }
-//
-//  public static Method getToSetMethod(Object toEncryptObject, Object obj, String fieldName) {
-//    try {
-//      return toEncryptObject.getClass().getMethod("set" + fieldName, obj.getClass());
-//    } catch (NoSuchMethodException e) {
-//      throw new ReflectionException(e.getMessage());
-//    }
-//  }
-//
-//  public static Object getObjectFromMethod(Method method, Object toEncryptObject) {
-//    Object obj;
-//    try {
-//      obj = method.invoke(toEncryptObject);
-//    } catch (IllegalAccessException | InvocationTargetException e) {
-//      throw new ReflectionException(e.getMessage());
-//    }
-//    return obj;
-//  }
-//
-//  public static boolean isGetMethodOfObject(Method method) {
-//    return method.getName().startsWith("get")
-//        && !method.getReturnType().equals(Void.TYPE)
-//        && !method.getReturnType().isPrimitive();
-//  }
+    public static void setValueInMethod(Object toEncryptObject, String fieldValue, Method toSet) {
+        try {
+            toSet.invoke(toEncryptObject, fieldValue);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new CustomException(e.getMessage(), toEncryptObject);
+        }
+    }
+
+    public static Method getToSetMethod(Object toEncryptObject, Object obj, String fieldName) {
+        try {
+            return toEncryptObject.getClass().getMethod("set" + fieldName, obj.getClass());
+        } catch (NoSuchMethodException e) {
+            throw new CustomException(e.getMessage(), e, obj);
+        }
+    }
+
+    public static Object getObjectFromMethod(Method method, Object toEncryptObject) {
+        Object obj;
+        try {
+            obj = method.invoke(toEncryptObject);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new CustomException(e.getMessage(), e, toEncryptObject);
+        }
+        return obj;
+    }
+
+    public static boolean isGetMethodOfObject(Method method) {
+        return method.getName().startsWith("get")
+                && !method.getReturnType().equals(Void.TYPE)
+                && !method.getReturnType().isPrimitive();
+    }
 }

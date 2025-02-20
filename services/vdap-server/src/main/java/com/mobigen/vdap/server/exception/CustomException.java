@@ -10,4 +10,8 @@ public class CustomException extends RuntimeException {
         super(message);
         this.causedObject = causedObject;
     }
+    public CustomException(String message, Throwable e, Object causedObject) {
+        super(message, e);
+        this.causedObject = causedObject;
+    }
 }
