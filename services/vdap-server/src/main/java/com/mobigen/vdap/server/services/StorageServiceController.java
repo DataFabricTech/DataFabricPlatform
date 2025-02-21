@@ -8,6 +8,7 @@ import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.server.annotations.CommonResponse;
 import com.mobigen.vdap.server.response.CommonResponseDto;
+import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -645,8 +646,7 @@ public class StorageServiceController {
     public StorageService createToEntity(CreateStorageService request, String user) {
         StorageService entity = new StorageService();
         entity.setOwners(request.getOwners());
-        // TODO : UUIDv7
-//        entity.setId(UUID.randomUUID());
+        entity.setId(Utilities.generateUUID());
         entity.setKindOfService(request.getKindOfService());
         entity.setServiceType(request.getServiceType());
         entity.setName(request.getName());
@@ -654,8 +654,7 @@ public class StorageServiceController {
         entity.setDescription(request.getDescription());
         entity.setTags(request.getTags());
         entity.setUpdatedBy(user);
-        // TODO : Set LocalDatetime
-//        entity.setUpdatedAt(System.currentTimeMillis());
+        entity.setUpdatedAt(Utilities.getLocalDateTime());
         return entity;
     }
 

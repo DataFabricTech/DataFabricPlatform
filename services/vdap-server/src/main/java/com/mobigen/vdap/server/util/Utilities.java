@@ -6,6 +6,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import com.fasterxml.uuid.Generators;
 
 public class Utilities {
   private Utilities() {}
@@ -54,5 +57,13 @@ public class Utilities {
     DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(format);
 
     return dateTime.format(dateFormat);
+  }
+
+  public static UUID generateUUID() {
+    return Generators.timeBasedEpochGenerator().generate();
+  }
+
+  public static LocalDateTime getLocalDateTime() {
+    return LocalDateTime.now(ZoneId.of("Asia/Seoul"));
   }
 }

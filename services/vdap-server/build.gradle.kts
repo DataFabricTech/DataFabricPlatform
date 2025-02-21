@@ -47,6 +47,8 @@ dependencies {
     // Flyway Database Migration
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
+    // For UUIDv7
+    implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
 
     // OpenApi
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
