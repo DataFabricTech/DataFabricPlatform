@@ -13,7 +13,13 @@ version = "1.0.0"
 // Custom Annotation : Reflection 처리와 Password 필드로 인해 필요
 buildscript {
     dependencies {
-        classpath("com.mobigen.vdap.libs:common")
+        // classpath(project(":annotator")) -> 실패
+        // classpath("com.mobigen.vdap.share:annotator")) -> 실패
+        // classpath(files("com.mobigen.vdap.share:annotator")) -> 실패
+        // classpath(files("${rootProject.projectDir}/annotator/build/classes")) -> 싶패
+        // 아래와 같이 com 으로 시작하는 폴더까지 지정해줘야 classloader 에 의해 로드되고
+        // jsonschema2pojo 의 customAnnotator 에 설정할 수 있게 됨.
+        classpath(files("${rootProject.projectDir}/annotator/build/classes/java/main"))
     }
 }
 
@@ -29,7 +35,7 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api")
 
     // Custom Annotation : Reflection 처리와 Password 필드로 인해 필요
-    implementation("com.mobigen.vdap.libs:common")
+    implementation(project(":annotator"))
     implementation("org.jsonschema2pojo:jsonschema2pojo-core")
     implementation("org.glassfish.jaxb:codemodel")
 }
@@ -82,12 +88,6 @@ jsonSchema2Pojo {
     // String[] fileExtensions
     // An array of strings that should be considered as file extensions and therefore not included in class names.
 
-    // Class<? extends Annotator> customAnnotator
-    // A fully qualified class name, referring to a custom annotator class that implements
-    // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
-    // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
-//    customAnnotator = 'com.mobigen.vdap.common.JsonAnnotator'
-    setCustomAnnotator("com.mobigen.vdap.common.annotations.JsonAnnotator")
 
     // Class<? extends RuleFactory> customRuleFactory
     // A class that extends org.jsonschema2pojo.rules.RuleFactory and will be used to
@@ -351,4 +351,20 @@ jsonSchema2Pojo {
     // Whether to use annotations from jakarta.validation package instead of javax.validation package
     // when adding JSR-303 annotations to generated Java types
     useJakartaValidation = true
+}
+
+tasks.named("generateJsonSchema2Pojo") {
+    dependsOn(":annotator:build")
+    val annotatorPath = file("${rootProject.projectDir}/annotator/build/classes/java/main")
+    if (annotatorPath.exists()) {
+        // Class<? extends Annotator> customAnnotator
+        // A fully qualified class name, referring to a custom annotator class that implements
+        // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
+        // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
+        // configurations.get("customAnnotator").setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
+        jsonSchema2Pojo.setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
+        println("Set Custom Annotator")
+    } else {
+        println("Annotator classes not found in the specified path: ${annotatorPath.path}")
+    }
 }

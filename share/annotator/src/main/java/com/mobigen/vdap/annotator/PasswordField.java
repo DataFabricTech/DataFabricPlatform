@@ -1,4 +1,4 @@
-package com.mobigen.vdap.common.annotations;
+package com.mobigen.vdap.annotator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

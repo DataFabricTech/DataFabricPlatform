@@ -17,8 +17,8 @@ dependencyResolutionManagement {
 }
 
 includeBuild("../platforms")
-includeBuild("../libs")
 
 rootProject.name = "share" // the component name
 
-include("schema")
+include(":annotator")
+include(":schema")

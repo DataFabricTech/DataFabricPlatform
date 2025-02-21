@@ -1,4 +1,4 @@
-package com.mobigen.vdap.common.annotations;
+package com.mobigen.vdap.annotator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.codemodel.*;
