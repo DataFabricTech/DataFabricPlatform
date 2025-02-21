@@ -56,7 +56,7 @@
   "properties": {
     "lastUpdatedAt": {
       "description": "Last time that the test connection was executed",
-      "$ref": "../../../type/basic.json#/definitions/timestamp"
+      "$ref": "../../../type/basic.json#/definitions/dateTime"
     },
     "status": {
       "description": "Test Connection Result computation status.",

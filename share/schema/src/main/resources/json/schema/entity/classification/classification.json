@@ -31,8 +31,8 @@
       "minimum": 0
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in kst date-time.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",

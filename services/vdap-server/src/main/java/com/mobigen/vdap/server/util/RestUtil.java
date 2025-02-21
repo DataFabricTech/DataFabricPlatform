@@ -23,10 +23,11 @@ public final class RestUtil {
 
     static {
         // Quoted "Z" to indicate UTC, no timezone offset
-        DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+//        customDateTimePattern = "yyyy-MM-dd HH:mm:ss.SSSZ"
+        DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Asia/Seoul")); // KST 기준
 
-        DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"));
+        DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("Asia/Seoul"));
     }
 
     private RestUtil() {

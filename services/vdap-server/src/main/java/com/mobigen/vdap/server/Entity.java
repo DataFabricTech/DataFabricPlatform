@@ -1,11 +1,9 @@
 package com.mobigen.vdap.server;
 
-import com.mobigen.vdap.schema.entity.services.ServiceType;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
-
-import static com.mobigen.vdap.common.utils.CommonUtil.listOf;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Slf4j
 public final class Entity {
@@ -42,11 +40,10 @@ public final class Entity {
     //
     // Service entities
     //
-    public static final String DATABASE_SERVICE = "databaseService";
+//    public static final String DATABASE_SERVICE = "databaseService";
+//    public static final String SEARCH_SERVICE = "searchService";
+//    public static final String API_SERVICE = "apiService";
     public static final String STORAGE_SERVICE = "storageService";
-    public static final String SEARCH_SERVICE = "searchService";
-
-    public static final String API_SERVICE = "apiService";
     //
     // Data asset entities
     //
@@ -61,6 +58,7 @@ public final class Entity {
     public static final String API_ENDPOINT = "apiEndpoint";
 
     public static final String API = "api";
+
     public static final String BUCKET = "bucket";
     public static final String FOLDER = "folder";
     public static final String OBJECT = "object";
@@ -88,44 +86,44 @@ public final class Entity {
     public static final String ADMIN_USER_NAME = "admin";
 
     // ServiceType - Service Entity name map
-    static final Map<ServiceType, String> SERVICE_TYPE_ENTITY_MAP = new EnumMap<>(ServiceType.class);
-    // entity type to service entity name map
-    static final Map<String, String> ENTITY_SERVICE_TYPE_MAP = new HashMap<>();
-    public static final List<String> PARENT_ENTITY_TYPES = new ArrayList<>();
+//    static final Map<ServiceType, String> SERVICE_TYPE_ENTITY_MAP = new EnumMap<>(ServiceType.class);
+//    // entity type to service entity name map
+//    static final Map<String, String> ENTITY_SERVICE_TYPE_MAP = new HashMap<>();
+//    public static final List<String> PARENT_ENTITY_TYPES = new ArrayList<>();
+//
+//    static {
+////        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.DATABASE, DATABASE_SERVICE);
+//        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.STORAGE, STORAGE_SERVICE);
 
-    static {
-        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.DATABASE, DATABASE_SERVICE);
-        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.STORAGE, STORAGE_SERVICE);
-        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.SEARCH, SEARCH_SERVICE);
-        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.API, API_SERVICE);
-
-        ENTITY_SERVICE_TYPE_MAP.put(DATABASE, DATABASE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(DATABASE_SCHEMA, DATABASE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(TABLE, DATABASE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(QUERY, DATABASE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(API, API_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(API_COLLCECTION, API_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(API_ENDPOINT, API_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(BUCKET, STORAGE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(FOLDER, STORAGE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(OBJECT, STORAGE_SERVICE);
-        ENTITY_SERVICE_TYPE_MAP.put(SEARCH_INDEX, SEARCH_SERVICE);
-
-        PARENT_ENTITY_TYPES.addAll(
-                listOf(
-                        DATABASE_SERVICE,
-                        API_SERVICE,
-                        API_COLLCECTION,
-                        STORAGE_SERVICE,
-                        SEARCH_SERVICE,
-                        DATABASE,
-                        DATABASE_SCHEMA,
-                        CLASSIFICATION,
-                        GLOSSARY,
-                        TEST_SUITE
-                ));
-    }
-
+    /// /        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.SEARCH, SEARCH_SERVICE);
+    /// /        SERVICE_TYPE_ENTITY_MAP.put(ServiceType.API, API_SERVICE);
+//
+//        ENTITY_SERVICE_TYPE_MAP.put(DATABASE, DATABASE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(DATABASE_SCHEMA, DATABASE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(TABLE, DATABASE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(QUERY, DATABASE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(API, API_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(API_COLLCECTION, API_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(API_ENDPOINT, API_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(BUCKET, STORAGE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(FOLDER, STORAGE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(OBJECT, STORAGE_SERVICE);
+//        ENTITY_SERVICE_TYPE_MAP.put(SEARCH_INDEX, SEARCH_SERVICE);
+//
+//        PARENT_ENTITY_TYPES.addAll(
+//                listOf(
+//                        DATABASE_SERVICE,
+//                        API_SERVICE,
+//                        API_COLLCECTION,
+//                        STORAGE_SERVICE,
+//                        SEARCH_SERVICE,
+//                        DATABASE,
+//                        DATABASE_SCHEMA,
+//                        CLASSIFICATION,
+//                        GLOSSARY,
+//                        TEST_SUITE
+//                ));
+//    }
     private Entity() {
     }
 

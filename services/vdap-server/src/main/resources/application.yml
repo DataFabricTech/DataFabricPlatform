@@ -33,10 +33,6 @@ spring:
     encoding: utf-8
 
 
-#mybatis:
-#  mapper-locations	Locations of Mapper xml config file.
-#  mapper-locations: classpath:mapper/**/*.xml
-
 otel:
 # service.name: 설정하지 않을 경우 spring.application.name 을 사용 함.
   exporter:

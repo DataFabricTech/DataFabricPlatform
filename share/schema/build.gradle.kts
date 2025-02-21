@@ -301,6 +301,14 @@ jsonSchema2Pojo {
     // when generating bean properties (has the side-effect of making those properties non-null).
     // ex> usePrimitives = false
 
+    // Class<? extends Annotator> customAnnotator
+    // A fully qualified class name, referring to a custom annotator class that implements
+    // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
+    // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
+    // configurations.get("customAnnotator").setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
+//     setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
+//    customAnnotator = Class.forName(clazz, true, this.class.classLoader)
+
     // FileFilter fileFilter
     // A customer file filter to allow input files to be filtered/ignored
     // fileFilter = new AllFileFilter()
@@ -326,7 +334,7 @@ jsonSchema2Pojo {
     // String customDateTimePattern
     // A custom pattern to use when formatting date-time fields during serialization. Requires support from
     // your JSON binding library.
-    customDateTimePattern = "yyyy-MM-dd HH:mm:ss.SSSZ"
+    customDateTimePattern = "yyyy-MM-dd HH:mm:ss.SSS"
 
     // String refFragmentPathDelimiters
     // Which characters to use as 'path fragment delimiters' when trying to resolve a ref
@@ -353,18 +361,33 @@ jsonSchema2Pojo {
     useJakartaValidation = true
 }
 
-tasks.named("generateJsonSchema2Pojo") {
-    dependsOn(":annotator:build")
-    val annotatorPath = file("${rootProject.projectDir}/annotator/build/classes/java/main")
-    if (annotatorPath.exists()) {
-        // Class<? extends Annotator> customAnnotator
-        // A fully qualified class name, referring to a custom annotator class that implements
-        // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
-        // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
-        // configurations.get("customAnnotator").setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
-        jsonSchema2Pojo.setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
-        println("Set Custom Annotator")
-    } else {
-        println("Annotator classes not found in the specified path: ${annotatorPath.path}")
+//tasks.named("generateJsonSchema2Pojo") {
+//    dependsOn(":share:annotator")
+//    val annotatorPath = file("${rootProject.projectDir}/annotator/build/classes/java/main")
+//    if (annotatorPath.exists()) {
+//        // Class<? extends Annotator> customAnnotator
+//        // A fully qualified class name, referring to a custom annotator class that implements
+//        // org.jsonschema2pojo.Annotator and will be used in addition to the one chosen
+//        // by annotationStyle. If you want to use the custom annotator alone, set annotationStyle to none.
+//        // configurations.get("customAnnotator").setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")
+//        jsonSchema2Pojo{setCustomAnnotator("com.mobigen.vdap.annotator.JsonAnnotator")}
+//        println("Set Custom Annotator")
+//    } else {
+//        println("Annotator classes not found in the specified path: ${annotatorPath.path}")
+//        throw Exception("Annotator classes not found. build first annotator")
+//    }
+//}
+
+afterEvaluate {
+    tasks.named("generateJsonSchema2Pojo") {
+        doFirst {
+            try {
+                val annotator = "com.mobigen.vdap.annotator.JsonAnnotator"
+                jsonSchema2Pojo.setCustomAnnotator(annotator)
+            } catch (e: ClassNotFoundException) {
+                println("⚠️ Warning: 클래스 를 찾을 수 없습니다. Annotator 를 먼저 빌드해주세요.")
+                throw Exception("need build annotator")
+            }
+        }
     }
 }

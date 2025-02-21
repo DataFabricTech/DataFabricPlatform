@@ -13,88 +13,85 @@
 
 package com.mobigen.vdap.server.tags;
 
+import com.mobigen.vdap.common.utils.CommonUtil;
 import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.entity.data.Glossary;
 import com.mobigen.vdap.schema.entity.data.GlossaryTerm;
 import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
+import com.mobigen.vdap.server.util.EntityUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mobigen.vdap.common.utils.CommonUtil.listOrEmpty;
-import static com.mobigen.vdap.common.utils.CommonUtil.nullOrEmpty;
-import static com.mobigen.vdap.schema.type.Include.NON_DELETED;
-import static com.mobigen.vdap.service.util.EntityUtil.compareTagLabel;
-
 @Slf4j
-@Component
+@Service
 public class TagLabelUtil {
-    private TagRepository repository;
+//    private final TagRepository tagRepository;
+//    private final ClassificationRepository classificationRepository;
+//    private final GlossaryRepository glossaryRepository;
+//    private final GlossaryTermRepository glossaryTermRepository;
+//    private final TagUsageRepository tagUsageRepository;
 
-    private TagLabelUtil() {
-        // Private constructor for utility class
+    public Classification getClassification(UUID id) {
+//        return classificationRepository.getEntityById(id, NON_DELETED);
+        return null;
     }
 
-    public static Classification getClassification(String classificationName) {
-        return repository.getEntityByName(repository.CLASSIFICATION, classificationName, "", NON_DELETED);
+    public Tag getTag(UUID id) {
+//        return tagRepository.getEntityById(id, NON_DELETED);
+        return null;
     }
 
-    public static Tag getTag(String tagFqn) {
-        return repository.getEntityByName(repository.TAG, tagFqn, "", NON_DELETED);
+    public Glossary getGlossary(UUID id) {
+//        return glossaryRepository.getEntityById(id, NON_DELETED);
+        return null;
     }
 
-    public static Glossary getGlossary(String glossaryName) {
-        return Entity.getEntityByName(Entity.GLOSSARY, glossaryName, "", NON_DELETED);
+    public GlossaryTerm getGlossaryTerm(UUID id) {
+//        return glossaryTermRepository.getEntityById(id, NON_DELETED);
+        return null;
     }
 
-    public static GlossaryTerm getGlossaryTerm(String glossaryTermFqn) {
-        return Entity.getEntityByName(Entity.GLOSSARY_TERM, glossaryTermFqn, "", NON_DELETED);
-    }
-
-    public static void applyTagCommonFields(TagLabel label) {
+    public void applyTagCommonFields(TagLabel label) {
         if (label.getSource() == TagSource.CLASSIFICATION) {
-            Tag tag = getTag(label.getTagFQN());
+            Tag tag = getTag(label.getId());
             label.setName(tag.getName());
             label.setDisplayName(tag.getDisplayName());
             label.setDescription(tag.getDescription());
-            label.setStyle(tag.getStyle());
         } else if (label.getSource() == TagSource.GLOSSARY) {
-            GlossaryTerm glossaryTerm = getGlossaryTerm(label.getTagFQN());
+            GlossaryTerm glossaryTerm = getGlossaryTerm(label.getId());
             label.setName(glossaryTerm.getName());
             label.setDisplayName(glossaryTerm.getDisplayName());
             label.setDescription(glossaryTerm.getDescription());
-            label.setStyle(glossaryTerm.getStyle());
         } else {
             throw new IllegalArgumentException("Invalid source type " + label.getSource());
         }
     }
 
-    /**
-     * Returns true if the parent of the tag label is mutually exclusive
-     */
-    public static boolean mutuallyExclusive(TagLabel label) {
+    //    /**
+//     * Returns true if the parent of the tag label is mutually exclusive
+//     */
+    public boolean mutuallyExclusive(TagLabel label) {
         String[] fqnParts = FullyQualifiedName.split(label.getTagFQN());
         String parentFqn = FullyQualifiedName.getParentFQN(fqnParts);
         boolean rootParent = fqnParts.length == 2;
         if (label.getSource() == TagSource.CLASSIFICATION) {
-            return rootParent
-                    ? getClassification(parentFqn).getMutuallyExclusive()
+            return rootParent ? getClassification(parentFqn).getMutuallyExclusive()
                     : getTag(parentFqn).getMutuallyExclusive();
         } else if (label.getSource() == TagSource.GLOSSARY) {
-            return rootParent
-                    ? getGlossary(parentFqn).getMutuallyExclusive()
+            return rootParent ? getGlossary(parentFqn).getMutuallyExclusive()
                     : getGlossaryTerm(parentFqn).getMutuallyExclusive();
         } else {
             throw new IllegalArgumentException("Invalid source type " + label.getSource());
         }
     }
 
-    public static List<TagLabel> addDerivedTags(List<TagLabel> tagLabels) {
-        if (nullOrEmpty(tagLabels)) {
+    public List<TagLabel> addDerivedTags(List<TagLabel> tagLabels) {
+        if (CommonUtil.nullOrEmpty(tagLabels)) {
             return tagLabels;
         }
 
@@ -107,33 +104,32 @@ public class TagLabelUtil {
         for (TagLabel tagLabel : tagLabels) {
             EntityUtil.mergeTags(updatedTagLabels, getDerivedTags(tagLabel));
         }
-        updatedTagLabels.sort(compareTagLabel);
+        updatedTagLabels.sort(EntityUtil.compareTagLabel);
         return updatedTagLabels;
     }
 
-    private static List<TagLabel> getDerivedTags(TagLabel tagLabel) {
-        if (tagLabel.getSource()
-                == TagLabel.TagSource.GLOSSARY) { // Related tags are only supported for Glossary
+    private List<TagLabel> getDerivedTags(TagLabel tagLabel) {
+        if (tagLabel.getSource() == TagLabel.TagSource.GLOSSARY) { // Related tags are only supported for Glossary
             List<TagLabel> derivedTags =
-                    Entity.getCollectionDAO().tagUsageDAO().getTags(tagLabel.getTagFQN());
+                    repository.tagUsageDAO().getTags(tagLabel.getTagFQN());
             derivedTags.forEach(tag -> tag.setLabelType(TagLabel.LabelType.DERIVED));
             return derivedTags;
         }
         return Collections.emptyList();
     }
 
-    public static List<TagLabel> getUniqueTags(List<TagLabel> tags) {
-        Set<TagLabel> uniqueTags = new TreeSet<>(compareTagLabel);
+    public List<TagLabel> getUniqueTags(List<TagLabel> tags) {
+        Set<TagLabel> uniqueTags = new TreeSet<>(EntityUtil.compareTagLabel);
         uniqueTags.addAll(tags);
         return uniqueTags.stream().toList();
     }
 
-    public static void checkMutuallyExclusive(List<TagLabel> tagLabels) {
+    public void checkMutuallyExclusive(List<TagLabel> tagLabels) {
         Map<String, TagLabel> map = new HashMap<>();
-        for (TagLabel tagLabel : listOrEmpty(tagLabels)) {
+        for (TagLabel tagLabel : CommonUtil.listOrEmpty(tagLabels)) {
             // When two tags have the same parent that is mutuallyExclusive, then throw an error
-            String parentFqn = FullyQualifiedName.getParentFQN(tagLabel.getTagFQN());
-            TagLabel stored = map.put(parentFqn, tagLabel);
+            String parentId = tagLabel.getParents();
+            TagLabel stored = map.put(parentId, tagLabel);
             if (stored != null && TagLabelUtil.mutuallyExclusive(tagLabel)) {
                 throw new IllegalArgumentException(
                         CatalogExceptionMessage.mutuallyExclusiveLabels(tagLabel, stored));
@@ -141,18 +137,19 @@ public class TagLabelUtil {
         }
     }
 
-    public static void checkDisabledTags(List<TagLabel> tagLabels) {
-        for (TagLabel tagLabel : listOrEmpty(tagLabels)) {
+    public void checkDisabledTags(List<TagLabel> tagLabels) {
+        for (TagLabel tagLabel : CommonUtil.listOrEmpty(tagLabels)) {
             if (tagLabel.getSource().equals(TagSource.CLASSIFICATION)) {
-                Tag tag = Entity.getCollectionDAO().tagDAO().findEntityByName(tagLabel.getTagFQN());
+                Tag tag = getTag(tagLabel.getId());
                 if (tag.getDisabled()) {
-                    throw new IllegalArgumentException(CatalogExceptionMessage.disabledTag(tagLabel));
+                    throw new IllegalArgumentException(String.format(
+                            "Tag label [%s]/[%s] is disabled and can't be assigned to a data asset.", tag.getId(), tag.getName()));
                 }
             }
         }
     }
 
-    public static void checkMutuallyExclusiveForParentAndSubField(
+    public void checkMutuallyExclusiveForParentAndSubField(
             String assetFqn,
             String assetFqnHash,
             Map<String, List<TagLabel>> allAssetTags,
@@ -211,7 +208,7 @@ public class TagLabelUtil {
         }
     }
 
-    public static String converTagLabelArrayToString(List<TagLabel> tags) {
+    public String converTagLabelArrayToString(List<TagLabel> tags) {
         return String.format(
                 "[%s]", tags.stream().map(tag -> tag.getId().toString()).collect(Collectors.joining(", ")));
     }

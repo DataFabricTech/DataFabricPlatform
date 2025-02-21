@@ -645,7 +645,8 @@ public class StorageServiceController {
     public StorageService createToEntity(CreateStorageService request, String user) {
         StorageService entity = new StorageService();
         entity.setOwners(request.getOwners());
-        entity.setId(UUID.randomUUID());
+        // TODO : UUIDv7
+//        entity.setId(UUID.randomUUID());
         entity.setKindOfService(request.getKindOfService());
         entity.setServiceType(request.getServiceType());
         entity.setName(request.getName());
@@ -653,7 +654,8 @@ public class StorageServiceController {
         entity.setDescription(request.getDescription());
         entity.setTags(request.getTags());
         entity.setUpdatedBy(user);
-        entity.setUpdatedAt(System.currentTimeMillis());
+        // TODO : Set LocalDatetime
+//        entity.setUpdatedAt(System.currentTimeMillis());
         return entity;
     }
 

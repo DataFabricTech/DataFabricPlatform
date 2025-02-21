@@ -11,10 +11,11 @@ dependencies {
     implementation(platform("com.mobigen.platform:product-platform"))
     developmentOnly(platform("com.mobigen.platform:product-platform"))
     testImplementation(platform("com.mobigen.platform:test-platform"))
-    // Open VDAP Schema
-    implementation("com.mobigen.vdap.share:schema")
     // Common
     implementation("com.mobigen.vdap.libs:common")
+    // VDAP Schema
+    implementation("com.mobigen.vdap.share:annotator")
+    implementation("com.mobigen.vdap.share:schema")
 
     // Lombok (Optional, for reducing boilerplate code)
     compileOnly("org.projectlombok:lombok")
@@ -37,13 +38,15 @@ dependencies {
     // AOP
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
+    // JDBC
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    // JPA
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     // MySQL Driver
     implementation("com.mysql:mysql-connector-j")
     // Flyway Database Migration
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
-    // MyBatis
-    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter")
 
     // OpenApi
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
