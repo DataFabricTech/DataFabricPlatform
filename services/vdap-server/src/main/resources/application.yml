@@ -5,14 +5,13 @@ server:
     context-path: "/vdap"
   tomcat:
     threads:
-      max: 20
+      max: 20     # Default 200
 
 logging:
   level:
     root: "info"
     #org.springframework: "info"
     #java.net: "debug"
-
 
 spring:
   application:
@@ -31,7 +30,22 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     encoding: utf-8
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,refresh
+      cors:
+        allowed-methods: "GET,POST"
 
 otel:
 # service.name: 설정하지 않을 경우 spring.application.name 을 사용 함.
