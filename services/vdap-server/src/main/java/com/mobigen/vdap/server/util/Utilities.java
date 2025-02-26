@@ -1,16 +1,29 @@
 package com.mobigen.vdap.server.util;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import com.fasterxml.uuid.Generators;
 
 public class Utilities {
+  public static final DateFormat DATE_TIME_FORMAT;
+  public static final DateTimeFormatter DATE_FORMAT;
+
+  static {
+//        customDateTimePattern = "yyyy-MM-dd HH:mm:ss.SSSZ"
+    DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Asia/Seoul")); // KST 기준
+
+    DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("Asia/Seoul"));
+  }
   private Utilities() {}
 
   public static List<String> getLastSevenDays(long currentEpochTimestampInMilli) {

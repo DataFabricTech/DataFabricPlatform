@@ -33,16 +33,15 @@ public class StorageServiceApp {
     }
 
     public void prepareInternal(StorageService entity) {
-//        validateTags(entity);
+        validateTags(entity);
         prepare(entity);
     }
 
     protected void validateTags(StorageService entity) {
         validateTags(entity.getTags());
-        // TODO : tag 처리 해야 함.
-//        entity.setTags(addDerivedTags(entity.getTags()));
-//        checkMutuallyExclusive(entity.getTags());
-//        checkDisabledTags(entity.getTags());
+        entity.setTags(tagLabelUtil.addDerivedTags(entity.getTags()));
+        tagLabelUtil.checkMutuallyExclusive(entity.getTags());
+        tagLabelUtil.checkDisabledTags(entity.getTags());
     }
 
     protected void validateTags(List<TagLabel> labels) {
@@ -91,7 +90,8 @@ public class StorageServiceApp {
 
         StorageServiceEntity storageServiceEntity = StorageServiceEntity.builder()
                 .id(entity.getId().toString())
-                .kind(entity.getKindOfService())
+                .name(entity.getName())
+                .kind(entity.getKindOfService().value())
                 .serviceType(entity.getServiceType().value())
                 .json(JsonUtils.pojoToJson(entity))
                 .updatedAt(entity.getUpdatedAt())
@@ -101,12 +101,12 @@ public class StorageServiceApp {
 
         if (update) {
             // Update the entity
-            log.info("Updated Kind{} Type{} Id{} Name{} Display{}",
+            log.info("Update Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
                     entity.getKindOfService().value(), entity.getServiceType().value(),
                     entity.getId(), entity.getName(), entity.getDisplayName());
         } else {
             // insert the entity
-            log.info("Insert Kind{} Type{} Id{} Name{} Display{}",
+            log.info("Insert Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
                     entity.getKindOfService().value(), entity.getServiceType().value(),
                     entity.getId(), entity.getName(), entity.getDisplayName());
         }

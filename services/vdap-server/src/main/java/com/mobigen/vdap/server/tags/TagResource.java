@@ -6,15 +6,15 @@ import com.mobigen.vdap.schema.api.data.RestoreEntity;
 import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.type.ChangeEvent;
 import com.mobigen.vdap.schema.type.EntityHistory;
+import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.schema.type.api.BulkOperationResult;
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import com.mobigen.vdap.server.Entity;
+import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +36,6 @@ import java.util.UUID;
                         + " terms called `Tags` used "
                         + "for categorizing and classifying data assets and other entities.")
 public class TagResource {
-    //  private final ClassificationMapper classificationMapper = new ClassificationMapper();
-//  private final TagMapper mapper = new TagMapper();
-//  public static final String TAG_COLLECTION_PATH = "/v1/tags/";
     static final String FIELDS = "children,usageCount";
 
     static class TagList extends ArrayList<Tag> {
@@ -68,13 +65,13 @@ public class TagResource {
                     description =
                             "List tags filtered by children of tag identified by uuid given in `parent` parameter.",
                     schema = @Schema(type = "UUID"))
-            @RequestParam(value = "parent", required = false)
-            String parent,
+                @RequestParam(value = "parent", required = false)
+                String parent,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam(value = "fields", required = false)
-            String fieldsParam,
+                @RequestParam(value = "fields", required = false)
+                String fieldsParam,
             @Parameter(
                     description = "Filter Disabled Classifications",
                     schema = @Schema(type = "string"))
@@ -291,7 +288,7 @@ public class TagResource {
                                     schema = @Schema(implementation = Tag.class)))
             })
     public Object restore(
-            @Valid RestoreEntity restore) {
+            @Valid @RequestBody RestoreEntity restore) {
 //        return restoreEntity(uriInfo, securityContext, restore.getId());
         return null;
     }
@@ -314,7 +311,7 @@ public class TagResource {
     public Object bulkAddTagToAssets(
             @Parameter(description = "Id of the Entity", schema = @Schema(type = "UUID"))
                 @PathVariable("id") UUID id,
-            @Valid AddTagToAssetsRequest request) {
+            @Valid @RequestBody AddTagToAssetsRequest request) {
 //        return bulkAddToAssetsAsync(securityContext, id, request);
         return null;
     }
@@ -337,25 +334,34 @@ public class TagResource {
     public Object bulkRemoveTagFromAssets(
             @Parameter(description = "Id of the Entity", schema = @Schema(type = "UUID"))
                 @PathVariable("id") UUID id,
-            @Valid AddTagToAssetsRequest request) {
+            @Valid @RequestBody AddTagToAssetsRequest request) {
 //        return bulkRemoveFromAssetsAsync(securityContext, id, request);
         return null;
     }
 
-//    @Override
-//    public Tag addHref(UriInfo uriInfo, Tag tag) {
-//        super.addHref(uriInfo, tag);
-//        Entity.withHref(uriInfo, tag.getClassification());
-//        Entity.withHref(uriInfo, tag.getParent());
-//        return tag;
-//    }
     public Tag createToEntity(CreateTag request, String user) {
-//        return copy(new Tag(), create, user)
-//                .withParent(getEntityReference("tag", create.getParent()))
-//                .withClassification(getEntityReference("classification", create.getClassification()))
-//                .withProvider(create.getProvider())
-//                // 이걸 이용해서 일반적인 태그로 사용(true), 카테고리(false)로 사용할 것 인지 설정
-//                .withMutuallyExclusive(create.getMutuallyExclusive());
+        Tag entity = new Tag();
+        entity.setId(Utilities.generateUUID());
+        entity.setName(request.getName());
+        entity.setDisplayName(request.getDisplayName());
+        entity.setDescription(request.getDescription());
+        entity.setUpdatedBy(user);
+        entity.setUpdatedAt(Utilities.getLocalDateTime());
+        entity.withClassification(getEntityReference(Entity.CLASSIFICATION, request.getClassification()));
+        entity.withProvider(request.getProvider());
+        entity.withMutuallyExclusive(request.getMutuallyExclusive());
+        return entity;
+    }
+
+    public EntityReference getEntityReference(String entityType, UUID id) {
+//        switch (entityType) {
+//            case Entity.TAG -> {
+//                return tagService.getReferenceById(id);
+//            }
+//            case Entity.CLASSIFICATION -> {
+//                return classificationService.getReferenceById(id);
+//            }
+//        }
         return null;
     }
 }

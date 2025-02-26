@@ -20,7 +20,10 @@ import com.mobigen.vdap.schema.entity.data.Glossary;
 import com.mobigen.vdap.schema.entity.data.GlossaryTerm;
 import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
+import com.mobigen.vdap.server.entity.ClassificationEntity;
+import com.mobigen.vdap.server.entity.TagEntity;
 import com.mobigen.vdap.server.util.EntityUtil;
+import com.mobigen.vdap.server.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -30,20 +33,25 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TagLabelUtil {
-//    private final TagRepository tagRepository;
-//    private final ClassificationRepository classificationRepository;
+    private final TagRepository tagRepository;
+    private final ClassificationRepository classificationRepository;
+
+    public TagLabelUtil(TagRepository tagRepository, ClassificationRepository classificationRepository) {
+        this.tagRepository = tagRepository;
+        this.classificationRepository = classificationRepository;
+    }
 //    private final GlossaryRepository glossaryRepository;
 //    private final GlossaryTermRepository glossaryTermRepository;
 //    private final TagUsageRepository tagUsageRepository;
 
     public Classification getClassification(UUID id) {
-//        return classificationRepository.getEntityById(id, NON_DELETED);
-        return null;
+        Optional<ClassificationEntity> entity = classificationRepository.findById(id.toString());
+        return entity.map(classificationEntity -> JsonUtils.readValue(classificationEntity.getJson(), Classification.class)).orElse(null);
     }
 
     public Tag getTag(UUID id) {
-//        return tagRepository.getEntityById(id, NON_DELETED);
-        return null;
+        Optional<TagEntity> entity = tagRepository.findById(id.toString());
+        return entity.map(tagEntity -> JsonUtils.readValue(tagEntity.getJson(), Tag.class)).orElse(null);
     }
 
     public Glossary getGlossary(UUID id) {
@@ -72,22 +80,23 @@ public class TagLabelUtil {
         }
     }
 
-    //    /**
-//     * Returns true if the parent of the tag label is mutually exclusive
-//     */
+    /**
+     * Returns true if the parent of the tag label is mutually exclusive
+     */
     public boolean mutuallyExclusive(TagLabel label) {
-        String[] fqnParts = FullyQualifiedName.split(label.getTagFQN());
-        String parentFqn = FullyQualifiedName.getParentFQN(fqnParts);
-        boolean rootParent = fqnParts.length == 2;
-        if (label.getSource() == TagSource.CLASSIFICATION) {
-            return rootParent ? getClassification(parentFqn).getMutuallyExclusive()
-                    : getTag(parentFqn).getMutuallyExclusive();
-        } else if (label.getSource() == TagSource.GLOSSARY) {
-            return rootParent ? getGlossary(parentFqn).getMutuallyExclusive()
-                    : getGlossaryTerm(parentFqn).getMutuallyExclusive();
-        } else {
-            throw new IllegalArgumentException("Invalid source type " + label.getSource());
-        }
+//        String[] fqnParts = FullyQualifiedName.split(label.getTagFQN());
+//        String parentFqn = FullyQualifiedName.getParentFQN(fqnParts);
+//        boolean rootParent = fqnParts.length == 2;
+//        if (label.getSource() == TagSource.CLASSIFICATION) {
+//            return rootParent ? getClassification(parentFqn).getMutuallyExclusive()
+//                    : getTag(parentFqn).getMutuallyExclusive();
+//        } else if (label.getSource() == TagSource.GLOSSARY) {
+//            return rootParent ? getGlossary(parentFqn).getMutuallyExclusive()
+//                    : getGlossaryTerm(parentFqn).getMutuallyExclusive();
+//        } else {
+//            throw new IllegalArgumentException("Invalid source type " + label.getSource());
+//        }
+        return false;
     }
 
     public List<TagLabel> addDerivedTags(List<TagLabel> tagLabels) {
@@ -109,12 +118,12 @@ public class TagLabelUtil {
     }
 
     private List<TagLabel> getDerivedTags(TagLabel tagLabel) {
-        if (tagLabel.getSource() == TagLabel.TagSource.GLOSSARY) { // Related tags are only supported for Glossary
-            List<TagLabel> derivedTags =
-                    repository.tagUsageDAO().getTags(tagLabel.getTagFQN());
-            derivedTags.forEach(tag -> tag.setLabelType(TagLabel.LabelType.DERIVED));
-            return derivedTags;
-        }
+//        if (tagLabel.getSource() == TagLabel.TagSource.GLOSSARY) { // Related tags are only supported for Glossary
+//            List<TagLabel> derivedTags =
+//                    repository.tagUsageDAO().getTags(tagLabel.getTagFQN());
+//            derivedTags.forEach(tag -> tag.setLabelType(TagLabel.LabelType.DERIVED));
+//            return derivedTags;
+//        }
         return Collections.emptyList();
     }
 
@@ -125,16 +134,17 @@ public class TagLabelUtil {
     }
 
     public void checkMutuallyExclusive(List<TagLabel> tagLabels) {
-        Map<String, TagLabel> map = new HashMap<>();
-        for (TagLabel tagLabel : CommonUtil.listOrEmpty(tagLabels)) {
-            // When two tags have the same parent that is mutuallyExclusive, then throw an error
-            String parentId = tagLabel.getParents();
-            TagLabel stored = map.put(parentId, tagLabel);
-            if (stored != null && TagLabelUtil.mutuallyExclusive(tagLabel)) {
-                throw new IllegalArgumentException(
-                        CatalogExceptionMessage.mutuallyExclusiveLabels(tagLabel, stored));
-            }
-        }
+//        Map<String, TagLabel> map = new HashMap<>();
+//        for (TagLabel tagLabel : CommonUtil.listOrEmpty(tagLabels)) {
+//            // When two tags have the same parent that is mutuallyExclusive, then throw an error
+//            String parentId = tagLabel.getParents();
+//            TagLabel stored = map.put(parentId, tagLabel);
+//            if (stored != null && mutuallyExclusive(tagLabel)) {
+//                throw new IllegalArgumentException( String.format(
+//                        "Tag labels %s and %s are mutually exclusive and can't be assigned together",
+//                        tagLabel.getTagFQN(), stored.getTagFQN()));
+//            }
+//        }
     }
 
     public void checkDisabledTags(List<TagLabel> tagLabels) {

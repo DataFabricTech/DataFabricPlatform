@@ -1,23 +1,34 @@
 package com.mobigen.vdap.server.tags;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.mobigen.vdap.schema.api.classification.CreateClassification;
 import com.mobigen.vdap.schema.api.data.RestoreEntity;
 import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.type.EntityHistory;
-import com.mobigen.vdap.schema.type.Include;
+import com.mobigen.vdap.server.annotations.CommonResponse;
+import com.mobigen.vdap.server.util.Utilities;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.PathParam;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -30,9 +41,14 @@ import java.util.UUID;
                         + "contains hierarchical"
                         + " terms called `Tags` used "
                         + "for categorizing and classifying data assets and other entities.")
-public class ClassificationResource {
-    //  public static final String TAG_COLLECTION_PATH = "/v1/classifications/";
+public class ClassificationController {
     static final String FIELDS = "usageCount,termCount";
+
+    private final ClassificationService classificationService;
+
+    public ClassificationController(ClassificationService classificationService) {
+        this.classificationService = classificationService;
+    }
 
     static class ClassificationList extends ArrayList<Classification> {
         /* Required for serde */
@@ -53,34 +69,28 @@ public class ClassificationResource {
                                     schema = @Schema(implementation = ClassificationList.class)))
             })
     public Object list(
+            HttpServletRequest request,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam(value = "fields", required = false)
-            String fieldsParam,
+                @RequestParam(value = "fields", required = false)
+                String fieldsParam,
             @Parameter(description = "Filter Disabled Classifications")
-            @RequestParam("disabled")
-            String disabled,
+                @RequestParam(value = "disabled", required = false, defaultValue = "false")
+                String disabled,
             @Parameter(
                     description = "select page number of classifications",
                     schema = @Schema(type = "integer", minimum = "0"))
-            @RequestParam(value = "page", defaultValue = "0", required = false)
-            Integer page,
+                @RequestParam(value = "page", defaultValue = "0", required = false)
+                Integer page,
             @Parameter(
                     description =
                             "size the number classifications returned. (1 to 50, default = 20) ",
                     schema = @Schema(type = "integer", minimum = "0", maximum = "50"))
-            @RequestParam(value = "size", required = false, defaultValue = "20")
-            Integer size,
-            @Parameter(
-                    description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-            @RequestParam(value = "include", defaultValue = "non-deleted", required = false)
-            Include include) {
-        return "classification list";
-//        ListFilter filter = new ListFilter(include);
-//        return super.listInternal(
-//                uriInfo, securityContext, fieldsParam, filter, limitParam, before, after);
+                @RequestParam(value = "size", defaultValue = "20", required = false)
+                Integer size) {
+        log.info("[List] Classifications Fields[{}], page[{}], size[{}]", fieldsParam, page, size);
+        return classificationService.list(getBaseUri(request), fieldsParam, page, size);
     }
 
     @GetMapping("/{id}")
@@ -101,21 +111,16 @@ public class ClassificationResource {
                             description = "Classification for instance {id} is not found")
             })
     public Classification get(
+            HttpServletRequest request,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
-            @PathVariable("id")
-            UUID id,
+                @PathVariable("id")
+                UUID id,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam(value = "fields", required = false)
-            String fieldsParam,
-            @Parameter(
-                    description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-            @RequestParam(value = "include", defaultValue = "non-deleted", required = false)
-            Include include) {
-        return null;
-//        return getInternal(uriInfo, securityContext, id, fieldsParam, include);
+                @RequestParam(value = "fields", required = false)
+                String fieldsParam) {
+        return classificationService.getById(getBaseUri(request), fieldsParam, id);
     }
 
     @GetMapping("name/{name}")
@@ -135,21 +140,16 @@ public class ClassificationResource {
                                     schema = @Schema(implementation = Classification.class)))
             })
     public Classification getByName(
+            HttpServletRequest request,
             @Parameter(description = "Name of the classification", schema = @Schema(type = "string"))
-            @PathVariable("name")
-            String name,
+                @PathVariable("name")
+                String name,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-            @RequestParam(value = "fields", required = false)
-            String fieldsParam,
-            @Parameter(
-                    description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-            @RequestParam(value = "include", required = false, defaultValue = "non-deleted")
-            Include include) {
-        return null;
-//        return getByNameInternal(uriInfo, securityContext, name, fieldsParam, include);
+                @RequestParam(value = "fields", required = false)
+                String fieldsParam) {
+        return classificationService.getByName(getBaseUri(request), fieldsParam, name);
     }
 
     @GetMapping("/{id}/versions")
@@ -221,12 +221,10 @@ public class ClassificationResource {
                                     schema = @Schema(implementation = Classification.class))),
                     @ApiResponse(responseCode = "400", description = "Bad request")
             })
-    public Object create(
-            @Valid CreateClassification create) {
-//        Classification category =
-//                mapper.createToEntity(create, securityContext.getUserPrincipal().getName());
-//        return create(uriInfo, securityContext, category);
-        return null;
+    public Classification create(HttpServletRequest request, @Valid @RequestBody CreateClassification create) {
+        // TODO : Get User Info
+        Classification classification = createToEntity(create, "admin");
+        return classificationService.create(getBaseUri(request), classification);
     }
 
     @PostMapping("/update")
@@ -234,50 +232,21 @@ public class ClassificationResource {
             operationId = "createOrUpdateClassification",
             summary = "Update a classification",
             description = "Update an existing category identify by category name")
-    public Object createOrUpdate(
-            @Valid CreateClassification create) {
-//        Classification category =
-//                mapper.createToEntity(create, securityContext.getUserPrincipal().getName());
-//        return createOrUpdate(uriInfo, securityContext, category);
-        return null;
+    public Classification createOrUpdate(
+            HttpServletRequest request,
+            @Valid @RequestBody CreateClassification create) {
+        // TODO : Get UserInfo
+        Classification classification = createToEntity(create, "admin");
+        return classificationService.createOrUpdate(getBaseUri(request), classification);
     }
 
-    /*
-    @PATCH
-    @Path("/{id}")
-    @Operation(
-            operationId = "patchClassification",
-            summary = "Update a classification",
-            description = "Update an existing classification using JsonPatch.",
-            externalDocs =
-            @ExternalDocumentation(
-                    description = "JsonPatch RFC",
-                    url = "https://tools.ietf.org/html/rfc6902"))
-    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
-    public Response patch(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
-            @PathParam("id")
-            UUID id,
-            @RequestBody(
-                    description = "JsonPatch with array of operations",
-                    content =
-                    @Content(
-                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
-                            examples = {
-                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
-                            }))
-            JsonPatch patch) {
-        return patchInternal(uriInfo, securityContext, id, patch);
-    }
-     */
+    @CommonResponse
     @PostMapping("/{id}/delete")
     @Operation(
             operationId = "deleteClassification",
             summary = "Delete classification by id",
             description = "Delete a classification and all the tags under it.")
-    public Object delete(
+    public void delete(
             @Parameter(
                     description = "Recursively delete this entity and it's children. (Default `false`)")
             @RequestParam(value = "recursive", defaultValue = "false", required = false)
@@ -286,12 +255,12 @@ public class ClassificationResource {
             @RequestParam(value = "hardDelete", defaultValue = "false", required = false)
             boolean hardDelete,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
-            @PathParam("id")
-            UUID id) {
-//        return delete(uriInfo, securityContext, id, recursive, hardDelete);
-        return null;
+            @PathVariable("id") UUID id) {
+        log.info("[Delete] Classification By ID[{}]", id);
+        classificationService.deleteById(id);
     }
 
+    @CommonResponse
     @PostMapping("/name/{name}/delete")
     @Operation(
             operationId = "deleteClassificationByName",
@@ -300,15 +269,11 @@ public class ClassificationResource {
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK"),
             })
-    public Object delete(
-            @Parameter(description = "Hard delete the entity. (Default = `false`)")
-            @RequestParam(value = "hardDelete", defaultValue = "false", required = false)
-            boolean hardDelete,
+    public void delete(
             @Parameter(description = "Name of the classification", schema = @Schema(type = "string"))
-            @PathVariable("name")
-            String name) {
-//        return deleteByName(uriInfo, securityContext, name, false, hardDelete);
-        return null;
+                @PathVariable("name") String name) {
+        log.info("[Delete] Classification By Name[{}]", name);
+        classificationService.deleteByName(name);
     }
 
     @PostMapping("/restore")
@@ -332,19 +297,20 @@ public class ClassificationResource {
     }
 
     public Classification createToEntity(CreateClassification request, String user) {
-//        List<EntityReference> owners = validateOwners(request.getOwners());
-//        validateReviewers(request.getReviewers());
         Classification entity = new Classification();
-        entity.setId(UUID.randomUUID());
+        entity.setId(Utilities.generateUUID());
         entity.setName(request.getName());
         entity.setDisplayName(request.getDisplayName());
         entity.setDescription(request.getDescription());
-//        entity.setOwners(owners);
         entity.setUpdatedBy(user);
-        entity.setUpdatedAt(System.currentTimeMillis());
-//        entity.setReviewers(request.getReviewers());
+        entity.setUpdatedAt(Utilities.getLocalDateTime());
         entity.setProvider(request.getProvider());
         entity.setMutuallyExclusive(request.getMutuallyExclusive());
         return entity;
+    }
+
+    public URI getBaseUri(HttpServletRequest request) {
+        String requestUrl = request.getRequestURL().toString();
+        return URI.create(requestUrl.replace(request.getServletPath(), ""));
     }
 }

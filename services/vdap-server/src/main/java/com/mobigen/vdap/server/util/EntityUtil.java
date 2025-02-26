@@ -8,16 +8,13 @@ import com.mobigen.vdap.schema.type.*;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.exception.CustomException;
-import jakarta.ws.rs.WebApplicationException;
-import lombok.Getter;
-import lombok.SneakyThrows;
+import com.mobigen.vdap.server.models.EntityVersionPair;
+import jakarta.validation.constraints.NotNull;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,20 +26,18 @@ public final class EntityUtil {
             Comparator.comparing(EntityReference::getName);
     public static final Comparator<EntityReference> compareEntityReferenceById =
             Comparator.comparing(EntityReference::getId).thenComparing(EntityReference::getType);
-    //  public static final Comparator<EntityVersionPair> compareVersion =
-//      Comparator.comparing(EntityVersionPair::getVersion);
+    public static final Comparator<EntityVersionPair> compareVersion =
+            Comparator.comparing(EntityVersionPair::getVersion);
     public static final Comparator<TagLabel> compareTagLabel =
             Comparator.comparing(TagLabel::getName);
     public static final Comparator<FieldChange> compareFieldChange =
             Comparator.comparing(FieldChange::getName);
-    //  public static final Comparator<TableConstraint> compareTableConstraint =
+    //    public static final Comparator<TableConstraint> compareTableConstraint =
 //      Comparator.comparing(TableConstraint::getConstraintType);
 //  public static final Comparator<ChangeEvent> compareChangeEvent =
 //      Comparator.comparing(ChangeEvent::getTimestamp);
     public static final Comparator<GlossaryTerm> compareGlossaryTerm =
             Comparator.comparing(GlossaryTerm::getName);
-//  public static final Comparator<CustomProperty> compareCustomProperty =
-//      Comparator.comparing(CustomProperty::getName);
 
     //
     // Matchers used for matching two items in a list
@@ -54,10 +49,8 @@ public final class EntityUtil {
 
     public static final BiPredicate<TagLabel, TagLabel> tagLabelMatch =
             (tag1, tag2) ->
-                    tag1.getTagFQN().equals(tag2.getTagFQN()) && tag1.getSource().equals(tag2.getSource());
-
-//  public static final BiPredicate<Task, Task> taskMatch =
-//      (task1, task2) -> task1.getName().equals(task2.getName());
+                    tag1.getId().equals(tag2.getId()) &&
+                            tag1.getSource().equals(tag2.getSource());
 
     public static final BiPredicate<String, String> stringMatch = String::equals;
 
@@ -88,11 +81,6 @@ public final class EntityUtil {
             (ref1, ref2) ->
                     ref1.getName().equals(ref2.getName()) && ref1.getEndpoint().equals(ref2.getEndpoint());
 
-//  public static final BiPredicate<CustomProperty, CustomProperty> customFieldMatch =
-//      (ref1, ref2) ->
-//          ref1.getName().equals(ref2.getName())
-//              && entityReferenceMatch.test(ref1.getPropertyType(), ref2.getPropertyType());
-
     public static final BiPredicate<Field, Field> schemaFieldMatch =
             (field1, field2) ->
                     field1.getName().equalsIgnoreCase(field2.getName())
@@ -103,14 +91,11 @@ public final class EntityUtil {
 //          field1.getName().equalsIgnoreCase(field2.getName())
 //              && field1.getDataType() == field2.getDataType();
 
-    private EntityUtil() {
-    }
-
     /**
      * Validate that JSON payload can be turned into POJO object
      */
     public static <T> T validate(Object id, String json, Class<T> clz)
-            throws WebApplicationException {
+            throws Exception {
         T entity = null;
         if (json != null) {
             entity = JsonUtils.readValue(json, clz);
@@ -121,34 +106,34 @@ public final class EntityUtil {
         return entity;
     }
 
-    public static List<EntityReference> populateEntityReferences(List<EntityReference> list) {
-        if (list != null) {
-            for (EntityReference ref : list) {
-                EntityReference ref2 = Entity.getEntityReference(ref, Include.ALL);
-                EntityUtil.copy(ref2, ref);
-            }
-            list.sort(compareEntityReference);
-        }
-        return list;
-    }
-
-    public static List<EntityReference> getEntityReferences(List<EntityRelationshipRecord> list) {
-        if (CommonUtil.nullOrEmpty(list)) {
-            return Collections.emptyList();
-        }
-        List<EntityReference> refs = new ArrayList<>();
-        for (EntityRelationshipRecord ref : list) {
-            refs.add(Entity.getEntityReferenceById(ref.getType(), ref.getId(), Include.ALL));
-        }
-        refs.sort(compareEntityReference);
-        return refs;
-    }
-
-    public static List<EntityReference> populateEntityReferencesById(
-            List<UUID> list, String entityType) {
-        List<EntityReference> refs = toEntityReferences(list, entityType);
-        return populateEntityReferences(refs);
-    }
+//    public static List<EntityReference> populateEntityReferences(List<EntityReference> list) {
+//        if (list != null) {
+//            for (EntityReference ref : list) {
+//                EntityReference ref2 = Entity.getEntityReference(ref, Include.ALL);
+//                EntityUtil.copy(ref2, ref);
+//            }
+//            list.sort(compareEntityReference);
+//        }
+//        return list;
+//    }
+//
+//    public static List<EntityReference> getEntityReferences(List<EntityRelationshipRecord> list) {
+//        if (CommonUtil.nullOrEmpty(list)) {
+//            return Collections.emptyList();
+//        }
+//        List<EntityReference> refs = new ArrayList<>();
+//        for (EntityRelationshipRecord ref : list) {
+//            refs.add(Entity.getEntityReferenceById(ref.getType(), ref.getId(), Include.ALL));
+//        }
+//        refs.sort(compareEntityReference);
+//        return refs;
+//    }
+//
+//    public static List<EntityReference> populateEntityReferencesById(
+//            List<UUID> list, String entityType) {
+//        List<EntityReference> refs = toEntityReferences(list, entityType);
+//        return populateEntityReferences(refs);
+//    }
 
 //  public static EntityReference validateEntityLink(EntityLink entityLink) {
 //    String entityType = entityLink.getEntityType();
@@ -188,20 +173,20 @@ public final class EntityUtil {
         }
     }
 
-    public static List<String> getJsonDataResources(String path) throws IOException {
-        return CommonUtil.getResources(Pattern.compile(path));
-    }
+//    public static List<String> getJsonDataResources(String path) throws IOException {
+//        return CommonUtil.getResources(Pattern.compile(path));
+//    }
 
-    public static <T extends EntityInterface> List<String> toFQNs(List<T> entities) {
-        if (entities == null) {
-            return Collections.emptyList();
-        }
-        List<String> entityReferences = new ArrayList<>();
-        for (T entity : entities) {
-            entityReferences.add(entity.getFullyQualifiedName());
-        }
-        return entityReferences;
-    }
+//    public static <T extends EntityInterface> List<String> toFQNs(List<T> entities) {
+//        if (entities == null) {
+//            return Collections.emptyList();
+//        }
+//        List<String> entityReferences = new ArrayList<>();
+//        for (T entity : entities) {
+//            entityReferences.add(entity.getFullyQualifiedName());
+//        }
+//        return entityReferences;
+//    }
 
     public static List<UUID> strToIds(List<String> list) {
         return list.stream().map(UUID::fromString).collect(Collectors.toList());
@@ -233,63 +218,6 @@ public final class EntityUtil {
         }
     }
 
-    public static class Fields implements Iterable<String> {
-        public static final Fields EMPTY_FIELDS = new Fields(Collections.emptySet());
-        @Getter
-        private final Set<String> fieldList;
-
-        public Fields(Set<String> fieldList) {
-            this.fieldList = fieldList;
-        }
-
-        public Fields(Set<String> allowedFields, String fieldsParam) {
-            if (CommonUtil.nullOrEmpty(fieldsParam)) {
-                fieldList = new HashSet<>();
-                return;
-            }
-            fieldList = new HashSet<>(Arrays.asList(fieldsParam.replace(" ", "").split(",")));
-            for (String field : fieldList) {
-                if (!allowedFields.contains(field)) {
-                    throw new IllegalArgumentException(CatalogExceptionMessage.invalidField(field));
-                }
-            }
-        }
-
-        public Fields(Set<String> allowedFields, Set<String> fieldsParam) {
-            if (CommonUtil.nullOrEmpty(fieldsParam)) {
-                fieldList = new HashSet<>();
-                return;
-            }
-            for (String field : fieldsParam) {
-                if (!allowedFields.contains(field)) {
-                    throw new IllegalArgumentException(CatalogExceptionMessage.invalidField(field));
-                }
-            }
-            fieldList = new HashSet<>(fieldsParam);
-        }
-
-        public void addField(Set<String> allowedFields, String field) {
-            if (!allowedFields.contains(field)) {
-                throw new IllegalArgumentException(CatalogExceptionMessage.invalidField(field));
-            }
-            fieldList.add(field);
-        }
-
-        @Override
-        public String toString() {
-            return String.join(",", fieldList);
-        }
-
-        public boolean contains(String field) {
-            return fieldList.contains(field);
-        }
-
-        @Override
-        public @org.jetbrains.annotations.NotNull Iterator<String> iterator() {
-            return fieldList.iterator();
-        }
-    }
-
     /**
      * Entity version extension name formed by entityType.version.versionNumber. Example -
      * `table.version.0.1`
@@ -311,89 +239,70 @@ public final class EntityUtil {
         return Double.valueOf(versionString);
     }
 
-    public static String getLocalColumnName(String tableFqn, String columnFqn) {
-        // Return for fqn=service:database:table:c1 -> c1
-        // Return for fqn=service:database:table:c1:c2 -> c1:c2 (note different from just the local name
-        // of the column c2)
-        return columnFqn.replace(tableFqn + Entity.SEPARATOR, "");
-    }
-
-    public static String getFieldName(String... strings) {
-        return String.join(Entity.SEPARATOR, strings);
-    }
+//    public static String getLocalColumnName(String tableFqn, String columnFqn) {
+//        // Return for fqn=service:database:table:c1 -> c1
+//        // Return for fqn=service:database:table:c1:c2 -> c1:c2 (note different from just the local name
+//        // of the column c2)
+//        return columnFqn.replace(tableFqn + Entity.SEPARATOR, "");
+//    }
+//
+//    public static String getFieldName(String... strings) {
+//        return String.join(Entity.SEPARATOR, strings);
+//    }
 
     /**
      * Return column field name of format "columns".columnName.columnFieldName
      */
-    public static String getColumnField(Column column, String columnField) {
-        // Remove table FQN from column FQN to get the local name
-        String localColumnName = column.getName();
-        return columnField == null
-                ? FullyQualifiedName.build("columns", localColumnName)
-                : FullyQualifiedName.build("columns", localColumnName, columnField);
-    }
-
-    /**
-     * Return schema field name of format "schemaFields".fieldName.fieldName
-     */
-    public static String getSchemaField(Topic topic, Field field, String fieldName) {
-        // Remove topic FQN from schemaField FQN to get the local name
-        String localFieldName =
-                EntityUtil.getLocalColumnName(topic.getFullyQualifiedName(), field.getFullyQualifiedName());
-        return fieldName == null
-                ? FullyQualifiedName.build("schemaFields", localFieldName)
-                : FullyQualifiedName.build("schemaFields", localFieldName, fieldName);
-    }
-
-    public static String getSchemaField(APIEndpoint apiEndpoint, Field field, String fieldName) {
-        // Remove APIEndpoint FQN from schemaField FQN to get the local name
-        String localFieldName =
-                EntityUtil.getLocalColumnName(
-                        apiEndpoint.getFullyQualifiedName(), field.getFullyQualifiedName());
-        return fieldName == null
-                ? FullyQualifiedName.build("schemaFields", localFieldName)
-                : FullyQualifiedName.build("schemaFields", localFieldName, fieldName);
-    }
-
-    /**
-     * Return searchIndex field name of format "fields".fieldName.fieldName
-     */
-    public static String getSearchIndexField(
-            SearchIndex searchIndex, SearchIndexField field, String fieldName) {
-        // Remove topic FQN from schemaField FQN to get the local name
-        String localFieldName =
-                EntityUtil.getLocalColumnName(
-                        searchIndex.getFullyQualifiedName(), field.getFullyQualifiedName());
-        return fieldName == null
-                ? FullyQualifiedName.build("fields", localFieldName)
-                : FullyQualifiedName.build("fields", localFieldName, fieldName);
-    }
-
-    /**
-     * Return rule field name of format "rules".ruleName.ruleFieldName
-     */
-    public static String getRuleField(Rule rule, String ruleField) {
-        return ruleField == null
-                ? FullyQualifiedName.build("rules", rule.getName())
-                : FullyQualifiedName.build("rules", rule.getName(), ruleField);
-    }
-
-    /**
-     * Return customer property field name of format "customProperties".propertyName
-     */
-    public static String getCustomField(CustomProperty property, String propertyFieldName) {
-        return propertyFieldName == null
-                ? FullyQualifiedName.build("customProperties", property.getName())
-                : FullyQualifiedName.build("customProperties", property.getName(), propertyFieldName);
-    }
-
-    /**
-     * Return extension field name of format "extension".fieldName
-     */
-    public static String getExtensionField(String key) {
-        return FullyQualifiedName.build("extension", key);
-    }
-
+//    public static String getColumnField(Column column, String columnField) {
+//        // Remove table FQN from column FQN to get the local name
+//        String localColumnName = column.getName();
+//        return columnField == null
+//                ? FullyQualifiedName.build("columns", localColumnName)
+//                : FullyQualifiedName.build("columns", localColumnName, columnField);
+//    }
+//
+//    /**
+//     * Return schema field name of format "schemaFields".fieldName.fieldName
+//     */
+//    public static String getSchemaField(Topic topic, Field field, String fieldName) {
+//        // Remove topic FQN from schemaField FQN to get the local name
+//        String localFieldName =
+//                EntityUtil.getLocalColumnName(topic.getFullyQualifiedName(), field.getFullyQualifiedName());
+//        return fieldName == null
+//                ? FullyQualifiedName.build("schemaFields", localFieldName)
+//                : FullyQualifiedName.build("schemaFields", localFieldName, fieldName);
+//    }
+//
+//    public static String getSchemaField(APIEndpoint apiEndpoint, Field field, String fieldName) {
+//        // Remove APIEndpoint FQN from schemaField FQN to get the local name
+//        String localFieldName =
+//                EntityUtil.getLocalColumnName(
+//                        apiEndpoint.getFullyQualifiedName(), field.getFullyQualifiedName());
+//        return fieldName == null
+//                ? FullyQualifiedName.build("schemaFields", localFieldName)
+//                : FullyQualifiedName.build("schemaFields", localFieldName, fieldName);
+//    }
+//
+//    /**
+//     * Return searchIndex field name of format "fields".fieldName.fieldName
+//     */
+//    public static String getSearchIndexField(
+//            SearchIndex searchIndex, SearchIndexField field, String fieldName) {
+//        // Remove topic FQN from schemaField FQN to get the local name
+//        String localFieldName =
+//                EntityUtil.getLocalColumnName(
+//                        searchIndex.getFullyQualifiedName(), field.getFullyQualifiedName());
+//        return fieldName == null
+//                ? FullyQualifiedName.build("fields", localFieldName)
+//                : FullyQualifiedName.build("fields", localFieldName, fieldName);
+//    }
+//
+//    /**
+//     * Return extension field name of format "extension".fieldName
+//     */
+//    public static String getExtensionField(String key) {
+//        return FullyQualifiedName.build("extension", key);
+//    }
     public static Double previousVersion(Double version) {
         return Math.round((version - 0.1) * 10.0) / 10.0;
     }
@@ -406,14 +315,14 @@ public final class EntityUtil {
         return Math.round((version + 1.0) * 10.0) / 10.0;
     }
 
-    public static void copy(EntityReference from, EntityReference to) {
-        to.withType(from.getType())
-                .withId(from.getId())
-                .withName(from.getName())
-                .withDisplayName(from.getDisplayName())
-                .withFullyQualifiedName(from.getFullyQualifiedName())
-                .withDeleted(from.getDeleted());
-    }
+//    public static void copy(EntityReference from, EntityReference to) {
+//        to.withType(from.getType())
+//                .withId(from.getId())
+//                .withName(from.getName())
+//                .withDisplayName(from.getDisplayName())
+//                .withFullyQualifiedName(from.getFullyQualifiedName())
+//                .withDeleted(from.getDeleted());
+//    }
 
     public static List<TagLabel> toTagLabels(GlossaryTerm... terms) {
         List<TagLabel> list = new ArrayList<>();
@@ -433,22 +342,18 @@ public final class EntityUtil {
 
     public static TagLabel toTagLabel(GlossaryTerm term) {
         return new TagLabel()
+                .withId(term.getId())
                 .withName(term.getName())
                 .withDisplayName(term.getDisplayName())
-                .withDescription(term.getDescription())
-                .withStyle(term.getStyle())
-                .withTagFQN(term.getFullyQualifiedName())
                 .withDescription(term.getDescription())
                 .withSource(TagSource.GLOSSARY);
     }
 
     public static TagLabel toTagLabel(Tag tag) {
         return new TagLabel()
+                .withId(tag.getId())
                 .withName(tag.getName())
                 .withDisplayName(tag.getDisplayName())
-                .withDescription(tag.getDescription())
-                .withStyle(tag.getStyle())
-                .withTagFQN(tag.getFullyQualifiedName())
                 .withDescription(tag.getDescription())
                 .withSource(TagSource.CLASSIFICATION);
     }
@@ -478,81 +383,56 @@ public final class EntityUtil {
             change.getFieldsUpdated().add(fieldChange);
         }
     }
+//
+//    public static UUID getId(EntityReference ref) {
+//        return ref == null ? null : ref.getId();
+//    }
 
-    public static MetadataOperation createOrUpdateOperation(ResourceContext<?> resourceContext) {
-        return resourceContext.getEntity() == null
-                ? MetadataOperation.CREATE
-                : MetadataOperation.EDIT_ALL;
-    }
+//    public static EntityReference getEntityReference(EntityInterface entity) {
+//        return entity == null ? null : entity.getEntityReference();
+//    }
+//
+//    public static EntityReference getEntityReference(String entityType, String fqn) {
+//        return fqn == null
+//                ? null
+//                : new EntityReference().withType(entityType).withFullyQualifiedName(fqn);
+//    }
+//
+//    public static List<EntityReference> getEntityReferences(String entityType, List<String> fqns) {
+//        if (CommonUtil.nullOrEmpty(fqns)) {
+//            return null;
+//        }
+//        List<EntityReference> references = new ArrayList<>();
+//        for (String fqn : fqns) {
+//            references.add(Entity.getEntityReferenceByName(entityType, fqn, Include.NON_DELETED));
+//        }
+//        return references;
+//    }
+//
+//    // Get EntityReference by ID, used in extension(for Page)
+//    @SuppressWarnings("unused")
+//    public static List<EntityReference> getEntityReferencesById(String entityType, List<UUID> ids) {
+//        if (CommonUtil.nullOrEmpty(ids)) {
+//            return null;
+//        }
+//        List<EntityReference> references = new ArrayList<>();
+//        for (UUID id : ids) {
+//            references.add(Entity.getEntityReferenceById(entityType, id, Include.NON_DELETED));
+//        }
+//        return references;
+//    }
+//
+//    public static Column getColumn(Table table, String columnName) {
+//        return table.getColumns().stream()
+//                .filter(c -> c.getName().equals(columnName))
+//                .findFirst()
+//                .orElse(null);
+//    }
 
-    public static UUID getId(EntityReference ref) {
-        return ref == null ? null : ref.getId();
-    }
-
-    public static String getFqn(EntityReference ref) {
-        return ref == null ? null : ref.getFullyQualifiedName();
-    }
-
-    public static String getFqn(EntityInterface entity) {
-        return entity == null ? null : entity.getFullyQualifiedName();
-    }
-
-    public static List<String> getFqns(List<EntityReference> refs) {
-        if (CommonUtil.nullOrEmpty(refs)) {
-            return null;
-        }
-        List<String> fqns = new ArrayList<>();
-        for (EntityReference ref : refs) {
-            fqns.add(getFqn(ref));
-        }
-        return fqns;
-    }
-
-    public static EntityReference getEntityReference(EntityInterface entity) {
-        return entity == null ? null : entity.getEntityReference();
-    }
-
-    public static EntityReference getEntityReference(String entityType, String fqn) {
-        return fqn == null
-                ? null
-                : new EntityReference().withType(entityType).withFullyQualifiedName(fqn);
-    }
-
-    public static List<EntityReference> getEntityReferences(String entityType, List<String> fqns) {
-        if (CommonUtil.nullOrEmpty(fqns)) {
-            return null;
-        }
-        List<EntityReference> references = new ArrayList<>();
-        for (String fqn : fqns) {
-            references.add(Entity.getEntityReferenceByName(entityType, fqn, Include.NON_DELETED));
-        }
-        return references;
-    }
-
-    // Get EntityReference by ID, used in extension(for Page)
-    @SuppressWarnings("unused")
-    public static List<EntityReference> getEntityReferencesById(String entityType, List<UUID> ids) {
-        if (CommonUtil.nullOrEmpty(ids)) {
-            return null;
-        }
-        List<EntityReference> references = new ArrayList<>();
-        for (UUID id : ids) {
-            references.add(Entity.getEntityReferenceById(entityType, id, Include.NON_DELETED));
-        }
-        return references;
-    }
-
-    public static Column getColumn(Table table, String columnName) {
-        return table.getColumns().stream()
-                .filter(c -> c.getName().equals(columnName))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public static void sortByFQN(List<? extends EntityInterface> entities) {
-        // Sort entities by fullyQualifiedName
-        entities.sort(Comparator.comparing(EntityInterface::getFullyQualifiedName));
-    }
+//    public static void sortByFQN(List<? extends EntityInterface> entities) {
+//        // Sort entities by fullyQualifiedName
+//        entities.sort(Comparator.comparing(EntityInterface::getFullyQualifiedName));
+//    }
 
     /**
      * This method is used to populate the entity with all details of EntityReference Users/Tools can
@@ -562,15 +442,16 @@ public final class EntityUtil {
      */
     public static List<EntityReference> getEntityReferences(
             List<EntityReference> entities, Include include) {
-        if (CommonUtil.nullOrEmpty(entities)) {
-            return Collections.emptyList();
-        }
-        List<EntityReference> refs = new ArrayList<>();
-        for (EntityReference entityReference : entities) {
-            EntityReference entityRef = Entity.getEntityReference(entityReference, include);
-            refs.add(entityRef);
-        }
-        return refs;
+//        if (CommonUtil.nullOrEmpty(entities)) {
+//            return Collections.emptyList();
+//        }
+//        List<EntityReference> refs = new ArrayList<>();
+//        for (EntityReference entityReference : entities) {
+//            EntityReference entityRef = Entity.getEntityReference(entityReference, include);
+//            refs.add(entityRef);
+//        }
+//        return refs;
+        return Collections.emptyList();
     }
 
     public static void validateProfileSample(String profileSampleType, double profileSampleValue) {
@@ -580,55 +461,31 @@ public final class EntityUtil {
         }
     }
 
-    @SneakyThrows
-    public static String hash(String input) {
-        if (input != null) {
-            byte[] checksum = MessageDigest.getInstance("MD5").digest(input.getBytes());
-            return Hex.encodeHexString(checksum);
-        }
-        return null;
-    }
+//
+//    public static Column findColumn(List<Column> columns, String columnName) {
+//        return columns.stream()
+//                .filter(c -> c.getName().equals(columnName))
+//                .findFirst()
+//                .orElseThrow(
+//                        () ->
+//                                new IllegalArgumentException(
+//                                        CatalogExceptionMessage.invalidFieldName("column", columnName)));
+//    }
+//
+//    public static <T extends FieldInterface> List<T> getFlattenedEntityField(List<T> fields) {
+//        List<T> flattenedFields = new ArrayList<>();
+//        fields.forEach(column -> flattenEntityField(column, flattenedFields));
+//        return flattenedFields;
+//    }
 
-    public static boolean isDescriptionTask(TaskType taskType) {
-        return taskType == TaskType.RequestDescription || taskType == TaskType.UpdateDescription;
-    }
-
-    public static boolean isTagTask(TaskType taskType) {
-        return taskType == TaskType.RequestTag || taskType == TaskType.UpdateTag;
-    }
-
-    public static boolean isApprovalTask(TaskType taskType) {
-        return taskType == TaskType.RequestApproval;
-    }
-
-    public static boolean isTestCaseFailureResolutionTask(TaskType taskType) {
-        return taskType == TaskType.RequestTestCaseFailureResolution;
-    }
-
-    public static Column findColumn(List<Column> columns, String columnName) {
-        return columns.stream()
-                .filter(c -> c.getName().equals(columnName))
-                .findFirst()
-                .orElseThrow(
-                        () ->
-                                new IllegalArgumentException(
-                                        CatalogExceptionMessage.invalidFieldName("column", columnName)));
-    }
-
-    public static <T extends FieldInterface> List<T> getFlattenedEntityField(List<T> fields) {
-        List<T> flattenedFields = new ArrayList<>();
-        fields.forEach(column -> flattenEntityField(column, flattenedFields));
-        return flattenedFields;
-    }
-
-    private static <T extends FieldInterface> void flattenEntityField(
-            T field, List<T> flattenedFields) {
-        flattenedFields.add(field);
-        List<T> children = (List<T>) field.getChildren();
-        for (T child : CommonUtil.listOrEmpty(children)) {
-            flattenEntityField(child, flattenedFields);
-        }
-    }
+//    private static <T extends FieldInterface> void flattenEntityField(
+//            T field, List<T> flattenedFields) {
+//        flattenedFields.add(field);
+//        List<T> children = (List<T>) field.getChildren();
+//        for (T child : CommonUtil.listOrEmpty(children)) {
+//            flattenEntityField(child, flattenedFields);
+//        }
+//    }
 
     public static String getCommaSeparatedIdsFromRefs(List<EntityReference> references) {
         return CommonUtil.listOrEmpty(references).stream()
@@ -650,5 +507,4 @@ public final class EntityUtil {
         result.addAll(uniqueEntityRefFromParent);
         return result.stream().toList();
     }
-
 }

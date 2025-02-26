@@ -1,5 +1,19 @@
 package com.mobigen.vdap.server.services;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.mobigen.vdap.schema.api.services.CreateStorageService;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
@@ -9,6 +23,7 @@ import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.server.annotations.CommonResponse;
 import com.mobigen.vdap.server.response.CommonResponseDto;
 import com.mobigen.vdap.server.util.Utilities;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,15 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.QueryParam;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Tag(
@@ -71,7 +78,7 @@ public class StorageServiceController {
                     description = "StorageService Type(Mysql, Mariadb, Minio, etc ...)",
                     schema = @Schema(implementation = CreateStorageService.StorageServiceType.class, example = "Mysql"))
                 @RequestParam(value = "service_type", required = false)
-            CreateStorageService.StorageServiceType service_type,
+                CreateStorageService.StorageServiceType service_type,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
@@ -156,8 +163,7 @@ public class StorageServiceController {
             @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
                     schema = @Schema(implementation = Include.class))
-                @RequestParam("include")
-                @DefaultValue("non-deleted")
+                @RequestParam(value = "include", defaultValue = "non-deleted")
                 Include include) {
         return "get by id storage service";
     }
@@ -202,8 +208,7 @@ public class StorageServiceController {
             @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
                     schema = @Schema(implementation = Include.class))
-                @QueryParam("include")
-                @DefaultValue("non-deleted")
+                @RequestParam(value = "include", defaultValue = "non-deleted")
                 Include include) {
         return "get by name storage service";
     }
@@ -334,7 +339,7 @@ public class StorageServiceController {
                             )
                     )
             })
-    public Object create(@RequestHeader Map<String, String> header, @Valid CreateStorageService create) {
+    public Object create(@RequestHeader Map<String, String> header, @Valid @RequestBody CreateStorageService create) {
         // TODO : 요청 사용자 정보 처리
 //        String userId = header.get("X-VDAP-User-Id");
 //        String userName = header.get("X-VDAP-User-Name");
@@ -652,6 +657,7 @@ public class StorageServiceController {
         entity.setName(request.getName());
         entity.setDisplayName(request.getDisplayName());
         entity.setDescription(request.getDescription());
+        entity.setConnection(request.getConnection());
         entity.setTags(request.getTags());
         entity.setUpdatedBy(user);
         entity.setUpdatedAt(Utilities.getLocalDateTime());

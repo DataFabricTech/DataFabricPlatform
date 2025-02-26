@@ -14,8 +14,11 @@ dependencies {
     api(platform("com.fasterxml.jackson:jackson-bom:2.18.1"))
     constraints {
         api("org.projectlombok:lombok:1.18.30")
-        // relative jsonschema2pojo
+        // For JSONSchema2Pojo + Annotation
+        api("org.jsonschema2pojo:jsonschema2pojo-core:1.2.2")
+        api("org.glassfish.jaxb:codemodel:4.0.5")
         api("jakarta.validation:jakarta.validation-api:3.1.0")
+
         // MySQL
         api("com.mysql:mysql-connector-j:9.1.0")
         // flyway
@@ -27,8 +30,10 @@ dependencies {
         api("org.springframework.boot:spring-boot-devtools:3.4.0")
         // RestAPI - Swagger Document
         api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
-        // For JSONSchema2Pojo + Annotation
-        api("org.jsonschema2pojo:jsonschema2pojo-core:1.2.2")
-        api("org.glassfish.jaxb:codemodel:4.0.5")
+
+        // JSON
+        api("jakarta.json:jakarta.json-api:2.1.3")
+        api("org.glassfish:jakarta.json:2.0.1")
+        api("com.github.java-json-tools:json-patch:1.13")
     }
 }
