@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,8 +16,8 @@ public class GlobalExceptionHandler {
 
     @ResponseBody
     @ExceptionHandler(BindException.class)
-    public Object bindExceptionHandler( BindException e ) {
-        log.error( "Bind Exception[ {} ]", e.getMessage());
+    public Object bindExceptionHandler(BindException e) {
+        log.error("Bind Exception[ {} ]", e.getMessage());
         return e;
     }
 
@@ -25,18 +26,30 @@ public class GlobalExceptionHandler {
      */
     @ResponseBody
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public Object requestMethodNotSupportedException( HttpRequestMethodNotSupportedException e ) {
-        log.error( "Request Method Not Supported Exception [ {} ]", e.getMessage() );
+    public Object requestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        log.error("Request Method Not Supported Exception [ {} ]", e.getMessage());
         return e;
     }
+
     /**
      * 요청 본문을 읽을 수 없는 경우 발생.
      * 예: 잘못된 JSON 데이터를 요청으로 보냈을 때.
      */
     @ResponseBody
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public Object HttpMessageNotReadableException( HttpMessageNotReadableException e ) {
-        log.error( "Request Message Not Readable Exception [ {} ]", e.getMessage() );
+    public Object HttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("Request Message Not Readable Exception [ {} ]", e.getMessage());
+        return e;
+    }
+
+    /**
+     * 요청 파라미터가 누락된 경우 발생.
+     * 예: @RequestParam("id")가 필수인데 요청에서 빠진 경우.
+     */
+    @ResponseBody
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public Object HttpMessageNotReadableException(MissingServletRequestParameterException e) {
+        log.error("Request Parameter Missing Exception [ {} ]", e.getMessage());
         return e;
     }
 
@@ -45,8 +58,8 @@ public class GlobalExceptionHandler {
      */
     @ResponseBody
     @ExceptionHandler(CustomException.class)
-    public Object CustomExceptionHandler( CustomException e ) {
-        log.error( "User(Service)Define Exception[ {} ]", e.getMessage(), e );
+    public Object CustomExceptionHandler(CustomException e) {
+        log.error("User(Service)Define Exception[ {} ]", e.getMessage(), e);
         return e;
     }
 
@@ -55,9 +68,9 @@ public class GlobalExceptionHandler {
      */
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public Object unknownExceptionHandler( Exception e ) {
+    public Object unknownExceptionHandler(Exception e) {
         log.error("Unknown Exception[ {} ]", e.getMessage(), e);
-        return new CustomException( "unknown exception", e, null);
+        return new CustomException(String.format("Unknown exception[%s]", e.getMessage()), e, null);
     }
 
     /*
@@ -68,9 +81,6 @@ public class GlobalExceptionHandler {
      * 예: 클라이언트가 Accept: application/xml을 요청했지만, 서버는 application/json만 지원하는 경우.
      * org.springframework.web.HttpMediaTypeNotAcceptableException
      *
-     * 요청 파라미터가 누락된 경우 발생.
-     * 예: @RequestParam("id")가 필수인데 요청에서 빠진 경우.
-     * org.springframework.web.bind.MissingServletRequestParameterException
      */
 
 }

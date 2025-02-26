@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -25,49 +26,45 @@ public class CommonResponseAspect {
 
     @Around("execution(* com.mobigen.vdap.server.response.GlobalExceptionHandler.*(..))")
     public CommonResponseDto responseJsonFail(ProceedingJoinPoint point) throws Throwable {
-        Object results = point.proceed();
         CommonResponseDto response = new CommonResponseDto();
         Map<String, Object> errData = new HashMap<>();
-        switch (results) {
-            case CustomException customException -> {
-                errData.put("error", customException.getClass().getSimpleName());
-                errData.put("causedByObject", customException.getCausedObject()); // 예외가 발생한 객체 포함
+        Object results = point.proceed();
 
-                // Stacktrace를 String으로 변환하여 포함
-                StringWriter sw = new StringWriter();
-                customException.printStackTrace(new PrintWriter(sw));
-                errData.put("stacktrace", sw.toString());
+        if (results instanceof Exception exception) {
+            errData.put("stacktrace", getStackTrace(exception));
+            response.setCode("Error");
+            response.setErrorMsg(exception.getMessage());
 
-                response.setCode("Error");
-                response.setErrorMsg(customException.getMessage());
-                response.setErrorData(errData);
+            if (exception instanceof CustomException customException) {
+                if( customException.getCausedObject() != null )
+                    errData.put("causedByObject", customException.getCausedObject()); // 예외가 발생한 객체 포함
             }
-            case BindException exception -> {
-                // Stacktrace를 String으로 변환하여 포함
-                StringWriter sw = new StringWriter();
-                exception.printStackTrace(new PrintWriter(sw));
-                errData.put("stacktrace", sw.toString());
-
-                response.setCode("Error");
-                response.setErrorMsg(exception.getMessage());
-                response.setErrorData(errData);
-            }
-            case HttpRequestMethodNotSupportedException exception -> {
-                // Stacktrace를 String으로 변환하여 포함
-                StringWriter sw = new StringWriter();
-                exception.printStackTrace(new PrintWriter(sw));
-                errData.put("stacktrace", sw.toString());
-
-                response.setCode("Error");
-                response.setErrorMsg(exception.getMessage());
-                response.setErrorData(errData);
-            }
-            case null, default -> {
-                errData.put("errData", results);
-                response.setCode("Error");
-                response.setErrorData(errData);
-            }
+            response.setErrorData(errData);
+        } else {
+            errData.put("errData", results);
+            response.setCode("Error");
+            response.setErrorData(errData);
         }
         return response;
+    }
+
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String[] lines = sw.toString().split("\n");
+
+        // 처음 몇 줄과 마지막 몇 줄만 포함
+        int keepLines = 3; // 앞뒤로 유지할 라인 개수
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < Math.min(keepLines, lines.length); i++) {
+            sb.append(lines[i]).append("\n");
+        }
+        sb.append("...\n"); // 중간 생략
+        for (int i = Math.max(lines.length - keepLines, keepLines); i < lines.length; i++) {
+            sb.append(lines[i]).append("\n");
+        }
+
+        return sb.toString();
     }
 }
