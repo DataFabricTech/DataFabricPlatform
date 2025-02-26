@@ -31,10 +31,6 @@ dependencies {
     implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.12.0"))
     implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
 
-//    implementation("jakarta.json:jakarta.json-api:2.1.3")
-//    implementation("org.apache.camel:camel-json-patch:4.9.0")
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
-
     // AOP
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
@@ -49,10 +45,17 @@ dependencies {
     implementation("org.flywaydb:flyway-mysql")
     // For UUIDv7
     implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+    // JSON
+    implementation("jakarta.json:jakarta.json-api:2.1.3")
+    implementation("org.glassfish:jakarta.json:2.0.1")
+    // JSON
+    implementation("com.fasterxml.jackson.core:jackson-core")
+    implementation("com.fasterxml.jackson.core:jackson-annotations")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.github.java-json-tools:json-patch:1.13")
 
     // OpenApi
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
     
     // Test Dependencies
-    testImplementation("org.mybatis.spring.boot:mybatis-spring-boot-starter-test")
 }
