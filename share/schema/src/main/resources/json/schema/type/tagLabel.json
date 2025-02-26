@@ -31,6 +31,10 @@
       "description": "Description for the tag label.",
       "$ref": "../type/basic.json#/definitions/markdown"
     },
+    "parentId": {
+      "description": "id of parent entity(classification, glossary?)",
+      "$ref": "./basic.json#/definitions/uuid"
+    },
     "source": {
       "description": "Label is from Tags or Glossary.",
       "$ref": "#/definitions/TagSource"

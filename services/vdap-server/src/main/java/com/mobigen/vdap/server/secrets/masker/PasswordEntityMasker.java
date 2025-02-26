@@ -13,7 +13,7 @@
 
 package com.mobigen.vdap.server.secrets.masker;
 
-import com.mobigen.vdap.common.annotations.PasswordField;
+import com.mobigen.vdap.annotator.PasswordField;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.secrets.SecretsManager;
