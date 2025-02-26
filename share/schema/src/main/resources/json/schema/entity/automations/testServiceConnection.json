@@ -10,16 +10,7 @@
       "description": "Connection object.",
       "oneOf": [
         {
-          "$ref": "../services/apiService.json#/definitions/apiConnection"
-        },
-        {
-          "$ref": "../services/databaseService.json#/definitions/databaseConnection"
-        },
-        {
           "$ref": "../services/storageService.json#/definitions/storageConnection"
-        },
-        {
-          "$ref": "../services/searchService.json#/definitions/searchConnection"
         }
       ]
     },

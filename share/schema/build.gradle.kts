@@ -32,6 +32,8 @@ dependencies {
 
     // Jsonschema
     implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.core:jackson-annotations")
+
     implementation("jakarta.validation:jakarta.validation-api")
 
     // Custom Annotation : Reflection 처리와 Password 필드로 인해 필요
