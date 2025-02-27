@@ -9,7 +9,6 @@ javaPlatform.allowDependencies()
 
 dependencies {
     api(platform("org.springframework.boot:spring-boot-dependencies:3.4.0"))
-    api(platform("org.springframework.boot:spring-boot-dependencies:3.4.0"))
     api(platform("org.apache.logging.log4j:log4j-bom:2.24.2"))
     api(platform("com.fasterxml.jackson:jackson-bom:2.18.1"))
     constraints {
@@ -24,8 +23,6 @@ dependencies {
         // flyway
         api("org.flywaydb:flyway-core:11.0.1")
         api("org.flywaydb:flyway-mysql:11.0.1")
-        // MyBatis
-        api("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4")
         // SpringBoot DevTools
         api("org.springframework.boot:spring-boot-devtools:3.4.0")
         // RestAPI - Swagger Document
@@ -34,6 +31,7 @@ dependencies {
         // JSON
         api("jakarta.json:jakarta.json-api:2.1.3")
         api("org.glassfish:jakarta.json:2.0.1")
+        // JSON Patch
         api("com.github.java-json-tools:json-patch:1.13")
     }
 }
