@@ -204,7 +204,7 @@
     },
     "changeDescription": {
       "description": "Change that led to this version of the entity.",
-      "$ref": "../../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
@@ -213,10 +213,6 @@
     },
     "provider" : {
       "$ref": "../../../type/basic.json#/definitions/providerType"
-    },
-    "domain" : {
-      "description": "Domain the asset belongs to. When not set, the asset inherits the domain from the parent it belongs to.",
-      "$ref": "../../../type/entityReference.json"
     },
     "applicationType": {
       "description": "Type of the application when pipelineType is 'application'.",

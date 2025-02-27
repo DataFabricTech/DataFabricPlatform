@@ -66,7 +66,7 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "provider": {
       "$ref": "../../type/basic.json#/definitions/providerType"

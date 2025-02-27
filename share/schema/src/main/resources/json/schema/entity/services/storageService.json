@@ -192,7 +192,7 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
