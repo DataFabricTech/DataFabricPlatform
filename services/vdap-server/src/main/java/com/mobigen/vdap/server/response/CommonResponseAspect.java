@@ -5,9 +5,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BindException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -36,7 +33,7 @@ public class CommonResponseAspect {
             response.setErrorMsg(exception.getMessage());
 
             if (exception instanceof CustomException customException) {
-                if( customException.getCausedObject() != null )
+                if (customException.getCausedObject() != null)
                     errData.put("causedByObject", customException.getCausedObject()); // 예외가 발생한 객체 포함
             }
             response.setErrorData(errData);

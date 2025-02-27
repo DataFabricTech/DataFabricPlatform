@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +50,13 @@ public class ClassificationService {
             setFields(classification, fields);
             addHref(classification, baseUri);
         });
+        if (classifications.getTotalElements() > 0) {
+            log.info("[Classification] List Result : Page[{}/{}] TotalElements[{}]",
+                    pageable.getPageNumber(), pageable.getPageSize(),
+                    classifications.getTotalElements());
+        } else {
+            log.info("[Classification] List Result : Not Have");
+        }
         // 수정된 리스트를 다시 Page로 변환
         return new PageImpl<>(classificationList, pageable, classifications.getTotalElements());
     }
@@ -58,7 +66,7 @@ public class ClassificationService {
         if (entity.isPresent()) {
             return getInternal(entity.get(), baseUri, fieldsParam);
         }
-        return null;
+        throw new CustomException("[Classification] Not Found By Id", id.toString());
     }
 
     public Classification getByName(URI baseUri, String fieldsParam, String name) {
@@ -66,7 +74,7 @@ public class ClassificationService {
         if (entity.isPresent()) {
             return getInternal(entity.get(), baseUri, fieldsParam);
         }
-        return null;
+        throw new CustomException("[Classification] Not Found By Name", name);
     }
 
     private Classification getInternal(ClassificationEntity entity, URI baseUri, String fieldsParam) {
@@ -77,6 +85,7 @@ public class ClassificationService {
         return classification;
     }
 
+    @Transactional
     public Classification create(URI baseUri, Classification classification) {
         ClassificationEntity entity = new ClassificationEntity();
         entity.setId(classification.getId().toString());
@@ -91,32 +100,31 @@ public class ClassificationService {
         return classification;
     }
 
-    public Classification createOrUpdate(URI baseUri, Classification classification) {
-        // If entity does not exist, this is a create operation, else update operation
-        Optional<ClassificationEntity> original = classificationRepository.findByName(classification.getName());
+    @Transactional
+    public Classification update(URI baseUri, Classification classification) {
+        Optional<ClassificationEntity> original = classificationRepository.findById(classification.getId().toString());
         if (original.isPresent()) {
-            // update
-            return update(baseUri, convertToDto(original.get()), classification);
-        } else {
-            // create
-            return create(baseUri, classification);
+            return updateInternal(baseUri, convertToDto(original.get()), classification);
         }
+        log.error("[Classification] Update Failed. No data found for the given ID[{}}", classification.getId().toString());
+        throw new CustomException("[Classification] Update Failed. No data found for the given ID", classification);
     }
 
-    public Classification update(URI baseUri, Classification original, Classification updated) {
-        // Copy Original UUID
-        updated.setId(original.getId());
+    public Classification updateInternal(URI baseUri, Classification original, Classification updated) {
         // MutuallyExclusive 는 업데이트 되지 않음.
         updated.setMutuallyExclusive(original.getMutuallyExclusive());
+        // 업데이트 시간은 비교하지 않음.
+        LocalDateTime updatedAt = updated.getUpdatedAt();
+        updated.setUpdatedAt(null);
+        original.setUpdatedAt(null);
 
         // 비교 대상만으로 데이터를 생성하고 비교
-
         String patch = JsonUtils.diff(JsonUtils.pojoToJson(original), JsonUtils.pojoToJson(updated));
-        log.info("[Classification] Update : \n{}", patch);
-        // TODO : patch 확인 필요
+        log.debug("[Classification] Json Diff - \n{}", patch);
+
+        updated.setUpdatedAt(updatedAt);
         updated.setVersion(EntityUtil.nextVersion(original.getVersion()));
 
-//        updateInternal();
         ClassificationEntity updateEntity = new ClassificationEntity();
         updateEntity.setId(updated.getId().toString());
         updateEntity.setName(updated.getName());
@@ -132,9 +140,9 @@ public class ClassificationService {
     private void storeEntity(ClassificationEntity entity, boolean update) {
         classificationRepository.save(entity);
         if (update) {
-            log.info("Updated Classification ID[{}] Name[{}]", entity.getId(), entity.getName());
+            log.info("[Classification] Updated ID[{}] Name[{}]", entity.getId(), entity.getName());
         } else {
-            log.info("Created Classification ID[{}] Name[{}]", entity.getId(), entity.getName());
+            log.info("[Classification] Created ID[{}] Name[{}]", entity.getId(), entity.getName());
         }
     }
 
@@ -143,7 +151,7 @@ public class ClassificationService {
         if (entity.isPresent()) {
             delete(convertToDto(entity.get()));
         } else {
-            throw new CustomException(String.format("classification instance for %s not found", id), id);
+            throw new CustomException("[Classification] Delete Failed. No data found for the given ID", id);
         }
     }
 
@@ -152,7 +160,7 @@ public class ClassificationService {
         if (entity.isPresent()) {
             delete(convertToDto(entity.get()));
         } else {
-            throw new CustomException(String.format("classification instance for %s not found", name), name);
+            throw new CustomException("[Classification] Delete Failed. No data found for the given Name", name);
         }
     }
 
@@ -238,7 +246,7 @@ public class ClassificationService {
 
     private void addHref(Classification classification, URI baseUri) {
         classification.setHref(URI.create(
-                String.format("%s/%s/%s", baseUri.toString(),
+                String.format("%s%s/%s", baseUri.toString(),
                         CLASSIFICATION_API_PATH,
                         classification.getId().toString())));
     }

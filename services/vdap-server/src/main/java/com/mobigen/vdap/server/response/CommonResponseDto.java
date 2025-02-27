@@ -20,8 +20,6 @@ public class CommonResponseDto {
     private String errorMsg;
     @JsonProperty("errorData")
     private Map<String, Object> errorData;
-    @JsonProperty("page")
-    private Paging page;
     @JsonProperty("data")
     private Object data;
 }

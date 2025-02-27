@@ -91,13 +91,13 @@ public final class JsonUtils {
         }
     }
 
-    public static <T> T readValue(String json, String clazzName) {
-        try {
-            return (T) readValue(json, Class.forName(clazzName));
-        } catch (ClassNotFoundException e) {
-            throw new CustomException(FAILED_TO_PROCESS_JSON, e, null);
-        }
-    }
+//    public static <T> T readValue(String json, String clazzName) {
+//        try {
+//            return (T) readValue(json, Class.forName(clazzName));
+//        } catch (ClassNotFoundException e) {
+//            throw new CustomException(FAILED_TO_PROCESS_JSON, e, null);
+//        }
+//    }
 
     public static <T> T readValue(String json, Class<T> clz) {
         if (json == null) {

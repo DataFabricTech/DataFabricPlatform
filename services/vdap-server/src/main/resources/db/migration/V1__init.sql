@@ -21,7 +21,8 @@ create table classification
     name       varchar(256),
     json       json          not     null,
     updated_at datetime(3),
-    updated_by varchar(256)
+    updated_by varchar(256),
+    constraint name unique(name)
 );
 
 create index classification_entity_name_index on classification (name);

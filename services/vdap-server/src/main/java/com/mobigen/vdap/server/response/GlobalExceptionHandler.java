@@ -2,6 +2,7 @@ package com.mobigen.vdap.server.response;
 
 import com.mobigen.vdap.server.exception.CustomException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -59,9 +60,17 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(CustomException.class)
     public Object CustomExceptionHandler(CustomException e) {
-        log.error("User(Service)Define Exception[ {} ]", e.getMessage(), e);
+        log.error("User(Service)Define Exception[ {} ]", e.getMessage());
         return e;
     }
+
+    @ResponseBody
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public Object handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("데이터 무결성 위반 오류 : [ {} ]", e.getMessage());
+        return new CustomException("데이터 무결성 위반 오류 : " + e.getMessage(), null);
+    }
+
 
     /**
      * 핸들링하지 않은 예외를 상위클래스인 Exception 클래스로 핸들링한다.
@@ -69,7 +78,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(Exception.class)
     public Object unknownExceptionHandler(Exception e) {
-        log.error("Unknown Exception[ {} ]", e.getMessage(), e);
+        log.error("Exception[ {} ]", e.getMessage(), e);
         return new CustomException(String.format("Unknown exception[%s]", e.getMessage()), e, null);
     }
 

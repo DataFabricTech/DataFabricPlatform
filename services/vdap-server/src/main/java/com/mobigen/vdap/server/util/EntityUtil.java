@@ -4,13 +4,15 @@ import com.mobigen.vdap.common.utils.CommonUtil;
 import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.entity.data.GlossaryTerm;
 import com.mobigen.vdap.schema.entity.data.TermReference;
-import com.mobigen.vdap.schema.type.*;
+import com.mobigen.vdap.schema.type.EntityReference;
+import com.mobigen.vdap.schema.type.Field;
+import com.mobigen.vdap.schema.type.Include;
+import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.models.EntityVersionPair;
 import jakarta.validation.constraints.NotNull;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -30,8 +32,6 @@ public final class EntityUtil {
             Comparator.comparing(EntityVersionPair::getVersion);
     public static final Comparator<TagLabel> compareTagLabel =
             Comparator.comparing(TagLabel::getName);
-    public static final Comparator<FieldChange> compareFieldChange =
-            Comparator.comparing(FieldChange::getName);
     //    public static final Comparator<TableConstraint> compareTableConstraint =
 //      Comparator.comparing(TableConstraint::getConstraintType);
 //  public static final Comparator<ChangeEvent> compareChangeEvent =
@@ -358,32 +358,6 @@ public final class EntityUtil {
                 .withSource(TagSource.CLASSIFICATION);
     }
 
-    public static String addField(String fields, String newField) {
-        fields = fields == null ? "" : fields;
-        return fields.isEmpty() ? newField : fields + ", " + newField;
-    }
-
-    public static void fieldAdded(ChangeDescription change, String fieldName, Object newValue) {
-        if (change != null) {
-            change.getFieldsAdded().add(new FieldChange().withName(fieldName).withNewValue(newValue));
-        }
-    }
-
-    public static void fieldDeleted(ChangeDescription change, String fieldName, Object oldValue) {
-        if (change != null) {
-            change.getFieldsDeleted().add(new FieldChange().withName(fieldName).withOldValue(oldValue));
-        }
-    }
-
-    public static void fieldUpdated(
-            ChangeDescription change, String fieldName, Object oldValue, Object newValue) {
-        if (change != null) {
-            FieldChange fieldChange =
-                    new FieldChange().withName(fieldName).withOldValue(oldValue).withNewValue(newValue);
-            change.getFieldsUpdated().add(fieldChange);
-        }
-    }
-//
 //    public static UUID getId(EntityReference ref) {
 //        return ref == null ? null : ref.getId();
 //    }
