@@ -4,7 +4,7 @@ import com.mobigen.vdap.schema.api.classification.CreateClassification;
 import com.mobigen.vdap.schema.api.data.RestoreEntity;
 import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.type.EntityHistory;
-import com.mobigen.vdap.server.annotations.CommonResponse;
+import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
 import com.mobigen.vdap.server.util.JsonUtils;
 import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,7 +60,7 @@ public class ClassificationController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ClassificationList.class)))
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public Object list(
             HttpServletRequest request,
             @Parameter(
@@ -83,7 +83,7 @@ public class ClassificationController {
             @RequestParam(value = "size", defaultValue = "20", required = false)
             Integer size) {
         log.info("[Classifications] Get List Fields[{}], page[{}], size[{}]", fieldsParam, page, size);
-        return classificationService.list(getBaseUri(request), fieldsParam, page, size);
+        return classificationService.list(Utilities.getBaseUri(request), fieldsParam, page, size);
     }
 
     @GetMapping("/{id}")
@@ -103,7 +103,7 @@ public class ClassificationController {
                             responseCode = "404",
                             description = "Classification for instance {id} is not found")
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public Object getById(
             HttpServletRequest request,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
@@ -114,7 +114,7 @@ public class ClassificationController {
                     schema = @Schema(type = "string", example = FIELDS))
             @RequestParam(value = "fields", required = false)
             String fieldsParam) {
-        return classificationService.getById(getBaseUri(request), fieldsParam, id);
+        return classificationService.getById(Utilities.getBaseUri(request), fieldsParam, id);
     }
 
     @GetMapping("name/{name}")
@@ -133,7 +133,7 @@ public class ClassificationController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = Classification.class)))
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public Object getByName(
             HttpServletRequest request,
             @Parameter(description = "Name of the classification", schema = @Schema(type = "string"))
@@ -144,7 +144,7 @@ public class ClassificationController {
                     schema = @Schema(type = "string", example = FIELDS))
             @RequestParam(value = "fields", required = false)
             String fieldsParam) {
-        return classificationService.getByName(getBaseUri(request), fieldsParam, name);
+        return classificationService.getByName(Utilities.getBaseUri(request), fieldsParam, name);
     }
 
     @GetMapping("/{id}/versions")
@@ -161,7 +161,7 @@ public class ClassificationController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = EntityHistory.class)))
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public EntityHistory listVersions(
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id")
@@ -187,7 +187,7 @@ public class ClassificationController {
                             responseCode = "404",
                             description = "Classification for instance {id} and version {version} is not found")
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public Classification getVersion(
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id")
@@ -218,7 +218,7 @@ public class ClassificationController {
                                     schema = @Schema(implementation = Classification.class))),
                     @ApiResponse(responseCode = "400", description = "Bad request")
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public Object create(HttpServletRequest request,
                          @Parameter(
                                  name = "Create Classification",
@@ -228,7 +228,7 @@ public class ClassificationController {
         log.info("[Classification] Create");
         log.debug("[Classification] CreateClassification Data -\n{}", JsonUtils.pojoToJson(create, true));
         Classification classification = createToEntity(create, "admin");
-        return classificationService.create(getBaseUri(request), classification);
+        return classificationService.create(Utilities.getBaseUri(request), classification);
     }
 
     @PostMapping("/{id}/update")
@@ -236,7 +236,7 @@ public class ClassificationController {
             operationId = "createOrUpdateClassification",
             summary = "Update a classification",
             description = "Update an existing category identify by category name")
-    @CommonResponse
+    @CommonResponseAnnotation
     public Object update(
             HttpServletRequest request,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
@@ -248,7 +248,7 @@ public class ClassificationController {
         classification.setId(id);
         log.info("[Classification] Update");
         log.debug("[Classification] Update Classification Id[{}] Data - \n{}", id, JsonUtils.pojoToJson(create, true));
-        return classificationService.update(getBaseUri(request), classification);
+        return classificationService.update(Utilities.getBaseUri(request), classification);
     }
 
     @PostMapping("/{id}/delete")
@@ -256,7 +256,7 @@ public class ClassificationController {
             operationId = "deleteClassification",
             summary = "Delete classification by id",
             description = "Delete a classification and all the tags under it.")
-    @CommonResponse
+    @CommonResponseAnnotation
     public void delete(
             @Parameter(
                     description = "Recursively delete this entity and it's children. (Default `false`)")
@@ -268,7 +268,7 @@ public class ClassificationController {
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
         log.info("[Delete] Classification By ID[{}]", id);
-        classificationService.deleteById(id);
+        classificationService.deleteById(id, "admin");
     }
 
     @PostMapping("/name/{name}/delete")
@@ -279,15 +279,15 @@ public class ClassificationController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK"),
             })
-    @CommonResponse
+    @CommonResponseAnnotation
     public void delete(
             @Parameter(description = "Name of the classification", schema = @Schema(type = "string"))
             @PathVariable("name") String name) {
         log.info("[Delete] Classification By Name[{}]", name);
-        classificationService.deleteByName(name);
+        classificationService.deleteByName(name, "admin");
     }
 
-    @CommonResponse
+    @CommonResponseAnnotation
     @PostMapping("/restore")
     @Operation(
             operationId = "restoreClassification",
@@ -322,19 +322,4 @@ public class ClassificationController {
         return entity;
     }
 
-    public URI getBaseUri(HttpServletRequest request) {
-        String requestUrl = request.getRequestURL().toString();
-        String scheme = request.getScheme();
-        String host = request.getServerName();
-        int port = request.getServerPort();
-
-        String contextPath = request.getContextPath(); // "/app" 같은 컨텍스트 경로
-
-        // 기본 포트(80, 443)일 경우 포트 생략
-        boolean isDefaultPort = (scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443);
-        String portString = isDefaultPort ? "" : ":" + port;
-
-        // 최종 Base URI 구성
-        return URI.create(String.format("%s://%s%s%s", scheme, host, portString, contextPath));
-    }
 }

@@ -1,12 +1,12 @@
 package com.mobigen.vdap.server;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class Entity {

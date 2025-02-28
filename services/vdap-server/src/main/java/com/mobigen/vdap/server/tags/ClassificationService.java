@@ -1,64 +1,99 @@
 package com.mobigen.vdap.server.tags;
 
 import com.mobigen.vdap.schema.entity.classification.Classification;
+import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.ProviderType;
+import com.mobigen.vdap.schema.type.Relationship;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.ClassificationEntity;
 import com.mobigen.vdap.server.exception.CustomException;
+import com.mobigen.vdap.server.models.PageModel;
+import com.mobigen.vdap.server.repositories.EntityRelationshipRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
+import com.mobigen.vdap.server.entity.EntityRelationshipEntity;
 
 @Slf4j
 @Service
 public class ClassificationService {
-    private final ClassificationRepository classificationRepository;
     private final Set<String> allowFields;
-    private final TagRepository tagRepository;
+    private final ClassificationRepository classificationRepository;
+    private final EntityRelationshipRepository entityRelationshipRepository;
+    private final TagService tagService;
+
     private static final String CLASSIFICATION_API_PATH = "/v1/classification";
 
-    public ClassificationService(ClassificationRepository classificationRepository, TagRepository tagRepository) {
+    public ClassificationService(ClassificationRepository classificationRepository, TagService tagService,
+            EntityRelationshipRepository entityRelationshipRepository) {
         this.classificationRepository = classificationRepository;
+        this.entityRelationshipRepository = entityRelationshipRepository;
+        this.tagService = tagService;
         allowFields = Entity.getEntityFields(Classification.class);
-        this.tagRepository = tagRepository;
     }
 
-    public Page<Classification> list(URI baseUri, String fieldsParam, Integer page, Integer size) {
+    public PageModel<Classification> list(URI baseUri, String fieldsParam, Integer page, Integer size) {
         Fields fields = getFields(fieldsParam);
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
         Page<ClassificationEntity> entities = classificationRepository.findAll(pageable);
+        PageModel<Classification> res = new PageModel<>();
+        res.setPage(page);
+        res.setSize(size);
+        if (entities.getTotalElements() > 0) {
+            log.info("[Classification] List Result : Page[{}/{}] TotalElements[{}]",
+                    pageable.getPageNumber(), pageable.getPageSize(),
+                    entities.getTotalElements());
+        } else {
+            log.info("[Classification] List Result : Not Have Classification");
+            res.setTotalElements(0);
+            res.setTotalPages(0);
+            res.setContents(Collections.emptyList());
+            return res;
+        }
         // Convert
-        Page<Classification> classifications = entities.map(this::convertToDto);
-        // For SetFields
-        List<Classification> classificationList = classifications.getContent();
+        List<Classification> classifications = entities.getContent().stream().map(this::convertToDto).toList();
         // SetFields
-        classificationList.forEach(classification -> {
+        classifications.forEach(classification -> {
             setFields(classification, fields);
             addHref(classification, baseUri);
         });
-        if (classifications.getTotalElements() > 0) {
-            log.info("[Classification] List Result : Page[{}/{}] TotalElements[{}]",
-                    pageable.getPageNumber(), pageable.getPageSize(),
-                    classifications.getTotalElements());
-        } else {
-            log.info("[Classification] List Result : Not Have");
+        res.setTotalElements((int) entities.getTotalElements());
+        res.setTotalPages(entities.getTotalPages());
+        res.setContents(classifications);
+        return res;
+    }
+
+    public EntityReference getByRef(UUID id) {
+        Optional<ClassificationEntity> entity = classificationRepository.findById(id.toString());
+        if (entity.isPresent()) {
+            Classification classification = convertToDto(entity.get());
+            return new EntityReference()
+                    .withId(classification.getId())
+                    .withType(Entity.CLASSIFICATION)
+                    .withName(classification.getName())
+                    .withDisplayName(classification.getDisplayName())
+                    .withDescription(classification.getDescription());
+//                    ;kl
+//                    .withInherited(false)
+//                    .withHref(URI.create(String.format("%s%s/%s", baseUri.toString(),
+//                                    CLASSIFICATION_API_PATH,
+//                                    classification.getId().toString())));
         }
-        // 수정된 리스트를 다시 Page로 변환
-        return new PageImpl<>(classificationList, pageable, classifications.getTotalElements());
+        throw new CustomException("[Classification] Not Found By Id For Get Reference", id.toString());
     }
 
     public Classification getById(URI baseUri, String fieldsParam, UUID id) {
@@ -146,66 +181,89 @@ public class ClassificationService {
         }
     }
 
-    public void deleteById(UUID id) {
+    public void deleteById(UUID id, String userName) {
         Optional<ClassificationEntity> entity = classificationRepository.findById(id.toString());
         if (entity.isPresent()) {
-            delete(convertToDto(entity.get()));
+            delete(convertToDto(entity.get()), userName);
         } else {
             throw new CustomException("[Classification] Delete Failed. No data found for the given ID", id);
         }
     }
 
-    public void deleteByName(String name) {
+    public void deleteByName(String name, String userName) {
         Optional<ClassificationEntity> entity = classificationRepository.findByName(name);
         if (entity.isPresent()) {
-            delete(convertToDto(entity.get()));
+            delete(convertToDto(entity.get()), userName);
         } else {
             throw new CustomException("[Classification] Delete Failed. No data found for the given Name", name);
         }
     }
 
-    private void delete(Classification classification) {
-        checkSystemEntityDeletion(classification);
-//        deleteChildren(classification.getId(), true, true, deletedBy);
-//        EventType changeType;
-//        T updated = get(null, original.getId(), putFields, ALL, false);
-//        if (supportsSoftDelete && !hardDelete) {
-//            updated.setUpdatedBy(deletedBy);
-//            updated.setUpdatedAt(System.currentTimeMillis());
-//            updated.setDeleted(true);
-//            EntityUpdater updater = getUpdater(original, updated, Operation.SOFT_DELETE);
-//            updater.update();
-//            changeType = ENTITY_SOFT_DELETED;
-//        } else {
-//            cleanup(updated);
-//            changeType = ENTITY_DELETED;
-//        }
-//        LOG.info("{} deleted {}", hardDelete ? "Hard" : "Soft", updated.getFullyQualifiedName());
-//        return new DeleteResponse<>(updated, changeType);
-    }
-
     @Transactional
-    protected void deleteChildren(UUID id, boolean recursive, boolean hardDelete, String updatedBy) {
-//        // If an entity being deleted contains other **non-deleted** children entities, it can't be deleted
-//        List<EntityRelationshipRecord> childrenRecords =
-//                        .relationshipDAO()
-//                        .findTo(
-//                                id,
-//                                entityType,
-//                                List.of(Relationship.CONTAINS.ordinal(), Relationship.PARENT_OF.ordinal()));
+    protected void delete(Classification classification, String userName) {
+        checkSystemEntityDeletion(classification);
+        deleteChildren(classification.getId(), userName);
 //
-//        if (childrenRecords.isEmpty()) {
-//            log.info("No children to delete");
-//            return;
-//        }
-//        // Entity being deleted contains children entities
-//        if (!recursive) {
-//            throw new IllegalArgumentException(CatalogExceptionMessage.entityIsNotEmpty(entityType));
-//        }
-//        // Delete all the contained entities
-//        deleteChildren(childrenRecords, hardDelete, updatedBy);
+//        EventType changeType = EventType.ENTITY_DELETED;
+//        log.info("{} deleted {}", "Hard", classification.getName());
+//        cleanup(classification);
+//        return classification;
     }
 
+    protected void deleteChildren(UUID id, String deletedBy) {
+        // If an entity being deleted contains other **non-deleted** children entities, it can't be deleted
+        List<EntityRelationshipEntity> childrenRecords =
+                        entityRelationshipRepository.findByFromIdAndFromEntityAndRelationIn(
+                                id.toString(), Entity.CLASSIFICATION,
+                                List.of(Relationship.CONTAINS.ordinal(), Relationship.PARENT_OF.ordinal()));
+
+        if (childrenRecords.isEmpty()) {
+            log.info("[Classification] No children to delete. ID[{}]", id);
+            return;
+        }
+        // Delete all the contained entities
+        deleteChildren(childrenRecords, deletedBy);
+    }
+
+    protected void deleteChildren(List<EntityRelationshipEntity> children, String deletedBy) {
+        for (EntityRelationshipEntity c : children) {
+            log.info("[Classification] Children Recursively deleting Type[{}] Id[{}]", c.getToEntity(), c.getToId());
+            if (c.getToEntity().equals(Entity.TAG)) {
+                tagService.deleteById(c.getToId(), deletedBy);
+            } else {
+                throw new CustomException("[Classification] Unsupported child entity", c.getToEntity());
+            }
+        }
+    }
+    protected void cleanup(Classification classification) {
+
+        // // Delete all the relationships to other entities
+        // entityRelationshipRepository.deleteAll(ids);(id, entityType);
+
+        // // Delete all the field relationships to other entities
+        // daoCollection.fieldRelationshipDAO().deleteAllByPrefix(entityInterface.getFullyQualifiedName());
+
+        //     // Delete all the tag labels
+        //     tagUsage()
+        //     .deleteTagLabelsByTargetPrefix(entityInterface.getFullyQualifiedName());
+
+        // // when the glossary and tag is deleted, delete its usage
+        // daoCollection.tagUsageDAO().deleteTagLabelsByFqn(entityInterface.getFullyQualifiedName());
+        // // Delete all the usage data
+        // daoCollection.usageDAO().delete(id);
+
+        // // Delete the extension data storing custom properties
+        // removeExtension(entityInterface);
+
+        // // Delete all the threads that are about this entity
+        // Entity.getFeedRepository().deleteByAbout(entityInterface.getId());
+
+        // // Remove entity from the cache
+        // invalidate(entityInterface);
+
+        // // Finally, delete the entity
+        // dao.delete(id);
+    }
 
     private Fields getFields(String fields) {
         if ("*".equals(fields)) {
@@ -222,7 +280,8 @@ public class ClassificationService {
     }
 
     private Integer getTermCount(Classification classification) {
-        return tagRepository.getCountByClassificationId(classification.getId().toString());
+        // return tagService.getCountByClassificationId(classification.getId().toString());
+        return 0;
     }
 
     private Integer getUsageCount(Classification classification) {
@@ -239,8 +298,8 @@ public class ClassificationService {
 
     private void checkSystemEntityDeletion(Classification entity) {
         if (ProviderType.SYSTEM.equals(entity.getProvider())) { // System provided entity can't be deleted
-            throw new IllegalArgumentException(
-                    String.format("System entity [%s] of classification can not be deleted.", entity.getName()));
+            throw new CustomException(
+                    String.format("[Classification] System entity [%s] can not be deleted.", entity.getName()), null);
         }
     }
 

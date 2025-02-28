@@ -7,15 +7,16 @@ import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.type.ChangeEvent;
 import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.schema.type.EntityReference;
-import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.schema.type.api.BulkOperationResult;
 import com.mobigen.vdap.server.Entity;
+import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
 import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -35,15 +36,20 @@ import java.util.UUID;
                         + "contains hierarchical"
                         + " terms called `Tags` used "
                         + "for categorizing and classifying data assets and other entities.")
-public class TagResource {
+public class TagController {
     static final String FIELDS = "children,usageCount";
+
+    private final TagService tagService;
+
+    public TagController(TagService tagService) {
+        this.tagService = tagService;
+    }
 
     static class TagList extends ArrayList<Tag> {
         /* Required for serde */
     }
 
     @GetMapping
-    @Valid
     @Operation(
             operationId = "listTags",
             summary = "List tags",
@@ -60,34 +66,25 @@ public class TagResource {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = TagList.class)))
             })
-    public ArrayList<Tag> list(
+    @CommonResponseAnnotation
+    public Object list(
             @Parameter(
                     description =
                             "List tags filtered by children of tag identified by uuid given in `parent` parameter.",
                     schema = @Schema(type = "UUID"))
-                @RequestParam(value = "parent", required = false)
-                String parent,
+            @RequestParam(value = "parent", required = false)
+            String parent,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-                @RequestParam(value = "fields", required = false)
-                String fieldsParam,
-            @Parameter(
-                    description = "Filter Disabled Classifications",
-                    schema = @Schema(type = "string"))
-                @RequestParam(value = "disabled", defaultValue = "false", required = false)
-                Boolean disabled,
+            @RequestParam(value = "fields", required = false)
+            String fieldsParam,
             @Parameter(description = "page number of tags")
-                @RequestParam(value = "page", defaultValue = "0", required = false)
-                Integer page,
+            @RequestParam(value = "page", defaultValue = "0", required = false)
+            Integer page,
             @Parameter(description = "size the number tags returned. (1 to 50, default = 20)")
-                @RequestParam(value = "size", defaultValue = "20", required = false)
-                Integer size,
-            @Parameter(
-                    description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-                @RequestParam(value = "include", defaultValue = "non-deleted", required = false)
-                Include include) {
+            @RequestParam(value = "size", defaultValue = "20", required = false)
+            Integer size) {
 //        ListFilter filter =
 //                new ListFilter(include)
 //                        .addRequestParam("parent", parent)
@@ -111,21 +108,17 @@ public class TagResource {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = Tag.class)))
             })
-    public Tag get(
+    @CommonResponseAnnotation
+    public Object getById(
+            HttpServletRequest request,
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id,
+            @PathVariable("id") UUID id,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
-                @RequestParam(value = "fields", required = false)
-                String fieldsParam,
-            @Parameter(
-                    description = "Include all, deleted, or non-deleted entities.",
-                    schema = @Schema(implementation = Include.class))
-                @RequestParam(value = "include", defaultValue = "non-deleted", required = false)
-                Include include) {
-//        return getInternal(uriInfo, securityContext, id, fieldsParam, include);
-        return null;
+            @RequestParam(value = "fields", required = false)
+            String fieldsParam) {
+        return tagService.getById(Utilities.getBaseUri(request), id, fieldsParam);
     }
 
     @GetMapping("/{id}/versions")
@@ -144,7 +137,7 @@ public class TagResource {
             })
     public EntityHistory listVersions(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id) {
+            @PathVariable("id") UUID id) {
 //        return super.listVersionsInternal(securityContext, id);
         return null;
     }
@@ -168,11 +161,11 @@ public class TagResource {
             })
     public Tag getVersion(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id,
+            @PathVariable("id") UUID id,
             @Parameter(
                     description = "tag version number in the form `major`.`minor`",
                     schema = @Schema(type = "string", example = "0.1 or 1.1"))
-                @PathVariable("version") String version) {
+            @PathVariable("version") String version) {
 //        return super.getVersionInternal(securityContext, id, version);
         return null;
     }
@@ -193,10 +186,11 @@ public class TagResource {
                     @ApiResponse(responseCode = "400", description = "Bad request")
             })
     public Object create(
-            @Valid CreateTag create) {
-//        Tag tag = mapper.createToEntity(create, securityContext.getUserPrincipal().getName());
-//        return create(uriInfo, securityContext, tag);
-        return null;
+            HttpServletRequest request,
+            @Valid @RequestBody CreateTag create) {
+        // TODO : Get User Info
+        Tag tag = createToEntity(create, "admin");
+        return tagService.create(Utilities.getBaseUri(request), tag);
     }
 
     /*
@@ -259,18 +253,11 @@ public class TagResource {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "tag for instance {id} is not found")
             })
-    public Object delete(
+    public Object deleteById(
+            HttpServletRequest request,
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id,
-            @Parameter(
-                    description = "Recursively delete this entity and it's children. (Default `false`)")
-                @RequestParam(value = "recursive", defaultValue = "false", required = false)
-                boolean recursive,
-            @Parameter(description = "Hard delete the entity. (Default = `false`)")
-                @RequestParam(value = "hardDelete", defaultValue = "false", required = false)
-                boolean hardDelete ) {
-//        return delete(uriInfo, securityContext, id, recursive, hardDelete);
-        return null;
+            @PathVariable("id") UUID id) {
+        return tagService.deleteInternalById(, securityContext, id, recursive, hardDelete);
     }
 
     @PostMapping("/restore")
@@ -310,7 +297,7 @@ public class TagResource {
             })
     public Object bulkAddTagToAssets(
             @Parameter(description = "Id of the Entity", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody AddTagToAssetsRequest request) {
 //        return bulkAddToAssetsAsync(securityContext, id, request);
         return null;
@@ -333,7 +320,7 @@ public class TagResource {
             })
     public Object bulkRemoveTagFromAssets(
             @Parameter(description = "Id of the Entity", schema = @Schema(type = "UUID"))
-                @PathVariable("id") UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody AddTagToAssetsRequest request) {
 //        return bulkRemoveFromAssetsAsync(securityContext, id, request);
         return null;

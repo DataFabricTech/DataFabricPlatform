@@ -1,14 +1,17 @@
 package com.mobigen.vdap.server.tags;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.vdap.schema.api.classification.CreateClassification;
 import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.type.ProviderType;
+import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.util.JsonUtils;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.flywaydb.core.Flyway;
-import org.junit.Before;
+import org.hibernate.query.Page;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -88,7 +91,7 @@ class ClassificationControllerTest {
 
         JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
         String code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         Classification classification = JsonUtils.convertValue(node.get("data"), Classification.class);
 
@@ -137,7 +140,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         classification = JsonUtils.convertValue(node.get("data"), Classification.class);
 
@@ -196,7 +199,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         Classification resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
 
@@ -217,7 +220,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
 
@@ -242,7 +245,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
         Assertions.assertNotNull(resClassification.getId());
@@ -260,7 +263,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
 
         // 2. description
@@ -274,7 +277,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
         Assertions.assertEquals(testClassification.getName(), resClassification.getName());
@@ -289,7 +292,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
         Assertions.assertEquals(testClassification.getDescription(), resClassification.getDescription());
 
@@ -304,7 +307,7 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
 
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
         Assertions.assertEquals(testClassification.getName(), resClassification.getName());
@@ -320,13 +323,153 @@ class ClassificationControllerTest {
 
         node = JsonUtils.readTree(result.getResponse().getContentAsString());
         code = node.get("code").asText();
-        Assertions.assertEquals("success", code);
+        Assertions.assertEquals("Success", code);
         resClassification = JsonUtils.convertValue(node.get("data"), Classification.class);
         Assertions.assertEquals(testClassification.getDescription(), resClassification.getDescription());
     }
 
     @Test
     @Order(3)
-    void list() {
+    void delete() throws Exception {
+        // Create Data 01
+        CreateClassification testClassification = new CreateClassification()
+                        .withName("delete-test-01")
+                        .withDescription("classification-test-01")
+                        .withProvider(ProviderType.USER)
+                        .withMutuallyExclusive(false);
+        MvcResult result = mockMvc.perform(post("/v1/classifications").contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON).content(JsonUtils.pojoToJson(testClassification)))
+                        .andReturn();
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        String code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+        Classification deleteClassification_01 = JsonUtils.convertValue(node.get("data"), Classification.class);
+        Assertions.assertNotNull(deleteClassification_01.getId());
+        
+        // Create Data 02
+        testClassification = new CreateClassification()
+                        .withName("delete-test-02")
+                        .withDescription("classification-test-02")
+                        .withProvider(ProviderType.USER)
+                        .withMutuallyExclusive(false);
+        result = mockMvc.perform(post("/v1/classifications").contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON).content(JsonUtils.pojoToJson(testClassification)))
+                        .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+        Classification deleteClassification_02 = JsonUtils.convertValue(node.get("data"), Classification.class);
+        Assertions.assertNotNull(deleteClassification_02.getName());
+       
+        // Delete By Id - Data 01
+        result = mockMvc.perform(post("/v1/classifications/" + deleteClassification_01.getId() + "/delete")
+                        .accept(MediaType.APPLICATION_JSON))
+                        .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+       
+        // Delete By Id - Data 02
+        result = mockMvc.perform(post("/v1/classifications/name/" + deleteClassification_02.getName() + "/delete")
+                        .accept(MediaType.APPLICATION_JSON))
+                        .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+        // Get List And All Delete
+        // result = mockMvc.perform(get("/v1/classifications")
+        //                 .param("page", "0")
+        //                 .param("size", "100")
+        //                 .accept(MediaType.APPLICATION_JSON))
+        //         .andExpect(status().isOk())
+        //         .andReturn();
+
+        // JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        // String code = node.get("code").asText();
+        // Assertions.assertEquals("Success", code);
+
+        // PageModel<Classification> pageResponse = JsonUtils.convertValue(node.get("data"),
+        //         new TypeReference<PageModel<Classification>>() {});
+        // Assertions.assertNotNull(pageResponse);
+    }
+
+    @Test
+    @Order(4)
+    void list() throws Exception {
+        MvcResult result = mockMvc.perform(get("/v1/classifications")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        String code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+        PageModel<Classification> pageResponse = JsonUtils.convertValue(node.get("data"),
+                new TypeReference<PageModel<Classification>>() {});
+        Assertions.assertNotNull(pageResponse);
+        int currentSize = pageResponse.getTotalElements();
+        if( currentSize <= 2 ) {
+            CreateClassification testClassification = new CreateClassification()
+                    .withName("list-test-01")
+                    .withDescription("classification-test-01")
+                    .withProvider(ProviderType.USER)
+                    .withMutuallyExclusive(false);
+            mockMvc.perform(post("/v1/classifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(JsonUtils.pojoToJson(testClassification)))
+                    .andReturn();
+            testClassification = new CreateClassification()
+                    .withName("list-test-02")
+                    .withDescription("classification-test-01")
+                    .withProvider(ProviderType.USER)
+                    .withMutuallyExclusive(false);
+            mockMvc.perform(post("/v1/classifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(JsonUtils.pojoToJson(testClassification)))
+                    .andReturn();
+            testClassification = new CreateClassification()
+                    .withName("list-test-03")
+                    .withDescription("classification-test-01")
+                    .withProvider(ProviderType.USER)
+                    .withMutuallyExclusive(false);
+            mockMvc.perform(post("/v1/classifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(JsonUtils.pojoToJson(testClassification)))
+                    .andReturn();
+            testClassification = new CreateClassification()
+                    .withName("list-test-04")
+                    .withDescription("classification-test-01")
+                    .withProvider(ProviderType.USER)
+                    .withMutuallyExclusive(false);
+            mockMvc.perform(post("/v1/classifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .content(JsonUtils.pojoToJson(testClassification)))
+                    .andReturn();
+            currentSize += 4;
+        }
+        result = mockMvc.perform(get("/v1/classifications")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        code = node.get("code").asText();
+        Assertions.assertEquals("Success", code);
+
+        pageResponse = JsonUtils.convertValue(node.get("data"),
+                new TypeReference<PageModel<Classification>>() {});
+        Assertions.assertEquals(currentSize, pageResponse.getTotalElements());
+        Assertions.assertNotNull(pageResponse.getContents());
     }
 }

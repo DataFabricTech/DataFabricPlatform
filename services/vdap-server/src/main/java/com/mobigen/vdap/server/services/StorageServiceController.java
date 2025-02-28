@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.mobigen.vdap.schema.type.CommonResponse;
+import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +22,6 @@ import com.mobigen.vdap.schema.entity.services.StorageService;
 import com.mobigen.vdap.schema.entity.services.connections.TestConnectionResult;
 import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Include;
-import com.mobigen.vdap.server.annotations.CommonResponse;
-import com.mobigen.vdap.server.response.CommonResponseDto;
 import com.mobigen.vdap.server.util.Utilities;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,7 +52,7 @@ public class StorageServiceController {
     }
 
     @GetMapping
-    @CommonResponse
+    @CommonResponseAnnotation
     @Operation(
             operationId = "getAllServices",
             summary = "Get All Services",
@@ -131,7 +131,7 @@ public class StorageServiceController {
     // PUT /restore -> POST /restore
 
     @GetMapping("/{id}")
-    @CommonResponse
+    @CommonResponseAnnotation
     @Operation(
             operationId = "getStorageServiceByID",
             summary = "Get a storage service",
@@ -169,7 +169,6 @@ public class StorageServiceController {
     }
 
     @GetMapping("/name/{name}")
-    @CommonResponse
     @Operation(
             operationId = "getStorageServiceByName",
             summary = "Get storage service(database, storage, search, api) by name",
@@ -183,17 +182,9 @@ public class StorageServiceController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = StorageService.class)
                             )
-                    ),
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Not found storage service instance",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = CommonResponseDto.class)
-                            )
                     )
             })
+    @CommonResponseAnnotation
     public Object getByName(
             @Parameter(
                     description = "Name of the storage service",
@@ -214,7 +205,6 @@ public class StorageServiceController {
     }
 
     @PostMapping("/{id}/testConnectionResult")
-    @CommonResponse
     @Operation(
             operationId = "addTestConnectionResult",
             summary = "Add test connection result",
@@ -228,6 +218,7 @@ public class StorageServiceController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = StorageService.class)))
             })
+    @CommonResponseAnnotation
     public Object addTestConnectionResult(
             @Parameter(
                     description = "Id of the service",
@@ -335,7 +326,7 @@ public class StorageServiceController {
                             description = "Bad request",
                             content = @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = CommonResponseDto.class)
+                                    schema = @Schema(implementation = CommonResponse.class)
                             )
                     )
             })
