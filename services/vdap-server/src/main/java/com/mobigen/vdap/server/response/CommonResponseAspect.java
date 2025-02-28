@@ -1,5 +1,6 @@
 package com.mobigen.vdap.server.response;
 
+import com.mobigen.vdap.schema.type.CommonResponse;
 import com.mobigen.vdap.server.exception.CustomException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -15,21 +16,21 @@ import java.util.Map;
 @Component
 public class CommonResponseAspect {
 
-    @Around("@annotation(com.mobigen.vdap.server.annotations.CommonResponse)")
-    public CommonResponseDto responseJsonSuccess(ProceedingJoinPoint point) throws Throwable {
+    @Around("@annotation(com.mobigen.vdap.server.annotations.CommonResponseAnnotation)")
+    public CommonResponse responseJsonSuccess(ProceedingJoinPoint point) throws Throwable {
         Object results = point.proceed();
-        return CommonResponseDto.builder().code("success").data(results).build();
+        return new CommonResponse().withCode(CommonResponse.CodeType.Success).withData(results);
     }
 
     @Around("execution(* com.mobigen.vdap.server.response.GlobalExceptionHandler.*(..))")
-    public CommonResponseDto responseJsonFail(ProceedingJoinPoint point) throws Throwable {
-        CommonResponseDto response = new CommonResponseDto();
+    public CommonResponse responseJsonFail(ProceedingJoinPoint point) throws Throwable {
+        CommonResponse response = new CommonResponse();
         Map<String, Object> errData = new HashMap<>();
         Object results = point.proceed();
 
         if (results instanceof Exception exception) {
             errData.put("stacktrace", getStackTrace(exception));
-            response.setCode("Error");
+            response.setCode(CommonResponse.CodeType.Error);
             response.setErrorMsg(exception.getMessage());
 
             if (exception instanceof CustomException customException) {
@@ -39,7 +40,7 @@ public class CommonResponseAspect {
             response.setErrorData(errData);
         } else {
             errData.put("errData", results);
-            response.setCode("Error");
+            response.setCode(CommonResponse.CodeType.Error);
             response.setErrorData(errData);
         }
         return response;

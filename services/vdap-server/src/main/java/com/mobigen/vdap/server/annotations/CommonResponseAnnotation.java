@@ -9,5 +9,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @ResponseBody
-public @interface CommonResponse {
+public @interface CommonResponseAnnotation {
 }
