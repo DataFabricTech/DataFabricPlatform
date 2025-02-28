@@ -9,8 +9,8 @@ public enum ErrorCode {
     // Services
     // History
     // Connect
-    CONNECTION_FAIL(1, "Connection Fail, Services Name : "),
-    CONNECTION_CLOSE_FAIL(1, "Connection Close Fail, Services Name: "),
+    CONNECTION_FAIL(1, "ConnectionDao Fail, Services Name : "),
+    CONNECTION_CLOSE_FAIL(1, "ConnectionDao Close Fail, Services Name: "),
     EXECUTE_FAIL(1, "Execute Fail, DB Type:  "),
     MEASURE_FAIL(1, "Execute measure Fail, DB Type : "),
     CUSTOM_EXCEPTION_CODE_TEST(1, "Test용 ErrorCode"),

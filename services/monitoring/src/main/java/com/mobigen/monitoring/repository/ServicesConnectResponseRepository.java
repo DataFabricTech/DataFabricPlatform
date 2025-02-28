@@ -1,6 +1,6 @@
 package com.mobigen.monitoring.repository;
 
-import com.mobigen.monitoring.domain.Connection;
+import com.mobigen.monitoring.domain.ConnectionDao;
 import com.mobigen.monitoring.vo.ResponseTimeVo;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ServicesConnectResponseRepository extends JpaRepository<Connection, UUID> {
+public interface ServicesConnectResponseRepository extends JpaRepository<ConnectionDao, UUID> {
     @Query(nativeQuery = true, value = "select sc.service_id as serviceId, s.service_name as serviceName, s.service_display_name as serviceDisplayName ,sc.execute_at as executeAt, sc.execute_by as executeBy, sc.query_execution_time as queryExecutionTime " +
             "from connection as sc left join services as s on sc.service_id = s.service_id where s.deleted = ?1")
     public List<ResponseTimeVo> findAvgResponseTimeResponse(boolean deleted, PageRequest pageRequest);

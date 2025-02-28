@@ -6,6 +6,7 @@ import com.mobigen.monitoring.repository.ServicesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +16,7 @@ import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 
 @Slf4j
 @RequiredArgsConstructor
-@org.springframework.stereotype.Service
+@Service
 public class ServicesService {
     private final ServicesRepository servicesRepository;
 
@@ -35,7 +36,7 @@ public class ServicesService {
         return servicesRepository.countServicesByDeletedIsFalse();
     }
 
-    public List<Services> getServiceList() {
+    public List<Services> getAllService() {
         return servicesRepository.findAll();
     }
 
@@ -48,11 +49,19 @@ public class ServicesService {
         return servicesRepository.findById(serviceID);
     }
 
-    public void saveServices(List<Services> servicesList) {
-        servicesRepository.saveAll(servicesList);
+    public List<Services> saveServices(List<Services> servicesList) {
+        return servicesRepository.saveAll(servicesList);
     }
 
     public List<ServicesResponse> getServices(final boolean deleted, final PageRequest pageRequest) {
         return servicesRepository.findServiceResponse(deleted, pageRequest);
+    }
+
+    public Boolean isServiceTableEmpty() {
+        return servicesRepository.findAll().isEmpty();
+    }
+
+    public Services saveService(final Services service) {
+        return servicesRepository.save(service);
     }
 }

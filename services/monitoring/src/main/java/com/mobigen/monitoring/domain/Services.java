@@ -11,9 +11,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "services")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@ToString
 public class Services {
     @Id
     @Column(name = "service_id", nullable = false)
@@ -45,9 +47,19 @@ public class Services {
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JoinColumn(name = "service_id")
-    private List<Connection> connections = new ArrayList<>();
+    @ToString.Exclude
+    private List<ConnectionDao> connectionDaos = new ArrayList<>();
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JoinColumn(name = "service_id")
+    @ToString.Exclude
     private List<ConnectionHistory> connectionHistories = new ArrayList<>();
+
+    public void setConnectionHistories(List<ConnectionHistory> connectionHistories) {
+        this.connectionHistories = connectionHistories;
+    }
+
+    public void setConnectionDaos(List<ConnectionDao> connectionDaos) {
+        this.connectionDaos = connectionDaos;
+    }
 }

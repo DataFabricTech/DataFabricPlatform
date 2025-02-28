@@ -23,8 +23,8 @@ public class ModelRegistration {
     private Long updatedAt;
 
     @Column(name = "om_model_count", nullable = false)
-    private int omModelCount;
+    private Integer omModelCount;
 
     @Column(name = "model_count", nullable = false)
-    private int modelCount;
+    private Integer modelCount;
 }

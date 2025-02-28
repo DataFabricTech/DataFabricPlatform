@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.config.OpenMetadataConfig;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import static com.mobigen.monitoring.enums.Common.CONFIG;
 import static com.mobigen.monitoring.enums.OpenMetadataEnums.*;
 
 @Component
+@Slf4j
 public class OpenMetadataService {
     private final OpenMetadataConfig openMetadataConfig;
     private final Utils utils = new Utils();
@@ -31,7 +33,6 @@ public class OpenMetadataService {
                 .newBuilder().build();
         getToken();
     }
-
 
     public JsonNode get(String endPoint) {
         String sb = this.tokenType +
@@ -69,7 +70,15 @@ public class OpenMetadataService {
         return get(openMetadataConfig.getPath().getStorageService()).get(DATA.getName());
     }
 
-    public JsonNode getIngestions() {
+    public JsonNode getTableModels(String endPoint) {
+        return get(openMetadataConfig.getPath().getDatabaseModel() + endPoint).get(PAGING.getName());
+    }
+
+    public JsonNode getStorageModels(String endPoint) {
+        return get(openMetadataConfig.getPath().getStorageModel() + endPoint).get(PAGING.getName());
+    }
+
+    public JsonNode getAllIngestion() {
         return get(openMetadataConfig.getPath().getIngestionPipeline() + "?limit=1000000").get(DATA.getName());
     }
 
@@ -122,7 +131,7 @@ public class OpenMetadataService {
         }
     }
 
-    private void getToken() {
+    public void getToken() {
         // getHostToken
         var id = this.openMetadataConfig.getAuth().getId();
         var pw = this.openMetadataConfig.getAuth().getPasswd();

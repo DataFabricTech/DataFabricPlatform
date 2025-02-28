@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum DatabaseType {
     ORACLE("Oracle"),
-    MINIO("Minio"),
+    MINIO("MinIO"),
     MYSQL("Mysql"),
     MARIADB("Mariadb"),
     POSTGRES("Postgresql"),
@@ -21,9 +21,19 @@ public enum DatabaseType {
     public static DatabaseType fromString(String dbType) {
         for (DatabaseType type : DatabaseType.values()) {
             if (type.name.equalsIgnoreCase(dbType)) {
-                return type;
+                if (type != DatabaseType.ORACLE && type != DatabaseType.MINIO && type != DatabaseType.POSTGRES) {
+                    return type;
+                }
             }
         }
-        throw new IllegalArgumentException("Unknown database type: " + dbType);
+        return null;
+    }
+
+    public static Boolean isDatabaseService(String serviceType) {
+        if (DatabaseType.MINIO.name().equalsIgnoreCase(serviceType)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }

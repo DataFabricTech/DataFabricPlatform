@@ -43,13 +43,13 @@ public class MonitoringController {
             final ServicesService servicesService,
             final ModelRegistrationService modelRegistrationService,
             final IngestionHistoryService ingestionHistoryService
-    ) {
+            ) {
         this.connectionService = connectionService;
         this.servicesService = servicesService;
         this.connectionHistoryService = connectionHistoryService;
         this.modelRegistrationService = modelRegistrationService;
         this.ingestionHistoryService = ingestionHistoryService;
-        this.monitoringService = new MonitoringService(null);
+        this.monitoringService = new MonitoringService();
     }
 
     @GetMapping("/start")
@@ -351,7 +351,7 @@ public class MonitoringController {
 
     @Operation(
             operationId = "connectionHistory",
-            summary = "Connection History",
+            summary = "ConnectionDao History",
             description =
                     "연결 상태 히스토리를 위한 API",
             responses = {
@@ -390,7 +390,7 @@ public class MonitoringController {
 
     @Operation(
             operationId = "targetConnectionHistory",
-            summary = "Target Connection History",
+            summary = "Target ConnectionDao History",
             description =
                     "특정 서비스의 히스토리를 위한 API",
             responses = {

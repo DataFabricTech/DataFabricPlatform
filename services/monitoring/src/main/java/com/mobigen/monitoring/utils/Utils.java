@@ -15,4 +15,8 @@ public class Utils {
             return null;
         return jsonNode.asText();
     }
+
+    public static boolean isContainer() {
+        return System.getenv("DOCKER_CONTAINER") != null || System.getenv("KUBERNETES_SERVICE_HOST") != null;
+    }
 }

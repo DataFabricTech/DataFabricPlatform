@@ -1,12 +1,16 @@
 package com.mobigen.monitoring.service;
 
+import com.mobigen.monitoring.domain.ConnectionDao;
+import com.mobigen.monitoring.repository.ConnectionDaoRepository;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.response.ResponseTimesResponseDto;
 import com.mobigen.monitoring.dto.response.ConnectionStatusSummaryResponseDto;
+import com.mobigen.monitoring.repository.ConnectionHistoryRepository;
 import com.mobigen.monitoring.repository.ServicesConnectResponseRepository;
 import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.vo.ResponseTimeVo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +26,8 @@ import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 @RequiredArgsConstructor
 @Slf4j
 public class ConnectionService {
+    private final ConnectionDaoRepository connectionDaoRepository;
+    private final ConnectionHistoryRepository connectionHistoryRepository;
     private final ServicesConnectResponseRepository servicesConnectResponseRepository;
     private final ServicesRepository servicesRepository;
 
@@ -46,7 +52,7 @@ public class ConnectionService {
                         .updatedAt(services.getUpdatedAt())
                         .deleted(services.isDeleted())
                         .connectionStatus(services.getConnectionStatus())
-                        .connections(null)
+                        .connectionDaos(null)
                         .connectionHistories(connectionHistories)
                         .build()
         ).orElse(null);
@@ -86,4 +92,22 @@ public class ConnectionService {
         return servicesConnectResponseRepository.count();
     }
 
+    public void saveAllConnection(final List<ConnectionDao> connections) {
+        connectionDaoRepository.saveAll(connections);
+    }
+
+    @Transactional
+    public void saveConnection(final ConnectionDao connection) {
+        connectionDaoRepository.save(connection);
+    }
+
+    @Transactional
+    public void saveAllConnectionHistory(final List<ConnectionHistory> connectionHistories) {
+        connectionHistoryRepository.saveAll(connectionHistories);
+    }
+
+    @Transactional
+    public void saveConnectionHistory(final ConnectionHistory connectionHistory) {
+        connectionHistoryRepository.save(connectionHistory);
+    }
 }

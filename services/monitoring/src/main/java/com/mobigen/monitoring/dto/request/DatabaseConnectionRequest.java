@@ -7,6 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class DatabaseConnectionRequest {
     private String dbType;  // "postgres", "mysql", "mariadb"
     private String host;  // ex) "localhost"

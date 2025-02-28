@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum ConnectionStatus {
     DISCONNECTED("disconnected"),
     CONNECTED("connected"),
+    NOT_TARGET("pass"),
     CONNECT_ERROR("connect error"),
     ;
 

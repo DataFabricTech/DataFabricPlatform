@@ -5,13 +5,13 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "monitoring_task")
+@Table(name = "monitoring_log")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Builder
-public class MonitoringTask {
+public class MonitoringLog {
     @Id
     @GeneratedValue(generator = "uuid2")
     @UuidGenerator

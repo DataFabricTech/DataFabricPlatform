@@ -25,8 +25,10 @@ public class OpenMetadataConfig {
     @Getter
     @Setter
     public static class Path {
-        private String databaseService = "/api/v1/services/databaseServices?limit=1000000";
-        private String storageService = "/api/v1/services/storageServices?limit=1000000";
+        private String databaseService = "/api/v1/services/databaseServices";
+        private String databaseModel = "/api/v1/tables?database=";
+        private String storageService = "/api/v1/services/storageServices";
+        private String storageModel = "/api/v1/containers?root=true&service=";
         private String ingestionPipeline = "/api/v1/services/ingestionPipelines";
         private String query = "/api/v1/search/query";
         private String login = "/api/v1/users/login";

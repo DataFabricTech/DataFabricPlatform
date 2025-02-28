@@ -65,7 +65,7 @@ scheduler:
 
 open-metadata:
   path:
-    database_service: "/api/v1/services/databaseServices?limit=1000000"
+    database_service: "/api/v1/services/databaseServices"
     storage_service: "/api/v1/services/storageServices?limit=1000000"
     ingestion_pipeline: "/api/v1/services/ingestionPipelines"
     query: "/api/v1/search/query"
@@ -76,6 +76,10 @@ open-metadata:
   auth:
     id: ${TARGET_SERVER_ID:admin}
     passwd: ${TARGET_SERVER_PW:admin}
+
+k8s:
+  namespace: ${NAMESPACE:datafabric}
+  ip: ${K8S_IP:192.168.109.254}
 
 data-cleanup-condition:
   retention_days: 90

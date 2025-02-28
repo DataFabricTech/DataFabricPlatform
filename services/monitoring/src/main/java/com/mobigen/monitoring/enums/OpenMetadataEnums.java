@@ -7,9 +7,11 @@ public enum OpenMetadataEnums {
     ID("id"),
     SERVICE_TYPE("serviceType"),
     DATA("data"),
-    NAME("name"),
+    NAME("name"), // service name
     UPDATED_AT("updatedAt"),
     UPDATED_BY("updatedBy"),
+    PAGING("paging"),
+    PASSWORD("password"),
 
     FQN("fullyQualifiedName"),
     ACCESS_TOKEN("accessToken"),
@@ -26,6 +28,12 @@ public enum OpenMetadataEnums {
     DISPLAY_NAME("displayName"),
     END_DATE("endDate"),
     STATUS_CHANGE("status_change"),
+
+    SERVICE_ID("service_id"),
+    DESCRIPTION("description"),
+    CONFIG("config"),
+    DELETED("deleted"),
+    FULLY_QUALIFIED_NAME("fullyQualifiedName")
     ;
 
     private final String name;
