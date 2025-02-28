@@ -72,7 +72,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @PostConstruct
     public void init() {
-        initializeServiceTable(SCHEDULER.getName());
+        final List<Services> allService = servicesService.getAllService();
+
+        if (allService.isEmpty()) {
+            initializeServiceTable(SCHEDULER.getName());
+        } else {
+            getServiceListFromFabricServer();
+        }
 
         log.info("DatabaseManagementServiceImpl init: {}", serviceModels.size());
     }
