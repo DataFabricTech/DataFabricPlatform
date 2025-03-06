@@ -1,14 +1,16 @@
 package com.mobigen.monitoring.enums;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public enum DatabaseType {
     ORACLE("Oracle"),
     MINIO("MinIO"),
     MYSQL("Mysql"),
     MARIADB("Mariadb"),
-    POSTGRES("Postgresql"),
+    POSTGRES("Postgres"),
     H2("H2"),
     ;
 
@@ -21,7 +23,7 @@ public enum DatabaseType {
     public static DatabaseType fromString(String dbType) {
         for (DatabaseType type : DatabaseType.values()) {
             if (type.name.equalsIgnoreCase(dbType)) {
-                if (type != DatabaseType.ORACLE && type != DatabaseType.MINIO && type != DatabaseType.POSTGRES) {
+                if (type != DatabaseType.MINIO) {
                     return type;
                 }
             }
@@ -35,5 +37,12 @@ public enum DatabaseType {
         } else {
             return true;
         }
+    }
+
+    public static Boolean isRDBMS(String dbType) {
+        if (!dbType.equalsIgnoreCase(MINIO.name()) && !dbType.equalsIgnoreCase("trino")) {
+            return true;
+        }
+        return false;
     }
 }

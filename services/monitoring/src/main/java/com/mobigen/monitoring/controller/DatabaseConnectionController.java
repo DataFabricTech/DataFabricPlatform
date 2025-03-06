@@ -2,7 +2,6 @@ package com.mobigen.monitoring.controller;
 
 import com.mobigen.monitoring.annotation.CommonResponse;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
-import com.mobigen.monitoring.dto.request.GetDatabaseRequestDto;
 import com.mobigen.monitoring.service.storage.DatabaseManagementServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +37,11 @@ public class DatabaseConnectionController {
 
     @PostMapping("/test-database")
     @CommonResponse
-    public Object getDatabases(@RequestBody List<GetDatabaseRequestDto> requests) {
+    public Object getDatabases(@RequestBody List<DatabaseConnectionRequest> requests) {
         Map<String, List<String>> result = new HashMap<>();
 
-        for (GetDatabaseRequestDto request : requests) {
-            result.put(request.getDatabaseConnection().getDbType(), databaseConnectionService.getDatabases(request.getDatabaseConnection()));
+        for (DatabaseConnectionRequest request : requests) {
+            result.put(request.getDbType(), databaseConnectionService.getDatabases(request));
         }
 
         return result;
@@ -50,19 +49,19 @@ public class DatabaseConnectionController {
 
     @PostMapping("/test-table")
     @CommonResponse
-    public Object getTables(@RequestBody GetDatabaseRequestDto request) {
-        return databaseConnectionService.getTables(request.getDatabaseConnection());
+    public Object getTables(@RequestBody DatabaseConnectionRequest request) {
+        return databaseConnectionService.getTables(request);
     }
 
     @PostMapping("/test-row")
     @CommonResponse
-    public Object getRows(@RequestBody GetDatabaseRequestDto request) {
-        return databaseConnectionService.getRows(request.getDatabaseConnection());
+    public Object getRows(@RequestBody DatabaseConnectionRequest request) {
+        return databaseConnectionService.getRows(request);
     }
 
     @PostMapping("/test-schema")
     @CommonResponse
-    public Object getSchema(@RequestBody GetDatabaseRequestDto request) {
-        return databaseConnectionService.getSchema(request.getDatabaseConnection());
+    public Object getSchema(@RequestBody DatabaseConnectionRequest request) {
+        return databaseConnectionService.getSchema(request);
     }
 }

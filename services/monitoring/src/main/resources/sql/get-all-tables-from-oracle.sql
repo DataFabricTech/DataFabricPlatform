@@ -1,0 +1,1 @@
+SELECT owner as table_schema, table_name as table_name FROM all_tables

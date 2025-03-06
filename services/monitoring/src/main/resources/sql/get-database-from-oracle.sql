@@ -1,0 +1,1 @@
+select username as database from all_users

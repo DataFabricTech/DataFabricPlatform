@@ -42,7 +42,7 @@ public interface DatabaseManagementService {
 
     public TableModelInfo getModelCountFromOM(UUID serviceID);
 
-    public Integer getModelCount(UUID serviceID);
+    public Integer getModelCount(Services service);
 
     public CheckConnectionResponseVo getQueryExecutedTime(Services service);
 

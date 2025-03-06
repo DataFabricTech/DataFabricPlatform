@@ -1,5 +1,6 @@
 package com.mobigen.monitoring.service.storage;
 
+import com.mobigen.monitoring.domain.ModelRegistration;
 import com.mobigen.monitoring.dto.response.ModelRegistrationResponseDto;
 import com.mobigen.monitoring.repository.ModelRegistrationRepository;
 import com.mobigen.monitoring.vo.ModelRegistrationVo;
@@ -13,6 +14,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ModelRegistrationService {
     private final ModelRegistrationRepository modelRegistrationRepository;
+
+    public void save(final ModelRegistration build) {
+        modelRegistrationRepository.save(build);
+    }
 
     public Long getCount() {
         return modelRegistrationRepository.count();

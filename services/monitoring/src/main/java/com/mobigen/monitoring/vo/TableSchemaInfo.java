@@ -7,6 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class TableSchemaInfo {
     private String columnName;
     private String dataType;

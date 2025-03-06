@@ -1,13 +1,14 @@
 package com.mobigen.monitoring.service.scheduler;
 
+import com.mobigen.monitoring.service.monitoring.MonitoringService;
+
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MonitoringTask extends TimerTask {
-    private ConcurrentHashMap<String, ConnectionInfo> tasks;
+    private final MonitoringService monitoringService;
 
-    public MonitoringTask(ConcurrentHashMap<String, ConnectionInfo> tasks) {
-        this.tasks = tasks;
+    public MonitoringTask(MonitoringService monitoringService) {
+        this.monitoringService = monitoringService;
     }
 
     public void sync() {
