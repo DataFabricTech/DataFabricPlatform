@@ -26,14 +26,6 @@
       "description": "Reference to the classification that this tag is part of.",
       "$ref": "../../type/entityReference.json"
     },
-    "parent": {
-      "description": "Reference to the parent tag. When null, the term is at the root of the Classification.",
-      "$ref": "../../type/entityReference.json"
-    },
-    "children": {
-      "description": "Children tags under this tag.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
     "version": {
       "description": "Metadata version of the entity.",
       "$ref": "../../type/entityHistory.json#/definitions/entityVersion"

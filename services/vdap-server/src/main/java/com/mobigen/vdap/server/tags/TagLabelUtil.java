@@ -1,16 +1,3 @@
-/*
- *  Copyright 2021 Collate
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  http://www.apache.org/licenses/LICENSE-2.0
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
 package com.mobigen.vdap.server.tags;
 
 import com.mobigen.vdap.common.utils.CommonUtil;
@@ -18,10 +5,13 @@ import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.entity.data.Glossary;
 import com.mobigen.vdap.schema.entity.data.GlossaryTerm;
+import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
+import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.ClassificationEntity;
 import com.mobigen.vdap.server.entity.TagEntity;
+import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +53,32 @@ public class TagLabelUtil {
 //        return glossaryTermRepository.getEntityById(id, NON_DELETED);
         return null;
     }
+
+    public EntityReference getReference(UUID id, String type) {
+        return switch (type) {
+            case Entity.CLASSIFICATION -> {
+                Classification res = getClassification(id);
+                yield new EntityReference()
+                        .withId(res.getId())
+                        .withType(Entity.CLASSIFICATION)
+                        .withName(res.getName())
+                        .withDisplayName(res.getDisplayName())
+                        .withDescription(res.getDescription());
+            }
+            case Entity.TAG -> {
+                Tag tag = getTag(id);
+                yield new EntityReference()
+                        .withId(tag.getId())
+                        .withType(Entity.TAG)
+                        .withName(tag.getName())
+                        .withDisplayName(tag.getDisplayName())
+                        .withDescription(tag.getDescription());
+            }
+            default -> throw new CustomException("[Classification/Tag] GetReference : Not Supported Type", type);
+        };
+    }
+
+
 
     public void applyTagCommonFields(TagLabel label) {
         if (label.getSource() == TagSource.CLASSIFICATION) {

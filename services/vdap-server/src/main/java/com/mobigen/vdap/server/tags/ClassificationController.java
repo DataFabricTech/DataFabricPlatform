@@ -18,7 +18,6 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -257,7 +256,7 @@ public class ClassificationController {
             summary = "Delete classification by id",
             description = "Delete a classification and all the tags under it.")
     @CommonResponseAnnotation
-    public void delete(
+    public Object delete(
             @Parameter(
                     description = "Recursively delete this entity and it's children. (Default `false`)")
             @RequestParam(value = "recursive", defaultValue = "false", required = false)
@@ -267,8 +266,9 @@ public class ClassificationController {
             boolean hardDelete,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
-        log.info("[Delete] Classification By ID[{}]", id);
+        log.info("[Classification] Delete By ID[{}]", id);
         classificationService.deleteById(id, "admin");
+        return "success";
     }
 
     @PostMapping("/name/{name}/delete")
@@ -280,11 +280,12 @@ public class ClassificationController {
                     @ApiResponse(responseCode = "200", description = "OK"),
             })
     @CommonResponseAnnotation
-    public void delete(
+    public Object delete(
             @Parameter(description = "Name of the classification", schema = @Schema(type = "string"))
             @PathVariable("name") String name) {
-        log.info("[Delete] Classification By Name[{}]", name);
+        log.info("[Classification] Delete By Name[{}]", name);
         classificationService.deleteByName(name, "admin");
+        return "success";
     }
 
     @CommonResponseAnnotation

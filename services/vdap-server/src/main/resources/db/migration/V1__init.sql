@@ -7,12 +7,10 @@ create table storage_service_entity (
     updated_at   datetime(3),
     updated_by   varchar(256),
     deleted      tinyint(1),
-    constraint unique_name
-        unique (name)
+    constraint unique_service unique (name)
 );
-
 create index storage_service_entity_name_index on storage_service_entity (name);
-create index index_storage_service_entity_deleted on storage_service_entity (id, deleted);
+create index storage_service_entity_deleted_index on storage_service_entity (id, deleted);
 
 create table classification
 (
@@ -21,9 +19,8 @@ create table classification
     json       json          not     null,
     updated_at datetime(3),
     updated_by varchar(256),
-    constraint name unique(name)
+    constraint unique_classification unique(name)
 );
-
 create index classification_entity_name_index on classification (name);
 
 create table tag (
@@ -32,24 +29,24 @@ create table tag (
     name              varchar(256),
     json              json          not     null,
     updated_at        datetime(3),
-    updated_by        varchar(256)
+    updated_by        varchar(256),
+    constraint unique_tag unique (classification_id, name)
 );
-
-create index tag_entity_name_index on tag (classification_id, name);
+create index tag_entity_classification_name_index on tag(classification_id, name);
+create index tag_entity_name_index on tag(name);
 
 create table tag_usage (
-    source      int          not null,
+    source      int          not null,      # 0 : classification, 1 : glossary
     tag_id      varchar(256) not null,
-    label_type  int          not null,
-    state       int          not null,
+    label_type  int          not null,      # 0 : Manual, 1 : Propagated, 2 : Automated, 3 : Derived
+    state       int          not null,      # 0 : Suggested, 1 : Confirmed
     target_type varchar(32)  not null,
     target_id   varchar(36)  not null,
     constraint tag_usage_key
         unique (source, tag_id, target_type, target_id)
 );
 
-create table entity_relationship
-(
+create table entity_relationship (
     from_id     varchar(36)  not     null,
     to_id       varchar(36)  not     null,
     from_entity varchar(256) not     null,
@@ -60,17 +57,23 @@ create table entity_relationship
     deleted     tinyint(1)   default 0     not null,
     primary key (from_id, to_id, relation)
 );
-
 create index from_entity_type_index on entity_relationship (from_id, from_entity);
-
 create index from_index on entity_relationship (from_id, relation);
-
 create index idx_entity_relationship_fromEntity_fromId_relation
     on entity_relationship (from_entity, from_id, relation);
-
 create index idx_er_fromEntity_fromId_toEntity_relation
     on entity_relationship (from_entity, from_id, to_entity, relation);
-
 create index to_entity_type_index on entity_relationship (to_id, to_entity);
-
 create index to_index on entity_relationship (to_id, relation);
+
+# Version History And ...
+create table entity_extension (
+    id          varchar(36)  not null,
+    extension   varchar(256) not null,
+    entity_type varchar(256) not null,
+    json        json         not null,
+    primary key (id, extension)
+);
+create index extension_index on entity_extension (extension);
+
+

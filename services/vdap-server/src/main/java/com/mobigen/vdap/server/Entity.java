@@ -22,6 +22,7 @@ public final class Entity {
     public static final String FIELD_DISPLAY_NAME = "displayName";
     public static final String FIELD_EXTENSION = "extension";
     public static final String FIELD_USAGE_SUMMARY = "usageSummary";
+    public static final String FIELD_USAGE_COUNT = "usageCount";
     public static final String FIELD_CHILDREN = "children";
     public static final String FIELD_PARENT = "parent";
     public static final String FIELD_REVIEWERS = "reviewers";
@@ -35,6 +36,7 @@ public final class Entity {
 
     public static final String FIELD_TEST_SUITES = "testSuites";
 
+    public static final String FIELD_TERM_COUNT = "termCount";
     public static final String FIELD_RELATED_TERMS = "relatedTerms";
 
     //

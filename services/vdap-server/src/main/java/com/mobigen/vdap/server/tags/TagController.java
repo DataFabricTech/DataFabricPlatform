@@ -2,14 +2,13 @@ package com.mobigen.vdap.server.tags;
 
 import com.mobigen.vdap.schema.api.AddTagToAssetsRequest;
 import com.mobigen.vdap.schema.api.classification.CreateTag;
-import com.mobigen.vdap.schema.api.data.RestoreEntity;
 import com.mobigen.vdap.schema.entity.classification.Tag;
 import com.mobigen.vdap.schema.type.ChangeEvent;
 import com.mobigen.vdap.schema.type.EntityHistory;
-import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.api.BulkOperationResult;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
+import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,7 +20,6 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 @Slf4j
@@ -40,12 +38,14 @@ public class TagController {
     static final String FIELDS = "children,usageCount";
 
     private final TagService tagService;
+    private final TagLabelUtil tagLabelUtil;
 
-    public TagController(TagService tagService) {
+    public TagController(TagService tagService, TagLabelUtil tagLabelUtil) {
         this.tagService = tagService;
+        this.tagLabelUtil = tagLabelUtil;
     }
 
-    static class TagList extends ArrayList<Tag> {
+    static class TagList extends PageModel<Tag> {
         /* Required for serde */
     }
 
@@ -68,6 +68,7 @@ public class TagController {
             })
     @CommonResponseAnnotation
     public Object list(
+            HttpServletRequest request,
             @Parameter(
                     description =
                             "List tags filtered by children of tag identified by uuid given in `parent` parameter.",
@@ -85,13 +86,7 @@ public class TagController {
             @Parameter(description = "size the number tags returned. (1 to 50, default = 20)")
             @RequestParam(value = "size", defaultValue = "20", required = false)
             Integer size) {
-//        ListFilter filter =
-//                new ListFilter(include)
-//                        .addRequestParam("parent", parent)
-//                        .addRequestParam("classification.disabled", disabled);
-//        return super.listInternal(
-//                uriInfo, securityContext, fieldsParam, filter, limitParam, before, after);
-        return null;
+        return tagService.list(Utilities.getBaseUri(request), parent, fieldsParam, page, size);
     }
 
     @GetMapping("/{id}")
@@ -118,7 +113,7 @@ public class TagController {
                     schema = @Schema(type = "string", example = FIELDS))
             @RequestParam(value = "fields", required = false)
             String fieldsParam) {
-        return tagService.getById(Utilities.getBaseUri(request), id, fieldsParam);
+        return tagService.getById(Utilities.getBaseUri(request), id.toString(), fieldsParam);
     }
 
     @GetMapping("/{id}/versions")
@@ -135,11 +130,11 @@ public class TagController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = EntityHistory.class)))
             })
+    @CommonResponseAnnotation
     public EntityHistory listVersions(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
-//        return super.listVersionsInternal(securityContext, id);
-        return null;
+        return tagService.listVersions(id);
     }
 
     @GetMapping("/{id}/versions/{version}")
@@ -154,10 +149,7 @@ public class TagController {
                             content =
                             @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = Tag.class))),
-                    @ApiResponse(
-                            responseCode = "404",
-                            description = "Tag for instance {id} and version {version} is not found")
+                                    schema = @Schema(implementation = Tag.class)))
             })
     public Tag getVersion(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
@@ -166,8 +158,7 @@ public class TagController {
                     description = "tag version number in the form `major`.`minor`",
                     schema = @Schema(type = "string", example = "0.1 or 1.1"))
             @PathVariable("version") String version) {
-//        return super.getVersionInternal(securityContext, id, version);
-        return null;
+        return tagService.getVersion(id, version);
     }
 
     @PostMapping
@@ -182,9 +173,9 @@ public class TagController {
                             content =
                             @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = Tag.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request")
+                                    schema = @Schema(implementation = Tag.class)))
             })
+    @CommonResponseAnnotation
     public Object create(
             HttpServletRequest request,
             @Valid @RequestBody CreateTag create) {
@@ -193,34 +184,32 @@ public class TagController {
         return tagService.create(Utilities.getBaseUri(request), tag);
     }
 
-    /*
-    @PostMapping("/{id}/patch")
-    @Operation(
-            operationId = "patchTag",
-            summary = "Update a tag",
-            description = "Update an existing tag using JsonPatch.",
-            externalDocs =
-            @ExternalDocumentation(
-                    description = "JsonPatch RFC",
-                    url = "https://tools.ietf.org/html/rfc6902"))
-    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
-    public Response patch(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathVariable("id")
-            UUID id,
-            @RequestBody(
-                    description = "JsonPatch with array of operations",
-                    content =
-                    @Content(
-                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
-                            examples = {
-                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
-                            }))
-            JsonPatch patch) {
-        return patchInternal(uriInfo, securityContext, id, patch);
-    }
-    */
+//    @PostMapping("/{id}/patch")
+//    @Operation(
+//            operationId = "patchTag",
+//            summary = "Update a tag",
+//            description = "Update an existing tag using JsonPatch.",
+//            externalDocs =
+//            @ExternalDocumentation(
+//                    description = "JsonPatch RFC",
+//                    url = "https://tools.ietf.org/html/rfc6902"))
+//    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
+//    public Response patch(
+//            @Context UriInfo uriInfo,
+//            @Context SecurityContext securityContext,
+//            @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathVariable("id")
+//            UUID id,
+//            @RequestBody(
+//                    description = "JsonPatch with array of operations",
+//                    content =
+//                    @Content(
+//                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
+//                            examples = {
+//                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
+//                            }))
+//            JsonPatch patch) {
+//        return patchInternal(uriInfo, securityContext, id, patch);
+//    }
 
     @PostMapping("/update")
     @Operation(
@@ -234,14 +223,14 @@ public class TagController {
                             content =
                             @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = Tag.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request")
+                                    schema = @Schema(implementation = Tag.class)))
             })
+    @CommonResponseAnnotation
     public Object createOrUpdate(
-            @Valid CreateTag create) {
-//        Tag tag = mapper.createToEntity(create, securityContext.getUserPrincipal().getName());
-//        return createOrUpdate(uriInfo, securityContext, tag);
-        return null;
+            HttpServletRequest request,
+            @Valid @RequestBody CreateTag create) {
+        Tag tag = createToEntity(create, "admin");
+        return tagService.update(Utilities.getBaseUri(request), tag);
     }
 
     @PostMapping("/{id}/delete")
@@ -250,34 +239,15 @@ public class TagController {
             summary = "Delete a tag by id",
             description = "Delete a tag by `id`.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "404", description = "tag for instance {id} is not found")
+                    @ApiResponse(responseCode = "200", description = "OK")
             })
+    @CommonResponseAnnotation
     public Object deleteById(
             HttpServletRequest request,
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
-        return tagService.deleteInternalById(, securityContext, id, recursive, hardDelete);
-    }
-
-    @PostMapping("/restore")
-    @Operation(
-            operationId = "restoreTag",
-            summary = "Restore a soft deleted tag.",
-            description = "Restore a soft deleted tag.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successfully restored the Tag ",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Tag.class)))
-            })
-    public Object restore(
-            @Valid @RequestBody RestoreEntity restore) {
-//        return restoreEntity(uriInfo, securityContext, restore.getId());
-        return null;
+        tagService.deleteById(id.toString(), "admin");
+        return "success";
     }
 
     @PostMapping("/{id}/assets/add")
@@ -334,21 +304,9 @@ public class TagController {
         entity.setDescription(request.getDescription());
         entity.setUpdatedBy(user);
         entity.setUpdatedAt(Utilities.getLocalDateTime());
-        entity.withClassification(getEntityReference(Entity.CLASSIFICATION, request.getClassification()));
+        entity.withClassification(tagLabelUtil.getReference(request.getClassification(), Entity.CLASSIFICATION));
         entity.withProvider(request.getProvider());
         entity.withMutuallyExclusive(request.getMutuallyExclusive());
         return entity;
-    }
-
-    public EntityReference getEntityReference(String entityType, UUID id) {
-//        switch (entityType) {
-//            case Entity.TAG -> {
-//                return tagService.getReferenceById(id);
-//            }
-//            case Entity.CLASSIFICATION -> {
-//                return classificationService.getReferenceById(id);
-//            }
-//        }
-        return null;
     }
 }

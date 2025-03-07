@@ -114,10 +114,6 @@
       "description": "Unique identifier that identifies the entity from which the relationship originates.",
       "$ref": "basic.json#/definitions/uuid"
     },
-    "fromFQN": {
-      "description": "Fully qualified name of the entity from which the relationship originates.",
-      "type": "string"
-    },
     "fromEntity": {
       "description": "Type of the entity from which the relationship originates. Examples: `database`, `table`, `metrics` ...",
       "type": "string"
@@ -125,10 +121,6 @@
     "toId": {
       "description": "Unique identifier that identifies the entity towards which the relationship refers to.",
       "$ref": "basic.json#/definitions/uuid"
-    },
-    "toFQN": {
-      "description": "Fully qualified name of the entity towards which the relationship refers to.",
-      "type": "string"
     },
     "toEntity": {
       "description": "Type of the entity towards which the relationship refers to. Examples: `database`, `table`, `metrics` ...",

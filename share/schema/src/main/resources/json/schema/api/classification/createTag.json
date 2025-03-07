@@ -8,7 +8,7 @@
   "properties": {
     "classification": {
       "description": "ID of the classification that this tag is part of.",
-      "$ref" : "../../type/basic.json#/definitions/uuid"
+      "$ref": "../../type/basic.json#/definitions/uuid"
     },
     "parent": {
       "description": "ID of the parent tag. When null, the term is at the root of the classification.",
