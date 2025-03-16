@@ -72,6 +72,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     private Map<String, ModelInfoVo> serviceModels = new HashMap<>();
 
+    // table 변경 이력
+    private Map<String, TableAuditInfo> tableAuditInfos = new HashMap<>();
+
     @Value("${k8s.ip}")
     private String hostIP;
 
@@ -729,10 +732,15 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     public Map<String, String> checkTableChange() {
-        Map<String, String> result = new HashMap<>();
+        // table 변경 정보 in-memory 로 들고 있기
+        // 없으면 DB 에서 가져오기
+        // data 바꼈는지 체크
+        if (tableAuditInfos.isEmpty()) {
+            // table 변경 이력 가져오기
+            // postgres, oracle, mariadb / mysql
+        } else {
 
-
-
+        }
         return null;
     }
 }

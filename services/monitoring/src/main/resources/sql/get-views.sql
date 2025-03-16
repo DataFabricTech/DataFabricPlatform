@@ -1,0 +1,1 @@
+SELECT table_schema, table_name FROM information_schema.views ORDER BY table_schema, table_name;

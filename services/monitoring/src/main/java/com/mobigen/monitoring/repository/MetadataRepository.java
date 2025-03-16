@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -13,5 +14,5 @@ public interface MetadataRepository extends JpaRepository<Metadata, UUID> {
             "select metadata_value as metadataValue " +
             "from metadata " +
             "where metadata_name = 'recent_collected_time'")
-    String getRecentCollectedTime();
+    Optional<String> getRecentCollectedTime();
 }

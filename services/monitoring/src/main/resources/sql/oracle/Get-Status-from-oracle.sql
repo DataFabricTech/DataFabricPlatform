@@ -1,0 +1,1 @@
+select table_name, inserts, updates, deletes from dba_tab_modifications;
