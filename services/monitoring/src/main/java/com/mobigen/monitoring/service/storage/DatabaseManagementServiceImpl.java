@@ -37,6 +37,8 @@ import org.springframework.util.StopWatch;
 
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
@@ -88,8 +90,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         } else {
             getServiceListFromFabricServer();
         }
-
-        log.info("DatabaseManagementServiceImpl init: {}", serviceModels.size());
     }
 
     @Override
@@ -421,8 +421,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public TableModelInfo getModelCountFromOM(final UUID serviceID) {
-        final List<JsonNode> serviceListFromFabricServer = getServiceListFromFabricServer();
-
         String fullyQualifiedName = databaseServices.get(serviceID.toString()).getFullyQualifiedName();
 
         final JsonNode tableModels = openMetadataService.getTableModels(fullyQualifiedName);
@@ -471,13 +469,39 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         // trino 때문
         if (fromString(service.getServiceType()) == null) {
+            log.info("service type: {}", service.getServiceType());
             return CheckConnectionResponseVo.builder()
                     .status(NOT_TARGET)
                     .responseTime(stopWatch.getTotalTimeMillis())
                     .build();
         }
 
-        final DatabaseConnectionRequest request = getDatabaseConnectionRequest(service.getServiceID().toString());
+        final DatabaseConnectionRequest request;
+
+        if (isDatabaseService(service.getServiceType())) {
+            //rdb
+            request = getDatabaseConnectionRequest(service.getServiceID().toString());
+        } else {
+            // minio
+            final GetObjectStorageResponseDto storageResponse = storageServices.get(service.getServiceID().toString());
+
+            String endpointUrl = storageResponse.getConnection().getMinioConfig().getEndPointURL();
+
+            try {
+                URL url = new URL(endpointUrl);
+
+                request = DatabaseConnectionRequest.builder()
+                        .dbType(storageResponse.getServiceType())
+                        .host(url.getHost())
+                        .port(url.getPort())
+                        .databaseName(null)
+                        .username(storageResponse.getConnection().getMinioConfig().getAccessKeyId())
+                        .password(storageResponse.getConnection().getMinioConfig().getSecretKey())
+                        .build();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         // db connection check
         final Boolean connectionCheckResponse = checkDatabaseConnection(request);

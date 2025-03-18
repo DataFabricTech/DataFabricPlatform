@@ -23,9 +23,7 @@ public enum DatabaseType {
     public static DatabaseType fromString(String dbType) {
         for (DatabaseType type : DatabaseType.values()) {
             if (type.name.equalsIgnoreCase(dbType)) {
-                if (type != DatabaseType.MINIO) {
                     return type;
-                }
             }
         }
         return null;
