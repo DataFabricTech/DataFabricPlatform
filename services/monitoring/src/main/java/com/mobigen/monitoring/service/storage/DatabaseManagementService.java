@@ -33,7 +33,7 @@ public interface DatabaseManagementService {
 
     public String getDriverClassName(String dbType);
 
-    public Boolean testMinioConnection(DatabaseConnectionRequest request);
+    public Integer testMinioConnection(DatabaseConnectionRequest request);
 
     public void initializeServiceTable(String userName);
 
@@ -43,6 +43,8 @@ public interface DatabaseManagementService {
     public TableModelInfo getModelCountFromOM(UUID serviceID);
 
     public Integer getModelCount(Services service);
+
+    public Integer getStorageModelCountFromOM(final UUID serviceId);
 
     public CheckConnectionResponseVo getQueryExecutedTime(Services service);
 

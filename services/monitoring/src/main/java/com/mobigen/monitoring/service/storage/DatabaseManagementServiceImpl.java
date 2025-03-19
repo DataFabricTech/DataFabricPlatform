@@ -3,6 +3,7 @@ package com.mobigen.monitoring.service.storage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mobigen.monitoring.config.OpenMetadataConfig;
 import com.mobigen.monitoring.domain.ConnectionDao;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.ModelRegistration;
@@ -12,7 +13,6 @@ import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
-import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.k8s.K8SService;
@@ -38,6 +38,7 @@ import org.springframework.util.StopWatch;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -50,6 +51,7 @@ import static com.mobigen.monitoring.enums.DatabaseType.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnums.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnums.CONFIG;
 import static com.mobigen.monitoring.vo.Queries.*;
+import static java.lang.Boolean.*;
 
 @Service
 @Slf4j
@@ -62,6 +64,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     private final ConnectionService connectionService;
     private final ObjectMapper objectMapper;
     private final K8SService k8sService;
+    private final OpenMetadataConfig openMetadataConfig;
 
     // database service 정보
     private Map<String, GetDatabasesResponseDto> databaseServices = new HashMap<>();
@@ -95,7 +98,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     @Override
     public Boolean checkDatabaseConnection(DatabaseConnectionRequest request) {
         if (!isDatabaseService(request.getDbType())) {
-            return testMinioConnection(request);
+            return testMinioConnection(request) != null ? TRUE : FALSE;
         }
 
         DataSource dataSource = createDataSource(request);
@@ -187,6 +190,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Map<String, List<String>> getTables(DatabaseConnectionRequest request) {
+        log.info("getTables request: {}", request);
         String query;
         if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
             query = GET_TABLES_FROM_ORACLE.getQueryString();
@@ -316,18 +320,17 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Boolean testMinioConnection(DatabaseConnectionRequest request) {
+    public Integer testMinioConnection(DatabaseConnectionRequest request) {
         try {
             MinioClient minioClient = MinioClient.builder()
                     .endpoint("http://" + request.getHost() + ":" + request.getPort())
                     .credentials(request.getUsername(), request.getPassword())
                     .build();
 
-            minioClient.listBuckets();  // Minio 연결 테스트
-            return true;
+            return minioClient.listBuckets().size();  // Minio 연결 테스트
         } catch (MinioException | IllegalArgumentException e) {
             System.err.println("Minio 연결 실패: " + e.getMessage());
-            return false;
+            return null;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -394,16 +397,58 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                             .build()
             );
 
-            if (service.getServiceType().equalsIgnoreCase("mysql") || service.getServiceType().equalsIgnoreCase("mariadb")
-                    || service.getServiceType().equalsIgnoreCase("postgresql")) {
-                modelRegistrationService.save(
-                        ModelRegistration.builder()
-                                .serviceId(service.getServiceID())
-                                .updatedAt(UnixTimeUtil.getCurrentMillis())
-                                .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
-                                .modelCount(getModelCount(service))
-                                .build()
-                );
+            /* *
+             * MINIO model info
+             * */
+            if (!service.getServiceType().equalsIgnoreCase("Trino")) {
+                if (service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) {
+                    if (service.getServiceType().equalsIgnoreCase("MinIO")) {
+                        log.info("service is minio");
+                        // minio 의 버킷 수 세기
+                        final GetObjectStorageResponseDto objectStorageResponseDto = storageServices.get(service.getServiceID().toString());
+                        final String endPointURL = objectStorageResponseDto.getConnection().getMinioConfig().getEndPointURL();
+
+                        URI uri = URI.create(endPointURL);
+
+                        modelRegistrationService.save(
+                                ModelRegistration.builder()
+                                        .serviceId(service.getServiceID())
+                                        .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                        .omModelCount(getStorageModelCountFromOM(service.getServiceID()))
+                                        .modelCount(
+                                                testMinioConnection(
+                                                        DatabaseConnectionRequest.builder()
+                                                                .dbType(objectStorageResponseDto.getServiceType())
+                                                                .host(uri.getHost())
+                                                                .port(uri.getPort())
+                                                                .databaseName(null)
+                                                                .username(objectStorageResponseDto.getConnection().getMinioConfig().getAccessKeyId())
+                                                                .password(objectStorageResponseDto.getConnection().getMinioConfig().getSecretKey())
+                                                                .build()
+                                                )
+                                        )
+                                        .build()
+                        );
+                    } else {
+                        modelRegistrationService.save(
+                                ModelRegistration.builder()
+                                        .serviceId(service.getServiceID())
+                                        .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                        .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
+                                        .modelCount(getModelCount(service))
+                                        .build()
+                        );
+                    }
+                } else {
+                    modelRegistrationService.save(
+                            ModelRegistration.builder()
+                                    .serviceId(service.getServiceID())
+                                    .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                    .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
+                                    .modelCount(0)
+                                    .build()
+                    );
+                }
             }
         }
 
@@ -421,6 +466,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public TableModelInfo getModelCountFromOM(final UUID serviceID) {
+        if (databaseServices.get(serviceID.toString()) == null) {
+            log.error("serviceID: {}", serviceID);
+        }
         String fullyQualifiedName = databaseServices.get(serviceID.toString()).getFullyQualifiedName();
 
         final JsonNode tableModels = openMetadataService.getTableModels(fullyQualifiedName);
@@ -433,19 +481,66 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
+    public Integer getStorageModelCountFromOM(final UUID serviceId) {
+        try {
+            final GetObjectStorageResponseDto getObjectStorageResponseDto = storageServices.get(serviceId.toString());
+
+            final JsonNode storageModels = openMetadataService.getStorageModels(openMetadataConfig.getPath().getStorageModel() + getObjectStorageResponseDto.getName());
+
+            // JSON 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(storageModels.traverse());
+
+            // children 배열의 개수 세기
+            JsonNode dataNode = rootNode.path("data");
+            if (dataNode.isArray() && !dataNode.isEmpty()) {
+                JsonNode childrenNode = dataNode.get(0).path("children");
+                int childrenCount = childrenNode.isArray() ? childrenNode.size() : 0;
+
+                log.info("Children: {}", childrenCount);
+
+                return childrenCount;
+            } else {
+                log.info("data: {}", dataNode);
+                return 0;
+            }
+        } catch (Exception e) {
+            throw new CustomException(e.getMessage());
+        }
+    }
+
+    @Override
     public Integer getModelCount(Services service) {
         // table 개수 세기
+        if (!service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) return 0;
         if (isRDBMS(service.getServiceType())) {
             final String serviceId = service.getServiceID().toString();
             final GetDatabasesResponseDto getDatabasesResponseDto = databaseServices.get(serviceId);
             final HostPortVo hostPortVo = convertStringToHostPortVo(getDatabasesResponseDto);
+            String database = null;
+
+            if (getDatabasesResponseDto.getConnection().getDatabaseName() != null) {
+                database = getDatabasesResponseDto.getConnection().getDatabaseName();
+            }
+
+            if (getDatabasesResponseDto.getConnection().getDatabase() != null) {
+                database = getDatabasesResponseDto.getConnection().getDatabase();
+            }
+
+            if (getDatabasesResponseDto.getConnection().getOracleConnectionType() != null) {
+                database = getDatabasesResponseDto.getConnection().getOracleConnectionType().getOracleServiceName();
+            }
+
+            if (database == null) {
+                log.error("service: {}", getDatabasesResponseDto);
+            }
 
             DatabaseConnectionRequest request = DatabaseConnectionRequest.builder()
                     .username(getDatabasesResponseDto.getConnection().getUsername())
                     .dbType(service.getServiceType())
                     .host(hostPortVo.getHost())
                     .port(hostPortVo.getPort())
-                    .databaseName(getDatabasesResponseDto.getConnection().getDatabaseName())
+                    .databaseName(database)
                     .password(getDatabasesResponseDto.getConnection().getPassword() == null ?
                             getDatabasesResponseDto.getConnection().getAuthType().getPassword()
                             : getDatabasesResponseDto.getConnection().getPassword())
@@ -456,7 +551,21 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             return tables.values().stream().mapToInt(List::size).sum();
         } else {
             // minio 의 버킷 수 세기
-            return 0;
+            final GetObjectStorageResponseDto objectStorageResponseDto = storageServices.get(service.getServiceID().toString());
+            final String endPointURL = objectStorageResponseDto.getConnection().getMinioConfig().getEndPointURL();
+
+            URI uri = URI.create(endPointURL);
+
+            final DatabaseConnectionRequest build = DatabaseConnectionRequest.builder()
+                    .dbType(objectStorageResponseDto.getServiceType())
+                    .host(uri.getHost())
+                    .port(uri.getPort())
+                    .databaseName(null)
+                    .username(objectStorageResponseDto.getConnection().getMinioConfig().getAccessKeyId())
+                    .password(objectStorageResponseDto.getConnection().getMinioConfig().getSecretKey())
+                    .build();
+
+            return testMinioConnection(build);
         }
     }
 
@@ -471,7 +580,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         if (fromString(service.getServiceType()) == null) {
             log.info("service type: {}", service.getServiceType());
             return CheckConnectionResponseVo.builder()
-                    .status(NOT_TARGET)
+                    .status(DISCONNECTED)
                     .responseTime(stopWatch.getTotalTimeMillis())
                     .build();
         }
@@ -682,7 +791,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                         currentService.get(
                                 NAME.getName()
                         ).asText()
-                );
+                ).get(PAGING.getName());
             }
 
             final Long total = Long.valueOf(models.get("total").asText());
@@ -703,16 +812,20 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
         String databaseName;
 
-        if (serviceInfo.getServiceType().equals(ORACLE.getName())) {
+        if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
             if (serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema() != null) {
                 databaseName = serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema();
+                log.info("databaseName: {}", databaseName);
             } else {
                 databaseName = serviceInfo.getConnection().getOracleConnectionType().getOracleServiceName();
+                log.info("oracleServiceName: {}", databaseName);
             }
         } else {
             databaseName = serviceInfo.getConnection().getDatabaseName() == null ?
                     serviceInfo.getConnection().getDatabase() : serviceInfo.getConnection().getDatabaseName();
         }
+
+        log.info("databaseName: {}", databaseName);
 
         return DatabaseConnectionRequest.builder()
                 .dbType(serviceInfo.getServiceType())

@@ -75,7 +75,7 @@ public class OpenMetadataService {
     }
 
     public JsonNode getStorageModels(String endPoint) {
-        return get(openMetadataConfig.getPath().getStorageModel() + endPoint).get(PAGING.getName());
+        return get(openMetadataConfig.getPath().getStorageModel() + endPoint);
     }
 
     public JsonNode getAllIngestion() {
