@@ -62,6 +62,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     private final ModelRegistrationService modelRegistrationService;
     private final Utils utils = new Utils();
     private final ConnectionService connectionService;
+    private final MetadataService metadataService;
     private final ObjectMapper objectMapper;
     private final K8SService k8sService;
     private final OpenMetadataConfig openMetadataConfig;
@@ -87,7 +88,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public void init() {
         final List<Services> allService = servicesService.getAllService();
 
-//        initializeServiceTable(SCHEDULER.getName());
         if (allService.isEmpty()) {
             initializeServiceTable(SCHEDULER.getName());
         } else {
@@ -352,16 +352,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // model registration 등록
         setServiceModels(getServiceListFromFabricServer());
 
-//        // connectionCheck & get Tables or Files
-//        for (var currentService : currentServices) {
-//            var param = String.format("?q=%s&index=%s&from=0&size=0&deleted=false" +
-//                            "&query_filter={\"query\":{\"bool\":{}}}", currentService.get(NAME.getName()).asText(),
-//                    currentService.get(SERVICE_TYPE.getName()).asText().equalsIgnoreCase("s3") ||
-//                            currentService.get(SERVICE_TYPE.getName()).asText().equalsIgnoreCase("minio") ?
-//                            "container_search_index" : "table_search_index");
-//            var omDBItems = openMetadataService.getQuery(param).get("hits").get("total").get("value").asInt();
-//            connectionService.getDBItems(currentService, omDBItems, userName);
-//        }
+        // collect data num 등록
+        metadataService.save(services.size());
     }
 
     @Override

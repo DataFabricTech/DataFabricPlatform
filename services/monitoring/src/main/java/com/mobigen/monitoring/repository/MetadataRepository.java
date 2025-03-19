@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MetadataRepository extends JpaRepository<Metadata, UUID> {
+public interface MetadataRepository extends JpaRepository<Metadata, String> {
     @Query(nativeQuery = true, value = "" +
             "select metadata_value as metadataValue " +
             "from metadata " +
