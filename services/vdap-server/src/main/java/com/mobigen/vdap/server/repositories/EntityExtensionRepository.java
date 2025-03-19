@@ -4,6 +4,8 @@ import com.mobigen.vdap.server.entity.EntityExtension;
 import com.mobigen.vdap.server.entity.EntityExtensionId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,4 +16,6 @@ public interface EntityExtensionRepository extends JpaRepository<EntityExtension
     List<EntityExtension> findByIdAndExtensionStartingWith(String id, String extensionPrefix, Sort sort);
 
     Optional<EntityExtension> findByIdAndExtension(String id, String extension);
+
+    void deleteByIdAndExtensionStartingWith(String id, String extensionPrefix);
 }
