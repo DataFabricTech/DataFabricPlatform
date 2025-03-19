@@ -1,9 +1,7 @@
 package com.mobigen.vdap.server.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.mobigen.vdap.schema.type.TagLabel;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,24 +12,37 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tag_usage")
+@Table(name = "tag_usage",
+        uniqueConstraints = @UniqueConstraint(
+                name = "tag_usage_key",
+                columnNames = {"source", "source_id", "tag_id", "target_type", "target_id"}
+        )
+)
+@IdClass(TagUsageId.class)
 public class TagUsageEntity {
     @Id
-    @Column(name = "id")
-    private String id;
+    @Column(name = "source", nullable = false)
+    private Integer source;         // 0 : classification, 1 : glossary
 
-    @Column(name = "classification_id")
-    private String classificationId;
+    @Id
+    @Column(name = "source_id", nullable = false)
+    private String sourceId;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Id
+    @Column(name = "tag_id", nullable = false)
+    private String tagId;
 
-    @Column(name = "json", nullable = false)
-    private String json;
+    @Column(name = "label_type")
+    private TagLabel.LabelType label_type;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @Column(name = "state")
+    private TagLabel.State state;
 
-    @Column(name = "updated_by", nullable = false)
-    private String updatedBy;
+    @Id
+    @Column(name = "target_type", nullable = false)
+    private String targetType;
+
+    @Id
+    @Column(name = "target_id", nullable = false)
+    private String targetId;
 }
