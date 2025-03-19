@@ -131,7 +131,7 @@ public class TagController {
                                     schema = @Schema(implementation = EntityHistory.class)))
             })
     @CommonResponseAnnotation
-    public EntityHistory listVersions(
+    public Object listVersions(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
         return tagService.listVersions(id);
@@ -151,7 +151,8 @@ public class TagController {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = Tag.class)))
             })
-    public Tag getVersion(
+    @CommonResponseAnnotation
+    public Object getVersion(
             @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id,
             @Parameter(
@@ -184,52 +185,27 @@ public class TagController {
         return tagService.create(Utilities.getBaseUri(request), tag);
     }
 
-//    @PostMapping("/{id}/patch")
-//    @Operation(
-//            operationId = "patchTag",
-//            summary = "Update a tag",
-//            description = "Update an existing tag using JsonPatch.",
-//            externalDocs =
-//            @ExternalDocumentation(
-//                    description = "JsonPatch RFC",
-//                    url = "https://tools.ietf.org/html/rfc6902"))
-//    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
-//    public Response patch(
-//            @Context UriInfo uriInfo,
-//            @Context SecurityContext securityContext,
-//            @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathVariable("id")
-//            UUID id,
-//            @RequestBody(
-//                    description = "JsonPatch with array of operations",
-//                    content =
-//                    @Content(
-//                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
-//                            examples = {
-//                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
-//                            }))
-//            JsonPatch patch) {
-//        return patchInternal(uriInfo, securityContext, id, patch);
-//    }
-
-    @PostMapping("/update")
+    @PostMapping("/{id}/update")
     @Operation(
-            operationId = "createOrUpdateTag",
-            summary = "Create or update a tag",
-            description = "Create a new tag, if it does not exist or update an existing tag.",
+            operationId = "updateTag",
+            summary = "update a tag",
+            description = "update an existing tag.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
                             description = "The tag",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = Tag.class)))
             })
     @CommonResponseAnnotation
-    public Object createOrUpdate(
+    public Object update(
             HttpServletRequest request,
-            @Valid @RequestBody CreateTag create) {
+            @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID"))
+            @PathVariable("id") UUID id,
+            @RequestBody @Valid CreateTag create) {
+        // TODO : Get User Info
         Tag tag = createToEntity(create, "admin");
+        tag.setId(id);
         return tagService.update(Utilities.getBaseUri(request), tag);
     }
 
@@ -297,16 +273,16 @@ public class TagController {
     }
 
     public Tag createToEntity(CreateTag request, String user) {
-        Tag entity = new Tag();
-        entity.setId(Utilities.generateUUID());
-        entity.setName(request.getName());
-        entity.setDisplayName(request.getDisplayName());
-        entity.setDescription(request.getDescription());
-        entity.setUpdatedBy(user);
-        entity.setUpdatedAt(Utilities.getLocalDateTime());
-        entity.withClassification(tagLabelUtil.getReference(request.getClassification(), Entity.CLASSIFICATION));
-        entity.withProvider(request.getProvider());
-        entity.withMutuallyExclusive(request.getMutuallyExclusive());
-        return entity;
+        Tag tag = new Tag();
+        tag.setId(Utilities.generateUUID());
+        tag.setName(request.getName());
+        tag.setDisplayName(request.getDisplayName());
+        tag.setDescription(request.getDescription());
+        tag.setUpdatedBy(user);
+        tag.setUpdatedAt(Utilities.getLocalDateTime());
+        tag.withClassification(tagLabelUtil.getReference(request.getClassification(), Entity.CLASSIFICATION));
+        tag.withProvider(request.getProvider());
+        tag.withMutuallyExclusive(request.getMutuallyExclusive());
+        return tag;
     }
 }

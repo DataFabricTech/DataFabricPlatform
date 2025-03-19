@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TagRepository extends JpaRepository<TagEntity, String> {
-    int getCountByClassificationId(String classificationId);
-
     Page<TagEntity> findAllByClassificationId(String classificationId, Pageable pageable);
+
+    Integer countByClassificationId(String classificationId);
 }

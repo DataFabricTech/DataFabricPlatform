@@ -37,13 +37,14 @@ create index tag_entity_name_index on tag(name);
 
 create table tag_usage (
     source      int          not null,      # 0 : classification, 1 : glossary
+    source_id   varchar(256) not null,
     tag_id      varchar(256) not null,
     label_type  int          not null,      # 0 : Manual, 1 : Propagated, 2 : Automated, 3 : Derived
     state       int          not null,      # 0 : Suggested, 1 : Confirmed
     target_type varchar(32)  not null,
     target_id   varchar(36)  not null,
     constraint tag_usage_key
-        unique (source, tag_id, target_type, target_id)
+        unique (source, source_id, tag_id, target_type, target_id)
 );
 
 create table entity_relationship (

@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.vdap.schema.api.classification.CreateClassification;
 import com.mobigen.vdap.schema.entity.classification.Classification;
+import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.schema.type.ProviderType;
+import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.models.PageModel;
+import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
 import com.mobigen.vdap.server.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
@@ -41,6 +44,8 @@ class ClassificationControllerTest {
 
     @Autowired
     private ClassificationRepository repository;
+    @Autowired
+    private EntityExtensionRepository entityExtensionRepository;
 
     @Container
     public static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.3.0")
@@ -75,6 +80,7 @@ class ClassificationControllerTest {
     @BeforeEach
     void beforeEach() {
         repository.deleteAll();
+        entityExtensionRepository.deleteAll();
     }
 
     @Test
@@ -246,6 +252,48 @@ class ClassificationControllerTest {
         Assertions.assertEquals(updateData.getDescription(), resClassification.getDescription());
         Assertions.assertEquals(updateData.getDisplayName(), resClassification.getDisplayName());
 
+        // version list
+        result = mockMvc.perform(get("/v1/classifications/" + resClassification.getId() + "/versions")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+
+        EntityHistory history = JsonUtils.convertValue(node.get("data"), EntityHistory.class);
+        Assertions.assertNotNull(history);
+        Assertions.assertEquals(Entity.CLASSIFICATION, history.getEntityType());
+        Assertions.assertEquals(2, history.getVersions().size());
+        Classification old = JsonUtils.readValue((String) history.getVersions().getLast(), Classification.class);
+        Assertions.assertEquals("update-test", old.getName());
+        Assertions.assertEquals("update-test-displayname", old.getDisplayName());
+        Assertions.assertEquals("update-test-desc", old.getDescription());
+
+        result = mockMvc.perform(get("/v1/classifications/" + resClassification.getId() + "/versions/" + old.getVersion())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+
+        Classification oldVersion = JsonUtils.convertValue(node.get("data"), Classification.class);
+        Assertions.assertNotNull(oldVersion);
+        Assertions.assertEquals("update-test", old.getName());
+        Assertions.assertEquals("update-test-displayname", old.getDisplayName());
+        Assertions.assertEquals("update-test-desc", old.getDescription());
+
+        result = mockMvc.perform(get("/v1/classifications/" + resClassification.getId() + "/versions/" + resClassification.getVersion())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+
+        Classification latestVersion = JsonUtils.convertValue(node.get("data"), Classification.class);
+        Assertions.assertNotNull(oldVersion);
+        Assertions.assertEquals("name-update", latestVersion.getName());
+        Assertions.assertEquals("update-test-displayname", old.getDisplayName());
+        Assertions.assertEquals("update-test-desc", old.getDescription());
 
         // 1.1. Get
         result = mockMvc.perform(get("/v1/classifications/name/" + updateData.getName())
@@ -304,6 +352,7 @@ class ClassificationControllerTest {
         Assertions.assertEquals(updateData.getName(), resClassification.getName());
         Assertions.assertEquals(updateData.getDisplayName(), resClassification.getDisplayName());
         Assertions.assertEquals(updateData.getDescription(), resClassification.getDescription());
+
     }
 
     @Test
@@ -347,7 +396,8 @@ class ClassificationControllerTest {
         Assertions.assertEquals("Success", node.get("code").asText());
 
         PageModel<Classification> pageResponse = JsonUtils.convertValue(node.get("data"),
-                new TypeReference<PageModel<Classification>>() {});
+                new TypeReference<PageModel<Classification>>() {
+                });
         Assertions.assertNotNull(pageResponse);
         Assertions.assertEquals(0, pageResponse.getTotalElements());
     }
@@ -405,11 +455,6 @@ class ClassificationControllerTest {
         Assertions.assertEquals(currentSize, pageResponse.getTotalElements());
         Assertions.assertNotNull(pageResponse.getContents());
     }
-
-    // Test Delete Children(Tag)..
-    // getVersion?
-    // getVersions?
-    // restore
 
     public Classification createClassification(String name, String displayName, String description) throws Exception {
         CreateClassification createData = new CreateClassification()

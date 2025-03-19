@@ -161,12 +161,11 @@ public class ClassificationController {
                                     schema = @Schema(implementation = EntityHistory.class)))
             })
     @CommonResponseAnnotation
-    public EntityHistory listVersions(
+    public Object listVersions(
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id")
             UUID id) {
-        return null;
-//        return super.listVersionsInternal(securityContext, id);
+        return classificationService.listVersions(id);
     }
 
     @GetMapping("/{id}/versions/{version}")
@@ -187,7 +186,7 @@ public class ClassificationController {
                             description = "Classification for instance {id} and version {version} is not found")
             })
     @CommonResponseAnnotation
-    public Classification getVersion(
+    public Object getVersion(
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id")
             UUID id,
@@ -196,8 +195,7 @@ public class ClassificationController {
                     schema = @Schema(type = "string", example = "0.1 or 1.1"))
             @PathVariable("version")
             String version) {
-        return null;
-//        return super.getVersionInternal(securityContext, id, version);
+        return classificationService.getVersion(id, version);
     }
 
     @PostMapping
@@ -232,9 +230,9 @@ public class ClassificationController {
 
     @PostMapping("/{id}/update")
     @Operation(
-            operationId = "createOrUpdateClassification",
+            operationId = "updateClassification",
             summary = "Update a classification",
-            description = "Update an existing category identify by category name")
+            description = "Update an existing category identify by category id")
     @CommonResponseAnnotation
     public Object update(
             HttpServletRequest request,
@@ -286,28 +284,6 @@ public class ClassificationController {
         log.info("[Classification] Delete By Name[{}]", name);
         classificationService.deleteByName(name, "admin");
         return "success";
-    }
-
-    @CommonResponseAnnotation
-    @PostMapping("/restore")
-    @Operation(
-            operationId = "restoreClassification",
-            summary = "Restore a soft deleted classification",
-            description = "Restore a soft deleted classification.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successfully restored the Table ",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = Classification.class)))
-            })
-    public Classification restore(
-            @RequestBody
-            @Valid RestoreEntity restore) {
-//        return restoreEntity(uriInfo, securityContext, restore.getId());
-        return null;
     }
 
     public Classification createToEntity(CreateClassification request, String user) {
