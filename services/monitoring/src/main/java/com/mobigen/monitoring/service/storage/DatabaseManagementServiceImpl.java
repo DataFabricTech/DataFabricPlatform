@@ -616,14 +616,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final Boolean connectionCheckResponse = checkDatabaseConnection(request);
 
         // connection check failed
-        if (connectionCheckResponse == null) {
-            log.error("[ MONITORING ] DB connection check pass");
-
-            return CheckConnectionResponseVo.builder()
-                    .status(NOT_TARGET)
-                    .responseTime(stopWatch.getTotalTimeMillis())
-                    .build();
-        } else if (!connectionCheckResponse) {
+        if (!connectionCheckResponse) {
             log.error("[ MONITORING ] DB Connection Error");
 
             return CheckConnectionResponseVo.builder()
