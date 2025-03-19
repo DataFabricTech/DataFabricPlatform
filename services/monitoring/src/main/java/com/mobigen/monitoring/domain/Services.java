@@ -44,22 +44,4 @@ public class Services {
 
     @Enumerated(EnumType.STRING)
     private ConnectionStatus connectionStatus;
-
-    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "service_id")
-    @ToString.Exclude
-    private List<ConnectionDao> connectionDaos = new ArrayList<>();
-
-    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "service_id")
-    @ToString.Exclude
-    private List<ConnectionHistory> connectionHistories = new ArrayList<>();
-
-    public void setConnectionHistories(List<ConnectionHistory> connectionHistories) {
-        this.connectionHistories = connectionHistories;
-    }
-
-    public void setConnectionDaos(List<ConnectionDao> connectionDaos) {
-        this.connectionDaos = connectionDaos;
-    }
 }

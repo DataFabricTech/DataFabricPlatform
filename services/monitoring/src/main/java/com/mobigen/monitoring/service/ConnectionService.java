@@ -52,8 +52,6 @@ public class ConnectionService {
                         .updatedAt(services.getUpdatedAt())
                         .deleted(services.isDeleted())
                         .connectionStatus(services.getConnectionStatus())
-                        .connectionDaos(null)
-                        .connectionHistories(connectionHistories)
                         .build()
         ).orElse(null);
     }

@@ -14,6 +14,7 @@ import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.repository.ModelRegistrationRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.k8s.K8SService;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
@@ -88,11 +89,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public void init() {
         final List<Services> allService = servicesService.getAllService();
 
-        if (allService.isEmpty()) {
+//        if (allService.isEmpty()) {
             initializeServiceTable(SCHEDULER.getName());
-        } else {
-            getServiceListFromFabricServer();
-        }
+//        } else {
+//            getServiceListFromFabricServer();
+//        }
     }
 
     @Override
@@ -116,8 +117,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         HikariDataSource dataSource = new HikariDataSource();
 
         String jdbcUrl = buildJdbcUrl(request);
-
-        log.info("jdbcUrl: {}", jdbcUrl);
 
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setUsername(request.getUsername());
@@ -154,9 +153,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
-    /**
-     * TODO database type 추가
-     */
     @Override
     public List<String> getDatabases(DatabaseConnectionRequest request) {
         String query;
@@ -182,7 +178,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 databases.add(response.get("Database").toString());
             }
         } else {
-            log.error("Unsupported database type: " + request.getDbType());
+            log.error("Unsupported database type: {}", request.getDbType());
         }
 
         return databases;
@@ -190,7 +186,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Map<String, List<String>> getTables(DatabaseConnectionRequest request) {
-        log.info("getTables request: {}", request);
         String query;
         if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
             query = GET_TABLES_FROM_ORACLE.getQueryString();
@@ -301,7 +296,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public List<Map<String, Object>> executeQuery(DatabaseConnectionRequest request, String query) {
-        log.info("query: {}", query);
         DataSource dataSource = createDataSource(request);
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
@@ -347,9 +341,10 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final List<Services> services = saveServicesToDatabase();
 
         // connection 등록
+        // model registration 저장
         saveConnections(services);
 
-        // model registration 등록
+        // model registration 저장
         setServiceModels(getServiceListFromFabricServer());
 
         // collect data num 등록
@@ -661,6 +656,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                             .build()
             );
         }
+
+        log.info("services: {}", services);
 
         return servicesService.saveServices(services);
     }

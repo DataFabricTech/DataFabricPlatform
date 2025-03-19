@@ -38,8 +38,4 @@ public class Ingestion {
 
     @Column(name = "deleted")
     private boolean deleted;
-
-    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "ingestion_id")
-    private List<IngestionHistory> ingestionHistories = new ArrayList<>();
 }
