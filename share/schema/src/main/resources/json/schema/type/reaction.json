@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/type/reaction.json",
+  "$id": "https://mobigen.com/schema/type/reaction.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Reaction",
   "description": "This schema defines the reaction to an entity or a conversation in the activity feeds.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.Reaction",
+  "javaType": "com.mobigen.vdap.schema.type.Reaction",
   "definitions": {
     "reactionList": {
       "type": "array",
@@ -14,7 +14,7 @@
       "default": null
     },
     "reactionType": {
-      "javaType": "org.openmetadata.schema.type.ReactionType",
+      "javaType": "com.mobigen.vdap.schema.type.ReactionType",
       "description": "Type of reaction.",
       "type": "string",
       "enum": [
@@ -38,6 +38,9 @@
       "$ref": "entityReference.json"
     }
   },
-  "required": ["reactionType", "user"],
+  "required": [
+    "reactionType",
+    "user"
+  ],
   "additionalProperties": false
 }

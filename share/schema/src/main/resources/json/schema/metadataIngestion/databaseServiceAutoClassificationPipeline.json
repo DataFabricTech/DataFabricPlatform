@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/metadataIngestion/databaseServiceAutoClassificationPipeline.json",
+  "$id": "https://mobigen.com/schema/metadataIngestion/databaseServiceAutoClassificationPipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DatabaseServiceAutoClassificationPipeline",
   "description": "DatabaseService AutoClassification & Auto Classification Pipeline Configuration.",
@@ -8,7 +8,9 @@
     "autoClassificationConfigType": {
       "description": "Profiler Source Config Pipeline type",
       "type": "string",
-      "enum": ["AutoClassification"],
+      "enum": [
+        "AutoClassification"
+      ],
       "default": "AutoClassification"
     }
   },
@@ -43,12 +45,6 @@
       "type": "boolean",
       "default": true,
       "title": "Include Views"
-    },
-    "useFqnForFiltering": {
-      "description": "Regex will be applied on fully qualified name (e.g service_name.db_name.schema_name.table_name) instead of raw name (e.g. table_name)",
-      "type": "boolean",
-      "default": false,
-      "title": "Use FQN For Filtering"
     },
     "storeSampleData": {
       "description": "Option to turn on/off storing sample data. If enabled, we will ingest sample data for each table.",

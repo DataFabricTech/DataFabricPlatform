@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/metadataIngestion/databaseServiceQueryUsagePipeline.json",
+  "$id": "https://mobigen.com/schema/metadataIngestion/databaseServiceQueryUsagePipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DatabaseServiceQueryUsagePipeline",
   "description": "DatabaseService Query Usage Pipeline Configuration.",
@@ -8,7 +8,9 @@
     "databaseUsageConfigType": {
       "description": "Database Source Config Usage Pipeline type",
       "type": "string",
-      "enum": ["DatabaseUsage"],
+      "enum": [
+        "DatabaseUsage"
+      ],
       "default": "DatabaseUsage"
     }
   },

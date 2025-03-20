@@ -1,0 +1,45 @@
+{
+  "$id": "https://mobigen.com/schema/type/commonresponse.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CommonResponse",
+  "description": "Common response data model.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.type.CommonResponse",
+  "definitions": {
+    "codeType": {
+      "description": "job result",
+      "type": "string",
+      "enum": [
+        "Success",
+        "Error"
+      ],
+      "javaEnums": [
+        {
+          "name": "Success"
+        },
+        {
+          "name": "Error"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "code" : {
+      "description": "Result Code",
+      "$ref": "#/definitions/codeType"
+    },
+    "errorMsg": {
+      "description": "Error Message",
+      "type": "string"
+    },
+    "errorData": {
+      "description": "Error Detail Data And Message",
+      "$ref": "basic.json#/definitions/map"
+    },
+    "data": {
+      "description": "Response Data"
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}

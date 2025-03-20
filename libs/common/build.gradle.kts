@@ -1,3 +1,5 @@
+import javax.annotation.meta.Exclusive
+
 plugins {
     id("com.mobigen.java-library")
 }
@@ -19,4 +21,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api")
     implementation("org.apache.logging.log4j:log4j-core")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl")
+
+    implementation("org.jsonschema2pojo:jsonschema2pojo-core")
+    implementation("org.glassfish.jaxb:codemodel")
 }

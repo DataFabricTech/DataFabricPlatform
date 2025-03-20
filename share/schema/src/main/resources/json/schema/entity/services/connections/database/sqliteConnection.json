@@ -1,21 +1,25 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/database/sqliteConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/database/sqliteConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SQLiteConnection",
   "description": "SQLite Database Connection Config",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.database.SQLiteConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.database.SQLiteConnection",
   "definitions": {
     "SQLiteType": {
       "description": "Service type.",
       "type": "string",
-      "enum": ["SQLite"],
+      "enum": [
+        "SQLite"
+      ],
       "default": "SQLite"
     },
     "SQLiteScheme": {
       "description": "SQLAlchemy driver scheme options.",
       "type": "string",
-      "enum": ["sqlite+pysqlite"],
+      "enum": [
+        "sqlite+pysqlite"
+      ],
       "default": "sqlite+pysqlite"
     }
   },
@@ -50,7 +54,7 @@
     },
     "database": {
       "title": "Database",
-      "description": "Database of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single database. When left blank, OpenMetadata Ingestion attempts to scan all the databases.",
+      "description": "Database of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single database. When left blank, Open VDAP Ingestion attempts to scan all the databases.",
       "type": "string"
     },
     "databaseMode": {
@@ -81,10 +85,6 @@
     "supportsQueryComment": {
       "title": "Supports Query Comment",
       "$ref": "../connectionBasicType.json#/definitions/supportsQueryComment"
-    },
-    "sampleDataStorageConfig": {
-      "title": "Storage Config for Sample Data",
-      "$ref": "../connectionBasicType.json#/definitions/sampleDataStorageConfig"
     },
     "supportsViewLineageExtraction": {
       "$ref": "../connectionBasicType.json#/definitions/supportsViewLineageExtraction"

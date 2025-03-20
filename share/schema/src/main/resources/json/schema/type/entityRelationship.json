@@ -1,13 +1,13 @@
 {
-  "$id": "https://open-metadata.org/schema/type/entityRelationship.json",
+  "$id": "https://mobigen.com/schema/type/entityRelationship.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EntityRelationship",
   "description": "This schema defines the EntityRelationship type used for establishing relationship between two entities. EntityRelationship is used for capturing relationships from one entity to another. For example, a database contains tables.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.EntityRelationship",
+  "javaType": "com.mobigen.vdap.schema.type.EntityRelationship",
   "definitions": {
     "relationshipType": {
-      "javaType": "org.openmetadata.schema.type.Relationship",
+      "javaType": "com.mobigen.vdap.schema.type.Relationship",
       "description": "This enum captures all the relationships between Catalog entities. Note that the relationship from is a Strong entity and to is Weak entity when possible.",
       "$comment": "Rules for changing enums since the ordinal position is stored in the database: (1) Don't remove an enum, since the database might have stored the enum ordinal number. (2) When adding a new enum, add it as the last enum to preserve the ordinal positions of the existing enums.",
       "type": "string",
@@ -37,29 +37,75 @@
         "relatesTo"
       ],
       "javaEnums": [
-        { "name": "CONTAINS" },
-        { "name": "CREATED" },
-        { "name": "REPLIED_TO" },
-        { "name": "IS_ABOUT" },
-        { "name": "ADDRESSED_TO" },
-        { "name": "MENTIONED_IN" },
-        { "name": "TESTED_BY" },
-        { "name": "USES" },
-        { "name": "OWNS" },
-        { "name": "PARENT_OF" },
-        { "name": "HAS" },
-        { "name": "FOLLOWS" },
-        { "name": "JOINED_WITH" },
-        { "name": "UPSTREAM" },
-        { "name": "APPLIED_TO" },
-        { "name": "RELATED_TO" },
-        { "name": "REVIEWS" },
-        { "name": "REACTED_TO" },
-        { "name": "VOTED" },
-        { "name": "EXPERT" },
-        { "name": "EDITED_BY" },
-        { "name":  "DEFAULTS_TO" },
-        { "name": "RELATES_TO" }
+        {
+          "name": "CONTAINS"
+        },
+        {
+          "name": "CREATED"
+        },
+        {
+          "name": "REPLIED_TO"
+        },
+        {
+          "name": "IS_ABOUT"
+        },
+        {
+          "name": "ADDRESSED_TO"
+        },
+        {
+          "name": "MENTIONED_IN"
+        },
+        {
+          "name": "TESTED_BY"
+        },
+        {
+          "name": "USES"
+        },
+        {
+          "name": "OWNS"
+        },
+        {
+          "name": "PARENT_OF"
+        },
+        {
+          "name": "HAS"
+        },
+        {
+          "name": "FOLLOWS"
+        },
+        {
+          "name": "JOINED_WITH"
+        },
+        {
+          "name": "UPSTREAM"
+        },
+        {
+          "name": "APPLIED_TO"
+        },
+        {
+          "name": "RELATED_TO"
+        },
+        {
+          "name": "REVIEWS"
+        },
+        {
+          "name": "REACTED_TO"
+        },
+        {
+          "name": "VOTED"
+        },
+        {
+          "name": "EXPERT"
+        },
+        {
+          "name": "EDITED_BY"
+        },
+        {
+          "name": "DEFAULTS_TO"
+        },
+        {
+          "name": "RELATES_TO"
+        }
       ]
     }
   },
@@ -68,10 +114,6 @@
       "description": "Unique identifier that identifies the entity from which the relationship originates.",
       "$ref": "basic.json#/definitions/uuid"
     },
-    "fromFQN": {
-      "description": "Fully qualified name of the entity from which the relationship originates.",
-      "type": "string"
-    },
     "fromEntity": {
       "description": "Type of the entity from which the relationship originates. Examples: `database`, `table`, `metrics` ...",
       "type": "string"
@@ -79,10 +121,6 @@
     "toId": {
       "description": "Unique identifier that identifies the entity towards which the relationship refers to.",
       "$ref": "basic.json#/definitions/uuid"
-    },
-    "toFQN": {
-      "description": "Fully qualified name of the entity towards which the relationship refers to.",
-      "type": "string"
     },
     "toEntity": {
       "description": "Type of the entity towards which the relationship refers to. Examples: `database`, `table`, `metrics` ...",
@@ -103,6 +141,10 @@
       "default": false
     }
   },
-  "required": ["fromEntity", "toEntity", "relationshipType"],
+  "required": [
+    "fromEntity",
+    "toEntity",
+    "relationshipType"
+  ],
   "additionalProperties": false
 }

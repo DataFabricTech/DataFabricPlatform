@@ -1,15 +1,17 @@
 {
-  "$id": "https://open-metadata.org/schema/type/auditLog.json",
+  "$id": "https://mobigen.com/schema/type/auditLog.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "AuditLog",
-  "description": "This schema defines the Audit Log type to capture the audit trail of POST, PUT, and PATCH API operations.",
+  "description": "This schema defines the Audit Log type to capture the audit trail of GET, POST API operations.",
   "type": "object",
-
   "properties": {
     "method": {
       "description": "HTTP Method used in a call.",
       "type": "string",
-      "enum": ["POST", "PUT", "PATCH", "DELETE"]
+      "enum": [
+        "GET",
+        "POST"
+      ]
     },
     "responseCode": {
       "description": "HTTP response code for the api requested.",

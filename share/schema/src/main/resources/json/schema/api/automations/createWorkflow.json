@@ -1,11 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/api/automations/createWorkflow.json",
+  "$id": "https://mobigen.com/schema/api/automations/createWorkflow.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CreateWorkflowRequest",
-  "description": "A unit of work that will be triggered as an API call to the OpenMetadata server.",
+  "description": "A unit of work that will be triggered as an API call to the Open VDAP server.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.automations.CreateWorkflow",
-  "javaInterfaces": ["org.openmetadata.schema.CreateEntity"],
+  "javaType": "com.mobigen.vdap.schema.entity.automations.CreateWorkflow",
   "properties": {
     "name": {
       "description": "Name of the workflow.",
@@ -48,10 +47,6 @@
       "description": "Owners of this workflow.",
       "$ref": "../../type/entityReferenceList.json",
       "default": null
-    },
-    "domain" : {
-      "description": "Fully qualified name of the domain the Table belongs to.",
-      "type": "string"
     }
   },
   "additionalProperties": false,

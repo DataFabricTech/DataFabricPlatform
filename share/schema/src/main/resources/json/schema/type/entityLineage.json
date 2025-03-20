@@ -1,58 +1,81 @@
 {
-  "$id": "https://open-metadata.org/schema/type/entityLineage.json",
+  "$id": "https://mobigen.com/schema/type/entityLineage.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Entity Lineage",
   "description": "The `Lineage` for a given data asset, has information of the input datasets used and the ETL pipeline that created it.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.EntityLineage",
+  "javaType": "com.mobigen.vdap.schema.type.EntityLineage",
   "definitions": {
-    "columnLineage": {
-      "type" : "object",
+    "columnLocation": {
+      "type": "object",
       "properties": {
-        "fromColumns" : {
-          "description": "One or more source columns identified by fully qualified column name used by transformation function to create destination column.",
-          "type" : "array",
-          "items" : {
-            "$ref" : "../type/basic.json#/definitions/fullyQualifiedEntityName"
-          }
+        "tableId": {
+          "description": "Unique identifier of this table instance.",
+          "$ref": "../type/basic.json#/definitions/uuid"
         },
-        "toColumn" : {
-          "description": "Destination column identified by fully qualified column name created by the transformation of source columns.",
-          "$ref" : "../type/basic.json#/definitions/fullyQualifiedEntityName"
-        },
-        "function" : {
-          "description": "Transformation function applied to source columns to create destination column. That is `function(fromColumns) -> toColumn`.",
-          "$ref" : "../type/basic.json#/definitions/sqlFunction"
+        "columnName": {
+          "description": "Column Name of the table to be included.",
+          "type": "string"
         }
       }
     },
-    "lineageDetails" : {
-      "description" : "Lineage details including sqlQuery + pipeline + columnLineage.",
-      "type" : "object",
+    "columnLineage": {
+      "type": "object",
       "properties": {
-        "sqlQuery" : {
-          "description": "SQL used for transformation.",
-          "$ref" : "../type/basic.json#/definitions/sqlQuery"
-        },
-        "columnsLineage" : {
-          "description" : "Lineage information of how upstream columns were combined to get downstream column.",
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/columnLineage"
+        "fromColumns": {
+          "description": "One or more source columns identified by Table ID And ColumnName.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/columnLocation"
           }
         },
-        "pipeline" : {
-          "description": "Pipeline where the sqlQuery is periodically run.",
-          "$ref" : "../type/entityReference.json"
+        "toColumn": {
+          "description": "Destination column identified by Table ID And ColumnName.",
+          "$ref": "#/definitions/columnLocation"
         },
-        "description" :{
+        "function": {
+          "description": "Transformation function applied to source columns to create destination column. That is `function(fromColumns) -> toColumn`.",
+          "$ref": "../type/basic.json#/definitions/sqlFunction"
+        }
+      }
+    },
+    "lineageDetails": {
+      "description": "Lineage details including sqlQuery + pipeline + columnLineage.",
+      "type": "object",
+      "properties": {
+        "sqlQuery": {
+          "description": "SQL used for transformation.",
+          "$ref": "../type/basic.json#/definitions/sqlQuery"
+        },
+        "columnsLineage": {
+          "description": "Lineage information of how upstream columns were combined to get downstream column.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/columnLineage"
+          }
+        },
+        "pipeline": {
+          "description": "Pipeline where the sqlQuery is periodically run.",
+          "$ref": "../type/entityReference.json"
+        },
+        "description": {
           "description": "description of lineage",
           "type": "string"
         },
         "source": {
           "description": "Lineage type describes how a lineage was created.",
           "type": "string",
-          "enum": ["Manual", "ViewLineage", "QueryLineage", "PipelineLineage", "DashboardLineage", "DbtLineage", "SparkLineage", "OpenLineage", "ExternalTableLineage"],
+          "enum": [
+            "Manual",
+            "ViewLineage",
+            "QueryLineage",
+            "PipelineLineage",
+            "DashboardLineage",
+            "DbtLineage",
+            "SparkLineage",
+            "OpenLineage",
+            "ExternalTableLineage"
+          ],
           "default": "Manual"
         }
       }
@@ -60,7 +83,7 @@
     "edge": {
       "description": "Edge in the lineage graph from one entity to another by entity IDs.",
       "type": "object",
-      "javaType": "org.openmetadata.schema.type.Edge",
+      "javaType": "com.mobigen.vdap.schema.type.Edge",
       "properties": {
         "fromEntity": {
           "description": "From entity that is upstream of lineage edge.",
@@ -78,13 +101,16 @@
           "$ref": "#/definitions/lineageDetails"
         }
       },
-      "required": ["fromEntity", "toEntity"],
+      "required": [
+        "fromEntity",
+        "toEntity"
+      ],
       "additionalProperties": false
     },
     "entitiesEdge": {
       "description": "Edge in the lineage graph from one entity to another using entity references.",
       "type": "object",
-      "javaType": "org.openmetadata.schema.type.EntitiesEdge",
+      "javaType": "com.mobigen.vdap.schema.type.EntitiesEdge",
       "properties": {
         "fromEntity": {
           "description": "From entity that is upstream of lineage edge.",
@@ -102,7 +128,10 @@
           "$ref": "#/definitions/lineageDetails"
         }
       },
-      "required": ["fromEntity", "toEntity"],
+      "required": [
+        "fromEntity",
+        "toEntity"
+      ],
       "additionalProperties": false
     }
   },
@@ -136,6 +165,8 @@
       "default": null
     }
   },
-  "required": ["entity"],
+  "required": [
+    "entity"
+  ],
   "additionalProperties": false
 }

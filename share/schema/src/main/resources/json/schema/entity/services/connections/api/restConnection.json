@@ -1,15 +1,17 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/api/restConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/api/restConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "RestConnection",
   "description": "REST Connection Config",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.api.RestConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.api.RestConnection",
   "definitions": {
     "restType": {
       "description": "REST API type",
       "type": "string",
-      "enum": ["Rest"],
+      "enum": [
+        "Rest"
+      ],
       "default": "Rest"
     }
   },
@@ -41,5 +43,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["openAPISchemaURL"]
+  "required": [
+    "openAPISchemaURL"
+  ]
 }

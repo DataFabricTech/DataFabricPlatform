@@ -1,26 +1,26 @@
 {
-  "$id": "https://open-metadata.org/schema/type/csvImportResult.json",
+  "$id": "https://mobigen.com/schema/type/csvImportResult.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BulkOperationResult",
   "description": "Represents result of bulk Operation performed on entities.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.type.api.BulkOperationResult",
+  "javaType": "com.mobigen.vdap.schema.type.api.BulkOperationResult",
   "definitions": {
-    "rowCount" : {
+    "rowCount": {
       "description": "Type used to indicate row count",
       "type": "integer",
-      "format" : "int64",
+      "format": "int64",
       "minimum": 0,
       "default": 0
     },
-    "index" : {
+    "index": {
       "description": "Type used to indicate row number or field number. In CSV the indexes start with 1.",
       "type": "integer",
-      "format" : "int64",
+      "format": "int64",
       "minimum": 1
     },
     "response": {
-      "javaType": "org.openmetadata.schema.type.api.BulkResponse",
+      "javaType": "com.mobigen.vdap.schema.type.api.BulkResponse",
       "description": "Request that can be processed successfully.",
       "type": "object",
       "properties": {
@@ -36,24 +36,24 @@
     }
   },
   "properties": {
-    "dryRun" : {
+    "dryRun": {
       "description": "True if the operation has dryRun flag enabled",
-      "type" : "boolean"
+      "type": "boolean"
     },
-    "status" : {
-      "$ref" : "basic.json#/definitions/status"
+    "status": {
+      "$ref": "basic.json#/definitions/status"
     },
     "abortReason": {
       "description": "Reason why import was aborted. This is set only when the `status` field is set to `aborted`",
-      "type" : "string"
+      "type": "string"
     },
-    "numberOfRowsProcessed" : {
+    "numberOfRowsProcessed": {
       "$ref": "#/definitions/rowCount"
     },
-    "numberOfRowsPassed" : {
+    "numberOfRowsPassed": {
       "$ref": "#/definitions/rowCount"
     },
-    "numberOfRowsFailed" : {
+    "numberOfRowsFailed": {
       "$ref": "#/definitions/rowCount"
     },
     "successRequest": {

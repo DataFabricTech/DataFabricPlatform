@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/ingestionPipelines/status.json",
+  "$id": "https://mobigen.com/schema/entity/services/ingestionPipelines/status.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "IngestionStatusModel",
   "description": "Ingestion detailed status",
@@ -23,11 +23,14 @@
         }
       },
       "additionalProperties": false,
-      "required": ["name", "error"]
+      "required": [
+        "name",
+        "error"
+      ]
     },
     "stepSummary": {
       "type": "object",
-      "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.StepSummary",
+      "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.StepSummary",
       "description": "Defines the summary status of each step executed in an Ingestion Pipeline.",
       "properties": {
         "name": {
@@ -68,7 +71,9 @@
         }
       },
       "additionalProperties": false,
-      "required": ["name"]
+      "required": [
+        "name"
+      ]
     },
     "ingestionStatus": {
       "title": "IngestionStatus",

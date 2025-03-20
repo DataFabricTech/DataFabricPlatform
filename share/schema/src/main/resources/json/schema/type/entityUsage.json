@@ -1,10 +1,9 @@
 {
-  "$id": "https://open-metadata.org/schema/type/entityUsage.json",
+  "$id": "https://mobigen.com/schema/type/entityUsage.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EntityUsage",
   "description": "This schema defines the type used for capturing usage details of an entity.",
   "type": "object",
-
   "properties": {
     "entity": {
       "description": "Entity for which usage is returned.",
@@ -18,6 +17,9 @@
       }
     }
   },
-  "required": ["entity", "usage"],
+  "required": [
+    "entity",
+    "usage"
+  ],
   "additionalProperties": false
 }

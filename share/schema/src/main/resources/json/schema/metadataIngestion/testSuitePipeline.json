@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/metadataIngestion/testSuitePipeline.json",
+  "$id": "https://mobigen.com/schema/metadataIngestion/testSuitePipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TestSuitePipeline",
   "description": "TestSuite Pipeline Configuration.",
@@ -8,7 +8,9 @@
     "testSuiteConfigType": {
       "description": "Pipeline Source Config Metadata Pipeline type",
       "type": "string",
-      "enum": ["TestSuite"],
+      "enum": [
+        "TestSuite"
+      ],
       "default": "TestSuite"
     },
     "serviceConnections": {
@@ -24,7 +26,10 @@
         }
       },
       "additionalProperties": false,
-      "required": ["serviceName", "serviceConnection"]
+      "required": [
+        "serviceName",
+        "serviceConnection"
+      ]
     }
   },
   "properties": {
@@ -52,11 +57,11 @@
       "title": "Profile Sample"
     },
     "profileSampleType": {
-      "$ref": "../entity/data/table.json#/definitions/profileSampleType",
+      "$ref": "../entity/data/sample.json#/definitions/profileSampleType",
       "title": "Profile Sample Type"
     },
     "samplingMethodType": {
-      "$ref": "../entity/data/table.json#/definitions/samplingMethodType",
+      "$ref": "../entity/data/sample.json#/definitions/samplingMethodType",
       "title": "Sampling Method Type"
     },
     "testCases": {
@@ -68,6 +73,8 @@
       "default": null
     }
   },
-  "required": ["type"],
+  "required": [
+    "type"
+  ],
   "additionalProperties": false
 }

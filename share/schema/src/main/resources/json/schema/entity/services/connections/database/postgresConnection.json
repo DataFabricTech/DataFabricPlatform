@@ -1,10 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/database/postgresConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/database/postgresConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "PostgresConnection",
   "description": "Postgres Database Connection Config",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.database.PostgresConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.database.PostgresConnection",
   "definitions": {
     "postgresType": {
       "description": "Service type.",
@@ -48,12 +48,6 @@
       "oneOf": [
         {
           "$ref": "./common/basicAuth.json"
-        },
-        {
-          "$ref": "./common/iamAuthConfig.json"
-        },
-        {
-          "$ref": "./common/azureConfig.json"
         }
       ]
     },
@@ -64,7 +58,7 @@
     },
     "database": {
       "title": "Database",
-      "description": "Database of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single database. When left blank, OpenMetadata Ingestion attempts to scan all the databases.",
+      "description": "Database of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single database. When left blank, Open VDAP Ingestion attempts to scan all the databases.",
       "type": "string"
     },
     "ingestAllDatabases": {
@@ -81,7 +75,7 @@
     },
     "classificationName": {
       "title": "Classification Name",
-      "description": "Custom OpenMetadata Classification name for Postgres policy tags.",
+      "description": "Custom Open VDAP Classification name for Postgres policy tags.",
       "type": "string",
       "default": "PostgresPolicyTags"
     },
@@ -118,13 +112,9 @@
       "title": "Supports Query Comment",
       "$ref": "../connectionBasicType.json#/definitions/supportsQueryComment"
     },
-    "sampleDataStorageConfig": {
-      "title": "Storage Config for Sample Data",
-      "$ref": "../connectionBasicType.json#/definitions/sampleDataStorageConfig"
-    },
     "supportsDataDiff": {
-        "title": "Supports Data Diff Extraction.",
-        "$ref": "../connectionBasicType.json#/definitions/supportsDataDiff"
+      "title": "Supports Data Diff Extraction.",
+      "$ref": "../connectionBasicType.json#/definitions/supportsDataDiff"
     }
   },
   "additionalProperties": false,

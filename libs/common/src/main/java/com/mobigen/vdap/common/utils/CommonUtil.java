@@ -1,5 +1,6 @@
 package com.mobigen.vdap.common.utils;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Mac;
@@ -13,9 +14,36 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Slf4j
+@NoArgsConstructor
 public final class CommonUtil {
 
-    private CommonUtil() {
+    private static final List<String> JAR_NAME_FILTER = List.of("mobigen");
+
+//    /** Get resources from jar file or directories in the class path matching pattern */
+//    public static List<String> getResources(Pattern pattern) throws IOException {
+//        ArrayList<String> resources = new ArrayList<>();
+//        String classPath = System.getProperty("java.class.path", ".");
+//        Set<String> classPathElements =
+//                Arrays.stream(classPath.split(File.pathSeparator))
+//                        .filter(jarName -> JAR_NAME_FILTER.stream().anyMatch(jarName.toLowerCase()::contains))
+//                        .collect(Collectors.toSet());
+//
+//        for (String element : classPathElements) {
+//            File file = new File(element);
+//            resources.addAll(
+//                    file.isDirectory()
+//                            ? getResourcesFromDirectory(file, pattern)
+//                            : getResourcesFromJarFile(file, pattern));
+//        }
+//        return resources;
+//    }
+
+    /** 오브젝트가 만들어진 오브젝트인지(개발 코드), java 오브젝트인지 확인 */
+    public static Boolean isUserDefineObject(Object obj) {
+        return obj != null
+                && JAR_NAME_FILTER.stream()
+                .anyMatch(
+                        Arrays.stream(obj.getClass().getPackageName().split("\\.")).toList()::contains);
     }
 
     /**
