@@ -153,8 +153,6 @@ class TagControllerTest {
         displayName = "tag-create-test-02-displayName";
         desc = "tag-create-test-02-desc";
         tag = createTag(classification, name, displayName, desc);
-
-        tag = JsonUtils.convertValue(node.get("data"), Tag.class);
         Assertions.assertNotNull(tag.getId());
         Assertions.assertEquals(name, tag.getName());
         Assertions.assertEquals(displayName, tag.getDisplayName());
