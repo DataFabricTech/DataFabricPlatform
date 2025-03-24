@@ -6,7 +6,6 @@ import com.mobigen.vdap.schema.entity.data.GlossaryTerm;
 import com.mobigen.vdap.schema.entity.data.TermReference;
 import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Field;
-import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.schema.type.TagLabel.TagSource;
 import com.mobigen.vdap.server.Entity;
@@ -15,7 +14,10 @@ import com.mobigen.vdap.server.models.EntityVersionPair;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -403,30 +405,6 @@ public final class EntityUtil {
 //                .orElse(null);
 //    }
 
-//    public static void sortByFQN(List<? extends EntityInterface> entities) {
-//        // Sort entities by fullyQualifiedName
-//        entities.sort(Comparator.comparing(EntityInterface::getFullyQualifiedName));
-//    }
-
-    /**
-     * This method is used to populate the entity with all details of EntityReference Users/Tools can
-     * send minimum details required to set relationship as id, type are the only required fields in
-     * entity reference, whereas we need to send fully populated object such that ElasticSearch index
-     * has all the details.
-     */
-    public static List<EntityReference> getEntityReferences(
-            List<EntityReference> entities, Include include) {
-//        if (CommonUtil.nullOrEmpty(entities)) {
-//            return Collections.emptyList();
-//        }
-//        List<EntityReference> refs = new ArrayList<>();
-//        for (EntityReference entityReference : entities) {
-//            EntityReference entityRef = Entity.getEntityReference(entityReference, include);
-//            refs.add(entityRef);
-//        }
-//        return refs;
-        return Collections.emptyList();
-    }
 
     public static void validateProfileSample(String profileSampleType, double profileSampleValue) {
         if (profileSampleType.equals("PERCENTAGE")
@@ -460,25 +438,4 @@ public final class EntityUtil {
 //            flattenEntityField(child, flattenedFields);
 //        }
 //    }
-
-    public static String getCommaSeparatedIdsFromRefs(List<EntityReference> references) {
-        return CommonUtil.listOrEmpty(references).stream()
-                .map(item -> "'" + item.getId().toString() + "'")
-                .collect(Collectors.joining(","));
-    }
-
-    public static List<EntityReference> mergedInheritedEntityRefs(
-            List<EntityReference> entityRefs, List<EntityReference> parentRefs) {
-        Set<EntityReference> result = new TreeSet<>(compareEntityReferenceById);
-        result.addAll(CommonUtil.listOrEmpty(entityRefs));
-        // Fetch Unique Reviewers from parent as inherited
-        Set<EntityReference> uniqueEntityRefFromParent =
-                CommonUtil.listOrEmpty(parentRefs).stream()
-                        .filter(parentReviewer -> !result.contains(parentReviewer))
-                        .collect(Collectors.toSet());
-        uniqueEntityRefFromParent.forEach(reviewer -> reviewer.withInherited(true));
-
-        result.addAll(uniqueEntityRefFromParent);
-        return result.stream().toList();
-    }
 }
