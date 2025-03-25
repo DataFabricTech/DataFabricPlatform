@@ -1,6 +1,5 @@
 package com.mobigen.vdap.common.utils;
 
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Mac;
@@ -14,8 +13,11 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Slf4j
-@NoArgsConstructor
 public final class CommonUtil {
+
+    private CommonUtil() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     private static final List<String> JAR_NAME_FILTER = List.of("mobigen");
 

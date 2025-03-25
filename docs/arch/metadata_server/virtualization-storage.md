@@ -11,25 +11,19 @@
 일반 요구사항
 
 1. 다양한 데이터 저장소 정보를 등록(가상화)하여 관리할 수 있는 기능
-   3차년도 목표 7종
+   3차년도 목표 7~8종
    - MySQL
    - MariaDB
    - PostgreSQL
    - MinIO
    - Oracle
-   - Hadoop
    - MongoDB
    - MS-SQL
+   - Hive
    - ...
-   - 다양한 인증 방식 지원 - 지원 고려  
 2. 사용자 설정 가능한 메타데이터  
-   1. 태그  
+   1. 카테고리/태그  
    2. 사전  
-   3. 카테고리 -> openmetadata 미지원
-   4. 즐겨찾기 -> openmetadata 미지원
-3. 카탈로그 -> 개발 미 확정  
-   1. 저장소 내 데이터 정보를 바탕으로 데이터 카탈로그 생성  
-   2. 저장된 데이터들의 카테고리와 태그를 이용해 데이터 정보 제공?
 
 보안 요구사항
 
@@ -96,7 +90,8 @@ user ... note_auth
 @startuml
 Actor 사용자 as user
 box "OpenVDAP Service" #Lightblue
-participant Server as server
+participant OVP as ovp
+participant FabricServer as server
 participant Metadata as metadata
 participant Monitoring as monitoring
 database Database as database
@@ -106,88 +101,79 @@ box "Storage"
 database "Target\nStorage" as storage
 end box
 
-' 저장소 리스트 조회 
-user -> server ++ : Get Storage List
-user <- server -- : Res : []ResStorageInfo
-|||
+' Storage
+' List Page Request
+user -> ovp ++ : 저장소 관리 창 입장(저장소 리스트)
+ovp -> server ++ : List(PageRequest, WithFields)
+server -> database ++ : Select Storage OrderBy / Offset / Limit
+server <-- database --: Res
+ovp <- server -- : Res : []StorageService
+user <- ovp -- : 저장소 리스트 정보 
 
-' 저장소 정보 조회 
-user -> server ++ : Get Storage
+' GetById/Name
+user -> ovp ++ : 저장소 정보 상세 보기
+ovp -> server ++ : Get Storage
 server -> database ++ : Get Storage(id or name)
-server <-- database --: Result
-user <-- server --: Res : ResStorageInfo
-' 저장소 연결 테스트
-note over user : 저장소 정보 창에서 연결 테스트
-user -> server ++ : Connect Test
-server -> storage ++ : Connect Test
-server <- storage --: Success or Fail
-user <-- server --: Success or Fail
-' 저장소 정보에 메타데이터 수집 파이프라인 정보와 모니터링 정보 포함 필요
-|||
+server <-- database -- : Res
+ovp <-- server -- : Res : StorageService
+user <-- ovp -- : 저장소 상세 정보
 
-' 저장소 추가
--> user ++: 저장소 가상화
-note over user : 저장소 정보 입력
+' Create
+user -> ovp ++ : 저장소 등록 창
+note over ovp : 저장소 정보 입력
 ' 저장소 연결 테스트
-user -> server ++ : Connect Test
-server -> storage ++ : Connect Test
-server <- storage --: OK 
-user <-- server --: Success
-opt connect fail 
-server -> storage ++ : Connect Test
-note left : 저장소 연결 실패 시 다음 진행 불가
-server <- storage --: Error
-user <-- server : fail
-<-- user : fail
+user -> ovp : Connect Test Click
+ovp -> server ++ : Connect Test
+server -> metadata ++ : Connect Test
+metadata -> storage ++ : Connect Test
+metadata <- storage --: Success or Fail
+server <- metadata -- : Success or Fail
+ovp <-- server --: Success or Fail
+opt fail
+note over ovp : 연결 실패 할 경우 저장 불가 알림  
+user <-- ovp : Fail
 end
-user -> server ++: Create Storage
-note right
+user -> ovp : Create/Save Click
+note over server
 데이터베이스 저장과 검색엔진 저장을 하나의 트랜잭션으로 처리
 end note
+ovp -> server ++: Save
 server -> database ++: Save
 server <-- database --: OK
 server -> search ++: Save
 server <-- search --: OK
 group 메타데이터 수집, 모니터링 연동
-server -> metadata ++: Create Default Pipeline
-server <-- metadata --: OK
-server -> monitoring ++: Create Default Monitoring
-server <- monitoring --: OK
+server -> monitoring ++: Send Noti 
+server <-- monitoring --: OK
 end
-user <-- server --: Success
-<-- user -- : 
+ovp <-- server -- : Success
+user <-- ovp -- : Success
 |||
 
 ' 저장소 연결정보 수정
--> user ++: Modify Storage Info
-note over user : 연결 정보 수정
-user -> server ++ : Connect Test
-server -> storage ++ : Connect Test
-server <- storage --: OK 
-user <-- server --: Success
-opt connect fail 
-server -> storage ++ : Connect Test
-note over user : 저장소 연결 실패 시 다음 진행 불가
-server <- storage --: Error
-user <-- server : fail
-<-- user : fail
-end
-user -> server ++: Modify Storage
-note right
-데이터베이스 저장과 검색엔진 저장을 하나의 트랜잭션으로 처리
-end note
-server -> database ++: Update
+user -> ovp ++: 저장소 연결 정보 수정
+note over ovp : 연결 관련 정보 수정으로 연결 테스트 필요
+ovp -> server ++: Update StorageService 
+server -> database ++: Save
 server <-- database --: OK
-server -> search ++: Update
+server -> search ++: Save
 server <-- search --: OK
-user <-- server --: Success
-<-- user --: 
+group 메타데이터 수집, 모니터링 연동
+server -> metadata ++: Update Storageservice
+server <-- metadata --: OK
+server -> monitoring ++: Send Noti 
+server <-- monitoring --: OK
+end
+ovp <-- server -- : Success
+user <-- ovp -- : Success
+
 |||
 
 ' 저장소 메타데이터 수정
--> user ++: Modify Storage Metadata
+user -> ovp ++: 저장소 메타데이터 수정
 note over user : 메타데이터 추가/수정/삭제
-user -> server ++: Metadata Update
+user -> ovp : Update 
+ovp -> server ++ : Update Metadata
 note right
 데이터베이스 저장과 검색엔진 저장을 하나의 트랜잭션으로 처리
 end note
@@ -195,26 +181,27 @@ server -> database ++: Update
 server <-- database --: OK
 server -> search ++: Update
 server <-- search --: OK
-user <-- server --: Success
-<-- user --: 
+ovp <-- server --: Success
+user <-- ovp -- : Success
+
 |||
 
 ' 저장소 삭제
--> user ++: Delete
-user -> server ++: Delete Storage
+user -> ovp ++: 저장소 삭제
+ovp -> server ++: Delete Storage
 note right
-데이터베이스 저장과 검색엔진 저장을 하나의 트랜잭션으로 처리
+트랜잭션처리
 end note
 server -> database ++: Delete
 server <-- database --: OK
 server -> search ++: Delete
 server <-- search --: OK
-server -> metdata ++ : Delete
-server <- metdata -- : OK
+server -> metadata ++ : Delete
+server <- metadata -- : OK
 server -> monitoring ++ : Delete
 server <- monitoring -- : OK
-user <-- server --: Success
-<-- user -- : 
+ovp <-- server --: Success
+user <-- ovp -- : Success
 @enduml
 ```
   
@@ -278,12 +265,7 @@ user <- server -- : Success
 
 ## 5. 클래스 다이어그램
 
-**참고용 OpenMetadata Service 객체**  
-
-![database_service](/share/schema/src/main/resources/json/schema/entity/services/databaseService.json)
-![storage_service](/share/schema/src/main/resources/json/schema/entity/services/storageService.json)
-![create_database_service](/share/schema/src/main/resources/json/schema/api/services/createDatabaseService.json)
-![create_storage_service](/share/schema/src/main/resources/json/schema/api/services/createStorageService.json)
+**참고용**  
 
 | 유형                    | 기호    | 목적                                                                   |
 | ----------------------- | ------- | ---------------------------------------------------------------------- |
@@ -298,249 +280,166 @@ user <- server -- : Success
 
 ```plantuml
 @startuml
-left to right direction
-
 enum StorageType {
-  Mssql
   Mysql
   Postgres
-  Oracle
-  MinIO
-  S3
-  Hive
   MariaDB
+  Oracle
+  Mssql
+  MinIO
+  Trino
+  Hive
+  SQLite
   MongoDB
-  Custom
+  ElasticSearch
+  OpenSearch
 }
 
-class StorageConnectDriver {
-  String driver
+enum SslMode {
+  disable
+  allow
+  require
 }
 
-class SSLClientConfig {
-  ' ".pem", ".crt", ".cer", ".der", ".p12"
+class SslConfig {
   File caCertificate
   File sslCertificate
   File sslKey
 }
 
 class StorageConnection {
-  StorageType type
-  ' driver 은 구현하지 않음. 향 후 확장을 위한 부분  
-  StorageCopnnectDriver driver
+  String type
   String username
   String password
   String hostPort
   String database
-  ' Option
-  String databaseSchema
-  String bucket
-  ' Option
-  String prefix
   Map<String, String> connectionOptions
   Map<String, Object> connectionArguments
-  Boolean isSSL
-  SSLClientConfig sslClientConfig
-  __
-  getPassword()
+  SslMode sslMode
+  SslConfig sslCnofig
 }
 
-StorageConnection -down-> ServiceType
-StorageConnection -down-> ServiceScheme
-StorageConnection -up-> SSLClientConfig
-@enduml
-```
+StorageConnection -up-> StorageType
+StorageConnection -up-> SslMode
+StorageConnection -up-> SslConfig
 
-- 저장소 정보  
-저장소 정보는 저장소 연결 정보를 포함한다.
+enum KindOfStorage {
+  Database
+  ObjectStorage
+  Search
+}
 
-```plantuml
-@startuml
-left to right direction
+StorageService --> StorageType
+StorageService -right-> KindOfStorage
+StorageService -left-> StorageConnection 
+
+class StorageService {
+  String id
+  String name
+  String displayName
+  KindOfStorage kindOfStorage
+  StorageType serviceType
+  String description
+  StorageConnection connection
+  Pipeline pipelines
+  String testConnectionResult
+  EntityReference[] tags
+  Double version
+  LocalDateTime updatedAt
+  String updatedBy
+  EntityReference[] owners
+  String href
+  String changeDescription
+  Boolean deleted
+}
 
 class EntityReference {
   UUID id
   DataType type
   String name
-  String fullyQualifiedName
   String description
   String displayName
   Boolean deleted
-  ' Boolean inherited
   String href
 }
 
-enum StorageType {
+StorageService --> EntityReference
+
+@enduml
+```
+
+---
+
+```plantuml
+@startuml
+class StorageServiceController {
+  list(page, size, withFields)
+  getById()
+  getByName()
+  create()
+  update()
+  delete()
+  versionHistory()
+  version(version)
 }
 
-enum TagSource {
-  Classification
-  Glossary
+class StorageServiceApp {
+  EntityRelationshipRepository relationshipRepo
+  list()
+  getById()
+  getByName()
+  create()
+  update()
+  versionHistory()
+  version(version)
+  delete()
 }
 
-enum TagType {
-  MANUAL
-  PROPAGATED
-  AUTOMATED
-  DERIVED  
+interface JpaRepository {
 }
 
-enum TagState {
-  Suggested
-  Confirmed
+JpaRepository <-- StorageServiceRepository
+interface StorageServiceRepository {
+  
 }
-
-class TagLabel {
-  String tagFQN
-  String  name
-  String displayName
-  String description
-  TagSource source
-  TagType labelType
-  TagState state
-  URI href
-}
-
-TagLabel -> TagSource
-TagLabel -> TagType
-TagLabel -> TagState
-
-enum DataType {
-  DATABASE
-  BUCKET
-  DATABASESCHEMA
-  FOLDER 
-  TABLE
-  FILE
-}
-
-enum DataFormat {
-  TABLE
-  VIEW
-  CSV
-  DOCX
-  HWP
-  PNG
-  JPG
-  MP4
-  MPEG
-}
-
-class StorageService {
-  UUID id
-  String name
-  String fullyQualifiedName
-  String displayName
-  StorageType storageType
-  String description
-  StorageConnection connection
-  TestConnectionResult testConnectionResult
-  TagLabel[] tags
-  String version
-  Datetime updatedAt
-  String updatedBy
-  EntityReference[] owners
-  URI href
-  String changeDescription
-  Boolean deleted
-  ..
-  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
-  Boolean ingestAllDatabases
-  StorageServiceSetting setting
-  EntityReference[] pipelines
-}
-
-EntityReference ..> DataType
-StorageService -> EntityReference
-StorageService ..> StorageType
-StorageService -> StorageConnection
-StorageService -> TagLabel
-
 @enduml
 ```
 
 ## 6. 인터페이스 설계
 
-> 본 문서에서는 현 시점(25.02.06)에서는 인터페이스 리스트만을 작성한다.  
+> 본 문서에서는 현 시점(25.03.24)에서는 인터페이스 리스트만을 작성한다.  
 > 상세한 내용에 대해서는 Swagger를 활용하거나 본 문서에 내용을 업데이트하여 제공한다.  
 
 ### 6.1. 저장소 관리
 
-OpenMetadata 의 DatabaseService, StorageService 를 StorageService 통합
-
-- 저장소 리스트  
-  - ResultList<StorageService> 
-- 저장소 정보  
-  - StorageService
-- 추가  
-  - CreateStorageService
-- 연결테스트  
-  - CreateWorkflow -> ConnectionTest 로 변경
-- 연결정보 수정  
-  - StorageService
-- 메타데이터 설정(업데이트)  
-  - StorageService
-- 삭제  
-  - ID or Name
+1. List
+2. GetById, getByName
+3. Create
+4. Update
+5. ConnectionTest
+6. DeleteById/Name
+7. VersionHistory
 
 ### 6.2. 저장소 설정
 
-- 설정  
-  - 검색/공유 설정  
-    - 전체 공개  
-    - 비공개  
-  - 파이프라인(메타데이터, 프로파일링, 로그, 샘플)  
-    - [파이프라인] - docs/arch/virtualization-pipeline.md
-  - 모니터링
-    - [모니터링] - docs/arch/monitoring.md
+1. Search
+   1. Enable/Disable
+2. Monitoring
+  [모니터링 설계 문서](../monitoring/monitoring.md)
+3. Pipeline
+  [파이프라인 설계 문서](./virtualization-pipeline.md)
 
 ## 7. 데이터베이스
 
-- StorageConnection  
-
-| Column            | Data Type | Constraints | Index | Desc                      |
-| ----------------- | --------- | ----------- | :---: | ------------------------- |
-| `id`              | UUID      | PRIMARY KEY |   v   | 저장소 연결 정보 식별자   |
-| `storage_type`    | ENUM      | NOT NULL    |       | 저장소 타입               |
-| `username`        | CHAR(128) |             |       | 사용자 이름               |
-| `password`        | CHAR(256) |             |       | 비밀번호(암호화된 데이터) |
-| `host_port`       | CHAR(512) | NOT NULL    |   v   | 저장소 Host, Port         |
-| `database`        | CHAR(512) |             |       | 데이터베이스              |
-| `bucket`          | CHAR(512) |             |       | 버켓                      |
-| `database_schema` | CHAR(512) |             |       |                           |
-| `prefix`          | CHAR(512) |             |       |                           |
-| `is_ssl`          | BOOLEAN   |             |       |                           |
-| `ssl_ca_cert`     | BINARY    |             |       |                           |
-| `ssl_ssl_cert`    | BINARY    |             |       |                           |
-| `ssl_key`         | BINARY    |             |       |                           |
-
 - StorageService
 
-| Column         | Data Type | Constraints | Index | Desc                            |
-| -------------- | --------- | ----------- | :---: | ------------------------------- |
-| `id`           | UUID      | PRIMARY KEY |   v   | 저장소 고유 식별자              |
-| `storage_type` | ENUM      | NOT NULL    |       | 저장소 타입                     |
-| `name`         | CHAR(256) | NOT NULL    |   v   | 저장소 이름                     |
-| `display_name` | CHAR(512) |             |       | 저장소 별칭(화면에 출력할 이름) |
-| `description`  | TEXT      |             |       | 저장소 설명                     |
-| `conn_id`      | UUID      | FK          |       | 저장소 설명                     |
-| `conn_id`      | UUID      | FK          |       | 저장소 설명                     |
-
-- entity_relation
-- tags
-
-  StorageConnection connection
-  TestConnectionResult testConnectionResult
-  TagLabel[] tags
-  String version
-  Datetime updatedAt
-  String updatedBy
-  EntityReference[] owners
-  URI href
-  String changeDescription
-  Boolean deleted
-  ..
-  ' 데이터베이스 전체에 접근 권한이 있는 경우 설정하여 전체 데이터베이스의 데이터를 수집할 수 있음.
-  Boolean ingestAllDatabases
-  StorageServiceSetting setting
-  EntityReference[] pipelines
+| Column         | Data Type   | Constraints      | Index | Desc                                 |
+| -------------- | ----------- | ---------------- | :---: | ------------------------------------ |
+| `id`           | UUID        | PRIMARY KEY      |   v   | 저장소 고유 식별자                   |
+| `name`         | CHAR(256)   | UNIQUE, NOT NULL |   v   | 저장소 이름                          |
+| `kind`         | CHAR(128)   | NOT NULL         |       | 저장소 종류(database, objectstorage) |
+| `storage_type` | CHAR(256)   | NOT NULL         |       | 저장소 타입                          |
+| `json`         | JSON        | NOT NULL         |       | StorageService JSON String           |
+| `updated_at`   | DATETIME(3) | NOT NULL         |       | 저장소 데이터 변경 시간              |
+| `udpated_by`   | CHAR(256)   | NOT NULL         |       | 저장소 정보 변경 사용자              |
+| `deleted`      | BOOLEAN     |                  |   v   | 저장소 삭제 여부                     |
