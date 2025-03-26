@@ -1,4 +1,4 @@
-SELECT SUM(ss.value) AS cpuUsed
+SELECT SUM(ss.value) AS cpu_used
 FROM v$session s
          JOIN v$sql q ON s.sql_id = q.sql_id
          JOIN v$process p ON s.paddr = p.addr

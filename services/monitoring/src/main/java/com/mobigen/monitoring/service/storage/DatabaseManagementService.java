@@ -60,13 +60,13 @@ public interface DatabaseManagementService {
 
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId);
 
-    Object getCpuSpentTime(String serviceId);
+    public Object getCpuSpentTime(String serviceId);
 
-    Object getMemoryUsage(String serviceId);
+    public Object getMemoryUsage(String serviceId);
 
-    Object getDiskUsage(String serviceId);
+    public Object getDiskUsage(String serviceId);
 
-    Object getAverageQueryOutcome(String serviceId);
+    public Object getAverageQueryOutcome(String serviceId);
 
-    Object getSlowQueries(String serviceId);
+    public Object getSlowQueries(String serviceId);
 }

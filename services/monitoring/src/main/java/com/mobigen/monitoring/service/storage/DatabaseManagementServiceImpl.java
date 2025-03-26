@@ -29,6 +29,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.harmony.pack200.CPUTF8;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -824,84 +825,50 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Object getCpuSpentTime(String serviceId) {
-        List<Map<String, Object>> result = null;
-        // 전체 조회
-        if (serviceId == null || serviceId.isEmpty()) {
-            // 모든 서비스들의 cpu 사용 시간 조회
-            for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
-                final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
-                String query = null;
+    public Map<String, Double> getCpuSpentTime(String serviceId) {
+        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        String query;
 
-                if (serviceInfo != null) {
-                    if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-                    } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-                    } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-                    } else {
-                        throw new CustomException("service type is invalid");
-                    }
-                } else {
-                    throw new CustomException("Service not found");
-                }
-
-                final List<Map<String, Object>> maps = executeQuery(
-                        DatabaseConnectionRequest.builder()
-                                .dbType(serviceInfo.getServiceType())
-                                .host(hostPortVo.getHost())
-                                .port(hostPortVo.getPort())
-                                .username(serviceInfo.getConnection().getUsername())
-                                .password(
-                                        serviceInfo.getConnection().getPassword() == null ?
-                                                serviceInfo.getConnection().getAuthType().getPassword() :
-                                                serviceInfo.getConnection().getPassword()
-                                )
-                                .build(),
-                        query
-                );
-            }
-
-        } else {
-            final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
-            String query = null;
-
-            if (serviceInfo != null) {
-                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-                    query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                    query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
-                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                    query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
-                } else {
-                    throw new CustomException("service type is invalid");
-                }
+        if (serviceInfo != null) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
             } else {
-                throw new CustomException("Service not found");
+                throw new CustomException("service type is invalid");
             }
-
-            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
-
-            final List<Map<String, Object>> maps = executeQuery(
-                    DatabaseConnectionRequest.builder()
-                            .dbType(serviceInfo.getServiceType())
-                            .host(hostPortVo.getHost())
-                            .port(hostPortVo.getPort())
-                            .databaseName(getDatabaseName(serviceInfo))
-                            .username(serviceInfo.getConnection().getUsername())
-                            .password(
-                                    serviceInfo.getConnection().getPassword() == null ?
-                                            serviceInfo.getConnection().getAuthType().getPassword() :
-                                            serviceInfo.getConnection().getPassword()
-                            )
-                            .build(),
-                    query
-            );
-
-            return maps;
+        } else {
+            throw new CustomException("Service not found");
         }
-        return result;
+
+        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+        final List<Map<String, Object>> maps = executeQuery(
+                DatabaseConnectionRequest.builder()
+                        .dbType(serviceInfo.getServiceType())
+                        .host(hostPortVo.getHost())
+                        .port(hostPortVo.getPort())
+                        .databaseName(getDatabaseName(serviceInfo))
+                        .username(serviceInfo.getConnection().getUsername())
+                        .password(
+                                serviceInfo.getConnection().getPassword() == null ?
+                                        serviceInfo.getConnection().getAuthType().getPassword() :
+                                        serviceInfo.getConnection().getPassword()
+                        )
+                        .build(),
+                query
+        );
+
+        Map<String, Object> row = maps.getFirst();
+        Object cpuUsedObj = row.get("cpu_used");
+
+        double cpuUsed = cpuUsedObj instanceof Number
+                ? ((Number) cpuUsedObj).doubleValue()
+                : 0;
+
+        return Map.of("cpuUsed", cpuUsed);
     }
 
     @Override
