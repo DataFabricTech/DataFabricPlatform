@@ -29,8 +29,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.harmony.pack200.CPUTF8;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
@@ -94,6 +94,20 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             initializeServiceTable(SCHEDULER.getName());
         } else {
             getServiceListFromFabricServer();
+
+            for (Services service : allService) {
+                if (service.getServiceType().equals(MINIO.getName())) {
+                    GetObjectStorageResponseDto storageService = storageServices.get(service.getServiceID().toString());
+
+                    if (storageService != null)
+                        storageService.setConnectionStatus(service.getConnectionStatus());
+                } else {
+                    GetDatabasesResponseDto databaseService = databaseServices.get(service.getServiceID().toString());
+
+                    if (databaseService != null)
+                        databaseService.setConnectionStatus(service.getConnectionStatus());
+                }
+            }
         }
     }
 
@@ -339,6 +353,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public void initializeServiceTable(String userName) {
         // service 등록
         // Create Service entity
+        // in memory 에 service 들 저장
         final List<Services> services = saveServicesToDatabase();
 
         // connection 등록
@@ -440,15 +455,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             }
         }
 
-        log.info("connections: {}", connections);
-
         connectionService.saveAllConnection(connections);
         connectionService.saveAllConnectionHistory(connectionHistories);
 
         for (Services service : services) {
-            final Services services1 = servicesService.saveService(service);
-
-            log.info("update status: {}", services1.getServiceID());
+            servicesService.saveService(service);
         }
     }
 
@@ -869,6 +880,26 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 : 0;
 
         return Map.of("cpuUsed", cpuUsed);
+    }
+
+    @Override
+    public Object getAllCpuSpentTime() {
+        // 모든 서비스들의 cpu 사용 시간 조회
+        Map<String, Object> result = new HashMap<>();
+
+        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+            if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                try {
+                    final Map<String, Double> maps = getCpuSpentTime(serviceInfo.getId());
+
+                    result.put(serviceInfo.getName(), maps);
+                } catch (BadSqlGrammarException e) {
+                    log.error("This service is insufficient privileges: {}, {}", serviceInfo.getName(), serviceInfo.getConnection().getUsername());
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override

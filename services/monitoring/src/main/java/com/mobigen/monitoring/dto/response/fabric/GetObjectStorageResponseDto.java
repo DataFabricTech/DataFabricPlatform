@@ -1,6 +1,7 @@
 package com.mobigen.monitoring.dto.response.fabric;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.service.scheduler.DatabaseConnectionInfo;
 import lombok.*;
 
@@ -21,4 +22,5 @@ public class GetObjectStorageResponseDto {
     private String description;
     @JsonProperty("connection.config")
     private ObjectStorageConnectionInfo connection;
+    private ConnectionStatus connectionStatus;
 }

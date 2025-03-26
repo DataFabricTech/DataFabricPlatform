@@ -62,6 +62,8 @@ public interface DatabaseManagementService {
 
     public Object getCpuSpentTime(String serviceId);
 
+    Object getAllCpuSpentTime();
+
     public Object getMemoryUsage(String serviceId);
 
     public Object getDiskUsage(String serviceId);
