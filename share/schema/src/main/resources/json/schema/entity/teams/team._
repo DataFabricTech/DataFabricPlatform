@@ -1,0 +1,91 @@
+{
+  "$id": "https://mobigen.com/schema/entity/teams/team.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Team",
+  "description": "This schema defines the Team entity. A `Team` is a group of zero or more users and/or other teams. Teams can own zero or more data assets. Hierarchical teams are supported `Organization` -> `BusinessUnit` -> `Division` -> `Department`.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.entity.teams.Team",
+  "definitions": {},
+  "properties": {
+    "id": {
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "description": "A unique name of the team typically the team ID from an identity provider. Example - group Id from LDAP.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "email": {
+      "description": "Email address of the team.",
+      "$ref": "../../type/basic.json#/definitions/email"
+    },
+    "displayName": {
+      "description": "Name used for display purposes. Example 'Data Science team'.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the team.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this entity.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "parents" : {
+      "description" : "Parent teams. For an `Organization` the `parent` is always null. A `BusinessUnit` always has only one parent of type `BusinessUnit` or an `Organization`. A `Division` can have multiple parents of type `BusinessUnit` or `Division`. A `Department` can have multiple parents of type `Division` or `Department`.",
+      "$ref" : "../../type/entityReferenceList.json"
+    },
+    "children" : {
+      "description" : "Children teams. An `Organization` can have `BusinessUnit`, `Division` or `Department` as children. A `BusinessUnit` can have `BusinessUnit`, `Division`, or `Department` as children. A `Division` can have `Division` or `Department` as children. A `Department` can have `Department` as children.",
+      "$ref" : "../../type/entityReferenceList.json"
+    },
+    "users": {
+      "description": "Users that are part of the team.",
+      "$ref": "../../type/entityReferenceList.json",
+      "default": null
+    },
+    "childrenCount": {
+      "description" : "Total count of Children teams.",
+      "type": "integer"
+    },
+    "userCount": {
+      "description": "Total count of users that are part of the team.",
+      "type": "integer"
+    },
+    "isJoinable": {
+      "description": "Can any user join this team during sign up? Value of true indicates yes, and false no.",
+      "type": "boolean",
+      "default": true
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    },
+    "defaultRoles": {
+      "description": "Default roles of a team. These roles will be inherited by all the users that are part of this team.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "policies": {
+      "description": "Policies that is attached to this team.",
+      "$ref": "../../type/entityReferenceList.json"
+    }
+  },
+  "required": ["id", "name"],
+  "additionalProperties": false
+}

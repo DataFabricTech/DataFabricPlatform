@@ -36,6 +36,11 @@ dependencies {
     // OpenTelemetry
     implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.12.0"))
     implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
+    // Keycloak
+    implementation("org.keycloak:keycloak-admin-client:26.0.4")
+
+    // For Test : @Visiblefortesting
+    implementation("com.google.guava:guava:33.4.0-jre")
 
     // AOP
     implementation("org.springframework.boot:spring-boot-starter-aop")

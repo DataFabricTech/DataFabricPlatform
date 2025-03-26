@@ -1,7 +1,6 @@
 package com.mobigen.vdap.server.tags;
 
 import com.mobigen.vdap.schema.api.classification.CreateClassification;
-import com.mobigen.vdap.schema.api.data.RestoreEntity;
 import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;

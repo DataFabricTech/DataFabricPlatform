@@ -19,4 +19,6 @@ public interface EntityRelationshipRepository extends JpaRepository<EntityRelati
     void deleteByToEntityAndToId(String toEntity, String toId);
 
     void deleteByFromEntityAndFromId(String fromEntity, String fromId);
+
+    List<EntityRelationshipEntity> findByToIdAndToEntityAndRelation(String toId, String toEntity, Integer relation);
 }

@@ -18,6 +18,7 @@ import com.mobigen.vdap.server.repositories.TagUsageRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
+import com.mobigen.vdap.server.util.RestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +36,6 @@ import static com.mobigen.vdap.schema.type.TagLabel.TagSource.CLASSIFICATION;
 @Slf4j
 @Service
 public class TagService {
-    private static final String TAG_API_PATH = "/v1/tags";
     private final TagRepository tagRepository;
     private final Set<String> allowedFields;
 
@@ -366,8 +366,7 @@ public class TagService {
 
     // addHref : Tag 에 Href 를 추가
     private void addHref(Tag tag, URI baseUri) {
-        tag.setHref(URI.create(
-                String.format("%s%s/%s", baseUri.toString(), TAG_API_PATH, tag.getId().toString())
-        ));
+        tag.setHref(RestUtil.getHref(baseUri,
+                RestUtil.getControllerBasePath(TagController.class), tag.getId()));
     }
 }

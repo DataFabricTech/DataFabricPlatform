@@ -28,6 +28,7 @@ public final class Entity {
     public static final String FIELD_REVIEWERS = "reviewers";
     public static final String FIELD_EXPERTS = "experts";
     public static final String FIELD_ASSETS = "assets";
+    public static final String FIELD_PIPELINES = "pipelines";
 
     public static final String FIELD_LIFE_CYCLE = "lifeCycle";
     public static final String FIELD_CERTIFICATION = "certification";
@@ -49,7 +50,7 @@ public final class Entity {
     public static final String DATABASE = "database";
     public static final String DATABASE_SCHEMA = "databaseSchema";
     public static final String TABLE = "table";
-    //  public static final String PIPELINE = "pipeline";
+    public static final String PIPELINE = "pipeline";
 //  public static final String TASK = "task";
     public static final String SEARCH_INDEX = "searchIndex";
 
@@ -73,6 +74,8 @@ public final class Entity {
     public static final String TEST_SUITE = "testSuite";
     public static final String TEST_CASE = "testCase";
     public static final String PAGE = "page";
+    
+    public static final String USER = "user";
 
     //
     // Operation related entities

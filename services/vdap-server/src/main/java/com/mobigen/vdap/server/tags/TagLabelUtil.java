@@ -78,21 +78,21 @@ public class TagLabelUtil {
         };
     }
 
-
-
     public void applyTagCommonFields(TagLabel label) {
-        if (label.getSource() == TagSource.CLASSIFICATION) {
-            Tag tag = getTag(label.getId());
-            label.setName(tag.getName());
-            label.setDisplayName(tag.getDisplayName());
-            label.setDescription(tag.getDescription());
-        } else if (label.getSource() == TagSource.GLOSSARY) {
-            GlossaryTerm glossaryTerm = getGlossaryTerm(label.getId());
-            label.setName(glossaryTerm.getName());
-            label.setDisplayName(glossaryTerm.getDisplayName());
-            label.setDescription(glossaryTerm.getDescription());
-        } else {
-            throw new IllegalArgumentException("Invalid source type " + label.getSource());
+        switch (label.getSource()) {
+            case CLASSIFICATION -> {
+                Tag tag = getTag(label.getId());
+                label.setName(tag.getName());
+                label.setDisplayName(tag.getDisplayName());
+                label.setDescription(tag.getDescription());
+            }
+            case GLOSSARY -> {
+                GlossaryTerm glossaryTerm = getGlossaryTerm(label.getId());
+                label.setName(glossaryTerm.getName());
+                label.setDisplayName(glossaryTerm.getDisplayName());
+                label.setDescription(glossaryTerm.getDescription());
+            }
+            default -> throw new IllegalArgumentException("Invalid source type " + label.getSource());
         }
     }
 

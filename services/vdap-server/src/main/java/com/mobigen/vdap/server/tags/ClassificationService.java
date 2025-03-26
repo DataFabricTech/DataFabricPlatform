@@ -16,6 +16,7 @@ import com.mobigen.vdap.server.repositories.TagUsageRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
+import com.mobigen.vdap.server.util.RestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,8 +40,6 @@ public class ClassificationService {
     private final EntityExtensionRepository entityExtensionRepository;
     private final TagService tagService;
     private final TagUsageRepository tagUsageRepository;
-
-    private static final String CLASSIFICATION_API_PATH = "/v1/classifications";
 
     public ClassificationService(ClassificationRepository classificationRepository, TagService tagService,
                                  EntityRelationshipRepository entityRelationshipRepository,
@@ -361,10 +360,8 @@ public class ClassificationService {
     }
 
     private void addHref(Classification classification, URI baseUri) {
-        classification.setHref(URI.create(
-                String.format("%s%s/%s", baseUri.toString(),
-                        CLASSIFICATION_API_PATH,
-                        classification.getId().toString())));
+        classification.setHref(RestUtil.getHref(baseUri,
+                RestUtil.getControllerBasePath(ClassificationController.class), classification.getId()));
     }
 
 }

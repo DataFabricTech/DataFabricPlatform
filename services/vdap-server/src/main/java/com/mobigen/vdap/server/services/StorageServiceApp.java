@@ -1,38 +1,145 @@
 package com.mobigen.vdap.server.services;
 
 import com.mobigen.vdap.common.utils.CommonUtil;
+import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
+import com.mobigen.vdap.schema.entity.services.StorageService.StorageServiceType;
 import com.mobigen.vdap.schema.type.EntityReference;
+import com.mobigen.vdap.schema.type.Include;
 import com.mobigen.vdap.schema.type.Relationship;
 import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.server.Entity;
+import com.mobigen.vdap.server.entity.StorageServiceEntity;
+import com.mobigen.vdap.server.models.PageModel;
+import com.mobigen.vdap.server.repositories.EntityRelationshipRepository;
 import com.mobigen.vdap.server.secrets.SecretsManager;
 import com.mobigen.vdap.server.tags.TagLabelUtil;
+import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
-
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.net.URI;
+import java.util.*;
 
-import com.mobigen.vdap.server.entity.StorageServiceEntity;
+import static com.mobigen.vdap.server.Entity.FIELD_OWNERS;
 
 @Slf4j
 @Service
 public class StorageServiceApp {
 
-    private final StorageServiceRepository repository;
+    private final static String STORAGE_SERVICE_API_PATH = "/v1/services";
+
+    private final Set<String> allowFields;
+
     private final TagLabelUtil tagLabelUtil;
 
-    public StorageServiceApp(StorageServiceRepository repository, TagLabelUtil tagLabelUtil) {
-        this.repository = repository;
+    private final StorageServiceRepository storageServiceRepository;
+    private final EntityRelationshipRepository entityRelationshipRepository;
+
+    public StorageServiceApp(StorageServiceRepository storageServiceRepository, TagLabelUtil tagLabelUtil, EntityRelationshipRepository entityRelationshipRepository) {
+        this.storageServiceRepository = storageServiceRepository;
         this.tagLabelUtil = tagLabelUtil;
+        allowFields = Entity.getEntityFields(StorageService.class);
+        this.entityRelationshipRepository = entityRelationshipRepository;
     }
 
-    public void prepareInternal(StorageService entity) {
+    private Fields getFields(String fields) {
+        if ("*".equals(fields)) {
+            return new Fields(allowFields, String.join(",", allowFields));
+        }
+        return new Fields(allowFields, fields);
+    }
+
+    private Specification<StorageServiceEntity> withDynamicConditions(
+            ServiceType kindOfService, StorageServiceType serviceType, Include include) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // kindOfService가 null이 아닌 경우에만 조건 추가
+            if (kindOfService != null) {
+                predicates.add(criteriaBuilder.equal(root.get("kind"), kindOfService.value()));
+            }
+
+            // serviceType이 null이 아닌 경우에만 조건 추가
+            if (serviceType != null) {
+                predicates.add(criteriaBuilder.equal(root.get("service_type"), serviceType.value()));
+            }
+
+            if (include != null && include != Include.ALL) {
+                predicates.add(criteriaBuilder.equal(root.get("deleted"), include.equals(Include.DELETED)));
+            }
+
+            // 조건이 없으면 항상 true를 반환하여 모든 데이터 조회
+            return predicates.isEmpty()
+                    ? criteriaBuilder.conjunction()
+                    : criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public Object list(URI baseUri, ServiceType kindOfService, StorageServiceType serviceType,
+                       String fieldsParam, Integer page, Integer size, Include include) {
+        // 사용자가 요청한 추가 정보 확인
+        Fields fields = getFields(fieldsParam);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+
+        Page<StorageServiceEntity> entities = storageServiceRepository.findAll(
+                withDynamicConditions(kindOfService, serviceType, include), pageable);
+        PageModel<StorageService> res = new PageModel<>();
+        res.setPage(page);
+        res.setSize(size);
+        if (entities.getTotalElements() <= 0) {
+            log.info("[StorageService] List Result : Not Have StorageService");
+            res.setTotalElements(0);
+            res.setTotalPages(0);
+            res.setContents(Collections.emptyList());
+            return res;
+        }
+        log.info("[StorageService] List Result : Page[{}/{}] TotalElements[{}]",
+                pageable.getPageNumber(), pageable.getPageSize(), entities.getTotalElements());
+        // Convert : Entity -> DTO
+        List<StorageService> storageServiceList = entities.getContent().stream().map(this::convertToDto).toList();
+        // SetFields
+        storageServiceList.forEach(storageService -> {
+            setFields(storageService, fields);
+            addHref(storageService, baseUri);
+        });
+        res.setTotalElements((int) entities.getTotalElements());
+        res.setTotalPages(entities.getTotalPages());
+        res.setContents(storageServiceList);
+        return res;
+    }
+
+    private void setFields(StorageService storageService, Fields fields) {
+//        storageService.setOwners(fields.contains(FIELD_OWNERS) ? getOwners(storageService) : null);
+//        storageService.setTags(fields.contains(FIELD_TAGS) ? getTags(storageService) : null);
+//        storageService.setPipelines(fields.contains(FIELD_PIPELINES) ? getIngestionPipelines(storageService) : null);
+    }
+
+    private List<EntityReference> getOwners(StorageService storageService) {
+//        List<EntityRelationshipEntity> relationshipEntities =
+//                entityRelationshipRepository.findByToIdAndToEntityAndRelation(
+//                        storageService.getId().toString(), STORAGE_SERVICE, Relationship.OWNS.ordinal());
+        return null;
+    }
+
+    @Transactional
+    public StorageService create(StorageService entity) {
+//        entity = addHref(uriInfo, repository.create(uriInfo, entity));
+//        Response.created(entity.getHref()).entity(entity).build();
+        prepareInternal(entity);
+        entity = createNewEntity(entity);
+        return entity;
+    }
+
+    protected void prepareInternal(StorageService entity) {
         validateTags(entity);
         prepare(entity);
     }
@@ -50,7 +157,7 @@ public class StorageServiceApp {
         }
     }
 
-    public void prepare(StorageService service) {
+    protected void prepare(StorageService service) {
         if (service.getConnection() != null) {
             // Connection Config 의 Password 필드를 암호화 한다.
             service
@@ -65,14 +172,6 @@ public class StorageServiceApp {
         }
     }
 
-    @Transactional
-    public StorageService create(StorageService entity) {
-//        entity = addHref(uriInfo, repository.create(uriInfo, entity));
-//        Response.created(entity.getHref()).entity(entity).build();
-        prepareInternal(entity);
-        return createNewEntity(entity);
-    }
-
     protected StorageService createNewEntity(StorageService entity) {
         store(entity, false);
         storeRelationshipsInternal(entity);
@@ -81,8 +180,7 @@ public class StorageServiceApp {
     }
 
     protected void store(StorageService entity, boolean update) {
-        // Don't store owner, database, href and tags as JSON. Build it on the fly based on
-        // relationships
+        // 데이터 저장소 가상화를 위한 데이터 중 소유자 정보와 태그 정보는 별도로 저장한다.
         List<EntityReference> owners = entity.getOwners();
         entity.setOwners(null);
         List<TagLabel> tags = entity.getTags();
@@ -97,13 +195,13 @@ public class StorageServiceApp {
                 .updatedAt(entity.getUpdatedAt())
                 .updatedBy(entity.getUpdatedBy())
                 .build();
-        repository.save(storageServiceEntity);
+        storageServiceRepository.save(storageServiceEntity);
 
         if (update) {
             // Update the entity
-            log.info("Update Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
+            log.info("Update Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}] Connection[{}]",
                     entity.getKindOfService().value(), entity.getServiceType().value(),
-                    entity.getId(), entity.getName(), entity.getDisplayName());
+                    entity.getId(), entity.getName(), entity.getDisplayName(), entity.getConnection().getConfig());
         } else {
             // insert the entity
             log.info("Insert Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
@@ -122,6 +220,7 @@ public class StorageServiceApp {
     }
 
     protected void postCreate(StorageService entity) {
+        // TODO : 검색 엔진 저장
 //        searchRepository.createEntity(entity);
     }
 
@@ -133,7 +232,7 @@ public class StorageServiceApp {
                         owner.getType(), owner.getName(),
                         entity.getServiceType().value(), entity.getId(), entity.getName());
                 addRelationship(
-                        owner.getId(), entity.getId(), Entity.FIELD_OWNERS, Entity.STORAGE_SERVICE, Relationship.OWNS);
+                        owner.getId(), entity.getId(), FIELD_OWNERS, Entity.STORAGE_SERVICE, Relationship.OWNS);
             }
         }
     }
@@ -200,7 +299,7 @@ public class StorageServiceApp {
 //
 //    }
 
-//    protected void validateTags(StorageService entity) {
+    //    protected void validateTags(StorageService entity) {
 //        if (!supportsTags) {
 //            return;
 //        }
@@ -214,4 +313,18 @@ public class StorageServiceApp {
 //            TagLabelUtil.applyTagCommonFields(label);
 //        }
 //    }
+
+    private StorageService convertToDto(StorageServiceEntity entity) {
+        return JsonUtils.readValue(entity.getJson(), StorageService.class);
+    }
+
+    private void addHref(StorageService entity, URI baseUri) {
+        // TODO : Add Hred ( Owner, Tag, Pipeline )
+        entity.setHref(URI.create(
+                String.format("%s%s/%s", baseUri.toString(),
+                        STORAGE_SERVICE_API_PATH,
+                        entity.getId().toString())));
+    }
+
+
 }

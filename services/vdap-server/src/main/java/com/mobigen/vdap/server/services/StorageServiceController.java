@@ -30,6 +30,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,10 +53,9 @@ public class StorageServiceController {
     }
 
     @GetMapping
-    @CommonResponseAnnotation
     @Operation(
-            operationId = "getAllServices",
-            summary = "Get All Services",
+            operationId = "listStorageServices",
+            summary = "List Storage(Database, Storage, Search, Api) Services",
             description = "Get a list of all services. Page, Offset And Filter(kind_of_service, service_type)",
             responses = {
                     @ApiResponse(
@@ -68,7 +68,9 @@ public class StorageServiceController {
                     )
             }
     )
-    public Object getAllServices(
+    @CommonResponseAnnotation
+    public Object list (
+            HttpServletRequest request,
             @Parameter(
                     description = "Kind Of StorageService(database, storage, search, api).",
                     schema = @Schema(implementation = ServiceType.class, example = "database"))
@@ -76,9 +78,9 @@ public class StorageServiceController {
                 ServiceType kindOfService,
             @Parameter(
                     description = "StorageService Type(Mysql, Mariadb, Minio, etc ...)",
-                    schema = @Schema(implementation = CreateStorageService.StorageServiceType.class, example = "Mysql"))
+                    schema = @Schema(implementation = StorageService.StorageServiceType.class, example = "Mysql"))
                 @RequestParam(value = "service_type", required = false)
-                CreateStorageService.StorageServiceType service_type,
+                StorageService.StorageServiceType serviceType,
             @Parameter(
                     description = "Fields requested in the returned resource",
                     schema = @Schema(type = "string", example = FIELDS))
@@ -91,27 +93,18 @@ public class StorageServiceController {
                 @RequestParam(value = "page", required = false)
                 Integer page,
             @Parameter(
-                    description = "offset",
-                    schema = @Schema(type = "Integer"))
-                @RequestParam(value = "offset", required = false)
-                Integer offset,
-            @Parameter(
                     description = "Page Size",
                     schema = @Schema(type = "Integer", defaultValue = "20"))
                 @RequestParam(value = "size", required = false)
                 Integer size,
             @Parameter(
-                    description = "data element limit",
-                    schema = @Schema(type = "Integer"))
-                @RequestParam(value = "limit", required = false)
-                Integer limit,
-            @Parameter(
                     description = "Include all, deleted, or non-deleted entities.",
                     schema = @Schema(implementation = Include.class, defaultValue = "non-deleted"))
-                @RequestParam(value = "include", required = false)
+                @RequestParam(value = "include", required = false, defaultValue = "non-deleted")
                 Include include) {
-        return "get all services";
-//        return service.getAllServices(kindOfService, service_type, page, offset, size, limit, include);
+        log.info("[StorageService] Get List Kind[{}], ServiceType[{}], Fields[{}], Page[{}], Size[{}]",
+                kindOfService.value(), serviceType.value(), fields, page, size);
+       return service.list(Utilities.getBaseUri(request), kindOfService, serviceType, fields, page, size, include);
     }
 
     // GET List
