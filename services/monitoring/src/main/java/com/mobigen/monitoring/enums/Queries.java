@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum Queries {
-    RDB_GET_DATABASES("sql/mysql/get-database-from-rdb.sql"),
+    RDB_GET_DATABASES("sql/mariadb/get-database-from-rdb.sql"),
     ORACLE_GET_DATABASES("sql/oracle/get-database-from-oracle.sql"),
     POSTGRES_GET_DATABASES("sql/postgres/get-database-from-postgres.sql"),
 
@@ -18,26 +18,28 @@ public enum Queries {
     GET_SCHEMA("sql/get-schema.sql"),
 
     GET_MYSQL_CPU_SPENT_TIME("sql/mysql/get-cpu-spent-time.sql"),
+    GET_MARIADB_CPU_SPENT_TIME("sql/mariadb/get-cpu-spent-time.sql"),
     GET_ORACLE_CPU_SPENT_TIME("sql/oracle/get-cpu-spent-time.sql"),
     GET_POSTGRES_CPU_SPENT_TIME("sql/postgres/get-cpu-spent-time.sql"),
 
-    GET_MYSQL_DISK_USAGE("sql/mysql/get-disk-usage.sql"),
+    GET_MYSQL_DISK_USAGE("sql/mariadb/get-disk-usage.sql"),
     GET_ORACLE_DISK_USAGE("sql/oracle/get-disk-usage.sql"),
     GET_POSTGRES_DISK_USAGE("sql/postgres/get-disk-usage.sql"),
 
-    GET_MYSQL_FAILED_REQUEST_QUERY("sql/mysql/get-failed-request-query.sql"),
+    GET_MYSQL_FAILED_REQUEST_QUERY("sql/mariadb/get-failed-request-query.sql"),
     GET_ORACLE_FAILED_REQUEST_QUERY("sql/oracle/get-failed-request-query.sql"),
     GET_POSTGRES_FAILED_REQUEST_QUERY("sql/postgres/get-failed-request-query.sql"),
 
-    GET_MYSQL_SUCCESS_REQUEST_QUERY("sql/mysql/get-success-request-query.sql"),
+    GET_MYSQL_SUCCESS_REQUEST_QUERY("sql/mariadb/get-success-request-query.sql"),
     GET_ORACLE_SUCCESS_REQUEST_QUERY("sql/oracle/get-success-request-query.sql"),
     GET_POSTGRES_SUCCESS_REQUEST_QUERY("sql/postgres/get-success-request-query.sql"),
 
     GET_MYSQL_MEMORY_USAGE("sql/mysql/get-memory-usage.sql"),
+    GET_MARIADB_MEMORY_USAGE("sql/mariadb/get-memory-usage.sql"),
     GET_ORACLE_MEMORY_USAGE("sql/oracle/get-memory-usage.sql"),
     GET_POSTGRES_MEMORY_USAGE("sql/postgres/get-memory-usage.sql"),
 
-    GET_MYSQL_SLOW_QUERY("sql/mysql/get-slow-query.sql"),
+    GET_MYSQL_SLOW_QUERY("sql/mariadb/get-slow-query.sql"),
     GET_ORACLE_SLOW_QUERY("sql/oracle/get-slow-query.sql"),
     GET_POSTGRES_SLOW_QUERY("sql/postgres/get-slow-query.sql");
 

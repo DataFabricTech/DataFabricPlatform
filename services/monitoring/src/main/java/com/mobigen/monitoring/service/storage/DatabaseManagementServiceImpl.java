@@ -841,8 +841,10 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         String query;
 
         if (serviceInfo != null) {
-            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
                 query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+            } else if(serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MARIADB_CPU_SPENT_TIME.getQuery());
             } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
                 query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
             } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
@@ -903,8 +905,75 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Object getMemoryUsage(String serviceId) {
-        return null;
+    public Map<String, Double> getMemoryUsage(String serviceId) {
+        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        String query;
+
+        if (serviceInfo != null) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                query = loadQuery(GET_MYSQL_MEMORY_USAGE.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MARIADB_MEMORY_USAGE.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                query = loadQuery(GET_ORACLE_MEMORY_USAGE.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                query = loadQuery(GET_POSTGRES_MEMORY_USAGE.getQuery());
+            } else {
+                throw new CustomException("service type is invalid");
+            }
+        } else {
+            throw new CustomException("Service not found");
+        }
+
+        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+        final List<Map<String, Object>> maps = executeQuery(
+                DatabaseConnectionRequest.builder()
+                        .dbType(serviceInfo.getServiceType())
+                        .host(hostPortVo.getHost())
+                        .port(hostPortVo.getPort())
+                        .databaseName(getDatabaseName(serviceInfo))
+                        .username(serviceInfo.getConnection().getUsername())
+                        .password(
+                                serviceInfo.getConnection().getPassword() == null ?
+                                        serviceInfo.getConnection().getAuthType().getPassword() :
+                                        serviceInfo.getConnection().getPassword()
+                        )
+                        .build(),
+                query
+        );
+
+        Map<String, Object> row = maps.getFirst();
+        Object cpuUsedObj = row.get("memory_usage_mb");
+
+        double cpuUsed = cpuUsedObj instanceof Number
+                ? ((Number) cpuUsedObj).doubleValue()
+                : 0;
+
+        return Map.of("memoryUsedMB", cpuUsed);
+    }
+
+    @Override
+    public Map<String, Object> getAllMemoryUsage() {
+        Map<String, Object> result = new HashMap<>();
+
+        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+            try {
+                if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                    final Map<String, Double> maps = getMemoryUsage(serviceInfo.getId());
+
+                    if (maps.get("memoryUsedMB") == 0) {
+                        log.debug("serviceInfo: {}", serviceInfo);
+                    }
+
+                    result.put(serviceInfo.getName(), maps);
+                }
+            } catch (BadSqlGrammarException e) {
+                log.error("Insufficient privileges: {}, {}", serviceInfo.getName(), serviceInfo.getConnection().getUsername());
+            }
+        }
+
+        return result;
     }
 
     @Override

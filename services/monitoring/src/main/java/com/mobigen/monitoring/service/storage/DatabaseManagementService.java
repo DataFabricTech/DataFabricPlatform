@@ -66,6 +66,8 @@ public interface DatabaseManagementService {
 
     public Object getMemoryUsage(String serviceId);
 
+    Object getAllMemoryUsage();
+
     public Object getDiskUsage(String serviceId);
 
     public Object getAverageQueryOutcome(String serviceId);

@@ -57,6 +57,9 @@ server:
 logging:
   level:
     root: info
+    com:
+      mobigen:
+        monitoring: debug
 
 scheduler:
   collect_expression: ${COLLECT_EXPRESSION:0 0/5 * * * *}
