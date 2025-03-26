@@ -70,6 +70,8 @@ public interface DatabaseManagementService {
 
     public Object getDiskUsage(String serviceId);
 
+    Object getAllDiskUsage();
+
     public Object getAverageQueryOutcome(String serviceId);
 
     public Object getSlowQueries(String serviceId);

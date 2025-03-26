@@ -94,19 +94,19 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             initializeServiceTable(SCHEDULER.getName());
         } else {
             getServiceListFromFabricServer();
+        }
 
-            for (Services service : allService) {
-                if (service.getServiceType().equals(MINIO.getName())) {
-                    GetObjectStorageResponseDto storageService = storageServices.get(service.getServiceID().toString());
+        for (Services service : allService) {
+            if (service.getServiceType().equals(MINIO.getName())) {
+                GetObjectStorageResponseDto storageService = storageServices.get(service.getServiceID().toString());
 
-                    if (storageService != null)
-                        storageService.setConnectionStatus(service.getConnectionStatus());
-                } else {
-                    GetDatabasesResponseDto databaseService = databaseServices.get(service.getServiceID().toString());
+                if (storageService != null)
+                    storageService.setConnectionStatus(service.getConnectionStatus());
+            } else {
+                GetDatabasesResponseDto databaseService = databaseServices.get(service.getServiceID().toString());
 
-                    if (databaseService != null)
-                        databaseService.setConnectionStatus(service.getConnectionStatus());
-                }
+                if (databaseService != null)
+                    databaseService.setConnectionStatus(service.getConnectionStatus());
             }
         }
     }
@@ -977,8 +977,75 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Object getDiskUsage(String serviceId) {
-        return null;
+    public Map<String, Double> getDiskUsage(String serviceId) {
+        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        String query;
+
+        if (serviceInfo != null) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MYSQL_DISK_USAGE.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                query = loadQuery(GET_ORACLE_DISK_USAGE.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                query = loadQuery(GET_POSTGRES_DISK_USAGE.getQuery());
+            } else {
+                throw new CustomException("service type is invalid");
+            }
+        } else {
+            throw new CustomException("Service not found");
+        }
+
+        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+        final List<Map<String, Object>> maps = executeQuery(
+                DatabaseConnectionRequest.builder()
+                        .dbType(serviceInfo.getServiceType())
+                        .host(hostPortVo.getHost())
+                        .port(hostPortVo.getPort())
+                        .databaseName(getDatabaseName(serviceInfo))
+                        .username(serviceInfo.getConnection().getUsername())
+                        .password(
+                                serviceInfo.getConnection().getPassword() == null ?
+                                        serviceInfo.getConnection().getAuthType().getPassword() :
+                                        serviceInfo.getConnection().getPassword()
+                        )
+                        .build(),
+                query
+        );
+
+        if (maps == null) {
+            log.error("user is not admin");
+
+            return Map.of("totalDbSizeMB", 0.0);
+        } else {
+            Map<String, Object> row = maps.getFirst();
+            Object cpuUsedObj = row.get("total_db_size_mb");
+
+            double cpuUsed = cpuUsedObj instanceof Number
+                    ? ((Number) cpuUsedObj).doubleValue()
+                    : 0;
+
+            return Map.of("totalDbSizeMB", cpuUsed);
+        }
+    }
+
+    @Override
+    public Object getAllDiskUsage() {
+        Map<String, Object> result = new HashMap<>();
+
+        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+            try {
+                if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                    final Map<String, Double> maps = getDiskUsage(serviceInfo.getId());
+
+                    result.put(serviceInfo.getName(), maps);
+                }
+            } catch (BadSqlGrammarException e) {
+                log.error("Insufficient privileges: {}, {}", serviceInfo.getName(), serviceInfo.getConnection().getUsername());
+            }
+        }
+
+        return result;
     }
 
     @Override
