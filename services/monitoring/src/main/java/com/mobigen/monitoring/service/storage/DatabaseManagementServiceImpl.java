@@ -14,7 +14,6 @@ import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.exception.CustomException;
-import com.mobigen.monitoring.repository.ModelRegistrationRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.k8s.K8SService;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
@@ -51,7 +50,8 @@ import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 import static com.mobigen.monitoring.enums.DatabaseType.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnums.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnums.CONFIG;
-import static com.mobigen.monitoring.vo.Queries.*;
+import static com.mobigen.monitoring.enums.Queries.*;
+import static com.mobigen.monitoring.service.query.QueryLoader.loadQuery;
 import static java.lang.Boolean.*;
 
 @Service
@@ -89,11 +89,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public void init() {
         final List<Services> allService = servicesService.getAllService();
 
-//        if (allService.isEmpty()) {
+        if (allService.isEmpty()) {
             initializeServiceTable(SCHEDULER.getName());
-//        } else {
-//            getServiceListFromFabricServer();
-//        }
+        } else {
+            getServiceListFromFabricServer();
+        }
     }
 
     @Override
@@ -823,6 +823,107 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 .build();
     }
 
+    @Override
+    public Object getCpuSpentTime(String serviceId) {
+        List<Map<String, Object>> result = null;
+        // 전체 조회
+        if (serviceId == null || serviceId.isEmpty()) {
+            // 모든 서비스들의 cpu 사용 시간 조회
+            for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+                final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+                String query = null;
+
+                if (serviceInfo != null) {
+                    if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+                    } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+                    } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                        query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+                    } else {
+                        throw new CustomException("service type is invalid");
+                    }
+                } else {
+                    throw new CustomException("Service not found");
+                }
+
+                final List<Map<String, Object>> maps = executeQuery(
+                        DatabaseConnectionRequest.builder()
+                                .dbType(serviceInfo.getServiceType())
+                                .host(hostPortVo.getHost())
+                                .port(hostPortVo.getPort())
+                                .username(serviceInfo.getConnection().getUsername())
+                                .password(
+                                        serviceInfo.getConnection().getPassword() == null ?
+                                                serviceInfo.getConnection().getAuthType().getPassword() :
+                                                serviceInfo.getConnection().getPassword()
+                                )
+                                .build(),
+                        query
+                );
+            }
+
+        } else {
+            final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+            String query = null;
+
+            if (serviceInfo != null) {
+                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                    query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                    query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                    query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
+                } else {
+                    throw new CustomException("service type is invalid");
+                }
+            } else {
+                throw new CustomException("Service not found");
+            }
+
+            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+            final List<Map<String, Object>> maps = executeQuery(
+                    DatabaseConnectionRequest.builder()
+                            .dbType(serviceInfo.getServiceType())
+                            .host(hostPortVo.getHost())
+                            .port(hostPortVo.getPort())
+                            .databaseName(getDatabaseName(serviceInfo))
+                            .username(serviceInfo.getConnection().getUsername())
+                            .password(
+                                    serviceInfo.getConnection().getPassword() == null ?
+                                            serviceInfo.getConnection().getAuthType().getPassword() :
+                                            serviceInfo.getConnection().getPassword()
+                            )
+                            .build(),
+                    query
+            );
+
+            return maps;
+        }
+        return result;
+    }
+
+    @Override
+    public Object getMemoryUsage(String serviceId) {
+        return null;
+    }
+
+    @Override
+    public Object getDiskUsage(String serviceId) {
+        return null;
+    }
+
+    @Override
+    public Object getAverageQueryOutcome(String serviceId) {
+        return null;
+    }
+
+    @Override
+    public Object getSlowQueries(String serviceId) {
+        return null;
+    }
+
     private HostPortVo convertStringToHostPortVo(GetDatabasesResponseDto serviceInfo) {
         String host;
         int port;
@@ -861,5 +962,15 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         }
         return null;
+    }
+
+    private String getDatabaseName(GetDatabasesResponseDto serviceInfo) {
+        if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+            return serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema() == null ?
+                    serviceInfo.getConnection().getOracleConnectionType().getOracleServiceName() : serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema();
+        } else {
+            return serviceInfo.getConnection().getDatabaseName() != null ?
+                    serviceInfo.getConnection().getDatabaseName() : serviceInfo.getConnection().getDatabase();
+        }
     }
 }

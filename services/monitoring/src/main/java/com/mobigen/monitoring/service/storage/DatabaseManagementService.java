@@ -59,4 +59,14 @@ public interface DatabaseManagementService {
     public void setServiceModels(List<JsonNode> currentServices);
 
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId);
+
+    Object getCpuSpentTime(String serviceId);
+
+    Object getMemoryUsage(String serviceId);
+
+    Object getDiskUsage(String serviceId);
+
+    Object getAverageQueryOutcome(String serviceId);
+
+    Object getSlowQueries(String serviceId);
 }

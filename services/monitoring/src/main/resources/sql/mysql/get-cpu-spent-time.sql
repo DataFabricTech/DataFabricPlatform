@@ -1,0 +1,3 @@
+SELECT SUM(`TIME`) as cpuUsed
+FROM information_schema.PROCESSLIST
+ORDER BY TIME DESC;

@@ -1,6 +1,5 @@
 package com.mobigen.monitoring.service.storage;
 
-import com.mobigen.monitoring.config.JsonComparator;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.vo.ServicesResponse;
 import com.mobigen.monitoring.repository.ServicesRepository;
