@@ -13,6 +13,7 @@ import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
+import com.mobigen.monitoring.enums.Queries;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.k8s.K8SService;
@@ -1019,13 +1020,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             return Map.of("totalDbSizeMB", 0.0);
         } else {
             Map<String, Object> row = maps.getFirst();
-            Object cpuUsedObj = row.get("total_db_size_mb");
+            Object totalDbSizeMb = row.get("total_db_size_mb");
 
-            double cpuUsed = cpuUsedObj instanceof Number
-                    ? ((Number) cpuUsedObj).doubleValue()
+            double memoryUsed = totalDbSizeMb instanceof Number
+                    ? ((Number) totalDbSizeMb).doubleValue()
                     : 0;
 
-            return Map.of("totalDbSizeMB", cpuUsed);
+            return Map.of("totalDbSizeMB", memoryUsed);
         }
     }
 
@@ -1048,9 +1049,83 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return result;
     }
 
+    /**
+     * query 요청 평균 성공량 조회
+     * */
     @Override
-    public Object getAverageQueryOutcome(String serviceId) {
-        return null;
+    public Map<String, Integer> getAverageQueryOutcome(String serviceId) {
+        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        String query;
+
+        if (serviceInfo != null) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                query = loadQuery(GET_MYSQL_REQUEST_RATE_QUERY.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MARIADB_REQUEST_RATE_QUERY.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                query = loadQuery(GET_ORACLE_REQUEST_RATE_QUERY.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                query = loadQuery(GET_POSTGRES_REQUEST_RATE_QUERY.getQuery());
+            } else {
+                throw new CustomException("service type is invalid");
+            }
+        } else {
+            throw new CustomException("Service not found");
+        }
+
+        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+        final List<Map<String, Object>> maps = executeQuery(
+                DatabaseConnectionRequest.builder()
+                        .dbType(serviceInfo.getServiceType())
+                        .host(hostPortVo.getHost())
+                        .port(hostPortVo.getPort())
+                        .databaseName(getDatabaseName(serviceInfo))
+                        .username(serviceInfo.getConnection().getUsername())
+                        .password(
+                                serviceInfo.getConnection().getPassword() == null ?
+                                        serviceInfo.getConnection().getAuthType().getPassword() :
+                                        serviceInfo.getConnection().getPassword()
+                        )
+                        .build(),
+                query
+        );
+
+        Map<String, Object> row = maps.getFirst();
+        Object successQueriesObj = row.get("success_queries");
+        Object failedQueriesObj = row.get("failed_queries");
+
+        int successQueries = successQueriesObj instanceof Number
+                ? ((Number) successQueriesObj).intValue()
+                : 0;
+
+        int failedQueries = failedQueriesObj instanceof Number
+                ? ((Number) failedQueriesObj).intValue()
+                : 0;
+
+        return Map.of(
+                "successQueries", successQueries,
+                "failedQueries", failedQueries
+        );
+    }
+
+    @Override
+    public Object getAllAverageQueryOutcome() {
+        Map<String, Object> result = new HashMap<>();
+
+        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+            try {
+                if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                    final Map<String, Integer> maps = getAverageQueryOutcome(serviceInfo.getId());
+
+                    result.put(serviceInfo.getName(), maps);
+                }
+            } catch (BadSqlGrammarException e) {
+                log.error("Insufficient privileges: {}, {}", serviceInfo.getName(), serviceInfo.getConnection().getUsername());
+            }
+        }
+
+        return result;
     }
 
     @Override

@@ -26,13 +26,10 @@ public enum Queries {
     GET_ORACLE_DISK_USAGE("sql/oracle/get-disk-usage.sql"),
     GET_POSTGRES_DISK_USAGE("sql/postgres/get-disk-usage.sql"),
 
-    GET_MYSQL_FAILED_REQUEST_QUERY("sql/mariadb/get-failed-request-query.sql"),
-    GET_ORACLE_FAILED_REQUEST_QUERY("sql/oracle/get-failed-request-query.sql"),
-    GET_POSTGRES_FAILED_REQUEST_QUERY("sql/postgres/get-failed-request-query.sql"),
-
-    GET_MYSQL_SUCCESS_REQUEST_QUERY("sql/mariadb/get-success-request-query.sql"),
-    GET_ORACLE_SUCCESS_REQUEST_QUERY("sql/oracle/get-success-request-query.sql"),
-    GET_POSTGRES_SUCCESS_REQUEST_QUERY("sql/postgres/get-success-request-query.sql"),
+    GET_MYSQL_REQUEST_RATE_QUERY("sql/mysql/get-request-rate-query.sql"),
+    GET_MARIADB_REQUEST_RATE_QUERY("sql/mariadb/get-request-rate-query.sql"),
+    GET_ORACLE_REQUEST_RATE_QUERY("sql/oracle/get-request-rate-query.sql"),
+    GET_POSTGRES_REQUEST_RATE_QUERY("sql/postgres/get-request-rate-query.sql"),
 
     GET_MYSQL_MEMORY_USAGE("sql/mysql/get-memory-usage.sql"),
     GET_MARIADB_MEMORY_USAGE("sql/mariadb/get-memory-usage.sql"),
