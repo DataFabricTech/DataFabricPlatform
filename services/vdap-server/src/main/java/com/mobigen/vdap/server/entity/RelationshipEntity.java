@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,8 +13,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "entity_relationship")
-@IdClass(EntityRelationshipId.class)
-public class EntityRelationshipEntity {
+@IdClass(RelationshipId.class)
+public class RelationshipEntity {
     @Id
     @Column(name="from_id")
     private String fromId;

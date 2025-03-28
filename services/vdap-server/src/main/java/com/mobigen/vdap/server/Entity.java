@@ -76,6 +76,7 @@ public final class Entity {
     public static final String PAGE = "page";
     
     public static final String USER = "user";
+    public static final String OWNER = "owner";
 
     //
     // Operation related entities

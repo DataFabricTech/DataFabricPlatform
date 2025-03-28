@@ -12,7 +12,8 @@ import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.EntityExtension;
 import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
-import com.mobigen.vdap.server.repositories.TagUsageRepository;
+import com.mobigen.vdap.server.relationship.TagUsageRepository;
+import com.mobigen.vdap.server.users.KeyCloakAgent;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.JsonUtils;
 import com.mobigen.vdap.server.util.Utilities;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.MySQLContainer;
@@ -56,6 +58,9 @@ class TagControllerTest {
     private EntityExtensionRepository entityExtensionRepository;
     @Autowired
     private TagUsageRepository tagUsageRepository;
+
+    @MockitoBean
+    private KeyCloakAgent keyCloakAgent;
 
     @Container
     public static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.3.0")

@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class TagUsageEntity {
     @Id
     @Column(name = "source", nullable = false)
-    private Integer source;         // 0 : classification, 1 : glossary
+    private Integer source;         // 부모 데이터 타입 0 : classification, 1 : glossary, 2 : glossary term
 
     @Id
     @Column(name = "source_id", nullable = false)
@@ -31,12 +31,6 @@ public class TagUsageEntity {
     @Id
     @Column(name = "tag_id", nullable = false)
     private String tagId;
-
-    @Column(name = "label_type")
-    private TagLabel.LabelType label_type;
-
-    @Column(name = "state")
-    private TagLabel.State state;
 
     @Id
     @Column(name = "target_type", nullable = false)

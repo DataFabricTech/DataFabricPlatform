@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class EntityRelationshipId implements Serializable {
+public class RelationshipId implements Serializable {
     private String fromId;
     private String toId;
     private Integer relation;

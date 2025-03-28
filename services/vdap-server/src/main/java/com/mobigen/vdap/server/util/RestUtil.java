@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
+import java.util.stream.Collector;
 
 
 @Slf4j
@@ -48,7 +50,7 @@ public final class RestUtil {
     public static String getControllerBasePath(Class<?> controllerClass) {
         if (controllerClass.isAnnotationPresent(RequestMapping.class)) {
             RequestMapping requestMapping = controllerClass.getAnnotation(RequestMapping.class);
-            String path = Arrays.toString(requestMapping.value());
+            String path = String.join("", requestMapping.value());
             log.debug("Class-level path: {}", path);
             return path;
         }

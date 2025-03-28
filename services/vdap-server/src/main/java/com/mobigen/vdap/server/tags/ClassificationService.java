@@ -4,15 +4,16 @@ import com.mobigen.vdap.schema.entity.classification.Classification;
 import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.schema.type.ProviderType;
 import com.mobigen.vdap.schema.type.Relationship;
+import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.ClassificationEntity;
 import com.mobigen.vdap.server.entity.EntityExtension;
-import com.mobigen.vdap.server.entity.EntityRelationshipEntity;
+import com.mobigen.vdap.server.entity.RelationshipEntity;
 import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.models.PageModel;
+import com.mobigen.vdap.server.relationship.RelationshipService;
+import com.mobigen.vdap.server.relationship.TagUsageService;
 import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
-import com.mobigen.vdap.server.repositories.EntityRelationshipRepository;
-import com.mobigen.vdap.server.repositories.TagUsageRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
@@ -29,26 +30,23 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.mobigen.vdap.schema.type.TagLabel.TagSource.CLASSIFICATION;
-
 @Slf4j
 @Service
 public class ClassificationService {
     private final Set<String> allowFields;
     private final ClassificationRepository classificationRepository;
-    private final EntityRelationshipRepository entityRelationshipRepository;
+    private final RelationshipService relationshipService;
     private final EntityExtensionRepository entityExtensionRepository;
     private final TagService tagService;
-    private final TagUsageRepository tagUsageRepository;
+    private final TagUsageService tagUsageService;
 
-    public ClassificationService(ClassificationRepository classificationRepository, TagService tagService,
-                                 EntityRelationshipRepository entityRelationshipRepository,
-                                 EntityExtensionRepository entityExtensionRepository, TagUsageRepository tagUsageRepository) {
+    public ClassificationService(ClassificationRepository classificationRepository, RelationshipService relationshipService, TagService tagService,
+                                 EntityExtensionRepository entityExtensionRepository, TagUsageService tagUsageService) {
         this.classificationRepository = classificationRepository;
-        this.entityRelationshipRepository = entityRelationshipRepository;
+        this.relationshipService = relationshipService;
         this.tagService = tagService;
         this.entityExtensionRepository = entityExtensionRepository;
-        this.tagUsageRepository = tagUsageRepository;
+        this.tagUsageService = tagUsageService;
         allowFields = Entity.getEntityFields(Classification.class);
     }
 
@@ -82,8 +80,8 @@ public class ClassificationService {
         List<Classification> classifications = entities.getContent().stream().map(this::convertToDto).toList();
         // SetFields
         classifications.forEach(classification -> {
-            setFields(classification, fields);
-            addHref(classification, baseUri);
+            setFields(fields, classification);
+            addHref(baseUri, classification);
         });
         res.setTotalElements((int) entities.getTotalElements());
         res.setTotalPages(entities.getTotalPages());
@@ -115,13 +113,13 @@ public class ClassificationService {
         // 사용자가 요청한 추가 정보 확인
         Fields fields = getFields(fieldsParam);
         // 필드 채우기
-        setFields(classification, fields);
+        setFields(fields, classification);
         // 링크 추가
-        addHref(classification, baseUri);
+        addHref(baseUri, classification);
         return classification;
     }
 
-    private void setFields(Classification classification, Fields fields) {
+    private void setFields(Fields fields, Classification classification) {
         classification.withTermCount(
                 fields.contains(Entity.FIELD_TERM_COUNT) ? getTermCount(classification) : null);
         classification.withUsageCount(
@@ -131,7 +129,7 @@ public class ClassificationService {
     @Transactional
     public Classification create(URI baseUri, Classification classification) {
         storeEntity(classification, false);
-        addHref(classification, baseUri);
+        addHref(baseUri, classification);
         return classification;
     }
 
@@ -178,7 +176,7 @@ public class ClassificationService {
         original.setChangeDescription(originalChangeDescription);
         storeEntityHistory(original);
         // 신규 데이터에 링크 정보 추가
-        addHref(updated, baseUri);
+        addHref(baseUri, updated);
         return updated;
     }
 
@@ -291,17 +289,21 @@ public class ClassificationService {
 
     private void deleteChildren(UUID id, String deletedBy) {
         // Relationship Repository 에서 삭제하려는 Classification 에 속한 모든 Tag 검색
-        List<EntityRelationshipEntity> childrenRecords =
-                entityRelationshipRepository.findByFromIdAndFromEntityAndRelationIn(
-                        id.toString(), Entity.CLASSIFICATION,
-                        List.of(Relationship.CONTAINS.ordinal(), Relationship.PARENT_OF.ordinal()));
+//        List<RelationshipEntity> childrenRecords =
+//                relationshipRepository.findByFromIdAndFromEntityAndRelationIn(
+//                        id.toString(), Entity.CLASSIFICATION,
+//                        List.of(Relationship.CONTAINS, Relationship.PARENT_OF);
+        List<RelationshipEntity> childrenRecords =
+                relationshipService.getRelationships(
+                        id, null, Entity.CLASSIFICATION,
+                        null, List.of(Relationship.CONTAINS, Relationship.PARENT_OF), null);
 
         if (childrenRecords.isEmpty()) {
             log.info("[Classification] No Have children. ID[{}]", id);
             return;
         }
         // Delete all the contained entities
-        for (EntityRelationshipEntity c : childrenRecords) {
+        for (RelationshipEntity c : childrenRecords) {
             log.info("[Classification] Children Recursively Delete. Child Type[{}] Id[{}]", c.getToEntity(), c.getToId());
             if (c.getToEntity().equals(Entity.TAG)) {
                 tagService.deleteById(c.getToId(), deletedBy);
@@ -315,10 +317,12 @@ public class ClassificationService {
         // 연관관계 정보 테이블에서 삭제
         log.info("[Classification] ID[{}] Name[{}] Delete Relationship Data By ToEntity[{}]",
                 classification.getId().toString(), classification.getName(), Entity.CLASSIFICATION);
-        entityRelationshipRepository.deleteByToEntityAndToId(Entity.CLASSIFICATION, classification.getId().toString());
+        // relationshipRepository.deleteByToEntityAndToId(Entity.CLASSIFICATION, classification.getId().toString());
+        relationshipService.deleteRelationship(null, classification.getId(), null, Entity.CLASSIFICATION, null);
         log.info("[Classification] ID[{}] Name[{}] Delete Relationship Data By FromEntity[{}]",
                 classification.getId().toString(), classification.getName(), Entity.CLASSIFICATION);
-        entityRelationshipRepository.deleteByFromEntityAndFromId(Entity.CLASSIFICATION, classification.getId().toString());
+        // relationshipRepository.deleteByFromEntityAndFromId(Entity.CLASSIFICATION, classification.getId().toString());
+        relationshipService.deleteRelationship(classification.getId(), null, Entity.CLASSIFICATION, null, null);
         // Delete all the extensions of entity
         log.info("[Classification] ID[{}] Name[{}] Delete Extension Data By ID",
                 classification.getId().toString(), classification.getName());
@@ -340,8 +344,8 @@ public class ClassificationService {
 
     // getUsageCount : Classification 에 속한 Tag 가 사용된 횟수를 반환
     private Integer getUsageCount(Classification classification) {
-        Integer usageCount = tagUsageRepository.countBySourceAndSourceId(
-                CLASSIFICATION.ordinal(), classification.getId().toString());
+        Integer usageCount = tagUsageService.getCount(
+                TagLabel.TagSource.CLASSIFICATION, classification.getId().toString(), null, null, null);
         log.info("[Classification] ID[{}] Name[{}] Get Usage Count[{}]",
                 classification.getId().toString(),
                 classification.getName(), usageCount);
@@ -359,7 +363,7 @@ public class ClassificationService {
         }
     }
 
-    private void addHref(Classification classification, URI baseUri) {
+    private void addHref(URI baseUri, Classification classification) {
         classification.setHref(RestUtil.getHref(baseUri,
                 RestUtil.getControllerBasePath(ClassificationController.class), classification.getId()));
     }

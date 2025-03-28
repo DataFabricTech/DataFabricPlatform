@@ -26,3 +26,4 @@ spring:
 otel:
   sdk:
     disabled: true
+

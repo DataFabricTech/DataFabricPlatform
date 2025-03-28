@@ -2,19 +2,17 @@ package com.mobigen.vdap.server.tags;
 
 import com.mobigen.vdap.common.utils.CommonUtil;
 import com.mobigen.vdap.schema.entity.classification.Tag;
-import com.mobigen.vdap.schema.type.EntityHistory;
-import com.mobigen.vdap.schema.type.EntityReference;
-import com.mobigen.vdap.schema.type.ProviderType;
-import com.mobigen.vdap.schema.type.Relationship;
+import com.mobigen.vdap.schema.type.*;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.EntityExtension;
-import com.mobigen.vdap.server.entity.EntityRelationshipEntity;
+import com.mobigen.vdap.server.entity.RelationshipEntity;
 import com.mobigen.vdap.server.entity.TagEntity;
 import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.models.PageModel;
+import com.mobigen.vdap.server.relationship.RelationshipService;
+import com.mobigen.vdap.server.relationship.TagUsageService;
 import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
-import com.mobigen.vdap.server.repositories.EntityRelationshipRepository;
-import com.mobigen.vdap.server.repositories.TagUsageRepository;
+import com.mobigen.vdap.server.relationship.TagUsageRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
@@ -31,8 +29,6 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.mobigen.vdap.schema.type.TagLabel.TagSource.CLASSIFICATION;
-
 @Slf4j
 @Service
 public class TagService {
@@ -40,20 +36,18 @@ public class TagService {
     private final Set<String> allowedFields;
 
     private final TagLabelUtil tagLabelUtil;
-    private final EntityRelationshipRepository entityRelationshipRepository;
+    private final TagUsageService tagUsageService;
+    private final RelationshipService relationshipService;
     private final EntityExtensionRepository entityExtensionRepository;
-    private final TagUsageRepository tagUsageRepository;
 
     public TagService(TagRepository tagRepository,
-                      TagLabelUtil tagLabelUtil,
-                      EntityRelationshipRepository entityRelationshipRepository,
-                      EntityExtensionRepository entityExtensionRepository,
-                      TagUsageRepository tagUsageRepository) {
+                      TagLabelUtil tagLabelUtil, TagUsageService tagUsageService, RelationshipService relationshipService,
+                      EntityExtensionRepository entityExtensionRepository) {
         this.tagRepository = tagRepository;
         this.tagLabelUtil = tagLabelUtil;
-        this.entityRelationshipRepository = entityRelationshipRepository;
+        this.tagUsageService = tagUsageService;
+        this.relationshipService = relationshipService;
         this.entityExtensionRepository = entityExtensionRepository;
-        this.tagUsageRepository = tagUsageRepository;
         this.allowedFields = Entity.getEntityFields(Tag.class);
     }
 
@@ -127,10 +121,12 @@ public class TagService {
     }
 
     private EntityReference getClassification(Tag tag) {
-        log.info("[Tag] ID[{}] Get Classification From Relationship By ToEntity[{}]", tag.getId(), Entity.TAG);
-        List<EntityRelationshipEntity> relations = entityRelationshipRepository.findByToIdAndToEntityAndRelationAndFromEntity(
-                tag.getId().toString(), Entity.TAG, Relationship.CONTAINS.ordinal(), Entity.CLASSIFICATION);
-        if (relations.size() != 1) {
+        // Get Classification From Relationship
+        log.info("[Tag] Get Classification From Relationship By ID[{}] And ToEntity[{}]", tag.getId(), Entity.TAG);
+        List<RelationshipEntity> relations =
+                relationshipService.getRelationships(null, tag.getId(),
+                        Entity.CLASSIFICATION, Entity.TAG, Relationship.CONTAINS, null);
+        if (relations.size() > 1) {
             log.warn("[TAG] Possible database issues - multiple relations Classification Num[{}] for Tag[{}/{}]",
                     relations.size(), tag.getId(), tag.getName());
         }
@@ -138,7 +134,7 @@ public class TagService {
     }
 
     private Integer getUsageCount(Tag tag) {
-        Integer usageCount = tagUsageRepository.countBySourceAndTagId(CLASSIFICATION.ordinal(), tag.getId().toString());
+        Integer usageCount = tagUsageService.getCount(TagLabel.TagSource.CLASSIFICATION, null, tag.getId().toString(), null, null);
         log.info("[Tag] Id[{}] Name[{}]. Usage Count[{}]", tag.getId().toString(), tag.getName(), usageCount);
         return usageCount;
     }
@@ -237,7 +233,7 @@ public class TagService {
     }
 
     private void storeRelationshipsInternal(Tag tag) {
-        EntityRelationshipEntity entity = new EntityRelationshipEntity();
+        RelationshipEntity entity = new RelationshipEntity();
         // From Classification
         entity.setFromId(tag.getClassification().getId().toString());
         entity.setFromEntity(Entity.CLASSIFICATION);
@@ -250,10 +246,9 @@ public class TagService {
         entity.setJsonSchema(null);
         entity.setJson(null);
 
-        log.info("[Tag] Insert Relationship From[{}/{}] To[{}/{}] RelationType[{}/{}]",
-                entity.getFromEntity(), entity.getFromId(), entity.getToEntity(), entity.getToId(),
-                Relationship.CONTAINS.value(), entity.getRelation());
-        entityRelationshipRepository.save(entity);
+        log.info("[Tag] Insert Relationship Tag[{}/{}]", tag.getId(), tag.getName());
+        relationshipService.addRelationship(tag.getClassification().getId(), tag.getId(),
+                Entity.CLASSIFICATION, Entity.TAG, Relationship.CONTAINS);
     }
 
     private void storeEntityHistory(Tag tag) {
@@ -329,17 +324,20 @@ public class TagService {
         // 연관관계 정보 테이블에서 삭제
         log.info("[Tag] ID[{}] Name[{}] Delete Relationship Data By ToEntity[{}]",
                 tag.getId().toString(), tag.getName(), Entity.TAG);
-        entityRelationshipRepository.deleteByToEntityAndToId(Entity.TAG, tag.getId().toString());
+        relationshipService.deleteRelationship(null, tag.getId(), null, Entity.TAG, null);
+//        relationshipRepository.deleteByToEntityAndToId(Entity.TAG, tag.getId().toString());
         log.info("[Tag] ID[{}] Name[{}] Delete Relationship Data By FromEntity[{}]",
                 tag.getId().toString(), tag.getName(), Entity.TAG);
-        entityRelationshipRepository.deleteByFromEntityAndFromId(Entity.TAG, tag.getId().toString());
+//        relationshipRepository.deleteByFromEntityAndFromId(Entity.TAG, tag.getId().toString());
+        relationshipService.deleteRelationship(tag.getId(), null, Entity.TAG, null, null);
         // Delete the extension data
         log.info("[Tag] ID[{}] Name[{}] Delete Extension Data By ID", tag.getId().toString(), tag.getName());
         String versionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.TAG);
         entityExtensionRepository.deleteByIdAndExtensionStartingWith(tag.getId().toString(), versionPrefix + ".");
         // Delete the usage data
         log.info("[Tag] ID[{}] Name[{}] Delete Tag Usage Data By TagId", tag.getId().toString(), tag.getName());
-        tagUsageRepository.deleteByTagId(tag.getId().toString());
+//        tagUsageRepository.deleteByTagId(tag.getId().toString());
+        tagUsageService.delete(null, null, tag.getId().toString(), null, null);
         // TODO : 사용 히스토리 삭제
         // daoCollection.usageDAO().delete(id);
         // Finally, delete the entity
