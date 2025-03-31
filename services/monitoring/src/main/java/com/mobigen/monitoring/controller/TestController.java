@@ -2,12 +2,11 @@ package com.mobigen.monitoring.controller;
 
 import com.mobigen.monitoring.domain.MonitoringLog;
 import com.mobigen.monitoring.repository.MonitoringTaskRepository;
+import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
 import com.mobigen.monitoring.service.storage.DatabaseManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -18,6 +17,7 @@ import java.util.UUID;
 public class TestController {
     private final MonitoringTaskRepository monitoringTaskRepository;
     private final DatabaseManagementService databaseManagementServiceImpl;
+    private final OpenMetadataService openMetadataService;
 
     @GetMapping
     public Object getAll() {
@@ -43,5 +43,50 @@ public class TestController {
     @GetMapping("table-model")
     public Object getTableModels() {
         return databaseManagementServiceImpl.getModelCountFromOM(UUID.fromString("d197db55-85df-455d-8cf0-b89b8820780e"));
+    }
+
+    @GetMapping("/cpuUsed")
+    public Object cpuUsed(@RequestParam(required = false) String serviceId) {
+        if (serviceId == null || serviceId.isEmpty())
+            return databaseManagementServiceImpl.getAllCpuSpentTime();
+        else
+            return databaseManagementServiceImpl.getCpuSpentTime(serviceId);
+    }
+
+    @GetMapping("/memoryUsed")
+    public Object memoryUsed(@RequestParam(required = false) String serviceId) {
+        if (serviceId == null || serviceId.isEmpty())
+            return databaseManagementServiceImpl.getAllMemoryUsage();
+        else
+            return databaseManagementServiceImpl.getMemoryUsage(serviceId);
+    }
+
+    @GetMapping("/diskUsage")
+    public Object diskUsage(@RequestParam(required = false) String serviceId) {
+        if (serviceId == null || serviceId.isEmpty())
+            return databaseManagementServiceImpl.getAllDiskUsage();
+        else
+            return databaseManagementServiceImpl.getDiskUsage(serviceId);
+    }
+
+    @GetMapping("/avgRequestRate")
+    public Object getAvgRequestRate(@RequestParam(required = false) String serviceId) {
+        if (serviceId == null || serviceId.isEmpty())
+            return databaseManagementServiceImpl.getAllAverageQueryOutcome();
+        else
+            return databaseManagementServiceImpl.getAverageQueryOutcome(serviceId);
+    }
+
+    @GetMapping("/slow-query")
+    public Object getSlowQuery(@RequestParam(required = false) String serviceId) {
+        if (serviceId == null || serviceId.isEmpty())
+            return databaseManagementServiceImpl.getSlowQueries();
+        else
+            return databaseManagementServiceImpl.getSlowQueries(serviceId);
+    }
+
+    @GetMapping("databaseServices")
+    public Object getDatabaseServices() {
+        return openMetadataService.getDatabaseServices();
     }
 }

@@ -77,4 +77,6 @@ public interface DatabaseManagementService {
     Object getAllAverageQueryOutcome();
 
     public Object getSlowQueries(String serviceId);
+
+    public Object getSlowQueries();
 }

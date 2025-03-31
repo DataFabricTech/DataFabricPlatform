@@ -63,7 +63,7 @@ public class OpenMetadataService {
     }
 
     public JsonNode getDatabaseServices() {
-        return get(openMetadataConfig.getPath().getDatabaseService()).get(DATA.getName());
+        return get(openMetadataConfig.getPath().getDatabaseService() + "?limit=1000").get(DATA.getName());
     }
 
     public JsonNode getStorageServices() {

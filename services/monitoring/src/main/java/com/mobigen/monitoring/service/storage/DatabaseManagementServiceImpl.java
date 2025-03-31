@@ -47,6 +47,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 
+import static com.mobigen.monitoring.dto.request.DatabaseConnectionRequest.*;
 import static com.mobigen.monitoring.enums.Common.*;
 import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 import static com.mobigen.monitoring.enums.DatabaseType.*;
@@ -421,7 +422,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                                         .omModelCount(getStorageModelCountFromOM(service.getServiceID()))
                                         .modelCount(
                                                 testMinioConnection(
-                                                        DatabaseConnectionRequest.builder()
+                                                        builder()
                                                                 .dbType(objectStorageResponseDto.getServiceType())
                                                                 .host(uri.getHost())
                                                                 .port(uri.getPort())
@@ -535,7 +536,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 log.error("service: {}", getDatabasesResponseDto);
             }
 
-            DatabaseConnectionRequest request = DatabaseConnectionRequest.builder()
+            DatabaseConnectionRequest request = builder()
                     .username(getDatabasesResponseDto.getConnection().getUsername())
                     .dbType(service.getServiceType())
                     .host(hostPortVo.getHost())
@@ -556,7 +557,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             URI uri = URI.create(endPointURL);
 
-            final DatabaseConnectionRequest build = DatabaseConnectionRequest.builder()
+            final DatabaseConnectionRequest build = builder()
                     .dbType(objectStorageResponseDto.getServiceType())
                     .host(uri.getHost())
                     .port(uri.getPort())
@@ -599,7 +600,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             try {
                 URL url = new URL(endpointUrl);
 
-                request = DatabaseConnectionRequest.builder()
+                request = builder()
                         .dbType(storageResponse.getServiceType())
                         .host(url.getHost())
                         .port(url.getPort())
@@ -669,8 +670,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                             .build()
             );
         }
-
-        log.info("services: {}", services);
 
         return servicesService.saveServices(services);
     }
@@ -822,7 +821,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         log.info("databaseName: {}", databaseName);
 
-        return DatabaseConnectionRequest.builder()
+        return builder()
                 .dbType(serviceInfo.getServiceType())
                 .host(hostPortVo.getHost())
                 .port(hostPortVo.getPort())
@@ -860,7 +859,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
         final List<Map<String, Object>> maps = executeQuery(
-                DatabaseConnectionRequest.builder()
+                builder()
                         .dbType(serviceInfo.getServiceType())
                         .host(hostPortVo.getHost())
                         .port(hostPortVo.getPort())
@@ -929,7 +928,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
         final List<Map<String, Object>> maps = executeQuery(
-                DatabaseConnectionRequest.builder()
+                builder()
                         .dbType(serviceInfo.getServiceType())
                         .host(hostPortVo.getHost())
                         .port(hostPortVo.getPort())
@@ -999,7 +998,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
         final List<Map<String, Object>> maps = executeQuery(
-                DatabaseConnectionRequest.builder()
+                builder()
                         .dbType(serviceInfo.getServiceType())
                         .host(hostPortVo.getHost())
                         .port(hostPortVo.getPort())
@@ -1076,7 +1075,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
         final List<Map<String, Object>> maps = executeQuery(
-                DatabaseConnectionRequest.builder()
+                builder()
                         .dbType(serviceInfo.getServiceType())
                         .host(hostPortVo.getHost())
                         .port(hostPortVo.getPort())
@@ -1130,6 +1129,44 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Object getSlowQueries(String serviceId) {
+        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        String query;
+
+        if (serviceInfo != null) {
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                query = loadQuery(GET_MYSQL_SLOW_QUERY.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                query = loadQuery(GET_ORACLE_SLOW_QUERY.getQuery());
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                query = loadQuery(GET_POSTGRES_SLOW_QUERY.getQuery());
+            } else {
+                throw new CustomException("service type is invalid");
+            }
+        } else {
+            throw new CustomException("Service not found");
+        }
+
+        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+        return executeQuery(
+                builder()
+                        .dbType(serviceInfo.getServiceType())
+                        .host(hostPortVo.getHost())
+                        .port(hostPortVo.getPort())
+                        .databaseName(getDatabaseName(serviceInfo))
+                        .username(serviceInfo.getConnection().getUsername())
+                        .password(
+                                serviceInfo.getConnection().getPassword() == null ?
+                                        serviceInfo.getConnection().getAuthType().getPassword() :
+                                        serviceInfo.getConnection().getPassword()
+                        )
+                        .build(),
+                query
+        );
+    }
+
+    @Override
+    public Object getSlowQueries() {
         return null;
     }
 

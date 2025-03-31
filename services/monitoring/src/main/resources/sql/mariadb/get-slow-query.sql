@@ -1,0 +1,1 @@
+SELECT query_time as execTime, sql_text as sqlText FROM mysql.slow_log ORDER BY start_time DESC;
