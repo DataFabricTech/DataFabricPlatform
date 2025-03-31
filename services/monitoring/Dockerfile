@@ -57,12 +57,10 @@ WORKDIR /app
 RUN mkdir -p /app/conf
 
 ## Install Locale(ko_KR.UTF-8)
-RUN apt-get update && apt-get install -y locales \
+RUN apt-get update && apt-get install -y locales curl dnsutils \
     && sed -i 's/^# \(ko_KR.UTF-8\)/\1/' /etc/locale.gen \
     && locale-gen && localedef -f UTF-8 -i ko_KR ko_KR.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/build/libs/*.jar /app/service.jar
 COPY --from=builder /app/build/resources/main/* /app/conf/
-
-#ENTRYPOINT ["java", "-Dspring.profiles.active=${PROFILE}", "-jar", "/app/service.jar"]
