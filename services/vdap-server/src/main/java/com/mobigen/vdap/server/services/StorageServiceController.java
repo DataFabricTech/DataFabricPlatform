@@ -1,5 +1,6 @@
 package com.mobigen.vdap.server.services;
 
+import com.mobigen.vdap.common.utils.CommonUtil;
 import com.mobigen.vdap.schema.api.services.CreateStorageService;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
@@ -21,10 +22,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Tag(
@@ -97,15 +95,12 @@ public class StorageServiceController {
             @RequestParam(value = "include", required = false, defaultValue = "non-deleted")
             Include include) {
         log.info("[StorageService] Get List Kind[{}], ServiceType[{}], Fields[{}], Page[{}], Size[{}]",
-                kindOfService.value(), serviceType.value(), fields, page, size);
+                kindOfService, serviceType, fields, page, size);
         return service.list(Utilities.getBaseUri(request), kindOfService, serviceType, fields, page, size, include);
     }
 
-    // GET /{id}
-    // GET name/{name}
     // GET /{id}/versions
     // GET /{id}/versions/{version}
-    // POST Create
     // PUT CreateOrUpdate
     // PUT /{id}/testConnectionResult
     // PATCH /{id} -> /{id}/update
@@ -172,6 +167,7 @@ public class StorageServiceController {
             })
     @CommonResponseAnnotation
     public Object getByName(
+            HttpServletRequest request,
             @Parameter(
                     description = "Name of the storage service",
                     schema = @Schema(type = "string"))
@@ -187,7 +183,8 @@ public class StorageServiceController {
                     schema = @Schema(implementation = Include.class))
             @RequestParam(value = "include", defaultValue = "non-deleted")
             Include include) {
-        return "get by name storage service";
+        log.info("[StorageService] Get By Name[{}]", name);
+        return service.getByName(Utilities.getBaseUri(request), name, fields, include);
     }
 
     @PostMapping("/{id}/testConnectionResult")
@@ -324,213 +321,35 @@ public class StorageServiceController {
         // String userId = header.get("X-VDAP-User-Id");
         // String userName = header.get("X-VDAP-User-Name");
         // User user = getUser(id, name)
-        List<EntityReference> owners = validateOwners(create.getOwners());
         StorageService storage = createToEntity(create, "admin");
-        // decrypt(securityContext, (DatabaseService) response.getEntity());  // 필요하다면 암호를 다시 복호화
         return service.create(Utilities.getBaseUri(request), storage);
     }
 
-    /*
     @PostMapping("/update")
     @Operation(
-            operationId = "createOrUpdateDatabaseService",
-            summary = "Update database service",
-            description = "Update an existing or create a new database service.",
+            operationId = "UpdateStorageService",
+            summary = "Update data storage service",
+            description = "Update an existing data storage service.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "Database service instance",
+                            description = "Storage service instance",
                             content =
                             @Content(
                                     mediaType = "application/json",
-                                    schema = @Schema(implementation = DatabaseService.class))),
+                                    schema = @Schema(implementation = CreateStorageService.class))),
                     @ApiResponse(responseCode = "400", description = "Bad request")
             })
-    public Response createOrUpdate(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Valid CreateDatabaseService update) {
-        DatabaseService service =
-                mapper.createToEntity(update, securityContext.getUserPrincipal().getName());
-        Response response = createOrUpdate(uriInfo, securityContext, unmask(service));
-        decryptOrNullify(securityContext, (DatabaseService) response.getEntity());
-        return response;
+    @CommonResponseAnnotation
+    public Object update(
+            HttpServletRequest request,
+            @Valid @RequestBody CreateStorageService update) {
+        // TODO : 요청 사용자 정보 처리
+        StorageService storageService = createToEntity(update, "admin");
+        return service.update(Utilities.getBaseUri(request), storageService);
     }
 
-    @PATCH
-    @Path("/{id}")
-    @Operation(
-            operationId = "patchDatabaseService",
-            summary = "Update a database service",
-            description = "Update an existing database service using JsonPatch.",
-            externalDocs =
-            @ExternalDocumentation(
-                    description = "JsonPatch RFC",
-                    url = "https://tools.ietf.org/html/rfc6902"))
-    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
-    public Response patch(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Id of the database service", schema = @Schema(type = "UUID"))
-            @PathParam("id")
-            UUID id,
-            @RequestBody(
-                    description = "JsonPatch with array of operations",
-                    content =
-                    @Content(
-                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
-                            examples = {
-                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
-                            }))
-            JsonPatch patch) {
-        return patchInternal(uriInfo, securityContext, id, patch);
-    }
-
-    @PATCH
-    @Path("/name/{fqn}")
-    @Operation(
-            operationId = "patchDatabaseService",
-            summary = "Update a database service using name.",
-            description = "Update an existing database service using JsonPatch.",
-            externalDocs =
-            @ExternalDocumentation(
-                    description = "JsonPatch RFC",
-                    url = "https://tools.ietf.org/html/rfc6902"))
-    @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
-    public Response patch(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Name of the database service", schema = @Schema(type = "string"))
-            @PathParam("fqn")
-            String fqn,
-            @RequestBody(
-                    description = "JsonPatch with array of operations",
-                    content =
-                    @Content(
-                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
-                            examples = {
-                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
-                            }))
-            JsonPatch patch) {
-        return patchInternal(uriInfo, securityContext, fqn, patch);
-    }
-
-    @GET
-    @Path("/name/{name}/export")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Valid
-    @Operation(
-            operationId = "exportDatabaseServices",
-            summary = "Export database service in CSV format",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Exported csv with services from the database services",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = String.class)))
-            })
-    public String exportCsv(
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Name of the Database Service", schema = @Schema(type = "string"))
-            @PathParam("name")
-            String name)
-            throws IOException {
-        return exportCsvInternal(securityContext, name);
-    }
-
-    @GET
-    @Path("/name/{name}/exportAsync")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Valid
-    @Operation(
-            operationId = "exportDatabaseService",
-            summary = "Export database service in CSV format",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Exported csv with database schemas",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = CSVExportResponse.class)))
-            })
-    public Response exportCsvAsync(
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Name of the Database", schema = @Schema(type = "string"))
-            @PathParam("name")
-            String name) {
-        return exportCsvInternalAsync(securityContext, name);
-    }
-
-    @PUT
-    @Path("/name/{name}/import")
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Valid
-    @Operation(
-            operationId = "importDatabaseService",
-            summary = "Import service from CSV to update database service (no creation allowed)",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Import result",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = CsvImportResult.class)))
-            })
-    public CsvImportResult importCsv(
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Name of the Database Service", schema = @Schema(type = "string"))
-            @PathParam("name")
-            String name,
-            @Parameter(
-                    description =
-                            "Dry-run when true is used for validating the CSV without really importing it. (default=true)",
-                    schema = @Schema(type = "boolean"))
-            @DefaultValue("true")
-            @QueryParam("dryRun")
-            boolean dryRun,
-            String csv)
-            throws IOException {
-        return importCsvInternal(securityContext, name, csv, dryRun);
-    }
-
-    @PUT
-    @Path("/name/{name}/importAsync")
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Valid
-    @Operation(
-            operationId = "importDatabaseServiceAsync",
-            summary =
-                    "Import service from CSV to update database service asynchronously (no creation allowed)",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Import initiated successfully",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = CsvImportResult.class)))
-            })
-    public Response importCsvAsync(
-            @Context SecurityContext securityContext,
-            @Parameter(description = "Name of the Database Service", schema = @Schema(type = "string"))
-            @PathParam("name")
-            String name,
-            @Parameter(
-                    description =
-                            "Dry-run when true is used for validating the CSV without really importing it. (default=true)",
-                    schema = @Schema(type = "boolean"))
-            @DefaultValue("true")
-            @QueryParam("dryRun")
-            boolean dryRun,
-            String csv) {
-        return importCsvInternalAsync(securityContext, name, csv, dryRun);
-    }
-
+    /*
     @DELETE
     @Path("/{id}")
     @Operation(
@@ -637,14 +456,9 @@ public class StorageServiceController {
         entity.withConnection(request.getConnection());
         entity.withOwners(request.getOwners());
         entity.withTags(request.getTags());
-        // pipeline 의 경우 Pipeline 관리 쪽에서 처리
+        entity.withPipelines(Collections.emptyList());
         entity.withUpdatedAt(Utilities.getLocalDateTime());
         entity.withUpdatedBy(user);
         return entity;
-    }
-
-    private List<EntityReference> validateOwners(List<EntityReference> owners) {
-        // TODO : 사용자 검증
-        return owners;
     }
 }

@@ -103,7 +103,6 @@ public class KeyCloakAgent {
         return null;
     }
 
-
     public List<User> getUsers() {
         log.info("[KyeCloakClient] getUsers");
         List<User> users = new ArrayList<>();

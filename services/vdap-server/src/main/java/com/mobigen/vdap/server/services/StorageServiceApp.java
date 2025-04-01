@@ -70,22 +70,33 @@ public class StorageServiceApp {
     }
 
     private Specification<StorageServiceEntity> withDynamicConditions(
-            ServiceType kindOfService, StorageServiceType serviceType, Include include) {
+            String id, String name, ServiceType kindOfService, StorageServiceType serviceType, Include include) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            if( id != null ) {
+                predicates.add(criteriaBuilder.equal(root.get("id"), id));
+            }
+            if( name != null ) {
+                predicates.add(criteriaBuilder.equal(root.get("name"), name));
+            }
             // kindOfService가 null이 아닌 경우에만 조건 추가
             if (kindOfService != null) {
-                predicates.add(criteriaBuilder.equal(root.get("kind"), kindOfService.value()));
+                predicates.add(criteriaBuilder.equal(root.get("kind"), kindOfService.toString().toLowerCase()));
             }
 
             // serviceType이 null이 아닌 경우에만 조건 추가
             if (serviceType != null) {
-                predicates.add(criteriaBuilder.equal(root.get("serviceType"), serviceType.value()));
+                predicates.add(criteriaBuilder.equal(root.get("serviceType"), serviceType.toString().toLowerCase()));
             }
 
-            if (include != null && include != Include.ALL) {
-                predicates.add(criteriaBuilder.equal(root.get("deleted"), include.equals(Include.DELETED)));
+            if (include != null) {
+                if( include.equals(Include.DELETED)) {
+                    predicates.add(criteriaBuilder.equal(root.get("deleted"), true));
+                } else if ( include.equals(Include.NON_DELETED)) {
+                    predicates.add(criteriaBuilder.or(criteriaBuilder.isNull(root.get("deleted")),
+                            criteriaBuilder.equal(root.get("deleted"), false)));
+                }
             }
 
             // 조건이 없으면 항상 true를 반환하여 모든 데이터 조회
@@ -102,7 +113,7 @@ public class StorageServiceApp {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
 
         Page<StorageServiceEntity> entities = storageServiceRepository.findAll(
-                withDynamicConditions(kindOfService, serviceType, include), pageable);
+                withDynamicConditions(null, null, kindOfService, serviceType, include), pageable);
         PageModel<StorageService> res = new PageModel<>();
         res.setPage(page);
         res.setSize(size);
@@ -129,30 +140,21 @@ public class StorageServiceApp {
     }
 
     public StorageService getById(URI baseUri, UUID id, String fieldsParam, Include include) {
-        StorageServiceEntity entity = storageServiceRepository.findById(id.toString()).orElse(null);
+        StorageServiceEntity entity = storageServiceRepository.findOne(
+                withDynamicConditions(String.valueOf(id), null, null, null, include)).orElse(null);
         if (entity == null) {
+            log.error("[StorageService] Not Found By Id[{}]", id.toString());
             throw new CustomException("[StorageService] Not Found By Id", id.toString());
-        }
-        if (include != null && include.equals(Include.DELETED)) {
-            if (!entity.getDeleted()) {
-                throw new CustomException(
-                        String.format("[StorageService] Not Found By Id[%s] Include[%s]",
-                                id, include), null);
-            }
         }
         return getInternal(baseUri, entity, fieldsParam);
     }
 
     public StorageService getByName(URI baseUri, String name, String fieldsParam, Include include) {
-        StorageServiceEntity entity = storageServiceRepository.findByName(name).orElse(null);
+        StorageServiceEntity entity = storageServiceRepository.findOne(
+                withDynamicConditions(null, name, null, null, include)).orElse(null);
         if (entity == null) {
+            log.error("[StorageService] Not Found By Name[{}]", name);
             throw new CustomException("[StorageService] Not Found By Name", name);
-        }
-        if (include != null && include.equals(Include.DELETED)) {
-            if (!entity.getDeleted()) {
-                throw new CustomException(
-                        String.format("[StorageService] Not Found By Name[%s] Include[%s]", name, include), null);
-            }
         }
         return getInternal(baseUri, entity, fieldsParam);
     }
@@ -197,13 +199,14 @@ public class StorageServiceApp {
         store(entity, false);
         // 관계(소유자, 태그, ) 저장
         storeRelationships(entity);
-
         // postCreate(entity) // 데이터 저장소는 검색 대상이 아님
         addHref(baseUri, entity);
         return entity;
     }
 
     protected void prepareInternal(StorageService entity) {
+        // TODO : Owner 유효성 검사
+//        validateOwner(entity);
         // TagLabel 유효성 검사
         validateTags(entity);
         // Connection Config 의 Password 필드를 암호화 한다.
@@ -289,7 +292,7 @@ public class StorageServiceApp {
                 log.info("[StorageService] Insert Relationship From - Type[{}] ID[{}] Name[{}]  To - Owner ID[{}] Name[{}]",
                         entity.getServiceType(), entity.getId(), entity.getName(), owner.getId(), owner.getName());
                 relationshipService.addRelationship(
-                        owner.getId(), entity.getId(), Entity.OWNER, Entity.STORAGE_SERVICE, Relationship.OWNS);
+                        owner.getId(), entity.getId(), Entity.USER, Entity.STORAGE_SERVICE, Relationship.OWNS);
             }
         }
     }
@@ -304,23 +307,51 @@ public class StorageServiceApp {
 //
 //    }
 
+    @Transactional
+    public StorageService update(URI baseUri, StorageService entity) {
+        // Get Original Entity
+        StorageServiceEntity originalEntity = storageServiceRepository.findOne(
+                withDynamicConditions(String.valueOf(entity.getId()), null, null, null, null)).orElse(null);
+        if (originalEntity == null) {
+            log.error("[StorageService] Can Not Update. Not Found By Id[{}]", entity.getId().toString());
+            throw new CustomException("[StorageService] Can Not Update. Not Found By Id", entity.getId());
+        }
+
+        // 업데이트 데이터 검증
+        validateTags(entity);
+//        validateOwner(entity);
+
+        // update entity
+//        updateEntity(originalEntity, entity);
+
+
+        // update owner
+
+        // update tags
+
+        // postUpdate(entity) // 데이터 저장소는 검색 대상이 아님
+        addHref(baseUri, entity);
+        return entity;
+    }
+
+
     private StorageService convertToDto(StorageServiceEntity entity) {
         return JsonUtils.readValue(entity.getJson(), StorageService.class);
     }
 
     private void addHref(URI baseUri, StorageService entity) {
         // TODO : Add Href ( Pipeline )
-        entity.getOwners().forEach(owner -> {
+        for( EntityReference owner : CommonUtil.listOrEmpty(entity.getOwners()) ) {
             owner.withHref(RestUtil.getHref(baseUri, "/v1/users", owner.getId()));
-        });
-        entity.getTags().forEach(tag -> {
+        }
+        for( TagLabel tag : CommonUtil.listOrEmpty(entity.getTags()) ) {
             if (tag.getSource().equals(TagLabel.TagSource.CLASSIFICATION)) {
                 tag.withHref(RestUtil.getHref(baseUri, RestUtil.getControllerBasePath(TagController.class), tag.getId()));
             }
 //            else {
 //                tag.withHref(RestUtil.getHref(baseUri, RestUtil.getControllerBasePath(GlossaryTerm.class), tag.getId()));
 //            }
-        });
+        }
         entity.withHref(RestUtil.getHref(baseUri, RestUtil.getControllerBasePath(StorageServiceController.class), entity.getId()));
     }
 

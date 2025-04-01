@@ -22,7 +22,7 @@
       "$ref": "#/definitions/minioType",
       "default": "MinIO"
     },
-    "credentialsConfig": {
+    "minioConfig": {
       "title": "Credentials Configuration",
       "$ref": "../../../../security/credentials/minioCredentials.json"
     },
