@@ -162,7 +162,7 @@ public class ClassificationService {
         // 링크정보 제외
         original.setHref(null);
         // 동기화 및 비교 대상에서 제외된 데이터 외 데이터들을 이용해 JSON Diff 를 수행
-        String patch = JsonUtils.diff(JsonUtils.pojoToJson(original), JsonUtils.pojoToJson(updated));
+        String patch = JsonUtils.pojoToJson(JsonUtils.getJsonPatch(original, updated));
         log.debug("[Classification] ID[{}] Name[{}] Json Diff - \n{}",
                 original.getId().toString(), original.getName(), patch);
         // 변경된 데이터 저장을 위해 정보 설정

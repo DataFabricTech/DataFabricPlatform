@@ -189,7 +189,7 @@ public class TagService {
         // MutuallyExclusive 는 업데이트 되지 않음.
         updated.setMutuallyExclusive(original.getMutuallyExclusive());
         // JSON 을 이용한 데이터 비교
-        String patch = JsonUtils.diff(JsonUtils.pojoToJson(original), JsonUtils.pojoToJson(updated));
+        String patch = JsonUtils.pojoToJson(JsonUtils.getJsonPatch(original, updated));
         log.debug("[Tag] ID[{}] Name[{}] Json Diff - \n{}", original.getId().toString(), original.getName(), patch);
         // 데이터 원복
         updated.setUpdatedAt(updatedAt);

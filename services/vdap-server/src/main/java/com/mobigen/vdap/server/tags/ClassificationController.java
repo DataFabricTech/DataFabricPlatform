@@ -254,13 +254,6 @@ public class ClassificationController {
             description = "Delete a classification and all the tags under it.")
     @CommonResponseAnnotation
     public Object delete(
-            @Parameter(
-                    description = "Recursively delete this entity and it's children. (Default `false`)")
-            @RequestParam(value = "recursive", defaultValue = "false", required = false)
-            boolean recursive,
-            @Parameter(description = "Hard delete the entity. (Default = `false`)")
-            @RequestParam(value = "hardDelete", defaultValue = "false", required = false)
-            boolean hardDelete,
             @Parameter(description = "Id of the classification", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
         log.info("[Classification] Delete By ID[{}]", id);

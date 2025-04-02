@@ -6,9 +6,10 @@ import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
 import com.mobigen.vdap.schema.entity.services.connections.TestConnectionResult;
 import com.mobigen.vdap.schema.type.CommonResponse;
-import com.mobigen.vdap.schema.type.EntityReference;
 import com.mobigen.vdap.schema.type.Include;
+import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
+import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.users.UserService;
 import com.mobigen.vdap.server.util.Utilities;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +23,10 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Tag(
@@ -99,12 +103,12 @@ public class StorageServiceController {
         return service.list(Utilities.getBaseUri(request), kindOfService, serviceType, fields, page, size, include);
     }
 
+    // POST Update
+    // PATCH /{id} -> /{id}/update
+
     // GET /{id}/versions
     // GET /{id}/versions/{version}
-    // PUT CreateOrUpdate
     // PUT /{id}/testConnectionResult
-    // PATCH /{id} -> /{id}/update
-    // PATCH /{fqn} -> /{id}/update
     // DELETE /{id} -> POST /{id}/delete
     // DELETE /{fqn} -> POST /{id}/delete
     // PUT /restore -> POST /restore
@@ -325,7 +329,7 @@ public class StorageServiceController {
         return service.create(Utilities.getBaseUri(request), storage);
     }
 
-    @PostMapping("/update")
+    @PostMapping("/{id}/update")
     @Operation(
             operationId = "UpdateStorageService",
             summary = "Update data storage service",
@@ -343,76 +347,139 @@ public class StorageServiceController {
     @CommonResponseAnnotation
     public Object update(
             HttpServletRequest request,
+            @Parameter(
+                    description = "Id of the storage service",
+                    schema = @Schema(type = "UUID"))
+            @PathVariable("id") UUID id,
             @Valid @RequestBody CreateStorageService update) {
         // TODO : 요청 사용자 정보 처리
         StorageService storageService = createToEntity(update, "admin");
+        storageService.withId(id);
         return service.update(Utilities.getBaseUri(request), storageService);
     }
 
-    /*
-    @DELETE
-    @Path("/{id}")
+    public static class TagLabelList extends ArrayList<TagLabel> {
+        /* For RestAPI Doc */
+    }
+
+    @PostMapping("/{id}/update/tags")
     @Operation(
-            operationId = "deleteDatabaseService",
-            summary = "Delete a database service by Id",
+            operationId = "UpdateStorageServiceTags",
+            summary = "Update tags of data storage service",
+            description = "Update tags of data storage service.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "List of TagLabel",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = TagLabelList.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request")
+            })
+    @CommonResponseAnnotation
+    public Object updateTag(
+            HttpServletRequest request,
+            @Parameter(
+                    description = "Id of the storage service",
+                    schema = @Schema(type = "UUID"))
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody List<TagLabel> tagLabels) {
+        if (CommonUtil.nullOrEmpty(tagLabels)) {
+            log.error("[StorageService] Update Tags Error : tagLabels is empty");
+            throw new CustomException("Can not update tags of data storage service : " + id.toString(), tagLabels);
+        }
+        // TODO : 요청 사용자 정보 처리
+        return service.updateTags(Utilities.getBaseUri(request), id, TagLabel.TagSource.CLASSIFICATION, tagLabels, "admin");
+    }
+
+    @PostMapping("/{id}/update/terms")
+    @Operation(
+            operationId = "UpdateStorageServiceGlossaryTerms",
+            summary = "Update glossary terms of data storage service",
+            description = "Update an glossary terms of data storage service.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "List of TagLabel",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = TagLabelList.class))),
+                    @ApiResponse(responseCode = "400", description = "Bad request")
+            })
+    @CommonResponseAnnotation
+    public Object updateGlossaryTerms(
+            HttpServletRequest request,
+            @Parameter(
+                    description = "Id of the data storage service",
+                    schema = @Schema(type = "UUID"))
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody List<TagLabel> tagLabels) {
+        if (CommonUtil.nullOrEmpty(tagLabels)) {
+            log.error("[StorageService] Update Glossary Terms Error : tagLabels is empty");
+            throw new CustomException("Can not update tags of data storage service : " + id.toString(), tagLabels);
+        }
+        // TODO : 요청 사용자 정보 처리
+        return service.updateTags(Utilities.getBaseUri(request), id, TagLabel.TagSource.GLOSSARY, tagLabels, "admin");
+    }
+
+    @PostMapping("/{id}/delete")
+    @Operation(
+            operationId = "deleteStorageServiceById",
+            summary = "Delete a data storage service by Id",
             description =
-                    "Delete a database services. If databases (and tables) belong the service, it can't be deleted.",
+                    "Delete a data storage services. If child(database(tables), bucket(file)) belong the service, it can't be deleted.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(
                             responseCode = "404",
-                            description = "DatabaseService service for instance {id} is not found")
+                            description = "StorageService instance is not found form {id}")
             })
-    public Response delete(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Parameter(
-                    description = "Recursively delete this entity and it's children. (Default `false`)")
-            @DefaultValue("false")
-            @QueryParam("recursive")
+    @CommonResponseAnnotation
+    public Object deleteById(
+            HttpServletRequest request,
+            @Parameter(description = "Recursively delete this entity and it's children. (Default `false`)")
+            @RequestParam(name = "recursive", defaultValue = "false")
             boolean recursive,
             @Parameter(description = "Hard delete the entity. (Default = `false`)")
-            @QueryParam("hardDelete")
-            @DefaultValue("false")
+            @RequestParam(name = "hardDelete", defaultValue = "false")
             boolean hardDelete,
-            @Parameter(description = "Id of the database service", schema = @Schema(type = "UUID"))
-            @PathParam("id")
-            UUID id) {
-        return delete(uriInfo, securityContext, id, recursive, hardDelete);
+            @Parameter(description = "Id of the data storage service", schema = @Schema(type = "UUID"))
+            @PathVariable("id") UUID id) {
+//        service.deleteById(Utilities.getBaseUri(request), id, recursive, hardDelete);
+        return "success";
     }
 
-    @DELETE
-    @Path("/name/{name}")
+    @PostMapping("/name/{name}/delete")
     @Operation(
-            operationId = "deleteDatabaseServiceByName",
-            summary = "Delete a database service by name",
+            operationId = "deleteStorageServiceByName",
+            summary = "Delete a storage service by name",
             description =
-                    "Delete a database services by `name`. If databases (and tables) belong the service, it can't be "
+                    "Delete a data storage services by `name`. If child(databases(tables), bucket(file)) belong the service, it can't be "
                             + "deleted.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(
                             responseCode = "404",
-                            description = "DatabaseService service for instance {name} is not found")
+                            description = "StorageService instance {name} is not found")
             })
-    public Response delete(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
+    @CommonResponseAnnotation
+    public Object delete(
+            HttpServletRequest request,
             @Parameter(description = "Hard delete the entity. (Default = `false`)")
-            @QueryParam("hardDelete")
-            @DefaultValue("false")
+            @RequestParam(name = "hardDelete", defaultValue = "false")
             boolean hardDelete,
-            @Parameter(
-                    description = "Recursively delete this entity and it's children. (Default `false`)")
-            @QueryParam("recursive")
-            @DefaultValue("false")
+            @Parameter(description = "Recursively delete this entity and it's children. (Default `false`)")
+            @RequestParam(name = "recursive", defaultValue = "false")
             boolean recursive,
             @Parameter(description = "Name of the database service", schema = @Schema(type = "string"))
-            @PathParam("name")
-            String name) {
-        return deleteByName(uriInfo, securityContext, name, recursive, hardDelete);
+            @PathVariable("name") String name) {
+//        service.deleteByName(Utilities.getBaseUri(request), name, recursive, hardDelete);
+        return "success";
     }
 
+    /*
     @PUT
     @Path("/restore")
     @Operation(
@@ -445,6 +512,7 @@ public class StorageServiceController {
         return service.getServiceType().value();
     }
     */
+
     public StorageService createToEntity(CreateStorageService request, String user) {
         StorageService entity = new StorageService();
         entity.withId(Utilities.generateUUID());
@@ -454,8 +522,8 @@ public class StorageServiceController {
         entity.withDisplayName(request.getDisplayName());
         entity.withDescription(request.getDescription());
         entity.withConnection(request.getConnection());
-        entity.withOwners(request.getOwners());
-        entity.withTags(request.getTags());
+        entity.withOwners(request.getOwners() == null ? Collections.emptyList() : request.getOwners());
+        entity.withTags(request.getTags() == null ? Collections.emptyList() : request.getTags());
         entity.withPipelines(Collections.emptyList());
         entity.withUpdatedAt(Utilities.getLocalDateTime());
         entity.withUpdatedBy(user);
