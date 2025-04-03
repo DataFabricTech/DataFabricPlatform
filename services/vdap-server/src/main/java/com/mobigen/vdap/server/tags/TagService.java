@@ -8,11 +8,10 @@ import com.mobigen.vdap.server.entity.EntityExtension;
 import com.mobigen.vdap.server.entity.RelationshipEntity;
 import com.mobigen.vdap.server.entity.TagEntity;
 import com.mobigen.vdap.server.exception.CustomException;
+import com.mobigen.vdap.server.extensions.ExtensionService;
 import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.relationship.RelationshipService;
 import com.mobigen.vdap.server.relationship.TagUsageService;
-import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
-import com.mobigen.vdap.server.relationship.TagUsageRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
@@ -38,16 +37,16 @@ public class TagService {
     private final TagLabelUtil tagLabelUtil;
     private final TagUsageService tagUsageService;
     private final RelationshipService relationshipService;
-    private final EntityExtensionRepository entityExtensionRepository;
+    private final ExtensionService extensionService;
 
     public TagService(TagRepository tagRepository,
-                      TagLabelUtil tagLabelUtil, TagUsageService tagUsageService, RelationshipService relationshipService,
-                      EntityExtensionRepository entityExtensionRepository) {
+                      TagLabelUtil tagLabelUtil, TagUsageService tagUsageService,
+                      RelationshipService relationshipService, ExtensionService extensionService) {
         this.tagRepository = tagRepository;
         this.tagLabelUtil = tagLabelUtil;
         this.tagUsageService = tagUsageService;
         this.relationshipService = relationshipService;
-        this.entityExtensionRepository = entityExtensionRepository;
+        this.extensionService = extensionService;
         this.allowedFields = Entity.getEntityFields(Tag.class);
     }
 
@@ -255,12 +254,7 @@ public class TagService {
         String extensionName = EntityUtil.getVersionExtension(Entity.TAG, tag.getVersion());
         log.info("[Tag] ID[{}] Name[{}] Store Version History Version[{}]",
                 tag.getId().toString(), tag.getName(), extensionName);
-        EntityExtension extension = EntityExtension.builder()
-                .id(tag.getId().toString())
-                .extension(extensionName)
-                .entityType(Entity.TAG)
-                .json(JsonUtils.pojoToJson(tag)).build();
-        entityExtensionRepository.save(extension);
+        extensionService.addExtension(tag.getId().toString(), extensionName, Entity.TAG, tag);
     }
 
     // listVersions : tag 의 버전 히스토리를 반환
@@ -272,9 +266,7 @@ public class TagService {
         }
         // id 와 extension(tag.versions.%) 을 이용해 검색
         String extensionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.TAG);
-        List<EntityExtension> histories =
-                entityExtensionRepository.findByIdAndExtensionStartingWith(id.toString(),
-                        extensionPrefix + ".", Sort.by(Sort.Order.desc(Entity.FIELD_EXTENSION)));
+        List<EntityExtension> histories = extensionService.getExtensions(id.toString(), extensionPrefix + ".");
         final List<Object> allVersions = new ArrayList<>();
         // Add Latest(Current)
         allVersions.add(JsonUtils.pojoToJson(convertToDto(tagEntity.get())));
@@ -288,9 +280,9 @@ public class TagService {
         Double requestedVersion = Double.parseDouble(version);
         String extension = EntityUtil.getVersionExtension(Entity.TAG, requestedVersion);
         // 버전 히스토리에서 요청한 버전을 검색
-        Optional<EntityExtension> entity = entityExtensionRepository.findByIdAndExtension(id.toString(), extension);
-        if (entity.isPresent()) {
-            return JsonUtils.readValue(entity.get().getJson(), Tag.class);
+        EntityExtension entity = extensionService.getExtension(id.toString(), extension);
+        if (entity != null) {
+            return JsonUtils.readValue(entity.getJson(), Tag.class);
         }
         // 히스토리에서 찾을 수 없는 경우 최신 버전을 확인
         Optional<TagEntity> tagEntity = tagRepository.findById(id.toString());
@@ -333,7 +325,7 @@ public class TagService {
         // Delete the extension data
         log.info("[Tag] ID[{}] Name[{}] Delete Extension Data By ID", tag.getId().toString(), tag.getName());
         String versionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.TAG);
-        entityExtensionRepository.deleteByIdAndExtensionStartingWith(tag.getId().toString(), versionPrefix + ".");
+        extensionService.deleteExtensions(tag.getId().toString(), versionPrefix + ".");
         // Delete the usage data
         log.info("[Tag] ID[{}] Name[{}] Delete Tag Usage Data By TagId", tag.getId().toString(), tag.getName());
 //        tagUsageRepository.deleteByTagId(tag.getId().toString());

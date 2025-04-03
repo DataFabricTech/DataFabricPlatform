@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RelationshipRepository extends JpaRepository<RelationshipEntity, RelationshipId>, JpaSpecificationExecutor<RelationshipEntity> {
+public interface RelationshipRepository extends JpaRepository<RelationshipEntity, RelationshipId>,
+        JpaSpecificationExecutor<RelationshipEntity> {
     List<RelationshipEntity> findByToIdAndToEntityAndRelation(String toId, String toEntity, Integer relation);
 }

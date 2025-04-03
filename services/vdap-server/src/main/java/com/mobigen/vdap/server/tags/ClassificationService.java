@@ -10,10 +10,10 @@ import com.mobigen.vdap.server.entity.ClassificationEntity;
 import com.mobigen.vdap.server.entity.EntityExtension;
 import com.mobigen.vdap.server.entity.RelationshipEntity;
 import com.mobigen.vdap.server.exception.CustomException;
+import com.mobigen.vdap.server.extensions.ExtensionService;
 import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.relationship.RelationshipService;
 import com.mobigen.vdap.server.relationship.TagUsageService;
-import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.Fields;
 import com.mobigen.vdap.server.util.JsonUtils;
@@ -36,18 +36,19 @@ public class ClassificationService {
     private final Set<String> allowFields;
     private final ClassificationRepository classificationRepository;
     private final RelationshipService relationshipService;
-    private final EntityExtensionRepository entityExtensionRepository;
     private final TagService tagService;
     private final TagUsageService tagUsageService;
+    private final ExtensionService extensionService;
 
-    public ClassificationService(ClassificationRepository classificationRepository, RelationshipService relationshipService, TagService tagService,
-                                 EntityExtensionRepository entityExtensionRepository, TagUsageService tagUsageService) {
+    public ClassificationService(ClassificationRepository classificationRepository,
+                                 RelationshipService relationshipService, TagService tagService,
+                                 TagUsageService tagUsageService, ExtensionService extensionService) {
         this.classificationRepository = classificationRepository;
         this.relationshipService = relationshipService;
         this.tagService = tagService;
-        this.entityExtensionRepository = entityExtensionRepository;
         this.tagUsageService = tagUsageService;
         allowFields = Entity.getEntityFields(Classification.class);
+        this.extensionService = extensionService;
     }
 
     private Fields getFields(String fields) {
@@ -202,12 +203,8 @@ public class ClassificationService {
         String extensionName = EntityUtil.getVersionExtension(Entity.CLASSIFICATION, classification.getVersion());
         log.info("[Classification] ID[{}] Name[{}] Save Extension Name(Version)[{}]",
                 classification.getId().toString(), classification.getName(), extensionName);
-        EntityExtension extension = EntityExtension.builder()
-                .id(classification.getId().toString())
-                .extension(extensionName)
-                .entityType(Entity.CLASSIFICATION)
-                .json(JsonUtils.pojoToJson(classification)).build();
-        entityExtensionRepository.save(extension);
+        extensionService.addExtension(
+                classification.getId().toString(), extensionName, Entity.CLASSIFICATION, classification);
     }
 
     // listVersions : classification 의 버전 히스토리를 반환
@@ -219,9 +216,7 @@ public class ClassificationService {
         }
         // id 와 extension(tag.versions.%) 을 이용해 검색
         String extensionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.CLASSIFICATION);
-        List<EntityExtension> histories =
-                entityExtensionRepository.findByIdAndExtensionStartingWith(id.toString(),
-                        extensionPrefix + ".", Sort.by(Sort.Order.desc(Entity.FIELD_EXTENSION)));
+        List<EntityExtension> histories = extensionService.getExtensions(id.toString(), extensionPrefix + ".");
         final List<Object> allVersions = new ArrayList<>();
         // Add Latest(Current)
         allVersions.add(JsonUtils.pojoToJson(convertToDto(classificationEntity.get())));
@@ -236,9 +231,9 @@ public class ClassificationService {
         Double requestedVersion = Double.parseDouble(version);
         String extension = EntityUtil.getVersionExtension(Entity.CLASSIFICATION, requestedVersion);
         // 버전 히스토리에서 요청한 버전을 검색
-        Optional<EntityExtension> entity = entityExtensionRepository.findByIdAndExtension(id.toString(), extension);
-        if (entity.isPresent()) {
-            return JsonUtils.readValue(entity.get().getJson(), Classification.class);
+        EntityExtension entity = extensionService.getExtension(id.toString(), extension);
+        if (entity != null) {
+            return JsonUtils.readValue(entity.getJson(), Classification.class);
         }
         // 히스토리에서 찾을 수 없는 경우 최신 버전을 확인
         Optional<ClassificationEntity> classificationEntity = classificationRepository.findById(id.toString());
@@ -327,7 +322,7 @@ public class ClassificationService {
         log.info("[Classification] ID[{}] Name[{}] Delete Extension Data By ID",
                 classification.getId().toString(), classification.getName());
         String versionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.CLASSIFICATION);
-        entityExtensionRepository.deleteByIdAndExtensionStartingWith(classification.getId().toString(), versionPrefix + ".");
+        extensionService.deleteExtensions(classification.getId().toString(), versionPrefix + ".");
         // Finally, delete the entity
         log.info("[Classification] Id[{}] Name[{}] Finally Delete", classification.getId().toString(), classification.getName());
         classificationRepository.deleteById(classification.getId().toString());
