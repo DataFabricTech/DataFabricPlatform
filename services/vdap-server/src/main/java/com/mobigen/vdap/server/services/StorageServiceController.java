@@ -1,31 +1,32 @@
 package com.mobigen.vdap.server.services;
 
-import com.mobigen.vdap.common.utils.CommonUtil;
+import com.github.fge.jsonpatch.JsonPatch;
 import com.mobigen.vdap.schema.api.services.CreateStorageService;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
 import com.mobigen.vdap.schema.entity.services.connections.TestConnectionResult;
 import com.mobigen.vdap.schema.type.CommonResponse;
 import com.mobigen.vdap.schema.type.Include;
-import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.server.annotations.CommonResponseAnnotation;
-import com.mobigen.vdap.server.exception.CustomException;
 import com.mobigen.vdap.server.users.UserService;
+import com.mobigen.vdap.server.util.JsonUtils;
 import com.mobigen.vdap.server.util.Utilities;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -98,19 +99,16 @@ public class StorageServiceController {
                     schema = @Schema(implementation = Include.class, defaultValue = "non-deleted"))
             @RequestParam(value = "include", required = false, defaultValue = "non-deleted")
             Include include) {
-        log.info("[StorageService] Get List Kind[{}], ServiceType[{}], Fields[{}], Page[{}], Size[{}]",
+        log.info("[StorageService] Get List");
+        log.debug("[StorageService] Get List Kind[{}], ServiceType[{}], Fields[{}], Page[{}], Size[{}]",
                 kindOfService, serviceType, fields, page, size);
         return service.list(Utilities.getBaseUri(request), kindOfService, serviceType, fields, page, size, include);
     }
 
-    // POST Update
-    // PATCH /{id} -> /{id}/update
-
     // GET /{id}/versions
     // GET /{id}/versions/{version}
     // PUT /{id}/testConnectionResult
-    // DELETE /{id} -> POST /{id}/delete
-    // DELETE /{fqn} -> POST /{id}/delete
+
     // PUT /restore -> POST /restore
 
     @GetMapping("/{id}")
@@ -321,6 +319,10 @@ public class StorageServiceController {
     public Object create(
             HttpServletRequest request,
             @Valid @RequestBody CreateStorageService create) {
+
+        log.info("[StorageService] Create");
+        log.debug("[StorageService] CreateStorageService Data -\n{}", JsonUtils.pojoToJson(create, true));
+
         // TODO : 요청 사용자 정보 처리
         // String userId = header.get("X-VDAP-User-Id");
         // String userName = header.get("X-VDAP-User-Name");
@@ -352,76 +354,43 @@ public class StorageServiceController {
                     schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id,
             @Valid @RequestBody CreateStorageService update) {
+        log.info("[StorageService] Update");
+        log.debug("[StorageService] UpdateStorageService Data -\n{}", JsonUtils.pojoToJson(update, true));
         // TODO : 요청 사용자 정보 처리
         StorageService storageService = createToEntity(update, "admin");
         storageService.withId(id);
         return service.update(Utilities.getBaseUri(request), storageService);
     }
 
-    public static class TagLabelList extends ArrayList<TagLabel> {
-        /* For RestAPI Doc */
-    }
-
-    @PostMapping("/{id}/update/tags")
+    @PostMapping("/{id}/patch")
     @Operation(
-            operationId = "UpdateStorageServiceTags",
-            summary = "Update tags of data storage service",
-            description = "Update tags of data storage service.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "List of TagLabel",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = TagLabelList.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request")
-            })
-    @CommonResponseAnnotation
-    public Object updateTag(
+            operationId = "patchStorageService",
+            summary = "Update a data storage service",
+            description = "Update an existing data storage service using JsonPatch.",
+            externalDocs =
+            @ExternalDocumentation(
+                    description = "JsonPatch RFC",
+                    url = "https://tools.ietf.org/html/rfc6902")
+    )
+    public Object patch(
             HttpServletRequest request,
             @Parameter(
                     description = "Id of the storage service",
                     schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id,
-            @Valid @RequestBody List<TagLabel> tagLabels) {
-        if (CommonUtil.nullOrEmpty(tagLabels)) {
-            log.error("[StorageService] Update Tags Error : tagLabels is empty");
-            throw new CustomException("Can not update tags of data storage service : " + id.toString(), tagLabels);
-        }
-        // TODO : 요청 사용자 정보 처리
-        return service.updateTags(Utilities.getBaseUri(request), id, TagLabel.TagSource.CLASSIFICATION, tagLabels, "admin");
-    }
-
-    @PostMapping("/{id}/update/terms")
-    @Operation(
-            operationId = "UpdateStorageServiceGlossaryTerms",
-            summary = "Update glossary terms of data storage service",
-            description = "Update an glossary terms of data storage service.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "List of TagLabel",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = TagLabelList.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad request")
-            })
-    @CommonResponseAnnotation
-    public Object updateGlossaryTerms(
-            HttpServletRequest request,
             @Parameter(
-                    description = "Id of the data storage service",
-                    schema = @Schema(type = "UUID"))
-            @PathVariable("id") UUID id,
-            @Valid @RequestBody List<TagLabel> tagLabels) {
-        if (CommonUtil.nullOrEmpty(tagLabels)) {
-            log.error("[StorageService] Update Glossary Terms Error : tagLabels is empty");
-            throw new CustomException("Can not update tags of data storage service : " + id.toString(), tagLabels);
-        }
+                    description = "JsonPatch with array of operations",
+                    content =
+                    @Content(
+                            mediaType = MediaType.APPLICATION_JSON_PATCH_JSON,
+                            examples = {
+                                    @ExampleObject("[{op:remove, path:/a},{op:add, path: /b, value: val}]")
+                            }
+                    )
+            )
+            @RequestBody JsonPatch patch) {
         // TODO : 요청 사용자 정보 처리
-        return service.updateTags(Utilities.getBaseUri(request), id, TagLabel.TagSource.GLOSSARY, tagLabels, "admin");
+        return service.patch(Utilities.getBaseUri(request), id, patch, "admin");
     }
 
     @PostMapping("/{id}/delete")
@@ -447,7 +416,7 @@ public class StorageServiceController {
             boolean hardDelete,
             @Parameter(description = "Id of the data storage service", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
-//        service.deleteById(Utilities.getBaseUri(request), id, recursive, hardDelete);
+        service.deleteById(id, recursive, hardDelete, "admin");
         return "success";
     }
 
@@ -475,43 +444,30 @@ public class StorageServiceController {
             boolean recursive,
             @Parameter(description = "Name of the database service", schema = @Schema(type = "string"))
             @PathVariable("name") String name) {
-//        service.deleteByName(Utilities.getBaseUri(request), name, recursive, hardDelete);
+        service.deleteByName(name, recursive, hardDelete, "admin");
         return "success";
     }
 
-    /*
-    @PUT
-    @Path("/restore")
-    @Operation(
-            operationId = "restore",
-            summary = "Restore a soft deleted database service",
-            description = "Restore a soft deleted database service.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successfully restored the DatabaseService.",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = DatabaseService.class)))
-            })
-    public Response restoreDatabaseService(
-            @Context UriInfo uriInfo,
-            @Context SecurityContext securityContext,
-            @Valid RestoreEntity restore) {
-        return restoreEntity(uriInfo, securityContext, restore.getId());
-    }
-
-    @Override
-    protected DatabaseService nullifyConnection(DatabaseService service) {
-        return service.withConnection(null);
-    }
-
-    @Override
-    protected String extractServiceType(DatabaseService service) {
-        return service.getServiceType().value();
-    }
-    */
+//    @PostMapping("/{id}/restore")
+//    @Operation(
+//            operationId = "restore",
+//            summary = "Restore a soft deleted database service",
+//            description = "Restore a soft deleted database service.",
+//            responses = {
+//                    @ApiResponse(
+//                            responseCode = "200",
+//                            description = "Successfully restored the DatabaseService.",
+//                            content =
+//                            @Content(
+//                                    mediaType = "application/json",
+//                                    schema = @Schema(implementation = DatabaseService.class)))
+//            })
+//    public Response restoreDatabaseService(
+//            @Context UriInfo uriInfo,
+//            @Context SecurityContext securityContext,
+//            @Valid RestoreEntity restore) {
+//        return restoreEntity(uriInfo, securityContext, restore.getId());
+//    }
 
     public StorageService createToEntity(CreateStorageService request, String user) {
         StorageService entity = new StorageService();
@@ -525,6 +481,7 @@ public class StorageServiceController {
         entity.withOwners(request.getOwners() == null ? Collections.emptyList() : request.getOwners());
         entity.withTags(request.getTags() == null ? Collections.emptyList() : request.getTags());
         entity.withPipelines(Collections.emptyList());
+//        entity.withTestConnectionResult()
         entity.withUpdatedAt(Utilities.getLocalDateTime());
         entity.withUpdatedBy(user);
         return entity;

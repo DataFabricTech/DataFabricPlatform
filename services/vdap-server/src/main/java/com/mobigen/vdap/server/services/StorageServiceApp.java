@@ -1,21 +1,23 @@
 package com.mobigen.vdap.server.services;
 
+import com.github.fge.jsonpatch.JsonPatch;
 import com.mobigen.vdap.common.utils.CommonUtil;
 import com.mobigen.vdap.schema.entity.services.ServiceType;
 import com.mobigen.vdap.schema.entity.services.StorageService;
 import com.mobigen.vdap.schema.entity.services.StorageService.StorageServiceType;
-import com.mobigen.vdap.schema.entity.services.connections.TestConnectionResult;
-import com.mobigen.vdap.schema.type.*;
+import com.mobigen.vdap.schema.type.EntityReference;
+import com.mobigen.vdap.schema.type.Include;
+import com.mobigen.vdap.schema.type.Relationship;
+import com.mobigen.vdap.schema.type.TagLabel;
 import com.mobigen.vdap.server.Entity;
-import com.mobigen.vdap.server.entity.EntityExtension;
 import com.mobigen.vdap.server.entity.RelationshipEntity;
 import com.mobigen.vdap.server.entity.StorageServiceEntity;
 import com.mobigen.vdap.server.entity.TagUsageEntity;
 import com.mobigen.vdap.server.exception.CustomException;
+import com.mobigen.vdap.server.extensions.ExtensionService;
 import com.mobigen.vdap.server.models.PageModel;
 import com.mobigen.vdap.server.relationship.RelationshipService;
 import com.mobigen.vdap.server.relationship.TagUsageService;
-import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
 import com.mobigen.vdap.server.secrets.SecretsManager;
 import com.mobigen.vdap.server.tags.TagController;
 import com.mobigen.vdap.server.tags.TagLabelUtil;
@@ -48,17 +50,17 @@ public class StorageServiceApp {
     private final TagLabelUtil tagLabelUtil;
     private final TagUsageService tagUsageService;
     private final RelationshipService relationshipService;
-    private final EntityExtensionRepository entityExtensionRepository;
+    private final ExtensionService extensionService;
 
     public StorageServiceApp(StorageServiceRepository storageServiceRepository,
                              UserService userService, TagLabelUtil tagLabelUtil, TagUsageService tagUsageService,
-                             RelationshipService relationshipService, EntityExtensionRepository entityExtensionRepository) {
+                             RelationshipService relationshipService, ExtensionService extensionService) {
         this.storageServiceRepository = storageServiceRepository;
         this.tagLabelUtil = tagLabelUtil;
         this.userService = userService;
         this.tagUsageService = tagUsageService;
         this.relationshipService = relationshipService;
-        this.entityExtensionRepository = entityExtensionRepository;
+        this.extensionService = extensionService;
         allowFields = Entity.getEntityFields(StorageService.class);
     }
 
@@ -260,6 +262,7 @@ public class StorageServiceApp {
                 .json(JsonUtils.pojoToJson(entity))
                 .updatedAt(entity.getUpdatedAt())
                 .updatedBy(entity.getUpdatedBy())
+                .deleted(entity.getDeleted())
                 .build();
 
         if (update) {
@@ -304,180 +307,129 @@ public class StorageServiceApp {
     }
 
     @Transactional
-    public StorageService update(URI baseUri, StorageService entity) {
+    public StorageService update(URI baseUri, StorageService updated) {
         // Get Original Entity
         StorageServiceEntity originalEntity = storageServiceRepository.findOne(
-                withDynamicConditions(String.valueOf(entity.getId()), null, null, null, null)).orElse(null);
+                withDynamicConditions(String.valueOf(updated.getId()), null, null, null, null)).orElse(null);
         if (originalEntity == null) {
-            log.error("[StorageService] Can Not Update. Not Found By Id[{}]", entity.getId().toString());
-            throw new CustomException("[StorageService] Can Not Update. Not Found By Id", entity.getId());
+            log.error("[StorageService] Can Not Update. Not Found By Id[{}]", updated.getId().toString());
+            throw new CustomException("[StorageService] Can Not Update. Not Found By Id", updated.getId());
         }
-        // update
-        updateInternal(baseUri, originalEntity, entity);
-        addHref(baseUri, entity);
-        return entity;
-    }
-
-    private void updateInternal(URI baseUri,
-                                StorageServiceEntity originalEntity, StorageService updateService) {
+        // 업데이트 데이터 검증
+        prepareInternal(updated);
         // Entity -> DTO
         StorageService originalService = convertToDto(originalEntity);
-        // 변경 불가 정보 복사
-        updateService.setId(originalService.getId());
-        updateService.setKindOfService(originalService.getKindOfService());
-        updateService.setServiceType(originalService.getServiceType());
-
-        // 비교 대상이 아닌 데이터는 null 처리
-        LocalDateTime orgUpdatedAt = originalService.getUpdatedAt();
-        LocalDateTime updatedAt = updateService.getUpdatedAt();
-        originalEntity.setUpdatedAt(null);
-        updateService.setUpdatedAt(null);
-        String orgChangeDescription = originalService.getChangeDescription();
-        originalService.setChangeDescription(null);
-        updateService.setChangeDescription(null);
-        Double orgVersion = originalService.getVersion();
-        originalService.setVersion(null);
-        updateService.setVersion(null);
-        TestConnectionResult originalConnectionTestResult = originalService.getTestConnectionResult();
-        originalService.setTestConnectionResult(null);
-        TestConnectionResult connectionResult = updateService.getTestConnectionResult();
-        updateService.setTestConnectionResult(null);
-        originalService.setHref(null);
-        updateService.setHref(null);
-
-        // Connection 의 경우 복호화 후 비교
-        StorageConnection originalConnection = JsonUtils.deepCopy(originalService.getConnection(), StorageConnection.class);
-        if( updateService.getConnection() == null ) {
-            log.debug("[StorageService] Update Storage Service ID[{}] Name[{}] Connection is null, skip",
-                    originalService.getId(), originalService.getName());
-            originalService.withConnection(null);
-        } else {
-            originalService.getConnection().setConfig(
-                    new SecretsManager().decryptServiceConnectionConfig(
-                            originalService.getConnection().getConfig(),
-                            originalService.getServiceType().value(),
-                            originalService.getName(),
-                            originalService.getKindOfService()));
-        }
-
-        String patch = JsonUtils.pojoToJson(JsonUtils.getJsonPatch(originalService, updateService));
-        log.debug("[StorageService] Update Storage Service ID[{}] Name[{}] JsonPatch - \n{}",
-                originalService.getId().toString(), originalService.getName(), patch);
-
-        // 저장했던 데이터 복구
-        updateService.setUpdatedAt(updatedAt);
-        updateService.setVersion(EntityUtil.nextVersion(orgVersion));
-        updateService.setChangeDescription(patch);
-        updateService.setTestConnectionResult(connectionResult);
-        if( updateService.getConnection() == null ) {
-            updateService.setConnection(originalConnection);
-        } else {
-            prepare(updateService);
-        }
-        // 저장
-        store(updateService, true);
-
-        // 기존 데이터 복구 후 히스토리에 저장
-        originalService.setUpdatedAt(orgUpdatedAt);
-        originalService.setChangeDescription(orgChangeDescription);
-        originalService.setVersion(orgVersion);
-        originalService.setTestConnectionResult(originalConnectionTestResult);
-        originalService.setConnection(originalConnection);
-        storeEntityHistory(originalService);
+        // PipeLine 을 제외한 모든 필드 정보 로드
+        setFields(originalService, getFields("*"));
+        // 데이터 비교와 저장
+        updateInternal(originalService, updated);
+        addHref(baseUri, updated);
+        return updated;
     }
 
     @Transactional
-    public StorageService updateTags(URI baseUri, UUID id,
-                                     TagLabel.TagSource source, List<TagLabel> tags, String updatedBy) {
-        StorageServiceEntity entity = storageServiceRepository.findOne(
-                withDynamicConditions(String.valueOf(id), null, null, null, null)).orElse(null);
-        if (entity == null) {
-            log.error("[StorageService] Can Not Update Labels(Tag, Glossary). Not Found By Id[{}]", id.toString());
-            throw new CustomException("[StorageService] Can Not Update Labels. Not Found By Id", id.toString());
+    public StorageService patch(URI baseUri, UUID id, JsonPatch patch, String updatedBy) {
+        // Get Original Entity
+        StorageServiceEntity originalEntity = storageServiceRepository.findOne(
+                withDynamicConditions(id.toString(), null, null, null, null)).orElse(null);
+        if (originalEntity == null) {
+            log.error("[StorageService] Can Not Patch. Not Found By Id[{}]", id);
+            throw new CustomException("[StorageService] Can Not Patch. Not Found By Id", id);
         }
-        return updateTags_internal(baseUri, entity, source, tags, updatedBy);
+        StorageService originalService = convertToDto(originalEntity);
+        // PipeLine 을 제외한 모든 필드 정보 로드
+        setFields(originalService, getFields("*"));
+        // Patch 를 적용하여 Update 데이터를 생성
+        StorageService updated = JsonUtils.applyJsonPatch(originalService, patch, StorageService.class);
+        // 데이터 비교와 저장
+        updateInternal(originalService, updated);
+        addHref(baseUri, updated);
+        return updated;
     }
 
-    private StorageService updateTags_internal(URI baseUri,
-                                               StorageServiceEntity entity,
-                                               TagLabel.TagSource source, List<TagLabel> tags, String updatedBy) {
-        // 원본 데이터
-        StorageService originalService = convertToDto(entity);
-        List<TagLabel> originalTags = getTags(originalService).stream()
-                .filter(tag -> tag.getSource().equals(TagLabel.TagSource.CLASSIFICATION))
-                .toList();
-        List<TagLabel> originalGlossaryTerms = getTags(originalService).stream()
-                .filter(tag -> !tag.getSource().equals(TagLabel.TagSource.CLASSIFICATION))
-                .toList();
+    private void updateInternal(StorageService original, StorageService updated) {
+        /* 변경 불가 정보 복사 */
+        updated.setId(original.getId());
+        updated.setKindOfService(original.getKindOfService());
+        updated.setServiceType(original.getServiceType());
 
-        // Tag 유효성 검사
-        StorageService temp = new StorageService().withTags(tags);
-        validateTags(temp);
+        /* CreaetStorageService 데이터를 활용하는 관계로 다음 데이터에 대한 데이터만 업데이트가 가능함. */
+        /* name, displayName, description, connection, testConnectionResult, tags, owners */
 
-        String patch;
-        // 태그라벨만 비교
-        if (source.equals(TagLabel.TagSource.CLASSIFICATION)) {
-            patch = JsonUtils.pojoToJson(
-                    JsonUtils.getJsonPatch(
-                            new StorageService().withTags(originalTags),
-                            new StorageService().withTags(temp.getTags())
-                    )
-            );
-        } else {
-            patch = JsonUtils.pojoToJson(
-                    JsonUtils.getJsonPatch(
-                            new StorageService().withTags(originalGlossaryTerms),
-                            new StorageService().withTags(temp.getTags())
-                    )
-            );
-        }
-        log.info("[StorageService] ID[{}] Name[{}] Update Labels Patch - \n{}",
-                entity.getId(), entity.getName(), patch);
+        /*
+         * Storage Service {
+         * // 불변
+         * id, kindOfService, serviceType,
+         * // 변경 가능(비교 대상)
+         * name, displayName, description, connection, pipelines,
+         * testConnectionResult, tags, owners, updatedBy, deleted
+         * // 비교 대상이 아님
+         * version, updatedAt, changeDescription, href,
+         * }
+         */
 
-        // DeepCopy And Update
-        StorageService updateService = JsonUtils.deepCopy(originalService, StorageService.class);
-        updateService.withUpdatedAt(Utilities.getLocalDateTime());
-        updateService.withUpdatedBy(updatedBy);
-        updateService.withVersion(EntityUtil.nextVersion(originalService.getVersion()));
-        updateService.withChangeDescription(patch);
+        // 비교 대상이 아닌 데이터는 null 처리
+        // TODO : pipeline 은 추후
+        updated.withPipelines(null);
+        original.withPipelines(null);
 
-        // Glossary Terms 와 Classification Tags 머지
-        if (source.equals(TagLabel.TagSource.CLASSIFICATION)) {
-            EntityUtil.mergeTags(originalGlossaryTerms, temp.getTags());
-            updateService.withTags(originalGlossaryTerms);
-        } else {
-            EntityUtil.mergeTags(originalTags, temp.getTags());
-            updateService.withTags(originalTags);
-        }
+        Double orgVersion = original.getVersion();
+        original.setVersion(null);
+        updated.setVersion(null);
 
+        LocalDateTime orgUpdatedAt = original.getUpdatedAt();
+        LocalDateTime updatedAt = updated.getUpdatedAt();
+        original.setUpdatedAt(null);
+        updated.setUpdatedAt(null);
+
+        String orgChangeDescription = original.getChangeDescription();
+        original.setChangeDescription(null);
+        updated.setChangeDescription(null);
+
+        original.setHref(null);
+        updated.setHref(null);
+
+        String patch = JsonUtils.pojoToJson(JsonUtils.getJsonPatch(original, updated));
+        log.debug("[StorageService] Update Storage Service ID[{}] Name[{}] JsonPatch - \n{}",
+                original.getId().toString(), original.getName(), patch);
+
+        // 저장했던 데이터 복구
+        updated.setVersion(EntityUtil.nextVersion(orgVersion));
+        updated.setUpdatedAt(updatedAt);
+        updated.setChangeDescription(patch);
         // 저장
-        store(updateService, true);
-        storeEntityHistory(originalService);
+        store(updated, true);
+        updateRelationships(updated);
 
-        // 태그 연결(사용) 정보 업데이트
-        update_tag_usage(updateService);
-
-        addHref(baseUri, updateService);
-        return updateService;
+        // 기존 데이터 복구 후 히스토리에 저장
+        original.setVersion(orgVersion);
+        original.setUpdatedAt(orgUpdatedAt);
+        original.setChangeDescription(orgChangeDescription);
+        storeEntityHistory(original);
     }
 
-    private void update_tag_usage(StorageService service) {
-        tagUsageService.delete(null, null, null,
-                Entity.STORAGE_SERVICE, service.getId().toString());
-        applyTags(service);
+    private void updateRelationships(StorageService entity) {
+        updateOwners(entity);
+        updateTags(entity);
     }
 
+    private void updateOwners(StorageService entity) {
+        // 기존 소유자 삭제
+        relationshipService.deleteRelationship(null, entity.getId(), Entity.USER, Entity.STORAGE_SERVICE, Relationship.OWNS);
+        storeOwners(entity);
+    }
+
+    private void updateTags(StorageService entity) {
+        // 기존 태그 삭제
+        tagUsageService.delete(null, null, null, Entity.STORAGE_SERVICE, entity.getId().toString());
+        applyTags(entity);
+    }
 
     private void storeEntityHistory(StorageService storageService) {
         String extensionName = EntityUtil.getVersionExtension(Entity.STORAGE_SERVICE, storageService.getVersion());
         log.info("[StorageService] ID[{}] Name[{}] Save Extension Name(Version)[{}]",
                 storageService.getId().toString(), storageService.getName(), extensionName);
-        EntityExtension extension = EntityExtension.builder()
-                .id(storageService.getId().toString())
-                .extension(extensionName)
-                .entityType(Entity.STORAGE_SERVICE)
-                .json(JsonUtils.pojoToJson(storageService)).build();
-        entityExtensionRepository.save(extension);
+        extensionService.addExtension(storageService.getId().toString(), extensionName, Entity.STORAGE_SERVICE, storageService);
     }
 
     private StorageService convertToDto(StorageServiceEntity entity) {
@@ -498,6 +450,113 @@ public class StorageServiceApp {
 //            }
         }
         entity.withHref(RestUtil.getHref(baseUri, RestUtil.getControllerBasePath(StorageServiceController.class), entity.getId()));
+    }
+
+    @Transactional
+    public void deleteById(UUID id, boolean recursive, boolean hardDelete, String deletedBy) {
+        StorageServiceEntity entity = storageServiceRepository.findOne(
+                withDynamicConditions(id.toString(), null, null, null, null)).orElse(null);
+        if (entity == null) {
+            log.error("[StorageService] Can Not Delete. Not Found By Id[{}]", id);
+            throw new CustomException("[StorageService] Can Not Delete. Not Found By Id", id.toString());
+        }
+        deleteInternal(entity, recursive, hardDelete, deletedBy);
+    }
+
+    @Transactional
+    public void deleteByName(String name, boolean recursive, boolean hardDelete, String deletedBy) {
+        StorageServiceEntity entity = storageServiceRepository.findOne(
+                withDynamicConditions(null, name, null, null, null)).orElse(null);
+        if (entity == null) {
+            log.error("[StorageService] Can Not Delete. Not Found By Name[{}]", name);
+            throw new CustomException("[StorageService] Can Not Delete. Not Found By Name", name);
+        }
+        deleteInternal(entity, recursive, hardDelete, deletedBy);
+    }
+
+    private void deleteInternal(StorageServiceEntity entity, boolean recursive, boolean hardDelete, String deletedBy) {
+        log.info("[StorageService] ID[{}] Name[{}] {} Deleted", entity.getId(), entity.getName(), hardDelete ? "Hard" : "Soft");
+        deleteChildren(entity.getId(), recursive, hardDelete, deletedBy);
+        StorageService original = convertToDto(entity);
+        setFields(original, getFields("*"));
+        StorageService updated = JsonUtils.deepCopy(original, StorageService.class);
+        if (!hardDelete) {
+            updated.setUpdatedBy(deletedBy);
+            updated.setUpdatedAt(Utilities.getLocalDateTime());
+            updated.setDeleted(true);
+            updateInternal(original, updated);
+        } else {
+            cleanup(updated);
+        }
+    }
+
+    private void deleteChildren(String id, boolean recursive, boolean hardDelete, String deletedBy) {
+        List<RelationshipEntity> childrenRecords =
+                relationshipService.getRelationships(
+                        UUID.fromString(id), null, Entity.STORAGE_SERVICE,
+                        null, List.of(Relationship.CONTAINS, Relationship.PARENT_OF), null);
+
+        if (childrenRecords.isEmpty()) {
+            log.info("[StorageService] No Have children. ID[{}]", id);
+            return;
+        }
+        if (!recursive) {
+            log.warn("[StorageService] Can Not Delete Storage Service[{}]. Have A Children Len[{}]", id, childrenRecords.size());
+            throw new CustomException("[StorageService] Can Not Delete Storage Service. Have A Children", id.toString());
+        }
+        deleteChildren(childrenRecords, hardDelete, deletedBy);
+    }
+
+    private void deleteChildren(
+            List<RelationshipEntity> children, boolean hardDelete, String updatedBy) {
+        for (RelationshipEntity relationship : children) {
+            log.info("[StorageService] Recursively {} deleting {} {}", hardDelete ? "hard" : "soft", relationship.getToEntity(), relationship.getToId());
+            switch (relationship.getToEntity()) {
+                case Entity.DATABASE -> {
+                    // TODO : Database Delete
+                }
+                case Entity.BUCKET -> {
+                    // TODO : Bucket Delete
+                }
+                case Entity.INGESTION_PIPELINE -> {
+                    // TODO : Ingestion Pipeline Delete
+                }
+                default -> {
+                    log.warn("[StorageService] Unsupported Child Entity Type[{}]", relationship.getToEntity());
+                }
+            }
+        }
+    }
+
+    private void cleanup(StorageService storageService) {
+        UUID id = storageService.getId();
+
+        // 연관관계 정보 테이블에서 삭제
+        log.info("[StorageService] ID[{}] Name[{}] Delete Relationship Data By From",
+                storageService.getId().toString(), storageService.getName());
+        relationshipService.deleteRelationship(id, null,
+                Entity.STORAGE_SERVICE, null, null);
+        log.info("[StorageService] ID[{}] Name[{}] Delete Relationship Data By To",
+                storageService.getId().toString(), storageService.getName());
+        relationshipService.deleteRelationship(null, id,
+                null, Entity.STORAGE_SERVICE, null);
+
+        // Delete all the tag labels
+        log.info("[StorageService] ID[{}] Name[{}] Delete TagUsage. By TargetEntity",
+                storageService.getId(), storageService.getName());
+        tagUsageService.delete(null, null, null,
+                Entity.STORAGE_SERVICE, storageService.getId().toString());
+
+        // Delete All the extensions of entity
+        log.info("[StorageService] ID[{}] Name[{}] Delete Extension Data By ID",
+                storageService.getId(), storageService.getName());
+        String versionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.STORAGE_SERVICE) + ".";
+        extensionService.deleteExtensions(storageService.getId().toString(), versionPrefix);
+
+        // Finally, delete the entity
+        log.info("[StorageService] Id[{}] Name[{}] Finally Delete",
+                storageService.getId().toString(), storageService.getName());
+        storageServiceRepository.deleteById(id.toString());
     }
 
 }
