@@ -372,6 +372,7 @@ public class StorageServiceController {
                     description = "JsonPatch RFC",
                     url = "https://tools.ietf.org/html/rfc6902")
     )
+    @CommonResponseAnnotation
     public Object patch(
             HttpServletRequest request,
             @Parameter(
@@ -389,6 +390,8 @@ public class StorageServiceController {
                     )
             )
             @RequestBody JsonPatch patch) {
+        log.info("[StorageService] Patch");
+        log.debug("[StorageService] PatchStorageService Data -\n{}", JsonUtils.pojoToJson(patch, true));
         // TODO : 요청 사용자 정보 처리
         return service.patch(Utilities.getBaseUri(request), id, patch, "admin");
     }
@@ -416,6 +419,7 @@ public class StorageServiceController {
             boolean hardDelete,
             @Parameter(description = "Id of the data storage service", schema = @Schema(type = "UUID"))
             @PathVariable("id") UUID id) {
+        log.info("[StorageService] Delete By ID[{}]", id);
         service.deleteById(id, recursive, hardDelete, "admin");
         return "success";
     }
@@ -444,6 +448,7 @@ public class StorageServiceController {
             boolean recursive,
             @Parameter(description = "Name of the database service", schema = @Schema(type = "string"))
             @PathVariable("name") String name) {
+        log.info("[StorageService] Delete By Name[{}]", name);
         service.deleteByName(name, recursive, hardDelete, "admin");
         return "success";
     }

@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -178,20 +180,78 @@ public final class JsonUtils {
         // JSON 문자열을 JsonNode로 변환
         JsonNode originalJson = readTree(orig);
         JsonNode modifiedJson = readTree(update);
+        // 정렬
+        originalJson = sortJsonNode(originalJson);
+        modifiedJson = sortJsonNode(modifiedJson);
         // JSON Patch 생성
-        return JsonDiff.asJsonPatch(originalJson, modifiedJson);
+        return removeHrefPaths(JsonDiff.asJsonPatch(originalJson, modifiedJson));
     }
 
     public static JsonPatch getJsonPatch(Object v1, Object v2) {
         // Object 를 JsonNode 로 변환
         JsonNode source = valueToTree(v1);
         JsonNode dest = valueToTree(v2);
+        // 정렬
+        source = sortJsonNode(source);
+        dest = sortJsonNode(dest);
         // JSON Patch 생성
-        return JsonDiff.asJsonPatch(source, dest);
+        return removeHrefPaths(JsonDiff.asJsonPatch(source, dest));
+    }
+
+    public static JsonNode sortJsonNode(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode sorted = JsonNodeFactory.instance.objectNode();
+            List<String> fieldNames = new ArrayList<>();
+            node.fieldNames().forEachRemaining(fieldNames::add);
+            Collections.sort(fieldNames);
+
+            for (String field : fieldNames) {
+                sorted.set(field, sortJsonNode(node.get(field)));
+            }
+            return sorted;
+        } else if (node.isArray()) {
+            ArrayNode sortedArray = JsonNodeFactory.instance.arrayNode();
+            for (JsonNode element : node) {
+                sortedArray.add(sortJsonNode(element));
+            }
+            return sortedArray;
+        } else {
+            return node;
+        }
+    }
+
+    public static JsonPatch removeHrefPaths(JsonPatch patch) {
+        try {
+            List<JsonNode> filteredOps = new ArrayList<>();
+            String patchString = OBJECT_MAPPER.writeValueAsString(patch);
+            JsonNode patchNode = OBJECT_MAPPER.readTree(patchString);
+            for (JsonNode op : patchNode) {
+                String path = op.get("path").asText();
+                if (!path.contains("/href")) {
+                    filteredOps.add(op);
+                }
+            }
+            return JsonPatch.fromJson(pojoToJsonNode(filteredOps));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse JsonPatch string: {}", patch, e);
+            throw new RuntimeException("Invalid JsonPatch format", e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String getJsonPatchJson(JsonPatch patch) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(patch);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to convert JsonPatch to JSON string", e);
+            throw new RuntimeException("Failed to convert JsonPatch to JSON string", e);
+        }
     }
 
     private static JsonNode applyJsonPatch(JsonPatch patch, JsonNode targetNode) throws IOException, JsonPatchException {
-        String patchString = patch.toString();
+        patch = removeHrefPaths(patch);
+        String patchString = OBJECT_MAPPER.writeValueAsString(patch);
         JsonNode patchNode;
         try {
             patchNode = OBJECT_MAPPER.readTree(patchString);

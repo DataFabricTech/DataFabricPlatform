@@ -1,7 +1,13 @@
 package com.mobigen.vdap.server.services;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.filter.FilteringGeneratorDelegate;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.mobigen.vdap.schema.api.classification.CreateClassification;
 import com.mobigen.vdap.schema.api.classification.CreateTag;
@@ -56,9 +62,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
 
+import static com.mobigen.vdap.server.util.EntityUtil.compareTagLabel;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -406,36 +415,35 @@ class StorageServiceTest {
     @Test
     @Order(4)
     void createAndFind() throws Exception {
+        List<TagLabel> tags = new ArrayList<>();
+
         Classification classification001 = createClassification("test_classification_001", "test_classification_001", "test classification", false);
         Tag tag001 = createTag(classification001, "test_tag_003", "test_tag_003", "test tag 003");
+        tags.add(convertTagToTagLabel(tag001));
         Tag tag002 = createTag(classification001, "test_tag_004", "test_tag_004", "test tag 004");
+        tags.add(convertTagToTagLabel(tag002));
         Classification classification002 = createClassification("test_classification", "test_classification", "test classification", false);
         Tag tag003 = createTag(classification002, "test_tag_001", "test_tag_001", "test tag 001");
+        tags.add(convertTagToTagLabel(tag003));
         Tag tag004 = createTag(classification002, "test_tag_002", "test_tag_002", "test tag 002");
+        tags.add(convertTagToTagLabel(tag004));
 
         // name list
         ArrayList<String> nameList = new ArrayList<>();
 
         // 1. MySQL
-        Map<Classification, List<Tag>> tags001 = Map.of(
-                classification001, List.of(tag001)
-        );
         List<String> owners001 = List.of("admin", "jblim");
         StorageService mysql = createStorageService("mysql", "mysql_display", "mysql description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags001, owners001);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags.subList(0, 1), owners001);
         nameList.add("mysql");
         chkStorageService(mysql, "mysql", "mysql_display", "mysql description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags001, owners001);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags.subList(0, 1), owners001);
         // 2. Postgres
-        Map<Classification, List<Tag>> tags002 = Map.of(
-                classification001, List.of(tag002),
-                classification002, List.of(tag003)
-        );
         StorageService postgres = createStorageService("postgres", "postgres_display", "postgres description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags002, null);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags.subList(1, 3), null);
         nameList.add("postgres");
         chkStorageService(postgres, "postgres", "postgres_display", "postgres description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags002, null);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags.subList(1, 3), null);
         // 3. MariaDB
         StorageService mariadb = createStorageService("mariadb", "mariadb_display", "mariadb description",
                 ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, null, null);
@@ -443,15 +451,12 @@ class StorageServiceTest {
         chkStorageService(mariadb, "mariadb", "mariadb_display", "mariadb description",
                 ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, null, null);
         // 4. MinIO
-        Map<Classification, List<Tag>> tags004 = Map.of(
-                classification002, List.of(tag004)
-        );
         List<String> owners004 = List.of("admin");
         StorageService minio = createStorageService("minio", "minio_display", "minio description",
-                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags004, owners004);
+                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, List.of(tags.get(3)), owners004);
         nameList.add("minio");
         chkStorageService(minio, "minio", "minio_display", "minio description",
-                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags004, owners004);
+                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, List.of(tags.get(3)), owners004);
         // 5. MongoDB
         List<String> owners005 = List.of("admin", "jblim");
         StorageService mongo = createStorageService("mongo", "mongo_display", "mongo description",
@@ -460,16 +465,12 @@ class StorageServiceTest {
         chkStorageService(mongo, "mongo", "mongo_display", "mongo description",
                 ServiceType.DATABASE, StorageService.StorageServiceType.MongoDB, null, owners005);
         // 6. OracleDB
-        Map<Classification, List<Tag>> tags006 = Map.of(
-                classification001, List.of(tag002),
-                classification002, List.of(tag003)
-        );
         List<String> owners006 = List.of("jblim");
         StorageService oracle = createStorageService("oracle", "oracle_display", "oracle description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags006, owners006);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags.subList(1, 3), owners006);
         nameList.add("oracle");
         chkStorageService(oracle, "oracle", "oracle_display", "oracle description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags006, owners006);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags.subList(1, 3), owners006);
 
         // 7. Mssql
         StorageService mssql = createStorageService("mssql", "mssql_display", "mssql description",
@@ -487,7 +488,7 @@ class StorageServiceTest {
                 ServiceType.DATABASE, StorageService.StorageServiceType.Hive, null, owners008);
 
         // sort
-        Collections.sort(nameList, String.CASE_INSENSITIVE_ORDER);
+        nameList.sort(String.CASE_INSENSITIVE_ORDER);
 
         // List Test
         MvcResult result = mockMvc.perform(get("/v1/services")
@@ -633,7 +634,7 @@ class StorageServiceTest {
 
     void chkStorageService(StorageService storageService, String name, String displayName, String description,
                            ServiceType kindOfService, StorageService.StorageServiceType serviceType,
-                           Map<Classification, List<Tag>> tags, List<String> owners) {
+                           List<TagLabel> tags, List<String> owners) {
         Assertions.assertEquals(name, storageService.getName());
         Assertions.assertEquals(displayName, storageService.getDisplayName());
         Assertions.assertEquals(description, storageService.getDescription());
@@ -641,24 +642,21 @@ class StorageServiceTest {
         Assertions.assertEquals(serviceType, storageService.getServiceType());
 
         if (tags != null) {
-            List<String> classificationIds = new ArrayList<>();
-            List<String> tagIds = new ArrayList<>();
-            List<String> tagNames = new ArrayList<>();
-            for (Map.Entry<Classification, List<Tag>> entry : tags.entrySet()) {
-                Classification classification = entry.getKey();
-                classificationIds.add(classification.getId().toString());
-                List<Tag> tagList = entry.getValue();
-                for (Tag tag : tagList) {
-                    tagIds.add(tag.getId().toString());
-                    tagNames.add(tag.getName());
-                }
-            }
-            for (TagLabel tag : storageService.getTags()) {
-                Assertions.assertEquals(TagLabel.TagSource.CLASSIFICATION, tag.getSource());
-                Assertions.assertTrue(classificationIds.contains(tag.getParentId().toString()));
-                Assertions.assertTrue(tagIds.contains(tag.getId().toString()));
-                Assertions.assertTrue(tagNames.contains(tag.getName()));
-            }
+            List<TagLabel> mutableTags = new ArrayList<>(tags);
+            mutableTags.sort(compareTagLabel);
+            List<TagLabel> destTags = storageService.getTags().stream().map(
+                            tag -> new TagLabel()
+                                    .withSource(tag.getSource())
+                                    .withParentId(tag.getParentId())
+                                    .withId(tag.getId())
+                                    .withName(tag.getName())
+                                    .withDisplayName(tag.getDisplayName())
+                                    .withDescription(tag.getDescription()))
+                    .sorted(compareTagLabel)
+                    .toList();
+            JsonPatch path = JsonUtils.getJsonPatch(mutableTags, destTags);
+            log.info("Tag Compare Path: {}", path);
+            Assertions.assertEquals("[]", path.toString());
         }
         if (owners != null) {
             for (EntityReference owner : storageService.getOwners()) {
@@ -670,104 +668,265 @@ class StorageServiceTest {
     @Test
     @Order(5)
     void updateTest() throws Exception {
+        List<TagLabel> tags = new ArrayList<>();
 
-        Classification classification001 = createClassification("test_classification_001", "test_classification_001", "test classification", false);
-        Tag tag001 = createTag(classification001, "test_tag_003", "test_tag_003", "test tag 003");
-        Tag tag002 = createTag(classification001, "test_tag_004", "test_tag_004", "test tag 004");
-        Classification classification002 = createClassification("test_classification", "test_classification", "test classification", false);
-        Tag tag003 = createTag(classification002, "test_tag_001", "test_tag_001", "test tag 001");
-        Tag tag004 = createTag(classification002, "test_tag_002", "test_tag_002", "test tag 002");
+        Classification classification = createClassification("test_classification_001", "test_classification_001", "test classification", false);
+        Tag tag = createTag(classification, "test_tag_003", "test_tag_003", "test tag 003");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_004", "test_tag_004", "test tag 004");
+        tags.add(convertTagToTagLabel(tag));
+
+        classification = createClassification("test_classification", "test_classification", "test classification", false);
+        tag = createTag(classification, "test_tag_001", "test_tag_001", "test tag 001");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_002", "test_tag_002", "test tag 002");
+        tags.add(convertTagToTagLabel(tag));
+
 
         // 1. MySQL
-        mysqlUpdateTest(classification001, tag001, tag002, classification002, tag003, tag004);
+        mysqlUpdateTest(tags);
         // 2. Postgres
-        postgresUpdateTest(classification001, tag001, tag002, classification002, tag003, tag004);
+        postgresUpdateTest(tags);
         // 3. MariaDB
-//        StorageService mariadb = createStorageService("mariadb", "mariadb_display", "mariadb description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, null, null);
-//        chkStorageService(mariadb, "mariadb", "mariadb_display", "mariadb description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, null, null);
-
-//        // 4. MinIO
-//        Map<Classification, List<Tag>> tags004 = Map.of(
-//                classification002, List.of(tag004)
-//        );
-//        List<String> owners004 = List.of("admin");
-//        StorageService minio = createStorageService("minio", "minio_display", "minio description",
-//                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags004, owners004);
-//        chkStorageService(minio, "minio", "minio_display", "minio description",
-//                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags004, owners004);
-//        // 5. MongoDB
-//        List<String> owners005 = List.of("admin", "jblim");
-//        StorageService mongo = createStorageService("mongo", "mongo_display", "mongo description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.MongoDB, null, null);
-//        chkStorageService(mongo, "mongo", "mongo_display", "mongo description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.MongoDB, null, owners005);
-//        // 6. OracleDB
-//        Map<Classification, List<Tag>> tags006 = Map.of(
-//                classification001, List.of(tag002),
-//                classification002, List.of(tag003)
-//        );
-//        List<String> owners006 = List.of("jblim");
-//        StorageService oracle = createStorageService("oracle", "oracle_display", "oracle description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags006, owners006);
-//        chkStorageService(oracle, "oracle", "oracle_display", "oracle description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, tags006, owners006);
-//
-//        // 7. Mssql
-//        StorageService mssql = createStorageService("mssql", "mssql_display", "mssql description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Mssql, null, null);
-//        chkStorageService(mssql, "mssql", "mssql_display", "mssql description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Mssql, null, null);
-//
-//        // 8. Hive
-//        List<String> owners008 = List.of("jblim");
-//        StorageService hive = createStorageService("hive", "hive_display", "hive description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Hive, null, owners008);
-//        chkStorageService(hive, "hive", "hive_display", "hive description",
-//                ServiceType.DATABASE, StorageService.StorageServiceType.Hive, null, owners008);
-
-
+        mariadbUpdateTest(tags);
+        // 4. MinIO
+        minioUpdateTest(tags);
+        // 5. MongoDB
+        mongoUpdateTest(tags);
+        // 6. OracleDB
+        oracleUpdateTest(tags);
+        // 7. Mssql
+        mssqlUpdateTest(tags);
+        // 8. Hive
+        hiveUpdateTest(tags);
     }
 
-    void mysqlUpdateTest(Classification classification001, Tag tag001, Tag tag002,
-                           Classification classification002, Tag tag003, Tag tag004) throws Exception {
+    private void mssqlUpdateTest(List<TagLabel> tags) throws Exception {
         List<StorageService> history = new ArrayList<>();
-        Map<Classification, List<Tag>> tags001 = Map.of(
-                classification001, List.of(tag001)
-        );
-        List<String> owners001 = List.of("admin", "jblim");
-        StorageService mysql = createStorageService("mysql", "mysql_display", "mysql description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags001, owners001);
-        chkStorageService(mysql, "mysql", "mysql_display", "mysql description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags001, owners001);
-        history.add(mysql);
+        String name = "mssql";
+        String displayName = "mssql_display";
+        String description = "mssql_description";
+        List<String> owners = List.of("jblim");
+        StorageService storageService = createStorageService(name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mssql, List.of(tags.get(3), tags.get(2)), owners);
+        chkStorageService(storageService, name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mssql, List.of(tags.get(3), tags.get(2)), owners);
+        history.add(storageService);
 
         // Update Test, name, displayName, description
-        StorageService updatedService = checkDefaultUpdate(mysql);
+        StorageService updatedService = checkDefaultUpdate(storageService);
         history.add(updatedService);
 
         // Update Test : Connection
-        MysqlConnection connection = JsonUtils.convertValue(mysql.getConnection().getConfig(), MysqlConnection.class);
+        MssqlConnection connection = new MssqlConnection();
+        connection.setHostPort("localhost_modify:1433");
+        connection.setUsername("username_modify");
+        connection.setPassword("password_modify");
+        connection.setDatabase("database_modify");
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(3)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("admin"));
+
+        // ...
+    }
+
+    private void hiveUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        String name = "hive";
+        String displayName = "hive_display";
+        String description = "hive_description";
+        List<String> owners = List.of("jblim");
+        StorageService storageService = createStorageService(name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Hive, List.of(tags.get(3), tags.get(1)), owners);
+        chkStorageService(storageService, name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Hive, List.of(tags.get(3), tags.get(1)), owners);
+        history.add(storageService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(storageService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        HiveConnection connection = new HiveConnection();
+        connection.setHostPort("modify:10000");
+        connection.setUsername("username_modify");
+        connection.setPassword("password_modify");
+        connection.setAuth(HiveConnection.Auth.BASIC);
+        connection.setDatabaseName("database_modify");
+        connection.setKerberosServiceName("hive_modify");
+        connection.setMetastoreConnection(
+                new PostgresConnection()
+                        .withHostPort("localhost_modify:5432")
+                        .withUsername("username_modify")
+                        .withAuthType(new BasicAuth().withPassword("password_modify"))
+                        .withDatabase("metastore_modify"));
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(3)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("admin"));
+
+        // ...
+
+    }
+
+    private void oracleUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        String name = "oracle";
+        String displayName = "oracle_display";
+        String description = "oracle_description";
+        List<String> owners = List.of("admin", "jblim");
+        StorageService storageService = createStorageService(name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, List.of(tags.get(3), tags.get(1)), owners);
+        chkStorageService(storageService, name, displayName, description,
+                ServiceType.DATABASE, StorageService.StorageServiceType.Oracle, List.of(tags.get(3), tags.get(1)), owners);
+        history.add(storageService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(storageService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        OracleConnection connection = new OracleConnection();
+        connection.setHostPort("modify:1521");
+        connection.setUsername("username_modify");
+        connection.setPassword("password_modify");
+        connection.setOracleConnectionType(new OracleConnectionType().withAdditionalProperty("oracleServiceName", "FREE_Modify"));
+        connection.setInstantClientDirectory("/instantclient");
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(3)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("jblim"));
+
+        // ...
+
+    }
+
+    private void mongoUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        StorageService storageService = createStorageService("mongo", "mongo_display", "mongo_description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.MongoDB, null, null);
+        chkStorageService(storageService, "mongo", "mongo_display", "mongo_description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.MongoDB, null, null);
+        history.add(storageService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(storageService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        MongoDBConnection connection = JsonUtils.convertValue(storageService.getConnection().getConfig(), MongoDBConnection.class);
+        connection.withHostPort("modify:27017");
+        connection.withUsername("username_modify");
+        connection.withPassword("password_modify");
+        connection.withDatabaseName("database_modify");
+        connection.setSslMode(SSLMode.DISABLE);
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(3)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("jblim"));
+
+        // ...
+    }
+
+    private void minioUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        List<String> owners = List.of("admin", "jblim");
+        StorageService minioService = createStorageService("minio", "minio_display", "minio_description",
+                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags.subList(1, 3), owners);
+        chkStorageService(minioService, "minio", "minio_display", "minio_description",
+                ServiceType.STORAGE, StorageService.StorageServiceType.MinIO, tags.subList(1, 3), owners);
+        history.add(minioService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(minioService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        MinIOConnection connection = JsonUtils.convertValue(minioService.getConnection().getConfig(), MinIOConnection.class);
+        MinIOCredentials credentials = new MinIOCredentials();
+        credentials.withEndPointURL(URI.create("localhost:9000"));
+        credentials.withAccessKeyId("username");
+        credentials.withSecretAccessKey("password");
+        credentials.withRegion("ap-northeast-2");
+        connection.setMinioConfig(credentials);
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, null);
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, null);
+
+        // ...
+    }
+
+    void mysqlUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        List<String> owners = List.of("admin", "jblim");
+        StorageService mysqlService = createStorageService("mysql", "mysql_display", "mysql description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags.subList(1, 3), owners);
+        chkStorageService(mysqlService, "mysql", "mysql_display", "mysql description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags.subList(1, 3), owners);
+        history.add(mysqlService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(mysqlService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        MysqlConnection connection = JsonUtils.convertValue(mysqlService.getConnection().getConfig(), MysqlConnection.class);
         connection.setHostPort("localhost:3307");
         connection.setUsername("username_modify");
         connection.setAuthType(new basicAuth().withPassword("password_modify"));
         connection.setDatabaseName("test_modify");
 
         updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(1)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("admin"));
+
+        // ...
     }
 
-    void postgresUpdateTest(Classification classification001, Tag tag001, Tag tag002,
-                Classification classification002, Tag tag003, Tag tag004) throws Exception {
+    void postgresUpdateTest(List<TagLabel> tags) throws Exception {
         List<StorageService> history = new ArrayList<>();
-        Map<Classification, List<Tag>> tags002 = Map.of(
-                classification001, List.of(tag002),
-                classification002, List.of(tag003)
-        );
         StorageService postgres = createStorageService("postgres", "postgres_display", "postgres description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags002, null);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, List.of(tags.getFirst()), null);
         chkStorageService(postgres, "postgres", "postgres_display", "postgres description",
-                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags002, null);
+                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, List.of(tags.getFirst()), null);
         history.add(postgres);
 
         // Update Test, name, displayName, description
@@ -782,10 +941,49 @@ class StorageServiceTest {
         connection.setDatabase("test_modify");
 
         updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(0), tags.get(1)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("jblim"));
     }
 
+    void mariadbUpdateTest(List<TagLabel> tags) throws Exception {
+        List<StorageService> history = new ArrayList<>();
+        StorageService mariadbService = createStorageService("mariadb", "mariadb_display", "mariadb_description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, List.of(tags.get(2), tags.get(3)), null);
+        chkStorageService(mariadbService, "mariadb", "mariadb_display", "mariadb_description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.MariaDB, List.of(tags.get(2), tags.get(3)), null);
+        history.add(mariadbService);
+
+        // Update Test, name, displayName, description
+        StorageService updatedService = checkDefaultUpdate(mariadbService);
+        history.add(updatedService);
+
+        // Update Test : Connection
+        MariaDBConnection connection = JsonUtils.convertValue(mariadbService.getConnection().getConfig(), MariaDBConnection.class);
+        connection.setHostPort("localhost:3307");
+        connection.setUsername("username_modify");
+        connection.setPassword("password_modify");
+        connection.setDatabaseName("test_modify");
+
+        updatedService = checkConnectionUpdate(history, connection);
+        history.add(updatedService);
+
+        // Update Tag
+        updatedService = checkUpdateTags(history, List.of(tags.get(1), tags.get(0)));
+        history.add(updatedService);
+
+        // Update Owner
+        checkUpdateOwners(history, List.of("jblim", "admin"));
+    }
+
+
     StorageService checkDefaultUpdate(StorageService original) throws Exception {
-        CreateStorageService updateRequest = copyStorageService(original);
+        CreateStorageService updateRequest = convertFromStorageService(original);
         updateRequest.setName(original.getName() + "_modify");
         updateRequest.setDisplayName(original.getDisplayName() + "_modify");
         updateRequest.setDescription(original.getDescription() + "_modify");
@@ -816,9 +1014,9 @@ class StorageServiceTest {
         return updatedService;
     }
 
-    StorageService checkConnectionUpdate(List<StorageService> history, Object connection ) throws Exception {
+    StorageService checkConnectionUpdate(List<StorageService> history, Object connection) throws Exception {
         StorageService original = history.getLast();
-        CreateStorageService updateRequest = copyStorageService(original);
+        CreateStorageService updateRequest = convertFromStorageService(original);
         updateRequest.setConnection(new StorageConnection().withConfig(connection));
 
         MvcResult result = mockMvc.perform(post("/v1/services/" + original.getId() + "/update")
@@ -857,12 +1055,50 @@ class StorageServiceTest {
         return updatedService;
     }
 
+    StorageService checkUpdateTags(List<StorageService> history, List<TagLabel> tags) throws Exception {
+        StorageService original = history.getLast();
+        CreateStorageService updateRequest = convertFromStorageService(original);
+        updateRequest.setTags(tags);
+
+        MvcResult result = mockMvc.perform(post("/v1/services/" + original.getId() + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(JsonUtils.pojoToJson(updateRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        StorageService resService = JsonUtils.convertValue(node.get("data"), StorageService.class);
+
+        // Check Tags
+        if( tags != null ) {
+            Assertions.assertEquals(updateRequest.getTags().size(), resService.getTags().size());
+            List<TagLabel> mutableTags = new ArrayList<>(tags);
+            mutableTags.sort(compareTagLabel);
+            List<TagLabel> destTags = resService.getTags().stream().map(
+                            tag -> new TagLabel()
+                                    .withSource(tag.getSource())
+                                    .withParentId(tag.getParentId())
+                                    .withId(tag.getId())
+                                    .withName(tag.getName())
+                                    .withDisplayName(tag.getDisplayName())
+                                    .withDescription(tag.getDescription()))
+                    .sorted(compareTagLabel)
+                    .toList();
+            JsonPatch path = JsonUtils.getJsonPatch(mutableTags, destTags);
+            Assertions.assertEquals("[]", path.toString());
+        } else {
+            Assertions.assertTrue(resService.getTags() == null || resService.getTags().isEmpty());
+        }
+        return resService;
+    }
+
     void compareConnection(Object expected, Object actual, String serviceType, String serviceName, ServiceType kindof) throws Exception {
         Object expectedConnection = null;
         try {
-             expectedConnection = new SecretsManager().decryptServiceConnectionConfig(
+            expectedConnection = new SecretsManager().decryptServiceConnectionConfig(
                     expected, serviceType, serviceName, kindof);
-        } catch( Exception e ) {
+        } catch (Exception e) {
             log.error("SecretsManager decrypt error: {}", e.getMessage());
             // 에러 발생 시 이미 복호화된 상태일 것 이다.
             expectedConnection = expected;
@@ -871,7 +1107,7 @@ class StorageServiceTest {
         try {
             actualConnection = new SecretsManager().decryptServiceConnectionConfig(
                     actual, serviceType, serviceName, kindof);
-        } catch( Exception e ) {
+        } catch (Exception e) {
             log.error("SecretsManager decrypt error: {}", e.getMessage());
             // 에러 발생 시 이미 복호화된 상태일 것 이다.
             actualConnection = expected;
@@ -880,7 +1116,7 @@ class StorageServiceTest {
         Assertions.assertEquals("[]", patch.toString());
     }
 
-    CreateStorageService copyStorageService(StorageService storageService) {
+    CreateStorageService convertFromStorageService(StorageService storageService) {
         SecretsManager secret = new SecretsManager();
         CreateStorageService create = new CreateStorageService();
         create.setName(storageService.getName());
@@ -890,18 +1126,19 @@ class StorageServiceTest {
         create.setServiceType(storageService.getServiceType());
         create.setConnection(
                 new StorageConnection().withConfig(
-                secret.decryptServiceConnectionConfig(
-                        storageService.getConnection().getConfig(),
-                        storageService.getServiceType().value(),
-                        storageService.getName(),
-                        storageService.getKindOfService())));
+                        secret.decryptServiceConnectionConfig(
+                                storageService.getConnection().getConfig(),
+                                storageService.getServiceType().value(),
+                                storageService.getName(),
+                                storageService.getKindOfService())));
         create.setTags(storageService.getTags());
         create.setOwners(storageService.getOwners());
         return create;
     }
 
     StorageService createStorageService(String name, String displayName, String description,
-                                        ServiceType kind, StorageService.StorageServiceType storageServiceType, Map<Classification, List<Tag>> tags, List<String> owners) throws Exception {
+                                        ServiceType kind, StorageService.StorageServiceType storageServiceType,
+                                        List<TagLabel> tags, List<String> owners) throws Exception {
         CreateStorageService create = new CreateStorageService();
         create.setName(name);
         create.setDisplayName(displayName);
@@ -988,36 +1225,11 @@ class StorageServiceTest {
                 create.setConnection(new StorageConnection().withConfig(connection));
             }
         }
-
-        if (tags != null) {
-            List<TagLabel> tagLabels = new ArrayList<>();
-            for (Map.Entry<Classification, List<Tag>> entry : tags.entrySet()) {
-                Classification classification = entry.getKey();
-                List<Tag> tagList = entry.getValue();
-                for (Tag tag : tagList) {
-                    TagLabel tagLabel = new TagLabel()
-                            .withSource(TagLabel.TagSource.CLASSIFICATION)
-                            .withParentId(classification.getId())
-                            .withId(tag.getId())
-                            .withName(tag.getName())
-                            .withDisplayName(tag.getDisplayName())
-                            .withDescription(tag.getDescription());
-                    tagLabels.add(tagLabel);
-                }
-            }
-            create.setTags(tagLabels);
-        }
-        if (owners != null) {
-            List<EntityReference> ownersList = new ArrayList<>();
-            for (String owner : owners) {
-                EntityReference entityReference = new EntityReference();
-                entityReference.setId(UUID.fromString(keyCloakUtil.getUserList().get(owner)));
-                entityReference.setType(Entity.USER);
-                entityReference.setName(owner);
-                ownersList.add(entityReference);
-            }
-            create.setOwners(ownersList);
-        }
+        // Set Tags
+        create.setTags(tags);
+        // Set Owners
+        create.setOwners(getOwners(owners));
+        // Send Request
         MvcResult result = mockMvc.perform(post("/v1/services")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -1027,6 +1239,270 @@ class StorageServiceTest {
         JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
         Assertions.assertEquals("Success", node.get("code").asText());
         return JsonUtils.convertValue(node.get("data"), StorageService.class);
+    }
+
+    private StorageService checkUpdateOwners(List<StorageService> history, List<String> owners) throws Exception {
+        StorageService original = history.getLast();
+        CreateStorageService updateRequest = convertFromStorageService(original);
+        updateRequest.setOwners(getOwners(owners));
+        MvcResult result = mockMvc.perform(post("/v1/services/" + original.getId() + "/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(JsonUtils.pojoToJson(updateRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        StorageService updatedService = JsonUtils.convertValue(node.get("data"), StorageService.class);
+        if( owners != null ) {
+            Assertions.assertEquals(updateRequest.getOwners().size(), updatedService.getOwners().size());
+            for (EntityReference owner : updatedService.getOwners()) {
+                Assertions.assertTrue(owners.contains(owner.getName()));
+            }
+        } else {
+            Assertions.assertTrue(updatedService.getOwners() == null || updatedService.getOwners().isEmpty());
+        }
+        return updatedService;
+    }
+
+    @Test
+    @Order(6)
+    void DeleteTest() throws Exception {
+        List<TagLabel> tags = new ArrayList<>();
+
+        Classification classification = createClassification("test_classification_001", "test_classification_001", "test classification", false);
+        Tag tag = createTag(classification, "test_tag_003", "test_tag_003", "test tag 003");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_004", "test_tag_004", "test tag 004");
+        tags.add(convertTagToTagLabel(tag));
+
+        classification = createClassification("test_classification", "test_classification", "test classification", false);
+        tag = createTag(classification, "test_tag_001", "test_tag_001", "test tag 001");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_002", "test_tag_002", "test tag 002");
+        tags.add(convertTagToTagLabel(tag));
+
+        // 1. MySQL
+        List<String> owners = List.of("admin", "jblim");
+        StorageService mysql = createStorageService("mysql", "mysql_display", "mysql description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, tags.subList(0, 1), owners);
+        // 2. Postgres
+        StorageService postgres = createStorageService("postgres", "postgres_display", "postgres description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.Postgres, tags.subList(1, 3), null);
+
+
+        // DeleteByID
+        // Delete Parameter
+        // @RequestParam(name = "hardDelete", defaultValue = "false")
+        // @RequestParam(name = "recursive", defaultValue = "false")
+
+        // Soft Delete
+        MvcResult result = mockMvc.perform(post("/v1/services/" + mysql.getId() + "/delete")
+                        .param("hardDelete", "false")
+                        .param("recursive", "false")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        Assertions.assertEquals("success", node.get("data").asText());
+
+        // Deleted Field Check
+        storageServiceRepository.findById(mysql.getId().toString()).ifPresent( entity -> {
+            Assertions.assertEquals(true, entity.getDeleted());
+        });
+
+        // Check Owner Relationship
+        List<RelationshipEntity> relationships = relationshipService.getRelationships(
+                null, mysql.getId(), null, Entity.STORAGE_SERVICE, Relationship.OWNS, Include.DELETED);
+        Assertions.assertEquals(2, relationships.size());
+        for (RelationshipEntity relationship : relationships) {
+            Assertions.assertTrue(relationship.getDeleted());
+        }
+
+        // Check TagUsage
+        List<TagUsageEntity> tagUsages = tagUsageService.getTagUsages(
+                null, null, null, Entity.STORAGE_SERVICE, mysql.getId().toString());
+        Assertions.assertEquals(0, tagUsages.size());
+
+        // TODO : DataModel(MultiModel) 에 대한 개발 후 Children 에 대한 부분도 테스트 필요
+
+        // Hard Delete
+        result = mockMvc.perform(post("/v1/services/" + mysql.getId() + "/delete")
+                        .param("hardDelete", "true")
+                        .param("recursive", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        Assertions.assertEquals("success", node.get("data").asText());
+
+        // Deleted Field Check
+        Assertions.assertNull(storageServiceRepository.findById(mysql.getId().toString()).orElse(null));
+
+        // Check Owner Relationship
+        relationships = relationshipService.getRelationships(
+                null, mysql.getId(), null, Entity.STORAGE_SERVICE, Relationship.OWNS, Include.ALL);
+        Assertions.assertEquals(0, relationships.size());
+
+        // Check TagUsage
+        tagUsages = tagUsageService.getTagUsages(
+                null, null, null, Entity.STORAGE_SERVICE, mysql.getId().toString());
+        Assertions.assertEquals(0, tagUsages.size());
+
+        // TODO : DataModel(MultiModel) 에 대한 개발 후 Children 에 대한 부분도 테스트 필요
+
+        // DeleteByName
+        // Delete Parameter
+        // @RequestParam(name = "hardDelete", defaultValue = "false")
+        // @RequestParam(name = "recursive", defaultValue = "false")
+
+        // Soft Delete
+        result = mockMvc.perform(post("/v1/services/name/" + postgres.getName() + "/delete")
+                        .param("hardDelete", "false")
+                        .param("recursive", "false")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        Assertions.assertEquals("success", node.get("data").asText());
+
+        // Deleted Field Check
+        storageServiceRepository.findById(postgres.getId().toString()).ifPresent( entity -> {
+            Assertions.assertEquals(true, entity.getDeleted());
+        });
+
+        // Check Owner Relationship
+        relationships = relationshipService.getRelationships(
+                null, postgres.getId(), null, Entity.STORAGE_SERVICE, Relationship.OWNS, Include.DELETED);
+        Assertions.assertEquals(0, relationships.size());
+
+        // Check TagUsage
+        tagUsages = tagUsageService.getTagUsages(
+                null, null, null, Entity.STORAGE_SERVICE, postgres.getId().toString());
+        Assertions.assertEquals(0, tagUsages.size());
+
+        // TODO : DataModel(MultiModel) 에 대한 개발 후 Children 에 대한 부분도 테스트 필요
+
+        // Hard Delete
+        result = mockMvc.perform(post("/v1/services/name/" + postgres.getName() + "/delete")
+                        .param("hardDelete", "true")
+                        .param("recursive", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        Assertions.assertEquals("success", node.get("data").asText());
+
+        // Deleted Field Check
+        Assertions.assertNull(storageServiceRepository.findById(postgres.getId().toString()).orElse(null));
+
+        // Check Owner Relationship
+        relationships = relationshipService.getRelationships(
+                null, postgres.getId(), null, Entity.STORAGE_SERVICE, Relationship.OWNS, Include.ALL);
+        Assertions.assertEquals(0, relationships.size());
+
+        // Check TagUsage
+        tagUsages = tagUsageService.getTagUsages(
+                null, null, null, Entity.STORAGE_SERVICE, postgres.getId().toString());
+        Assertions.assertEquals(0, tagUsages.size());
+
+        // TODO : DataModel(MultiModel) 에 대한 개발 후 Children 에 대한 부분도 테스트 필요
+    }
+
+    @Test
+    @Order(7)
+    void patchTest() throws Exception {
+        List<TagLabel> tags = new ArrayList<>();
+
+        Classification classification = createClassification("test_classification_001", "test_classification_001", "test classification", false);
+        Tag tag = createTag(classification, "test_tag_003", "test_tag_003", "test tag 003");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_004", "test_tag_004", "test tag 004");
+        tags.add(convertTagToTagLabel(tag));
+
+        classification = createClassification("test_classification", "test_classification", "test classification", false);
+        tag = createTag(classification, "test_tag_001", "test_tag_001", "test tag 001");
+        tags.add(convertTagToTagLabel(tag));
+        tag = createTag(classification, "test_tag_002", "test_tag_002", "test tag 002");
+        tags.add(convertTagToTagLabel(tag));
+
+        // 1. MySQL
+        List<String> owners = List.of("admin", "jblim");
+        StorageService mysql = createStorageService("mysql", "mysql_display", "mysql description",
+                ServiceType.DATABASE, StorageService.StorageServiceType.Mysql, List.of(tags.get(1), tags.get(2)), owners);
+
+        StorageService updatedService = JsonUtils.deepCopy(mysql, StorageService.class);
+        updatedService.setName("mysql_modify");
+        updatedService.setDisplayName("mysql_display_modify");
+        updatedService.setDescription("mysql description_modify");
+        updatedService.setTags(List.of(tags.get(0), tags.get(1)));
+        updatedService.setOwners(getOwners(List.of("jblim")));
+
+        JsonPatch patch = JsonUtils.getJsonPatch(mysql, updatedService);
+        String strPatchJson = JsonUtils.getObjectMapper().writeValueAsString(patch);
+
+//        log.info("Patch: {}", strPatchJson);
+        log.info("original: {}", JsonUtils.getObjectMapper().writeValueAsString(mysql));
+        log.info("Patch: {}", strPatchJson);
+        MvcResult result = mockMvc.perform(post("/v1/services/" + mysql.getId() + "/patch")
+                        .contentType(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_PATCH_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(strPatchJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
+        Assertions.assertEquals("Success", node.get("code").asText());
+        StorageService resService = JsonUtils.convertValue(node.get("data"), StorageService.class);
+        Assertions.assertEquals(updatedService.getName(), resService.getName());
+        Assertions.assertEquals(updatedService.getDisplayName(), resService.getDisplayName());
+        Assertions.assertEquals(updatedService.getDescription(), resService.getDescription());
+        Assertions.assertEquals(EntityUtil.nextVersion(mysql.getVersion()), resService.getVersion());
+        Assertions.assertNotNull(resService.getChangeDescription());
+        // Tag
+        Assertions.assertEquals(updatedService.getTags().size(), resService.getTags().size());
+        List<TagLabel> mutableTags = new ArrayList<>(updatedService.getTags());
+        mutableTags.sort(compareTagLabel);
+        List<TagLabel> destTags = resService.getTags().stream().map(
+                        tagLabel -> new TagLabel()
+                                .withSource(tagLabel.getSource())
+                                .withParentId(tagLabel.getParentId())
+                                .withId(tagLabel.getId())
+                                .withName(tagLabel.getName())
+                                .withDisplayName(tagLabel.getDisplayName())
+                                .withDescription(tagLabel.getDescription()))
+                .sorted(compareTagLabel)
+                .toList();
+        JsonPatch path = JsonUtils.getJsonPatch(mutableTags, destTags);
+        Assertions.assertEquals("[]", path.toString());
+        // Owner
+        Assertions.assertEquals(updatedService.getOwners().size(), resService.getOwners().size());
+        for (EntityReference owner : resService.getOwners()) {
+            Assertions.assertTrue(updatedService.getOwners().stream()
+                    .anyMatch(entityReference -> entityReference.getName().equals(owner.getName())));
+        }
+    }
+
+    List<EntityReference> getOwners(List<String> owners) {
+        if (owners != null && !owners.isEmpty()) {
+            List<EntityReference> ownersList = new ArrayList<>();
+            for (String owner : owners) {
+                EntityReference entityReference = new EntityReference();
+                entityReference.setId(UUID.fromString(keyCloakUtil.getUserList().get(owner)));
+                entityReference.setType(Entity.USER);
+                entityReference.setName(owner);
+                ownersList.add(entityReference);
+            }
+            return ownersList;
+        }
+        return null;
     }
 
     Classification createClassification(String name, String displayName, String description, Boolean exclusive) throws Exception {
@@ -1065,6 +1541,16 @@ class StorageServiceTest {
         JsonNode node = JsonUtils.readTree(result.getResponse().getContentAsString());
         Assertions.assertEquals("Success", node.get("code").asText());
         return JsonUtils.convertValue(node.get("data"), Tag.class);
+    }
+
+    private TagLabel convertTagToTagLabel(Tag tag) {
+        return new TagLabel()
+                .withSource(TagLabel.TagSource.CLASSIFICATION)
+                .withParentId(tag.getClassification().getId())
+                .withId(tag.getId())
+                .withName(tag.getName())
+                .withDisplayName(tag.getDisplayName())
+                .withDescription(tag.getDescription());
     }
 
 }

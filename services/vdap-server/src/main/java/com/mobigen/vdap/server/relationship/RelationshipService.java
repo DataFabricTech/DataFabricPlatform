@@ -27,30 +27,15 @@ public class RelationshipService {
 
     public void addRelationship(
             UUID fromId, UUID toId, String fromEntity, String toEntity, Relationship relationship) {
-        addRelationship(fromId, toId, fromEntity, toEntity, relationship, false);
-    }
-
-    public void addRelationship(
-            UUID fromId, UUID toId,
-            String fromEntity, String toEntity,
-            Relationship relationship, boolean bidirectional) {
-        addRelationship(fromId, toId, fromEntity, toEntity, relationship, null, bidirectional);
+        addRelationship(fromId, toId, fromEntity, toEntity, relationship, null);
     }
 
     public void addRelationship(
             UUID fromId, UUID toId, String fromEntity, String toEntity,
-            Relationship relationship, String json, boolean bidirectional) {
-        UUID from = fromId;
-        UUID to = toId;
-        if (bidirectional && fromId.compareTo(toId) > 0) {
-            // For bidirectional relationship, instead of adding two row fromId -> toId and toId ->
-            // fromId, just add one row where fromId is alphabetically less than toId
-            from = toId;
-            to = fromId;
-        }
+            Relationship relationship, String json) {
         RelationshipEntity entity = new RelationshipEntity();
-        entity.setFromId(from.toString());
-        entity.setToId(to.toString());
+        entity.setFromId(fromId.toString());
+        entity.setToId(toId.toString());
         entity.setFromEntity(fromEntity);
         entity.setToEntity(toEntity);
         entity.setRelation(relationship.ordinal());
@@ -59,7 +44,7 @@ public class RelationshipService {
         entity.setDeleted(false);
 
         log.info("[Relationship] Insert Relationship : From[{}/{}] - Relation[{}/{}] - To[{}/{}]",
-                fromEntity, from, relationship, relationship.ordinal(), toEntity, to);
+                fromEntity, fromId, relationship, relationship.ordinal(), toEntity, toId);
 
         relationshipRepository.save(entity);
     }
@@ -138,8 +123,16 @@ public class RelationshipService {
             @Nullable Relationship relationship) {
         log.info("[Relationship] Delete Relationships : From[{}/{}] - Relation[{}] - To[{}/{}]",
                 fromEntity, fromId, relationship, toEntity, toId);
-        relationshipRepository.delete(withDynamicConditions(fromId, toId, fromEntity, toEntity,
-                relationship, null));
+        relationshipRepository.delete(
+                withDynamicConditions(fromId, toId, fromEntity, toEntity, relationship, Include.ALL));
     }
 
+    public void softDeleteRelationship(UUID fromId, UUID toId, String fromEntity, String toEntity, Relationship relationship) {
+       relationshipRepository.findAll(
+               withDynamicConditions(fromId, toId, fromEntity, toEntity, relationship, null)
+               ).forEach(entity -> {
+                    entity.setDeleted(true);
+                    relationshipRepository.save(entity);
+               });
+    }
 }

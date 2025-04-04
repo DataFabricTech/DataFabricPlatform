@@ -267,12 +267,12 @@ public class StorageServiceApp {
 
         if (update) {
             // Update the entity
-            log.info("Update Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}] Connection[{}]",
+            log.info("[StorageService] Update Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}] Connection[{}]",
                     entity.getKindOfService().value(), entity.getServiceType().value(),
                     entity.getId(), entity.getName(), entity.getDisplayName(), entity.getConnection().getConfig());
         } else {
             // insert the entity
-            log.info("Insert Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
+            log.info("[StorageService] Insert Kind[{}] Type[{}] Id[{}] Name[{}] DisplayName[{}]",
                     entity.getKindOfService().value(), entity.getServiceType().value(),
                     entity.getId(), entity.getName(), entity.getDisplayName());
         }
@@ -415,14 +415,21 @@ public class StorageServiceApp {
 
     private void updateOwners(StorageService entity) {
         // 기존 소유자 삭제
-        relationshipService.deleteRelationship(null, entity.getId(), Entity.USER, Entity.STORAGE_SERVICE, Relationship.OWNS);
-        storeOwners(entity);
+        if( entity.getDeleted() != null && entity.getDeleted() ) {
+            relationshipService.softDeleteRelationship(null, entity.getId(), Entity.USER, Entity.STORAGE_SERVICE, Relationship.OWNS );
+        } else {
+            relationshipService.deleteRelationship(null, entity.getId(), Entity.USER, Entity.STORAGE_SERVICE, Relationship.OWNS);
+            storeOwners(entity);
+        }
     }
 
     private void updateTags(StorageService entity) {
         // 기존 태그 삭제
         tagUsageService.delete(null, null, null, Entity.STORAGE_SERVICE, entity.getId().toString());
-        applyTags(entity);
+        if (entity.getDeleted() == null || !entity.getDeleted() ) {
+            // 삭제되는 경우가 아니라면 변경된 태그들 저장
+            applyTags(entity);
+        }
     }
 
     private void storeEntityHistory(StorageService storageService) {
@@ -475,7 +482,7 @@ public class StorageServiceApp {
     }
 
     private void deleteInternal(StorageServiceEntity entity, boolean recursive, boolean hardDelete, String deletedBy) {
-        log.info("[StorageService] ID[{}] Name[{}] {} Deleted", entity.getId(), entity.getName(), hardDelete ? "Hard" : "Soft");
+        log.info("[StorageService] ID[{}] Name[{}] {} Delete", entity.getId(), entity.getName(), hardDelete ? "Hard" : "Soft");
         deleteChildren(entity.getId(), recursive, hardDelete, deletedBy);
         StorageService original = convertToDto(entity);
         setFields(original, getFields("*"));
@@ -510,7 +517,7 @@ public class StorageServiceApp {
     private void deleteChildren(
             List<RelationshipEntity> children, boolean hardDelete, String updatedBy) {
         for (RelationshipEntity relationship : children) {
-            log.info("[StorageService] Recursively {} deleting {} {}", hardDelete ? "hard" : "soft", relationship.getToEntity(), relationship.getToId());
+            log.info("[StorageService] Recursively {} Deleting Children Type[{}] ID[{}]", hardDelete ? "hard" : "soft", relationship.getToEntity(), relationship.getToId());
             switch (relationship.getToEntity()) {
                 case Entity.DATABASE -> {
                     // TODO : Database Delete
@@ -522,7 +529,7 @@ public class StorageServiceApp {
                     // TODO : Ingestion Pipeline Delete
                 }
                 default -> {
-                    log.warn("[StorageService] Unsupported Child Entity Type[{}]", relationship.getToEntity());
+                    log.warn("[StorageService] Unsupported Children Entity Type[{}]", relationship.getToEntity());
                 }
             }
         }
