@@ -6,6 +6,7 @@ import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.request.TaskId;
 import com.mobigen.monitoring.dto.response.CommonResponseDto;
 import com.mobigen.monitoring.enums.DatabaseType;
+import com.mobigen.monitoring.enums.ServiceEventEnum;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.storage.*;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/monitoring")
+@RequiredArgsConstructor
 public class MonitoringController {
     private final MonitoringService monitoringService;
     private final ConnectionService connectionService;
@@ -35,22 +38,7 @@ public class MonitoringController {
     private final ConnectionHistoryService connectionHistoryService;
     private final ModelRegistrationService modelRegistrationService;
     private final IngestionHistoryService ingestionHistoryService;
-
-
-    public MonitoringController(
-            final ConnectionService connectionService,
-            final ConnectionHistoryService connectionHistoryService,
-            final ServicesService servicesService,
-            final ModelRegistrationService modelRegistrationService,
-            final IngestionHistoryService ingestionHistoryService
-            ) {
-        this.connectionService = connectionService;
-        this.servicesService = servicesService;
-        this.connectionHistoryService = connectionHistoryService;
-        this.modelRegistrationService = modelRegistrationService;
-        this.ingestionHistoryService = ingestionHistoryService;
-        this.monitoringService = new MonitoringService();
-    }
+    private final DatabaseManagementService databaseManagementService;
 
     @GetMapping("/start")
     @CommonResponse
@@ -514,5 +502,17 @@ public class MonitoringController {
                 orderBy ? Sort.by("eventAt").ascending() : Sort.by("eventAt").descending());
 
         return ingestionHistoryService.getIngestionHistory(pageRequest);
+    }
+
+    @GetMapping("/service/sync")
+    public Object syncServices(
+            @RequestParam(required = false) String serviceId,
+            @RequestParam String event,
+            @RequestParam(required = false, defaultValue = "false") Boolean isHardDelete,
+            @RequestParam String serviceModelType,
+            @RequestParam(required = false, defaultValue = "admin") String ownerName) {
+        databaseManagementService.getServiceListFromFabricServer();
+
+        return servicesService.handleServiceEvent(serviceId, ServiceEventEnum.get(event), isHardDelete, serviceModelType, ownerName);
     }
 }

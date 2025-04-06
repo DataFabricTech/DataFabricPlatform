@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.util.*;
 
 import static com.mobigen.monitoring.enums.Common.CONFIG;
-import static com.mobigen.monitoring.enums.OpenMetadataEnums.*;
+import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
 
 @Component
 @Slf4j

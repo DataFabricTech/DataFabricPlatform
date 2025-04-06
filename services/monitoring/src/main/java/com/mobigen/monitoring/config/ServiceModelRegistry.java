@@ -1,0 +1,30 @@
+package com.mobigen.monitoring.config;
+
+import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
+import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
+import com.mobigen.monitoring.vo.ModelInfoVo;
+import com.mobigen.monitoring.vo.TableAuditInfo;
+import com.mobigen.monitoring.vo.TableModelInfo;
+import lombok.Getter;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+@Getter
+public class ServiceModelRegistry {
+    // database service 정보
+    private final Map<String, GetDatabasesResponseDto> databaseServices = new HashMap<>();
+
+    // storage service 정보
+    private final Map<String, GetObjectStorageResponseDto> storageServices = new HashMap<>();
+
+    // table 정보 및 table 개수
+    private final Map<String, TableModelInfo> tableModels = new HashMap<>();
+
+    private final Map<String, ModelInfoVo> serviceModels = new HashMap<>();
+
+    // table 변경 이력
+    private final Map<String, TableAuditInfo> tableAuditInfos = new HashMap<>();
+}

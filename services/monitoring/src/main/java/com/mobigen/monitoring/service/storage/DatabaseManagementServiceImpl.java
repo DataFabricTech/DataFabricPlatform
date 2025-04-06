@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mobigen.monitoring.config.OpenMetadataConfig;
+import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.domain.ConnectionDao;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.ModelRegistration;
@@ -13,8 +14,9 @@ import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
-import com.mobigen.monitoring.enums.Queries;
+import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.k8s.K8SService;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
@@ -51,8 +53,8 @@ import static com.mobigen.monitoring.dto.request.DatabaseConnectionRequest.*;
 import static com.mobigen.monitoring.enums.Common.*;
 import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 import static com.mobigen.monitoring.enums.DatabaseType.*;
-import static com.mobigen.monitoring.enums.OpenMetadataEnums.*;
-import static com.mobigen.monitoring.enums.OpenMetadataEnums.CONFIG;
+import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
+import static com.mobigen.monitoring.enums.OpenMetadataEnum.CONFIG;
 import static com.mobigen.monitoring.enums.Queries.*;
 import static com.mobigen.monitoring.service.query.QueryLoader.loadQuery;
 import static java.lang.Boolean.*;
@@ -62,7 +64,7 @@ import static java.lang.Boolean.*;
 @RequiredArgsConstructor
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
     private final OpenMetadataService openMetadataService;
-    private final ServicesService servicesService;
+    private final ServicesRepository servicesRepository;
     private final ModelRegistrationService modelRegistrationService;
     private final Utils utils = new Utils();
     private final ConnectionService connectionService;
@@ -70,27 +72,14 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     private final ObjectMapper objectMapper;
     private final K8SService k8sService;
     private final OpenMetadataConfig openMetadataConfig;
-
-    // database service 정보
-    private Map<String, GetDatabasesResponseDto> databaseServices = new HashMap<>();
-
-    // storage service 정보
-    private Map<String, GetObjectStorageResponseDto> storageServices = new HashMap<>();
-
-    // table 정보 및 table 개수
-    private Map<String, TableModelInfo> tableModels = new HashMap<>();
-
-    private Map<String, ModelInfoVo> serviceModels = new HashMap<>();
-
-    // table 변경 이력
-    private Map<String, TableAuditInfo> tableAuditInfos = new HashMap<>();
+    private final ServiceModelRegistry serviceModelRegistry;
 
     @Value("${k8s.ip}")
     private String hostIP;
 
     @PostConstruct
     public void init() {
-        final List<Services> allService = servicesService.getAllService();
+        final List<Services> allService = servicesRepository.findAll();
 
         if (allService.isEmpty()) {
             initializeServiceTable(SCHEDULER.getName());
@@ -100,12 +89,12 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         for (Services service : allService) {
             if (service.getServiceType().equals(MINIO.getName())) {
-                GetObjectStorageResponseDto storageService = storageServices.get(service.getServiceID().toString());
+                GetObjectStorageResponseDto storageService = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
 
                 if (storageService != null)
                     storageService.setConnectionStatus(service.getConnectionStatus());
             } else {
-                GetDatabasesResponseDto databaseService = databaseServices.get(service.getServiceID().toString());
+                GetDatabasesResponseDto databaseService = serviceModelRegistry.getDatabaseServices().get(service.getServiceID().toString());
 
                 if (databaseService != null)
                     databaseService.setConnectionStatus(service.getConnectionStatus());
@@ -402,81 +391,81 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                             .build()
             );
 
-            /* *
-             * MINIO model info
-             * */
-            if (!service.getServiceType().equalsIgnoreCase("Trino")) {
-                if (service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) {
-                    if (service.getServiceType().equalsIgnoreCase("MinIO")) {
-                        log.info("service is minio");
-                        // minio 의 버킷 수 세기
-                        final GetObjectStorageResponseDto objectStorageResponseDto = storageServices.get(service.getServiceID().toString());
-                        final String endPointURL = objectStorageResponseDto.getConnection().getMinioConfig().getEndPointURL();
+            // save model registration
+            saveModelRegistration(service);
+        }
 
-                        URI uri = URI.create(endPointURL);
+        connectionService.saveAllConnection(connections);
+        connectionService.saveAllConnectionHistory(connectionHistories);
 
-                        modelRegistrationService.save(
-                                ModelRegistration.builder()
-                                        .serviceId(service.getServiceID())
-                                        .updatedAt(UnixTimeUtil.getCurrentMillis())
-                                        .omModelCount(getStorageModelCountFromOM(service.getServiceID()))
-                                        .modelCount(
-                                                testMinioConnection(
-                                                        builder()
-                                                                .dbType(objectStorageResponseDto.getServiceType())
-                                                                .host(uri.getHost())
-                                                                .port(uri.getPort())
-                                                                .databaseName(null)
-                                                                .username(objectStorageResponseDto.getConnection().getMinioConfig().getAccessKeyId())
-                                                                .password(objectStorageResponseDto.getConnection().getMinioConfig().getSecretKey())
-                                                                .build()
-                                                )
-                                        )
-                                        .build()
-                        );
-                    } else {
-                        modelRegistrationService.save(
-                                ModelRegistration.builder()
-                                        .serviceId(service.getServiceID())
-                                        .updatedAt(UnixTimeUtil.getCurrentMillis())
-                                        .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
-                                        .modelCount(getModelCount(service))
-                                        .build()
-                        );
-                    }
+        servicesRepository.saveAll(services);
+    }
+
+    public void saveModelRegistration(Services service) {
+        if (!service.getServiceType().equalsIgnoreCase("Trino")) {
+            if (service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) {
+                if (service.getServiceType().equalsIgnoreCase("MinIO")) {
+                    log.info("service is minio");
+                    // minio 의 버킷 수 세기
+                    final GetObjectStorageResponseDto objectStorageResponseDto = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
+                    final String endPointURL = objectStorageResponseDto.getConnection().getMinioConfig().getEndPointURL();
+
+                    URI uri = URI.create(endPointURL);
+
+                    modelRegistrationService.save(
+                            ModelRegistration.builder()
+                                    .serviceId(service.getServiceID())
+                                    .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                    .omModelCount(getStorageModelCountFromOM(service.getServiceID()))
+                                    .modelCount(
+                                            testMinioConnection(
+                                                    builder()
+                                                            .dbType(objectStorageResponseDto.getServiceType())
+                                                            .host(uri.getHost())
+                                                            .port(uri.getPort())
+                                                            .databaseName(null)
+                                                            .username(objectStorageResponseDto.getConnection().getMinioConfig().getAccessKeyId())
+                                                            .password(objectStorageResponseDto.getConnection().getMinioConfig().getSecretKey())
+                                                            .build()
+                                            )
+                                    )
+                                    .build()
+                    );
                 } else {
                     modelRegistrationService.save(
                             ModelRegistration.builder()
                                     .serviceId(service.getServiceID())
                                     .updatedAt(UnixTimeUtil.getCurrentMillis())
                                     .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
-                                    .modelCount(0)
+                                    .modelCount(getModelCount(service))
                                     .build()
                     );
                 }
+            } else {
+                modelRegistrationService.save(
+                        ModelRegistration.builder()
+                                .serviceId(service.getServiceID())
+                                .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                .omModelCount(getModelCountFromOM(service.getServiceID()).getTotal())
+                                .modelCount(0)
+                                .build()
+                );
             }
-        }
-
-        connectionService.saveAllConnection(connections);
-        connectionService.saveAllConnectionHistory(connectionHistories);
-
-        for (Services service : services) {
-            servicesService.saveService(service);
         }
     }
 
     @Override
     public TableModelInfo getModelCountFromOM(final UUID serviceID) {
-        if (databaseServices.get(serviceID.toString()) == null) {
+        if (serviceModelRegistry.getDatabaseServices().get(serviceID.toString()) == null) {
             log.error("serviceID: {}", serviceID);
         }
-        String fullyQualifiedName = databaseServices.get(serviceID.toString()).getFullyQualifiedName();
+        String fullyQualifiedName = serviceModelRegistry.getDatabaseServices().get(serviceID.toString()).getFullyQualifiedName();
 
         final JsonNode tableModels = openMetadataService.getTableModels(fullyQualifiedName);
 
         final TableModelInfo tableModelInfo = objectMapper.convertValue(tableModels, TableModelInfo.class);
 
-        this.tableModels.put(serviceID.toString(), tableModelInfo);
+        this.serviceModelRegistry.getTableModels().put(serviceID.toString(), tableModelInfo);
 
         return tableModelInfo;
     }
@@ -484,7 +473,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     @Override
     public Integer getStorageModelCountFromOM(final UUID serviceId) {
         try {
-            final GetObjectStorageResponseDto getObjectStorageResponseDto = storageServices.get(serviceId.toString());
+            final GetObjectStorageResponseDto getObjectStorageResponseDto = serviceModelRegistry.getStorageServices().get(serviceId.toString());
 
             final JsonNode storageModels = openMetadataService.getStorageModels(openMetadataConfig.getPath().getStorageModel() + getObjectStorageResponseDto.getName());
 
@@ -516,7 +505,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         if (!service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) return 0;
         if (isRDBMS(service.getServiceType())) {
             final String serviceId = service.getServiceID().toString();
-            final GetDatabasesResponseDto getDatabasesResponseDto = databaseServices.get(serviceId);
+            final GetDatabasesResponseDto getDatabasesResponseDto = serviceModelRegistry.getDatabaseServices().get(serviceId);
             final HostPortVo hostPortVo = convertStringToHostPortVo(getDatabasesResponseDto);
             String database = null;
 
@@ -552,7 +541,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             return tables.values().stream().mapToInt(List::size).sum();
         } else {
             // minio 의 버킷 수 세기
-            final GetObjectStorageResponseDto objectStorageResponseDto = storageServices.get(service.getServiceID().toString());
+            final GetObjectStorageResponseDto objectStorageResponseDto = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
             final String endPointURL = objectStorageResponseDto.getConnection().getMinioConfig().getEndPointURL();
 
             URI uri = URI.create(endPointURL);
@@ -576,6 +565,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         ConnectionStatus status;
+        Boolean isDatabaseService = DatabaseType.isDatabaseService(service.getServiceType());
 
         // trino 때문
         if (fromString(service.getServiceType()) == null) {
@@ -593,7 +583,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             request = getDatabaseConnectionRequest(service.getServiceID().toString());
         } else {
             // minio
-            final GetObjectStorageResponseDto storageResponse = storageServices.get(service.getServiceID().toString());
+            final GetObjectStorageResponseDto storageResponse = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
 
             String endpointUrl = storageResponse.getConnection().getMinioConfig().getEndPointURL();
 
@@ -638,10 +628,24 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         stopWatch.stop();
 
+        final long responseTime = stopWatch.getTotalTimeMillis();
+
+        if (isDatabaseService) {
+            GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(service.getServiceID().toString());
+
+            serviceInfo.setResponseTime(responseTime);
+            serviceInfo.setConnectionStatus(status);
+        } else {
+            GetObjectStorageResponseDto serviceInfo = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
+
+            serviceInfo.setConnectionStatus(status);
+            serviceInfo.setResponseTime(responseTime);
+        }
+
         // 실행 시간은 ms
         return CheckConnectionResponseVo.builder()
                 .status(status)
-                .responseTime(stopWatch.getTotalTimeMillis())
+                .responseTime(responseTime)
                 .build();
     }
 
@@ -671,7 +675,28 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             );
         }
 
-        return servicesService.saveServices(services);
+        return servicesRepository.saveAll(services);
+    }
+
+    @Override
+    public Services saveServiceToDatabase(JsonNode currentService) {
+        // Create Service entity
+        Long dateTime = currentService.get(UPDATED_AT.getName()).asLong();
+        
+        return servicesRepository.save(
+                Services.builder()
+                .serviceID(
+                        UUID.fromString(
+                                currentService.get(ID.getName()).asText().replace("\"", ""))
+                )
+                .name(currentService.get(NAME.getName()).asText())
+                .displayName(utils.getAsTextOrNull(currentService.get(DISPLAY_NAME.getName())))
+                .createdAt(dateTime)
+                .updatedAt(dateTime)
+                .serviceType(currentService.get(SERVICE_TYPE.getName()).asText())
+                .ownerName(currentService.get(UPDATED_BY.getName()).asText())
+                .connectionStatus(DISCONNECTED)
+                .build());
     }
 
     @Override
@@ -699,7 +724,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                         .deleted(databaseService.get(DELETED.getName()).asBoolean())
                         .build();
 
-                this.databaseServices.put(
+                this.serviceModelRegistry.getDatabaseServices().put(
                         databaseService.get(ID.getName()).toString().replace("\"", ""),
                         value
                 );
@@ -721,7 +746,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         for (JsonNode storageService : data) {
             try {
-                this.storageServices.put(
+                this.serviceModelRegistry.getStorageServices().put(
                         storageService.get(ID.getName()).asText(),
                         GetObjectStorageResponseDto.builder()
                                 .id(storageService.get(ID.getName()).asText())
@@ -771,7 +796,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // om의 model 개수 세기
         for (JsonNode currentService : currentServices) {
             final String serviceType = currentService.get(SERVICE_TYPE.getName()).asText();
-            JsonNode models = null;
+            JsonNode models;
 
             // RDB 데이터베이스일 경우
             if (isDatabaseService(serviceType)) {
@@ -790,7 +815,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             final Long total = Long.valueOf(models.get("total").asText());
 
-            serviceModels.put(
+            serviceModelRegistry.getServiceModels().put(
                     currentService.get(ID.getName()).asText(),
                     ModelInfoVo.builder()
                             .total(total)
@@ -802,7 +827,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
         String databaseName;
 
@@ -837,13 +862,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Map<String, Double> getCpuSpentTime(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
         if (serviceInfo != null) {
             if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
                 query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-            } else if(serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
                 query = loadQuery(GET_MARIADB_CPU_SPENT_TIME.getQuery());
             } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
                 query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
@@ -889,7 +914,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // 모든 서비스들의 cpu 사용 시간 조회
         Map<String, Object> result = new HashMap<>();
 
-        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+        for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                 try {
                     final Map<String, Double> maps = getCpuSpentTime(serviceInfo.getId());
@@ -906,7 +931,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Map<String, Double> getMemoryUsage(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
         if (serviceInfo != null) {
@@ -957,7 +982,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public Map<String, Object> getAllMemoryUsage() {
         Map<String, Object> result = new HashMap<>();
 
-        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+        for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             try {
                 if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                     final Map<String, Double> maps = getMemoryUsage(serviceInfo.getId());
@@ -978,7 +1003,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Map<String, Double> getDiskUsage(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
         if (serviceInfo != null) {
@@ -1033,7 +1058,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public Object getAllDiskUsage() {
         Map<String, Object> result = new HashMap<>();
 
-        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+        for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             try {
                 if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                     final Map<String, Double> maps = getDiskUsage(serviceInfo.getId());
@@ -1050,10 +1075,10 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     /**
      * query 요청 평균 성공량 조회
-     * */
+     */
     @Override
     public Map<String, Integer> getAverageQueryOutcome(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
         if (serviceInfo != null) {
@@ -1112,7 +1137,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     public Object getAllAverageQueryOutcome() {
         Map<String, Object> result = new HashMap<>();
 
-        for (GetDatabasesResponseDto serviceInfo : databaseServices.values()) {
+        for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             try {
                 if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                     final Map<String, Integer> maps = getAverageQueryOutcome(serviceInfo.getId());
@@ -1129,7 +1154,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     @Override
     public Object getSlowQueries(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = databaseServices.get(serviceId);
+        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
         if (serviceInfo != null) {
@@ -1170,6 +1195,48 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return null;
     }
 
+    @Override
+    public Object runMonitoring(final String serviceId) {
+        /* *
+         * TODO monitoring task 실행 전 hashmap 업데이트
+         **/
+
+        // data update
+        getServiceListFromFabricServer();
+
+        // database service 일 경우
+        if (serviceModelRegistry.getDatabaseServices().get(serviceId) != null) {
+            final GetDatabasesResponseDto databaseServiceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
+
+            // cpu, memory, request, slow query
+            // table update => connection, connection_history, metadata, model_registration, services
+            // connection -> saveConnections
+            // model-registration
+            // saveServicesDatabase -> 서비스들을 저자아혹 싶어함
+            final Services service = servicesRepository.findById(UUID.fromString(databaseServiceInfo.getId())).orElseThrow(
+                    () -> new CustomException("Service is not found")
+            );
+
+            final Boolean connection = checkDatabaseConnection(getDatabaseConnectionRequest(service.getServiceID().toString()));
+
+            // service -> model 정보
+            // connection_history -> 연결되었는지 확인
+            // connection -> query 수행 시간
+            // metadata -> 몇개의 서비스를 가져왔는지
+            // model registration -> 등록한 model, 실제 model 개수
+
+
+            return null;
+        } else if (serviceModelRegistry.getStorageServices().get(serviceId) != null) {
+            final GetObjectStorageResponseDto storageServiceInfo = serviceModelRegistry.getStorageServices().get(serviceId);
+
+            return null;
+        } else {
+            // database, storage service 둘다 없을 경우
+            throw new CustomException("Service not found");
+        }
+    }
+
     private HostPortVo convertStringToHostPortVo(GetDatabasesResponseDto serviceInfo) {
         String host;
         int port;
@@ -1201,7 +1268,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // table 변경 정보 in-memory 로 들고 있기
         // 없으면 DB 에서 가져오기
         // data 바꼈는지 체크
-        if (tableAuditInfos.isEmpty()) {
+        if (serviceModelRegistry.getTableAuditInfos().isEmpty()) {
             // table 변경 이력 가져오기
             // postgres, oracle, mariadb / mysql
         } else {

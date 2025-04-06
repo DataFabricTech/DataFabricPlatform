@@ -15,6 +15,7 @@ public class GetObjectStorageResponseDto {
     private String id;
     private String name;
     private String fullyQualifiedName;
+    private String displayName;
     private Long updatedAt;
     private String updatedBy;
     private Boolean deleted;
@@ -23,4 +24,5 @@ public class GetObjectStorageResponseDto {
     @JsonProperty("connection.config")
     private ObjectStorageConnectionInfo connection;
     private ConnectionStatus connectionStatus;
+    private Long responseTime;
 }

@@ -50,6 +50,8 @@ public interface DatabaseManagementService {
 
     public List<Services> saveServicesToDatabase();
 
+    Services saveServiceToDatabase(JsonNode currentService);
+
     public void setDatabaseServices(JsonNode databaseServices);
 
     public void setStorageServiceList(JsonNode storageServices);
@@ -62,21 +64,23 @@ public interface DatabaseManagementService {
 
     public Object getCpuSpentTime(String serviceId);
 
-    Object getAllCpuSpentTime();
+    public Object getAllCpuSpentTime();
 
     public Object getMemoryUsage(String serviceId);
 
-    Object getAllMemoryUsage();
+    public Object getAllMemoryUsage();
 
     public Object getDiskUsage(String serviceId);
 
-    Object getAllDiskUsage();
+    public Object getAllDiskUsage();
 
     public Object getAverageQueryOutcome(String serviceId);
 
-    Object getAllAverageQueryOutcome();
+    public Object getAllAverageQueryOutcome();
 
     public Object getSlowQueries(String serviceId);
 
     public Object getSlowQueries();
+
+    public Object runMonitoring(String serviceId);
 }

@@ -17,4 +17,6 @@ public interface ModelRegistrationRepository extends JpaRepository<ModelRegistra
             "from services as s left join model_registration as m on m.service_id = s.service_id " +
             "where s.deleted = ?1")
     public List<ModelRegistrationVo> findModelRegistration(boolean deleted, PageRequest pageRequest);
+
+    public void deleteByServiceId(UUID serviceId);
 }

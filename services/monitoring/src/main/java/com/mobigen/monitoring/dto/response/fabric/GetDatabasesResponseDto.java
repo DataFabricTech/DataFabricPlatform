@@ -18,6 +18,9 @@ public class GetDatabasesResponseDto {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("displayName")
+    private String displayName;
+
     @JsonProperty("fullyQualifiedName")
     private String fullyQualifiedName;
 
@@ -43,4 +46,6 @@ public class GetDatabasesResponseDto {
     private Boolean deleted;
 
     private ConnectionStatus connectionStatus;
+
+    private Long responseTime;
 }

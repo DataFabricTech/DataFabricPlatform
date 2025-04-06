@@ -25,4 +25,6 @@ public interface ConnectionHistoryRepository extends JpaRepository<ConnectionHis
             "from connection_history as sch left join services as s on sch.service_id = s.service_id " +
             "where sch.service_id = ?1")
     public List<ConnectionHistoryVo> findConnectHistoryResponse(UUID serviceId, PageRequest pageRequest);
+
+    public void deleteByServiceID(UUID serviceID);
 }

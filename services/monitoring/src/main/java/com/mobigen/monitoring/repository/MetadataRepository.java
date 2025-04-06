@@ -10,9 +10,10 @@ import java.util.UUID;
 
 @Repository
 public interface MetadataRepository extends JpaRepository<Metadata, String> {
-    @Query(nativeQuery = true, value = "" +
-            "select metadata_value as metadataValue " +
+    @Query(nativeQuery = true, value = "select metadata_value as metadataValue " +
             "from metadata " +
-            "where metadata_name = 'recent_collected_time'")
+            "where metadata_name = 'recent_collected_time' " +
+            "order by created_at DESC " +
+            "LIMIT 1")
     Optional<String> getRecentCollectedTime();
 }

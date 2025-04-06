@@ -3,7 +3,7 @@ package com.mobigen.monitoring.enums;
 import lombok.Getter;
 
 @Getter
-public enum OpenMetadataEnums {
+public enum OpenMetadataEnum {
     ID("id"),
     SERVICE_TYPE("serviceType"),
     DATA("data"),
@@ -38,7 +38,7 @@ public enum OpenMetadataEnums {
 
     private final String name;
 
-    OpenMetadataEnums(String name) {
+    OpenMetadataEnum(String name) {
         this.name = name;
     }
 

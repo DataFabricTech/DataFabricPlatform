@@ -2,6 +2,7 @@ package com.mobigen.monitoring.controller;
 
 import com.mobigen.monitoring.annotation.CommonResponse;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
+import com.mobigen.monitoring.service.storage.DatabaseManagementService;
 import com.mobigen.monitoring.service.storage.DatabaseManagementServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/database")
 public class DatabaseConnectionController {
 
-    private final DatabaseManagementServiceImpl databaseConnectionService;
+    private final DatabaseManagementService databaseConnectionService;
 
     public DatabaseConnectionController(DatabaseManagementServiceImpl databaseConnectionService) {
         this.databaseConnectionService = databaseConnectionService;
