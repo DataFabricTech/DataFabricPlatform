@@ -8,6 +8,7 @@ import com.mobigen.monitoring.dto.response.CommonResponseDto;
 import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.enums.ServiceEventEnum;
 import com.mobigen.monitoring.service.ConnectionService;
+import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.storage.*;
 import com.mobigen.monitoring.service.scheduler.TaskInfo;
@@ -39,6 +40,7 @@ public class MonitoringController {
     private final ModelRegistrationService modelRegistrationService;
     private final IngestionHistoryService ingestionHistoryService;
     private final DatabaseManagementService databaseManagementService;
+    private final ModelService modelService;
 
     @GetMapping("/start")
     @CommonResponse
@@ -511,7 +513,7 @@ public class MonitoringController {
             @RequestParam(required = false, defaultValue = "false") Boolean isHardDelete,
             @RequestParam String serviceModelType,
             @RequestParam(required = false, defaultValue = "admin") String ownerName) {
-        databaseManagementService.getServiceListFromFabricServer();
+        modelService.getServiceListFromFabricServer();
 
         return servicesService.handleServiceEvent(serviceId, ServiceEventEnum.get(event), isHardDelete, serviceModelType, ownerName);
     }

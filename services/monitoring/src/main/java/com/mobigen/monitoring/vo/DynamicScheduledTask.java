@@ -8,7 +8,7 @@ import java.util.concurrent.ScheduledFuture;
 @Setter
 @Getter
 public class DynamicScheduledTask {
-    private String taskId;
+    private String serviceId;
     private ScheduledFuture<?> future;
     private Runnable task;
     private String cronExpression;

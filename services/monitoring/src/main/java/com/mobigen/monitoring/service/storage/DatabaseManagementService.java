@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Service
 public interface DatabaseManagementService {
     public Boolean checkDatabaseConnection(DatabaseConnectionRequest request);
 
@@ -40,25 +39,11 @@ public interface DatabaseManagementService {
     @Transactional
     public void saveConnections(List<Services> services);
 
-    public TableModelInfo getModelCountFromOM(UUID serviceID);
-
     public Integer getModelCount(Services service);
-
-    public Integer getStorageModelCountFromOM(final UUID serviceId);
 
     public CheckConnectionResponseVo getQueryExecutedTime(Services service);
 
     public List<Services> saveServicesToDatabase();
-
-    Services saveServiceToDatabase(JsonNode currentService);
-
-    public void setDatabaseServices(JsonNode databaseServices);
-
-    public void setStorageServiceList(JsonNode storageServices);
-
-    public List<JsonNode> getServiceListFromFabricServer();
-
-    public void setServiceModels(List<JsonNode> currentServices);
 
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId);
 
@@ -81,6 +66,4 @@ public interface DatabaseManagementService {
     public Object getSlowQueries(String serviceId);
 
     public Object getSlowQueries();
-
-    public Object runMonitoring(String serviceId);
 }
