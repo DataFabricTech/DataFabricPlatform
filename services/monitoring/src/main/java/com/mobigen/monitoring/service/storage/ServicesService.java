@@ -88,7 +88,7 @@ public class ServicesService {
 
     @Transactional
     public Object handleServiceEvent(final String serviceId, final ServiceEventEnum serviceEventEnum, Boolean isHardDelete, String type, String ownerName) {
-        if (serviceEventEnum.equals(CREATED)) {
+        if (serviceEventEnum.equals(CREATED) || serviceEventEnum.equals(UPDATED)) {
             final Long now = UnixTimeUtil.getCurrentMillis();
             ConnectionInfo connectionInfo;
             Services service;
@@ -171,8 +171,8 @@ public class ServicesService {
                             .metadataValue(String.valueOf(models))
                             .build()
             );
-        } else if (serviceEventEnum.equals(UPDATED)) {
 
+            return "Success create service";
         } else { // DELETED
             if (isHardDelete) {
                 // hard delete
@@ -191,8 +191,7 @@ public class ServicesService {
 
                 metadataRepository.save(metadata);
 
-                return "Success hard delete";
-            } else {
+
                 // soft delete
                 // change service's deleted to true
                 Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
@@ -204,8 +203,9 @@ public class ServicesService {
                 servicesRepository.save(service);
 
                 return "Success soft delete";
+            } else {
+                throw new CustomException("service type is not supported");
             }
         }
-        return null;
     }
 }
