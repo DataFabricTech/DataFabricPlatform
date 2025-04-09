@@ -3,15 +3,12 @@ package com.mobigen.monitoring.controller;
 import com.mobigen.monitoring.annotation.CommonResponse;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.Services;
-import com.mobigen.monitoring.dto.request.TaskId;
 import com.mobigen.monitoring.dto.response.CommonResponseDto;
 import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.enums.ServiceEventEnum;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
-import com.mobigen.monitoring.service.monitoring.MonitoringService;
 import com.mobigen.monitoring.service.storage.*;
-import com.mobigen.monitoring.service.scheduler.TaskInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -33,32 +30,17 @@ import java.util.UUID;
 @RequestMapping("/api/v1/monitoring")
 @RequiredArgsConstructor
 public class MonitoringController {
-    private final MonitoringService monitoringService;
     private final ConnectionService connectionService;
     private final ServicesService servicesService;
     private final ConnectionHistoryService connectionHistoryService;
     private final ModelRegistrationService modelRegistrationService;
     private final IngestionHistoryService ingestionHistoryService;
-    private final DatabaseManagementService databaseManagementService;
     private final ModelService modelService;
 
-    @GetMapping("/start")
-    @CommonResponse
-    public Object start() {
-        return monitoringService.start();
-    }
-
-    @PostMapping("/edit")
-    @CommonResponse
-    public Object editTask(@RequestBody TaskInfo body) {
-        return monitoringService.addTask(body);
-    }
-
-    @PostMapping("/remove")
-    @CommonResponse
-    public Object removeTask(@RequestBody TaskId body) {
-        return monitoringService.removeTask(body.getId());
-    }
+    /**
+     * TODO
+     * monitoring start, edit, remove
+     * */
 
     @GetMapping("/service-type")
     @CommonResponse

@@ -32,7 +32,7 @@ public class SchedulerController {
 
     @PostMapping("/update")
     public String updateTask(@RequestParam String id, @RequestParam String cron) {
-        schedulerService.updateTask(id, cron);
+        schedulerService.editTask(id, cron);
         return "Task 업데이트됨: " + id;
     }
 

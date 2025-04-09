@@ -1,9 +1,6 @@
 package com.mobigen.monitoring.service.storage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mobigen.monitoring.config.OpenMetadataConfig;
 import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.domain.ConnectionDao;
 import com.mobigen.monitoring.domain.ConnectionHistory;
@@ -11,7 +8,6 @@ import com.mobigen.monitoring.domain.ModelRegistration;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
-import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.enums.DatabaseType;
@@ -20,9 +16,7 @@ import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.k8s.K8SService;
-import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
-import com.mobigen.monitoring.service.scheduler.DatabaseConnectionInfo;
 import com.mobigen.monitoring.utils.UnixTimeUtil;
 import com.mobigen.monitoring.utils.Utils;
 import com.mobigen.monitoring.vo.*;
@@ -55,7 +49,6 @@ import static com.mobigen.monitoring.enums.Common.*;
 import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 import static com.mobigen.monitoring.enums.DatabaseType.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
-import static com.mobigen.monitoring.enums.OpenMetadataEnum.CONFIG;
 import static com.mobigen.monitoring.enums.Queries.*;
 import static com.mobigen.monitoring.service.query.QueryLoader.loadQuery;
 import static java.lang.Boolean.*;
@@ -64,15 +57,12 @@ import static java.lang.Boolean.*;
 @Slf4j
 @RequiredArgsConstructor
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
-    private final OpenMetadataService openMetadataService;
     private final ServicesRepository servicesRepository;
     private final ModelRegistrationService modelRegistrationService;
     private final Utils utils = new Utils();
     private final ConnectionService connectionService;
     private final MetadataService metadataService;
-    private final ObjectMapper objectMapper;
     private final K8SService k8sService;
-    private final OpenMetadataConfig openMetadataConfig;
     private final ServiceModelRegistry serviceModelRegistry;
     private final ModelService modelService;
 
@@ -358,9 +348,12 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         // collect data num 등록
         metadataService.save(services.size());
+
+        // monitoring history 저장
+        // cpu, memory, request, slow query
+
     }
 
-    @Override
     public void saveConnections(final List<Services> services) {
         // response time == 직접 디비에서 show databases; 햔 시간
         // executed_at, execute_by, query_execution_time, service_id
@@ -885,6 +878,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     /**
      * query 요청 평균 성공량 조회
+     * DB에 저장해야한다.
      */
     @Override
     public Map<String, Integer> getAverageQueryOutcome(String serviceId) {
@@ -963,7 +957,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Object getSlowQueries(String serviceId) {
+    public List<Map<String, Object>> getSlowQueries(String serviceId) {
         final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
 
@@ -983,7 +977,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
-        return executeQuery(
+        final List<Map<String, Object>> slowQueries = executeQuery(
                 builder()
                         .dbType(serviceInfo.getServiceType())
                         .host(hostPortVo.getHost())
@@ -998,11 +992,50 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                         .build(),
                 query
         );
+
+        if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+            // base64 decode to sqlText
+        }
+
+        return slowQueries;
     }
 
     @Override
     public Object getSlowQueries() {
-        return null;
+        Map<String, Object> result = new HashMap<>();
+
+        servicesRepository.findAll().forEach(serviceInfo -> {
+            try {
+                if (isRDBMS(serviceInfo.getServiceType()) && serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                    result.put(serviceInfo.getServiceID().toString() + " " + serviceInfo.getServiceType(), getSlowQueries(serviceInfo.getServiceID().toString()));
+                }
+            } catch (BadSqlGrammarException e) {
+                log.error("Not sufficient privileges");
+            }
+        });
+
+        return result;
+    }
+
+    /**
+     * TODO exception 처리
+     */
+    @Override
+    public void updateDatabaseInfo(String serviceId) {
+        // connection, connection history, service, slow query, model registration
+        if (serviceId == null || serviceId.isEmpty()) {
+            // all update
+            final List<Services> allService = servicesRepository.findAll();
+
+            saveConnections(allService);
+        } else {
+            final Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
+                    () -> new CustomException("service not found")
+            );
+
+            // service, connection 업데이트
+            saveConnections(List.of(service));
+        }
     }
 
     private HostPortVo convertStringToHostPortVo(GetDatabasesResponseDto serviceInfo) {

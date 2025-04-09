@@ -1,17 +1,12 @@
 package com.mobigen.monitoring.service.storage;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
 import com.mobigen.monitoring.vo.CheckConnectionResponseVo;
-import com.mobigen.monitoring.vo.TableModelInfo;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public interface DatabaseManagementService {
     public Boolean checkDatabaseConnection(DatabaseConnectionRequest request);
@@ -36,7 +31,6 @@ public interface DatabaseManagementService {
 
     public void initializeServiceTable(String userName);
 
-    @Transactional
     public void saveConnections(List<Services> services);
 
     public Integer getModelCount(Services service);
@@ -66,4 +60,6 @@ public interface DatabaseManagementService {
     public Object getSlowQueries(String serviceId);
 
     public Object getSlowQueries();
+
+    void updateDatabaseInfo(String serviceId);
 }

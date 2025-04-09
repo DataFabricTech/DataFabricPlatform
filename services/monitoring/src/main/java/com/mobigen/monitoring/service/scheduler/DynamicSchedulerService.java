@@ -73,7 +73,7 @@ public class DynamicSchedulerService {
         }
     }
 
-    public void updateTask(String taskId, String newCron) {
+    public void editTask(String taskId, String newCron) {
         DynamicScheduledTask scheduledTask = tasks.get(taskId);
         if (scheduledTask != null) {
             addTask(taskId, scheduledTask.getTask(), newCron); // 기존 task로 재등록
@@ -88,32 +88,14 @@ public class DynamicSchedulerService {
         /* *
          * TODO monitoring task 실행 전 hashmap 업데이트
          **/
-
         // data update
         modelService.getServiceListFromFabricServer();
 
         // database service 일 경우
         if (serviceModelRegistry.getDatabaseServices().get(serviceId) != null) {
-            final GetDatabasesResponseDto databaseServiceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
-
-            // cpu, memory, request, slow query
-            // table update => connection, connection_history, metadata, model_registration, services
-            // connection -> saveConnections
-            // model-registration
-            // saveServicesDatabase -> 서비스들을 저자아혹 싶어함
-            final Services service = servicesRepository.findById(UUID.fromString(databaseServiceInfo.getId())).orElseThrow(
-                    () -> new CustomException("Service is not found")
-            );
-
-            final Boolean connection = databaseManagementService.checkDatabaseConnection(databaseManagementService.getDatabaseConnectionRequest(service.getServiceID().toString()));
-
-            // service -> model 정보
-            // connection_history -> 연결되었는지 확인
-            // connection -> query 수행 시간
-            // metadata -> 몇개의 서비스를 가져왔는지
-            // model registration -> 등록한 model, 실제 model 개수
-
-
+            // TODO cpu, memory, request, slow query
+            // service, connection info, model registration, metadata update
+            databaseManagementService.updateDatabaseInfo(serviceId);
         } else if (serviceModelRegistry.getStorageServices().get(serviceId) != null) {
             final GetObjectStorageResponseDto storageServiceInfo = serviceModelRegistry.getStorageServices().get(serviceId);
 
