@@ -9,20 +9,19 @@ import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.repository.MonitoringHistoryRepository;
 import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.repository.SlowQueriesRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.k8s.K8SService;
 import com.mobigen.monitoring.dto.request.DatabaseConnectionRequest;
-import com.mobigen.monitoring.utils.UnixTimeUtil;
 import com.mobigen.monitoring.utils.Utils;
 import com.mobigen.monitoring.vo.*;
 import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +60,7 @@ import static java.lang.Boolean.*;
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
     private final ServicesRepository servicesRepository;
     private final SlowQueriesRepository slowQueriesRepository;
+    private final MonitoringHistoryRepository monitoringHistoryRepository;
 
     private final Utils utils = new Utils();
     private final ServiceModelRegistry serviceModelRegistry;
@@ -356,7 +356,10 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         // monitoring history 저장
         // cpu, memory, request, slow query
-
+        for (Services service : services) {
+            if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(ConnectionStatus.CONNECTED))
+                saveMonitoringHistory(service, userName, getCurrentMillis());
+        }
     }
 
     public void saveConnections(final List<Services> services) {
@@ -669,63 +672,70 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Map<String, Double> getCpuSpentTime(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
-        String query;
+    public CpuUsedVo getCpuSpentTime(String serviceId) {
+        try {
+            final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
+            String query;
 
-        if (serviceInfo != null) {
-            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-                query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-                query = loadQuery(GET_MARIADB_CPU_SPENT_TIME.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
+            if (serviceInfo != null) {
+                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                    query = loadQuery(GET_MYSQL_CPU_SPENT_TIME.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                    query = loadQuery(GET_MARIADB_CPU_SPENT_TIME.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                    query = loadQuery(GET_ORACLE_CPU_SPENT_TIME.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                    query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
+                } else {
+                    throw new CustomException("service type is invalid");
+                }
             } else {
-                throw new CustomException("service type is invalid");
+                throw new CustomException("Service not found");
             }
-        } else {
-            throw new CustomException("Service not found");
+
+            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+            final List<Map<String, Object>> maps = executeQuery(
+                    builder()
+                            .dbType(serviceInfo.getServiceType())
+                            .host(hostPortVo.getHost())
+                            .port(hostPortVo.getPort())
+                            .databaseName(getDatabaseName(serviceInfo))
+                            .username(serviceInfo.getConnection().getUsername())
+                            .password(
+                                    serviceInfo.getConnection().getPassword() == null ?
+                                            serviceInfo.getConnection().getAuthType().getPassword() :
+                                            serviceInfo.getConnection().getPassword()
+                            )
+                            .build(),
+                    query
+            );
+
+            Map<String, Object> row = maps.getFirst();
+            Object cpuUsedObj = row.get("cpu_used");
+
+            double cpuUsed = cpuUsedObj instanceof Number
+                    ? ((Number) cpuUsedObj).doubleValue()
+                    : 0;
+
+            return CpuUsedVo.builder()
+                    .cpuUsed(cpuUsed)
+                    .build();
+        } catch (BadSqlGrammarException e) {
+            log.debug("Insufficient privileges");
+            return null;
         }
-
-        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
-
-        final List<Map<String, Object>> maps = executeQuery(
-                builder()
-                        .dbType(serviceInfo.getServiceType())
-                        .host(hostPortVo.getHost())
-                        .port(hostPortVo.getPort())
-                        .databaseName(getDatabaseName(serviceInfo))
-                        .username(serviceInfo.getConnection().getUsername())
-                        .password(
-                                serviceInfo.getConnection().getPassword() == null ?
-                                        serviceInfo.getConnection().getAuthType().getPassword() :
-                                        serviceInfo.getConnection().getPassword()
-                        )
-                        .build(),
-                query
-        );
-
-        Map<String, Object> row = maps.getFirst();
-        Object cpuUsedObj = row.get("cpu_used");
-
-        double cpuUsed = cpuUsedObj instanceof Number
-                ? ((Number) cpuUsedObj).doubleValue()
-                : 0;
-
-        return Map.of("cpuUsed", cpuUsed);
     }
 
     @Override
-    public Object getAllCpuSpentTime() {
+    public Map<String, CpuUsedVo> getCpuSpentTime() {
         // 모든 서비스들의 cpu 사용 시간 조회
-        Map<String, Object> result = new HashMap<>();
+        Map<String, CpuUsedVo> result = new HashMap<>();
 
         for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                 try {
-                    final Map<String, Double> maps = getCpuSpentTime(serviceInfo.getId());
+                    final CpuUsedVo maps = getCpuSpentTime(serviceInfo.getId());
 
                     result.put(serviceInfo.getName(), maps);
                 } catch (BadSqlGrammarException e) {
@@ -738,66 +748,69 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Map<String, Double> getMemoryUsage(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
-        String query;
+    public MemoryUsedVo getMemoryUsage(String serviceId) {
+        try {
+            final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
+            String query;
 
-        if (serviceInfo != null) {
-            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-                query = loadQuery(GET_MYSQL_MEMORY_USAGE.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-                query = loadQuery(GET_MARIADB_MEMORY_USAGE.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                query = loadQuery(GET_ORACLE_MEMORY_USAGE.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                query = loadQuery(GET_POSTGRES_MEMORY_USAGE.getQuery());
+            if (serviceInfo != null) {
+                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                    query = loadQuery(GET_MYSQL_MEMORY_USAGE.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                    query = loadQuery(GET_MARIADB_MEMORY_USAGE.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                    query = loadQuery(GET_ORACLE_MEMORY_USAGE.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                    query = loadQuery(GET_POSTGRES_MEMORY_USAGE.getQuery());
+                } else {
+                    throw new CustomException("service type is invalid");
+                }
             } else {
-                throw new CustomException("service type is invalid");
+                throw new CustomException("Service not found");
             }
-        } else {
-            throw new CustomException("Service not found");
+
+            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+            final List<Map<String, Object>> maps = executeQuery(
+                    builder()
+                            .dbType(serviceInfo.getServiceType())
+                            .host(hostPortVo.getHost())
+                            .port(hostPortVo.getPort())
+                            .databaseName(getDatabaseName(serviceInfo))
+                            .username(serviceInfo.getConnection().getUsername())
+                            .password(
+                                    serviceInfo.getConnection().getPassword() == null ?
+                                            serviceInfo.getConnection().getAuthType().getPassword() :
+                                            serviceInfo.getConnection().getPassword()
+                            )
+                            .build(),
+                    query
+            );
+
+            Map<String, Object> row = maps.getFirst();
+            Object memoryUsedMB = row.get("memory_usage_mb");
+
+            double memoryUsed = memoryUsedMB instanceof Number
+                    ? ((Number) memoryUsedMB).doubleValue()
+                    : 0;
+
+            return MemoryUsedVo.builder()
+                    .memoryUsed(memoryUsed)
+                    .build();
+        } catch (BadSqlGrammarException e) {
+            log.debug("Insufficient privileges");
+            return null;
         }
-
-        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
-
-        final List<Map<String, Object>> maps = executeQuery(
-                builder()
-                        .dbType(serviceInfo.getServiceType())
-                        .host(hostPortVo.getHost())
-                        .port(hostPortVo.getPort())
-                        .databaseName(getDatabaseName(serviceInfo))
-                        .username(serviceInfo.getConnection().getUsername())
-                        .password(
-                                serviceInfo.getConnection().getPassword() == null ?
-                                        serviceInfo.getConnection().getAuthType().getPassword() :
-                                        serviceInfo.getConnection().getPassword()
-                        )
-                        .build(),
-                query
-        );
-
-        Map<String, Object> row = maps.getFirst();
-        Object cpuUsedObj = row.get("memory_usage_mb");
-
-        double cpuUsed = cpuUsedObj instanceof Number
-                ? ((Number) cpuUsedObj).doubleValue()
-                : 0;
-
-        return Map.of("memoryUsedMB", cpuUsed);
     }
 
     @Override
-    public Map<String, Object> getAllMemoryUsage() {
-        Map<String, Object> result = new HashMap<>();
+    public Map<String, MemoryUsedVo> getMemoryUsage() {
+        Map<String, MemoryUsedVo> result = new HashMap<>();
 
         for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             try {
                 if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
-                    final Map<String, Double> maps = getMemoryUsage(serviceInfo.getId());
-
-                    if (maps.get("memoryUsedMB") == 0) {
-                        log.debug("serviceInfo: {}", serviceInfo);
-                    }
+                    final MemoryUsedVo maps = getMemoryUsage(serviceInfo.getId());
 
                     result.put(serviceInfo.getName(), maps);
                 }
@@ -886,70 +899,75 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
      * DB에 저장해야한다.
      */
     @Override
-    public Map<String, Integer> getAverageQueryOutcome(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
-        String query;
+    public QueryStatisticsVo getAverageQueryOutcome(String serviceId) {
+        try {
+            final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
+            String query;
 
-        if (serviceInfo != null) {
-            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-                query = loadQuery(GET_MYSQL_REQUEST_RATE_QUERY.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-                query = loadQuery(GET_MARIADB_REQUEST_RATE_QUERY.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                query = loadQuery(GET_ORACLE_REQUEST_RATE_QUERY.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                query = loadQuery(GET_POSTGRES_REQUEST_RATE_QUERY.getQuery());
+            if (serviceInfo != null) {
+                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                    query = loadQuery(GET_MYSQL_REQUEST_RATE_QUERY.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                    query = loadQuery(GET_MARIADB_REQUEST_RATE_QUERY.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                    query = loadQuery(GET_ORACLE_REQUEST_RATE_QUERY.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                    query = loadQuery(GET_POSTGRES_REQUEST_RATE_QUERY.getQuery());
+                } else {
+                    throw new CustomException("service type is invalid");
+                }
             } else {
-                throw new CustomException("service type is invalid");
+                throw new CustomException("Service not found");
             }
-        } else {
-            throw new CustomException("Service not found");
+
+            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+
+            final List<Map<String, Object>> maps = executeQuery(
+                    builder()
+                            .dbType(serviceInfo.getServiceType())
+                            .host(hostPortVo.getHost())
+                            .port(hostPortVo.getPort())
+                            .databaseName(getDatabaseName(serviceInfo))
+                            .username(serviceInfo.getConnection().getUsername())
+                            .password(
+                                    serviceInfo.getConnection().getPassword() == null ?
+                                            serviceInfo.getConnection().getAuthType().getPassword() :
+                                            serviceInfo.getConnection().getPassword()
+                            )
+                            .build(),
+                    query
+            );
+
+            Map<String, Object> row = maps.getFirst();
+            Object successQueriesObj = row.get("success_queries");
+            Object failedQueriesObj = row.get("failed_queries");
+
+            int successQueries = successQueriesObj instanceof Number
+                    ? ((Number) successQueriesObj).intValue()
+                    : 0;
+
+            int failedQueries = failedQueriesObj instanceof Number
+                    ? ((Number) failedQueriesObj).intValue()
+                    : 0;
+
+            return QueryStatisticsVo.builder()
+                    .successQueries(successQueries)
+                    .failedQueries(failedQueries)
+                    .build();
+        } catch (BadSqlGrammarException e) {
+            log.debug("Insufficient privileges: {}", e.getMessage());
+            return null;
         }
-
-        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
-
-        final List<Map<String, Object>> maps = executeQuery(
-                builder()
-                        .dbType(serviceInfo.getServiceType())
-                        .host(hostPortVo.getHost())
-                        .port(hostPortVo.getPort())
-                        .databaseName(getDatabaseName(serviceInfo))
-                        .username(serviceInfo.getConnection().getUsername())
-                        .password(
-                                serviceInfo.getConnection().getPassword() == null ?
-                                        serviceInfo.getConnection().getAuthType().getPassword() :
-                                        serviceInfo.getConnection().getPassword()
-                        )
-                        .build(),
-                query
-        );
-
-        Map<String, Object> row = maps.getFirst();
-        Object successQueriesObj = row.get("success_queries");
-        Object failedQueriesObj = row.get("failed_queries");
-
-        int successQueries = successQueriesObj instanceof Number
-                ? ((Number) successQueriesObj).intValue()
-                : 0;
-
-        int failedQueries = failedQueriesObj instanceof Number
-                ? ((Number) failedQueriesObj).intValue()
-                : 0;
-
-        return Map.of(
-                "successQueries", successQueries,
-                "failedQueries", failedQueries
-        );
     }
 
     @Override
-    public Object getAllAverageQueryOutcome() {
-        Map<String, Object> result = new HashMap<>();
+    public Map<String, QueryStatisticsVo> getAverageQueryOutcome() {
+        Map<String, QueryStatisticsVo> result = new HashMap<>();
 
         for (GetDatabasesResponseDto serviceInfo : serviceModelRegistry.getDatabaseServices().values()) {
             try {
                 if (serviceInfo.getConnectionStatus().equals(CONNECTED)) {
-                    final Map<String, Integer> maps = getAverageQueryOutcome(serviceInfo.getId());
+                    final QueryStatisticsVo maps = getAverageQueryOutcome(serviceInfo.getId());
 
                     result.put(serviceInfo.getName(), maps);
                 }
@@ -961,101 +979,96 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return result;
     }
 
+    /**
+     * TODO 처음 load 시 50개만 insert
+     * TODO 다음부터 50개 + 3개 비교해서 insert
+     * */
     @Override
     public List<SlowQueryVo> getSlowQueries(String serviceId) {
-        final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
-        String query;
+        try {
+            final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
+            String query;
 
-        List<SlowQueryVo> response = new ArrayList<>();
+            List<SlowQueryVo> response = new ArrayList<>();
 
-        if (serviceInfo != null) {
-            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-                query = loadQuery(GET_MYSQL_SLOW_QUERY.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
-                query = loadQuery(GET_ORACLE_SLOW_QUERY.getQuery());
-            } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
-                query = loadQuery(GET_POSTGRES_SLOW_QUERY.getQuery());
+            if (serviceInfo != null) {
+                if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                    query = loadQuery(GET_MYSQL_SLOW_QUERY.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
+                    query = loadQuery(GET_ORACLE_SLOW_QUERY.getQuery());
+                } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
+                    query = loadQuery(GET_POSTGRES_SLOW_QUERY.getQuery());
+                } else {
+                    throw new CustomException("service type is invalid");
+                }
             } else {
-                throw new CustomException("service type is invalid");
+                throw new CustomException("Service not found");
             }
-        } else {
-            throw new CustomException("Service not found");
-        }
 
-        final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
+            final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
 
-        final List<Map<String, Object>> slowQueries = executeQuery(
-                builder()
-                        .dbType(serviceInfo.getServiceType())
-                        .host(hostPortVo.getHost())
-                        .port(hostPortVo.getPort())
-                        .databaseName(getDatabaseName(serviceInfo))
-                        .username(serviceInfo.getConnection().getUsername())
-                        .password(
-                                serviceInfo.getConnection().getPassword() == null ?
-                                        serviceInfo.getConnection().getAuthType().getPassword() :
-                                        serviceInfo.getConnection().getPassword()
-                        )
-                        .build(),
-                query
-        );
-
-        // response dto 형태로 변환
-        if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-            for (Map<String, Object> slowQuery : slowQueries) {
-                response.add(
-                        SlowQueryVo.builder()
-                                .sqlText(
-                                        new String((byte[]) slowQuery.get("sql_text"))
-                                )
-                                .execTime(
-                                        (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
-                                )
-                                .build()
-                );
-            }
-        } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
-            for (Map<String, Object> slowQuery : slowQueries) {
-                response.add(
-                        SlowQueryVo.builder()
-                                .sqlText(slowQuery.get("sql_text").toString())
-                                .execTime(
-                                        (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
-                                )
-                                .build()
-                );
-            }
-        } else {
-            for (Map<String, Object> slowQuery : slowQueries) {
-                response.add(
-                        SlowQueryVo.builder()
-                                .sqlText(slowQuery.get("sql_text").toString())
-                                .execTime(Float.valueOf(slowQuery.get("exec_time").toString()))
-                                .build()
-                );
-            }
-        }
-
-        // db에 저장
-        final Long now = getCurrentMillis();
-
-        for (SlowQueryVo slowQuery : response) {
-            slowQueriesRepository.save(
-                    SlowQueries.builder()
-                            .serviceId(UUID.fromString(serviceId))
-                            .query(slowQuery.getSqlText())
-                            .durationTime(slowQuery.getExecTime())
-                            .createdAt(now)
-                            .build()
+            final List<Map<String, Object>> slowQueries = executeQuery(
+                    builder()
+                            .dbType(serviceInfo.getServiceType())
+                            .host(hostPortVo.getHost())
+                            .port(hostPortVo.getPort())
+                            .databaseName(getDatabaseName(serviceInfo))
+                            .username(serviceInfo.getConnection().getUsername())
+                            .password(
+                                    serviceInfo.getConnection().getPassword() == null ?
+                                            serviceInfo.getConnection().getAuthType().getPassword() :
+                                            serviceInfo.getConnection().getPassword()
+                            )
+                            .build(),
+                    query
             );
-        }
 
-        return response;
+            // response dto 형태로 변환
+            if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
+                for (Map<String, Object> slowQuery : slowQueries) {
+                    response.add(
+                            SlowQueryVo.builder()
+                                    .sqlText(
+                                            new String((byte[]) slowQuery.get("sql_text"))
+                                    )
+                                    .execTime(
+                                            (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
+                                    )
+                                    .build()
+                    );
+                }
+            } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+                for (Map<String, Object> slowQuery : slowQueries) {
+                    response.add(
+                            SlowQueryVo.builder()
+                                    .sqlText(slowQuery.get("sql_text").toString())
+                                    .execTime(
+                                            (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
+                                    )
+                                    .build()
+                    );
+                }
+            } else {
+                for (Map<String, Object> slowQuery : slowQueries) {
+                    response.add(
+                            SlowQueryVo.builder()
+                                    .sqlText(slowQuery.get("sql_text").toString())
+                                    .execTime(Float.valueOf(slowQuery.get("exec_time").toString()))
+                                    .build()
+                    );
+                }
+            }
+
+            return response;
+        } catch (BadSqlGrammarException e) {
+            log.debug("Insufficient privileges: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     @Override
-    public Object getSlowQueries() {
-        Map<String, Object> result = new HashMap<>();
+    public Map<String, List<SlowQueryVo>> getSlowQueries() {
+        Map<String, List<SlowQueryVo>> result = new HashMap<>();
 
         servicesRepository.findAll().forEach(serviceInfo -> {
             try {
@@ -1088,6 +1101,67 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             // service, connection 업데이트
             saveConnections(List.of(service));
+        }
+    }
+
+    /**
+     * save memory / cpu usage info, request info, slow query info
+     */
+    @Override
+    public void saveDatabaseMonitoringInfo(String serviceId, String ownerName) {
+        // insert request info
+        // insert cpu, memory info
+        // insert slow query info
+        Long now = getCurrentMillis();
+
+        if (serviceId == null || serviceId.isEmpty()) {
+            for (Services service : servicesRepository.findAll()) {
+                if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
+                    saveMonitoringHistory(service, ownerName, now);
+            }
+        } else {
+            Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
+                    () -> new CustomException("service not found")
+            );
+
+            if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
+                saveMonitoringHistory(service, ownerName, now);
+        }
+    }
+
+    private void saveMonitoringHistory(Services service, String ownerName, Long now) {
+        final QueryStatisticsVo averageQueryOutcome = getAverageQueryOutcome(service.getServiceID().toString());
+        final List<SlowQueryVo> slowQueries = getSlowQueries(service.getServiceID().toString());
+        final CpuUsedVo cpuSpentTime = getCpuSpentTime(service.getServiceID().toString());
+        final MemoryUsedVo memoryUsage = getMemoryUsage(service.getServiceID().toString());
+
+        // cpu, memory, request 내용 save
+        monitoringHistoryRepository.save(
+                MonitoringHistory.builder()
+                        .serviceId(service.getServiceID())
+                        .ownerName(ownerName)
+                        .createdAt(now)
+                        .cpuUsed(cpuSpentTime == null ? null : cpuSpentTime.getCpuUsed())
+                        .memoryUsed(memoryUsage == null ? null : memoryUsage.getMemoryUsed())
+                        .successRequest(averageQueryOutcome == null ? null : Long.valueOf(averageQueryOutcome.getSuccessQueries()))
+                        .failedRequest(averageQueryOutcome == null ? null : Long.valueOf(averageQueryOutcome.getFailedQueries()))
+                        .build()
+        );
+
+        // slow query 내용 저장
+        if (slowQueries.isEmpty()) {
+            log.debug("Insufficient privileges");
+        } else {
+            for (SlowQueryVo slowQuery : slowQueries) {
+                slowQueriesRepository.save(
+                        SlowQueries.builder()
+                                .serviceId(service.getServiceID())
+                                .query(slowQuery.getSqlText())
+                                .durationTime(slowQuery.getExecTime())
+                                .createdAt(now)
+                                .build()
+                );
+            }
         }
     }
 

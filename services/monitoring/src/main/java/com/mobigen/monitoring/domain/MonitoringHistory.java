@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.NavigableMap;
+import java.util.UUID;
 
 @Table(name = "monitoring_history")
 @Entity
@@ -16,10 +17,10 @@ public class MonitoringHistory {
     @Id
     @Column(name = "id")
     @GeneratedValue(generator = "UUID")
-    private String id;
+    private UUID id;
 
     @Column(name = "service_id")
-    private String serviceId;
+    private UUID serviceId;
 
     @Column(name = "owner_name")
     private String ownerName;
@@ -28,10 +29,10 @@ public class MonitoringHistory {
     private Long createdAt;
 
     @Column(name = "cpu_used")
-    private Float cpuUsed;
+    private Double cpuUsed;
 
     @Column(name = "memory_used")
-    private Float memoryUsed;
+    private Double memoryUsed;
 
     @Column(name = "success_request")
     private Long successRequest;

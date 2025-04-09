@@ -43,11 +43,11 @@ public interface DatabaseManagementService {
 
     public Object getCpuSpentTime(String serviceId);
 
-    public Object getAllCpuSpentTime();
+    public Object getCpuSpentTime();
 
     public Object getMemoryUsage(String serviceId);
 
-    public Object getAllMemoryUsage();
+    public Object getMemoryUsage();
 
     public Object getDiskUsage(String serviceId);
 
@@ -55,11 +55,13 @@ public interface DatabaseManagementService {
 
     public Object getAverageQueryOutcome(String serviceId);
 
-    public Object getAllAverageQueryOutcome();
+    public Object getAverageQueryOutcome();
 
     public Object getSlowQueries(String serviceId);
 
     public Object getSlowQueries();
 
     void updateDatabaseInfo(String serviceId);
+
+    void saveDatabaseMonitoringInfo(String serviceId, String ownerName);
 }

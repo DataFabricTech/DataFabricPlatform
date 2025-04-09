@@ -50,7 +50,7 @@ public class TestController {
     @GetMapping("/cpuUsed")
     public Object cpuUsed(@RequestParam(required = false) String serviceId) {
         if (serviceId == null || serviceId.isEmpty())
-            return databaseManagementServiceImpl.getAllCpuSpentTime();
+            return databaseManagementServiceImpl.getCpuSpentTime();
         else
             return databaseManagementServiceImpl.getCpuSpentTime(serviceId);
     }
@@ -58,7 +58,7 @@ public class TestController {
     @GetMapping("/memoryUsed")
     public Object memoryUsed(@RequestParam(required = false) String serviceId) {
         if (serviceId == null || serviceId.isEmpty())
-            return databaseManagementServiceImpl.getAllMemoryUsage();
+            return databaseManagementServiceImpl.getMemoryUsage();
         else
             return databaseManagementServiceImpl.getMemoryUsage(serviceId);
     }
@@ -74,7 +74,7 @@ public class TestController {
     @GetMapping("/avgRequestRate")
     public Object getAvgRequestRate(@RequestParam(required = false) String serviceId) {
         if (serviceId == null || serviceId.isEmpty())
-            return databaseManagementServiceImpl.getAllAverageQueryOutcome();
+            return databaseManagementServiceImpl.getAverageQueryOutcome();
         else
             return databaseManagementServiceImpl.getAverageQueryOutcome(serviceId);
     }
