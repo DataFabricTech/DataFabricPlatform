@@ -3,6 +3,8 @@ package com.mobigen.monitoring.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Table(name = "slow_queries")
 @Entity
 @AllArgsConstructor
@@ -14,10 +16,10 @@ public class SlowQueries {
     @Id
     @GeneratedValue(generator = "UUID")
     @Column(name = "id")
-    private String id;
+    private UUID id;
 
     @Column(name = "service_id")
-    private String serviceId;
+    private UUID serviceId;
 
     @Column(name = "query")
     private String query;

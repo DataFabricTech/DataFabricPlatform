@@ -2,10 +2,7 @@ package com.mobigen.monitoring.service.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.config.ServiceModelRegistry;
-import com.mobigen.monitoring.domain.ConnectionDao;
-import com.mobigen.monitoring.domain.ConnectionHistory;
-import com.mobigen.monitoring.domain.ModelRegistration;
-import com.mobigen.monitoring.domain.Services;
+import com.mobigen.monitoring.domain.*;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.enums.ConnectionStatus;
@@ -13,6 +10,7 @@ import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.repository.ServicesRepository;
+import com.mobigen.monitoring.repository.SlowQueriesRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.k8s.K8SService;
@@ -24,6 +22,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +41,8 @@ import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.mobigen.monitoring.dto.request.DatabaseConnectionRequest.*;
@@ -51,6 +52,7 @@ import static com.mobigen.monitoring.enums.DatabaseType.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
 import static com.mobigen.monitoring.enums.Queries.*;
 import static com.mobigen.monitoring.service.query.QueryLoader.loadQuery;
+import static com.mobigen.monitoring.utils.UnixTimeUtil.getCurrentMillis;
 import static java.lang.Boolean.*;
 
 @Service
@@ -58,12 +60,15 @@ import static java.lang.Boolean.*;
 @RequiredArgsConstructor
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
     private final ServicesRepository servicesRepository;
-    private final ModelRegistrationService modelRegistrationService;
+    private final SlowQueriesRepository slowQueriesRepository;
+
     private final Utils utils = new Utils();
+    private final ServiceModelRegistry serviceModelRegistry;
+
+    private final ModelRegistrationService modelRegistrationService;
     private final ConnectionService connectionService;
     private final MetadataService metadataService;
     private final K8SService k8sService;
-    private final ServiceModelRegistry serviceModelRegistry;
     private final ModelService modelService;
 
     @Value("${k8s.ip}")
@@ -367,7 +372,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             // connection entity 생성
             connections.add(
                     ConnectionDao.builder()
-                            .executeAt(UnixTimeUtil.getCurrentMillis())
+                            .executeAt(getCurrentMillis())
                             .executeBy(SCHEDULER.getName())
                             .queryExecutionTime(checkDatabaseResponse.getResponseTime())
                             .serviceID(service.getServiceID())
@@ -382,7 +387,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     ConnectionHistory.builder()
                             .connectionStatus(checkDatabaseResponse.getStatus())
                             .serviceID(service.getServiceID())
-                            .updatedAt(UnixTimeUtil.getCurrentMillis())
+                            .updatedAt(getCurrentMillis())
                             .build()
             );
 
@@ -410,7 +415,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     modelRegistrationService.save(
                             ModelRegistration.builder()
                                     .serviceId(service.getServiceID())
-                                    .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                    .updatedAt(getCurrentMillis())
                                     .omModelCount(modelService.getStorageModelCountFromOM(service.getServiceID()))
                                     .modelCount(
                                             testMinioConnection(
@@ -430,7 +435,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     modelRegistrationService.save(
                             ModelRegistration.builder()
                                     .serviceId(service.getServiceID())
-                                    .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                    .updatedAt(getCurrentMillis())
                                     .omModelCount(modelService.getModelCountFromOM(service.getServiceID()).getTotal())
                                     .modelCount(getModelCount(service))
                                     .build()
@@ -440,7 +445,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 modelRegistrationService.save(
                         ModelRegistration.builder()
                                 .serviceId(service.getServiceID())
-                                .updatedAt(UnixTimeUtil.getCurrentMillis())
+                                .updatedAt(getCurrentMillis())
                                 .omModelCount(modelService.getModelCountFromOM(service.getServiceID()).getTotal())
                                 .modelCount(0)
                                 .build()
@@ -957,9 +962,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public List<Map<String, Object>> getSlowQueries(String serviceId) {
+    public List<SlowQueryVo> getSlowQueries(String serviceId) {
         final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
         String query;
+
+        List<SlowQueryVo> response = new ArrayList<>();
 
         if (serviceInfo != null) {
             if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName()) || serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
@@ -993,11 +1000,57 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 query
         );
 
+        // response dto 형태로 변환
         if (serviceInfo.getServiceType().equalsIgnoreCase(MYSQL.getName())) {
-            // base64 decode to sqlText
+            for (Map<String, Object> slowQuery : slowQueries) {
+                response.add(
+                        SlowQueryVo.builder()
+                                .sqlText(
+                                        new String((byte[]) slowQuery.get("sql_text"))
+                                )
+                                .execTime(
+                                        (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
+                                )
+                                .build()
+                );
+            }
+        } else if (serviceInfo.getServiceType().equalsIgnoreCase(MARIADB.getName())) {
+            for (Map<String, Object> slowQuery : slowQueries) {
+                response.add(
+                        SlowQueryVo.builder()
+                                .sqlText(slowQuery.get("sql_text").toString())
+                                .execTime(
+                                        (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
+                                )
+                                .build()
+                );
+            }
+        } else {
+            for (Map<String, Object> slowQuery : slowQueries) {
+                response.add(
+                        SlowQueryVo.builder()
+                                .sqlText(slowQuery.get("sql_text").toString())
+                                .execTime(Float.valueOf(slowQuery.get("exec_time").toString()))
+                                .build()
+                );
+            }
         }
 
-        return slowQueries;
+        // db에 저장
+        final Long now = getCurrentMillis();
+
+        for (SlowQueryVo slowQuery : response) {
+            slowQueriesRepository.save(
+                    SlowQueries.builder()
+                            .serviceId(UUID.fromString(serviceId))
+                            .query(slowQuery.getSqlText())
+                            .durationTime(slowQuery.getExecTime())
+                            .createdAt(now)
+                            .build()
+            );
+        }
+
+        return response;
     }
 
     @Override
@@ -1007,7 +1060,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         servicesRepository.findAll().forEach(serviceInfo -> {
             try {
                 if (isRDBMS(serviceInfo.getServiceType()) && serviceInfo.getConnectionStatus().equals(CONNECTED)) {
-                    result.put(serviceInfo.getServiceID().toString() + " " + serviceInfo.getServiceType(), getSlowQueries(serviceInfo.getServiceID().toString()));
+                    result.put(serviceInfo.getServiceID().toString(), getSlowQueries(serviceInfo.getServiceID().toString()));
                 }
             } catch (BadSqlGrammarException e) {
                 log.error("Not sufficient privileges");

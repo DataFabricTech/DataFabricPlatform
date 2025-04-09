@@ -1,1 +1,1 @@
-SELECT query as sqlText, total_exec_time as execTime FROM pg_stat_statements LIMIT 10;
+SELECT query as sql_text, total_exec_time as exec_time FROM pg_stat_statements LIMIT 10;

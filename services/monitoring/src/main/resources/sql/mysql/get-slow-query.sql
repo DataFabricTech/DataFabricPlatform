@@ -1,1 +1,1 @@
-SELECT query_time as exec_time as execTime, CAST(sql_text AS CHAR) AS sqlText FROM mysql.slow_log ORDER BY start_time DESC;
+SELECT query_time as exec_time as execTime, CAST(sql_text AS CHAR) AS sql_text FROM mysql.slow_log ORDER BY start_time DESC;
