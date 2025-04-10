@@ -1,0 +1,26 @@
+logging:
+  level:
+    root: info
+
+spring:
+  application:
+    name: vdap-server
+  datasource:
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
+    hikari:
+      connection-test-query: SELECT 1
+      minimum-idle: 10
+      maximum-pool-size: 100
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
+otel:
+  sdk:
+    disabled: true
+

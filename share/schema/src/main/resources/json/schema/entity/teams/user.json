@@ -1,37 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/teams/user.json",
+  "$id": "https://mobigen.com/schema/entity/teams/user.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "User",
-  "description": "A `User` represents a user of OpenMetadata. A user can be part of 0 or more teams. A special type of user called Bot is used for automation. A user can be an owner of zero or more data assets. A user can also follow zero or more data assets.",
+  "description": "A `User` represents a user of Open VDAP. A user can be part of 0 or more teams. A special type of user called Bot is used for automation. A user can be an owner of zero or more data assets. A user can also follow zero or more data assets.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.teams.User",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
-  "definitions": {
-    "authenticationMechanism": {
-      "type": "object",
-      "description": "User/Bot Authentication Mechanism.",
-      "javaType": "org.openmetadata.schema.entity.teams.AuthenticationMechanism",
-      "properties": {
-        "config": {
-          "oneOf": [
-            {
-              "$ref": "../../auth/ssoAuth.json"
-            },
-            {
-              "$ref": "../../auth/jwtAuth.json"
-            },
-            {
-              "$ref": "../../auth/basicAuth.json"
-            }
-          ]
-        },
-        "authType": {
-          "enum": ["JWT", "SSO", "BASIC"]
-        }
-      },
-      "additionalProperties": false
-    }
-  },
+  "javaType": "com.mobigen.vdap.schema.entity.teams.User",
   "properties": {
     "id": {
       "description": "Unique identifier that identifies a user entity instance.",
@@ -40,10 +13,6 @@
     "name": {
       "description": "A unique name of the user, typically the user ID from an identity provider. Example - uid from LDAP.",
       "$ref": "../../type/basic.json#/definitions/entityName"
-    },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "description": {
       "description": "Used for user biography.",
@@ -73,42 +42,13 @@
       "description": "Link to the resource corresponding to this entity.",
       "$ref": "../../type/basic.json#/definitions/href"
     },
-    "timezone": {
-      "description": "Timezone of the user.",
-      "type": "string",
-      "format": "timezone"
-    },
-    "isBot": {
-      "description": "When true indicates a special type of user called Bot.",
-      "type": "boolean",
-      "default": false
-    },
     "isAdmin": {
       "description": "When true indicates user is an administrator for the system with superuser privileges.",
       "type": "boolean",
       "default": false
     },
-    "authenticationMechanism": {
-      "$ref": "#/definitions/authenticationMechanism"
-    },
-    "profile": {
-      "description": "Profile of the user.",
-      "$ref": "../../type/profile.json"
-    },
     "teams": {
       "description": "Teams that the user belongs to.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
-    "defaultPersona": {
-      "description": "Default Persona for the user from list of personas.",
-      "$ref": "../../type/entityReference.json"
-    },
-    "personas": {
-      "description": "Personas that the user assigned to.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
-    "owns": {
-      "description": "List of entities owned by the user.",
       "$ref": "../../type/entityReferenceList.json"
     },
     "follows": {
@@ -117,28 +57,12 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
-    },
-    "roles": {
-      "description": "Roles that the user has been assigned.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
-    "inheritedRoles": {
-      "description": "Roles that a user is inheriting through membership in teams that have set team default roles.",
-      "$ref": "../../type/entityReferenceList.json"
-    },
-    "isEmailVerified": {
-      "description": "If the User has verified the mail",
-      "type": "boolean"
-    },
-    "domains" : {
-      "description": "Domain the User belongs to. This is inherited by the team the user belongs to.",
-      "$ref": "../../type/entityReferenceList.json"
     }
   },
   "additionalProperties": false,

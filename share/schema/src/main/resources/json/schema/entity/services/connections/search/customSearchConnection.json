@@ -1,16 +1,18 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/search/customSearchConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/search/customSearchConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CustomSearchConnection",
-  "description": "Custom Search Service connection to build a source that is not supported by OpenMetadata yet.",
+  "description": "Custom Search Service connection to build a source that is not supported by Open VDAP yet.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.search.CustomSearchConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.search.CustomSearchConnection",
   "definitions": {
     "customSearchType": {
       "title": "Service Type",
       "description": "Custom search service type",
       "type": "string",
-      "enum": ["CustomSearch"],
+      "enum": [
+        "CustomSearch"
+      ],
       "default": "CustomSearch"
     }
   },
@@ -32,5 +34,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["type"]
+  "required": [
+    "type"
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/metadataIngestion/metadataToElasticSearchPipeline.json",
+  "$id": "https://mobigen.com/schema/metadataIngestion/metadataToElasticSearchPipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MetadataToElasticSearchPipeline",
   "description": "Data Insight Pipeline Configuration.",
@@ -8,7 +8,9 @@
     "metadataToESConfigType": {
       "description": "Pipeline Source Config Metadata Pipeline type",
       "type": "string",
-      "enum": ["MetadataToElasticSearch"],
+      "enum": [
+        "MetadataToElasticSearch"
+      ],
       "default": "MetadataToElasticSearch"
     }
   },
@@ -19,8 +21,8 @@
       "default": "MetadataToElasticSearch"
     },
     "regionName": {
-      "title": "AWS Region Name",
-      "description": "Region name. Required when using AWS Credentials.",
+      "title": "Region Name",
+      "description": "Region name. Required when using Credentials.",
       "type": "string",
       "default": null
     },
@@ -47,12 +49,6 @@
       "type": "boolean",
       "default": false
     },
-    "useAwsCredentials": {
-      "title": "Use AWS Credentials",
-      "description": "Indicates whether to use aws credentials when connecting to OpenSearch in AWS.",
-      "type": "boolean",
-      "default": false
-    },
     "searchIndexMappingLanguage": {
       "description": "Recreate Indexes with updated Language",
       "$ref": "../configuration/elasticSearchConfiguration.json#/definitions/searchIndexMappingLanguage"
@@ -69,6 +65,8 @@
       "default": true
     }
   },
-  "required": ["type"],
+  "required": [
+    "type"
+  ],
   "additionalProperties": false
 }

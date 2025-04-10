@@ -1,12 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/data/glossaryTerm.json",
+  "$id": "https://mobigen.com/schema/entity/data/glossaryTerm.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "GlossaryTerm",
   "description": "This schema defines te Glossary term entities.",
-  "$comment": "@om-entity-type",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.data.GlossaryTerm",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.data.GlossaryTerm",
   "definitions": {
     "termReference": {
       "type": "object",
@@ -45,13 +43,6 @@
       "description": "Description of the glossary term.",
       "$ref": "../../type/basic.json#/definitions/markdown"
     },
-    "style": {
-      "$ref": "../../type/basic.json#/definitions/style"
-    },
-    "fullyQualifiedName": {
-      "description": "A unique name that identifies a glossary term. It captures name hierarchy of glossary of terms in the form of `glossaryName.parentTerm.childTerm`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
-    },
     "synonyms": {
       "description": "Alternate names that are synonyms or near-synonyms for the glossary term.",
       "type": "array",
@@ -87,8 +78,8 @@
       "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in date-time.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -120,7 +111,7 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "status": {
       "description": "Status of the glossary term.",
@@ -146,14 +137,6 @@
     "extension": {
       "description": "Entity extension data with custom attributes added to the entity.",
       "$ref": "../../type/basic.json#/definitions/entityExtension"
-    },
-    "domain" : {
-      "description": "Domain the Glossary Term belongs to. When not set, the Glossary TErm inherits the domain from the Glossary it belongs to.",
-      "$ref": "../../type/entityReference.json"
-    },
-    "dataProducts" : {
-      "description": "List of data products this entity is part of.",
-      "$ref" : "../../type/entityReferenceList.json"
     },
     "votes" : {
       "description": "Votes on the entity.",

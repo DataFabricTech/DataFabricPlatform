@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/metadataIngestion/databaseServiceProfilerPipeline.json",
+  "$id": "https://mobigen.com/schema/metadataIngestion/databaseServiceProfilerPipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DatabaseServiceProfilerPipeline",
   "description": "DatabaseService Profiler Pipeline Configuration.",
@@ -8,7 +8,9 @@
     "profilerConfigType": {
       "description": "Profiler Source Config Pipeline type",
       "type": "string",
-      "enum": ["Profiler"],
+      "enum": [
+        "Profiler"
+      ],
       "default": "Profiler"
     }
   },
@@ -44,12 +46,6 @@
       "default": false,
       "title": "Include Views"
     },
-    "useFqnForFiltering": {
-      "description": "Regex will be applied on fully qualified name (e.g service_name.db_name.schema_name.table_name) instead of raw name (e.g. table_name)",
-      "type": "boolean",
-      "default": false,
-      "title": "Use FQN For Filtering"
-    },
     "computeMetrics": {
       "description": "Option to turn on/off computing profiler metrics.",
       "type": "boolean",
@@ -69,13 +65,13 @@
       "title": "Compute Column Metrics"
     },
     "useStatistics": {
-      "description": "Use system tables to extract metrics. Metrics that cannot be gathered from system tables will use the default methods. Using system tables can be faster but requires gathering statistics before running (for example using the ANALYZE procedure). More information can be found in the documentation: https://docs.openmetadata.org/latest/profler",
+      "description": "Use system tables to extract metrics. Metrics that cannot be gathered from system tables will use the default methods. Using system tables can be faster but requires gathering statistics before running (for example using the ANALYZE procedure).",
       "type": "boolean",
       "default": false,
       "title": "Use Gathered Statistics"
     },
     "profileSampleType": {
-      "$ref": "../entity/data/table.json#/definitions/profileSampleType",
+      "$ref": "../entity/data/sample.json#/definitions/profileSampleType",
       "title": "Profile Sample Type"
     },
     "profileSample": {
@@ -85,7 +81,7 @@
       "title": "Profile Sample"
     },
     "samplingMethodType": {
-      "$ref": "../entity/data/table.json#/definitions/samplingMethodType",
+      "$ref": "../entity/data/sample.json#/definitions/samplingMethodType",
       "title": "Sampling Method Type"
     },
     "threadCount": {

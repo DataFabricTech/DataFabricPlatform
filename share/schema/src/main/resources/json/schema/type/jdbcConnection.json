@@ -1,5 +1,5 @@
 {
-  "$id": "https://open-metadata.org/schema/type/jdbcConnection.json",
+  "$id": "https://mobigen.com/schema/type/jdbcConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "JDBC connection",
   "description": "This schema defines the type used for JDBC connection information.",
@@ -17,7 +17,7 @@
 
     "jdbcInfo": {
       "type": "object",
-      "javaType": "org.openmetadata.schema.type.JdbcInfo",
+      "javaType": "com.mobigen.vdap.schema.type.JdbcInfo",
       "description": "Type for capturing JDBC connector information.",
       "properties": {
         "driverClass": {

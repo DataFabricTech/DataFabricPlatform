@@ -1,11 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/classification/classification.json",
+  "$id": "https://mobigen.com/schema/entity/classification/classification.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Classification",
   "description": "A `Classification` entity contains hierarchical terms called tags used for categorizing and classifying data assets and other entities.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.classification.Classification",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.classification.Classification",
   "properties": {
     "id": {
       "description": "Unique identifier of this entity instance.",
@@ -13,10 +12,6 @@
     },
     "name": {
       "$ref": "../../type/basic.json#/definitions/entityName"
-    },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "displayName": {
       "description": "Display Name that identifies this entity.",
@@ -36,8 +31,8 @@
       "minimum": 0
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in kst date-time.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -53,7 +48,7 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
@@ -72,10 +67,6 @@
       "description" : "Tags under this classification are mutually exclusive. When mutually exclusive is `true` the tags from this classification are used to **classify** an entity. An entity can only be in one class - example, it can only be either `tier1` or `tier2` and not both. When mutually exclusive is `false`, the tags from this classification are used to **categorize** an entity. An entity have multiple tags simultaneously - example a customer can be `newCustomer` and `atRisk` simultaneously.",
       "type" : "boolean",
       "default" : "false"
-    },
-    "domain" : {
-      "description": "Domain the asset belongs to. When not set, the asset inherits the domain from the parent it belongs to.",
-      "$ref": "../../type/entityReference.json"
     }
   },
   "required": ["name", "description"],

@@ -20,4 +20,5 @@ includeBuild("../platforms")
 
 rootProject.name = "share" // the component name
 
-include("schema")
+include(":annotator")
+include(":schema")

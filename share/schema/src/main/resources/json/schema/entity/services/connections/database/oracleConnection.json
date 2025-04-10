@@ -1,38 +1,44 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/database/oracleConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/database/oracleConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "OracleConnection",
   "description": "Oracle Database Connection Config",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.database.OracleConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.database.OracleConnection",
   "definitions": {
     "oracleType": {
       "description": "Service type.",
       "type": "string",
-      "enum": ["Oracle"],
+      "enum": [
+        "Oracle"
+      ],
       "default": "Oracle"
     },
     "oracleScheme": {
       "description": "SQLAlchemy driver scheme options.",
       "type": "string",
-      "enum": ["oracle+cx_oracle"],
+      "enum": [
+        "oracle+cx_oracle"
+      ],
       "default": "oracle+cx_oracle"
     },
     "OracleDatabaseSchema": {
       "title": "Database Schema",
-      "type":"object",
+      "type": "object",
       "properties": {
         "databaseSchema": {
           "title": "DatabaseSchema",
-          "description": "databaseSchema of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single databaseSchema. When left blank, OpenMetadata Ingestion attempts to scan all the databaseSchema.",
+          "description": "databaseSchema of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single databaseSchema. When left blank, Open VDAP Ingestion attempts to scan all the databaseSchema.",
           "type": "string"
         }
       },
-      "required": ["databaseSchema"]
+      "required": [
+        "databaseSchema"
+      ]
     },
     "OracleServiceName": {
       "title": "Oracle Service Name",
-      "type":"object",
+      "type": "object",
       "properties": {
         "oracleServiceName": {
           "title": "Oracle Service Name",
@@ -40,11 +46,13 @@
           "type": "string"
         }
       },
-      "required": ["oracleServiceName"]
+      "required": [
+        "oracleServiceName"
+      ]
     },
     "OracleTNSConnection": {
       "title": "Oracle TNS Connection",
-      "type":"object",
+      "type": "object",
       "properties": {
         "oracleTNSConnection": {
           "title": "Oracle TNS Connection String",
@@ -52,7 +60,9 @@
           "type": "string"
         }
       },
-      "required": ["oracleTNSConnection"]
+      "required": [
+        "oracleTNSConnection"
+      ]
     }
   },
   "properties": {
@@ -108,7 +118,7 @@
     },
     "databaseName": {
       "title": "Database Name",
-      "description": "Optional name to give to the database in OpenMetadata. If left blank, we will use default as the database name.",
+      "description": "Optional name to give to the database in Open VDAP. If left blank, we will use default as the database name.",
       "type": "string"
     },
     "connectionOptions": {
@@ -141,14 +151,13 @@
       "$ref": "../connectionBasicType.json#/definitions/supportsQueryComment"
     },
     "supportsDataDiff": {
-        "title": "Supports Data Diff Extraction.",
-        "$ref": "../connectionBasicType.json#/definitions/supportsDataDiff"
-    },
-    "sampleDataStorageConfig": {
-      "title": "Storage Config for Sample Data",
-      "$ref": "../connectionBasicType.json#/definitions/sampleDataStorageConfig"
+      "title": "Supports Data Diff Extraction.",
+      "$ref": "../connectionBasicType.json#/definitions/supportsDataDiff"
     }
   },
   "additionalProperties": false,
-  "required": ["username", "oracleConnectionType"]
+  "required": [
+    "username",
+    "oracleConnectionType"
+  ]
 }

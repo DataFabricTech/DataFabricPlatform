@@ -1,16 +1,15 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/testConnectionDefinition.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/testConnectionDefinition.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TestConnectionDefinition",
   "description": "TestConnection is the definition that will encapsulate the steps required to test a connection to a specific service.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.services.connections.TestConnectionDefinition",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.services.connections.TestConnectionDefinition",
   "definitions": {
     "testConnectionStep": {
       "description": "Function that tests one specific element of the service. E.g., listing schemas, lineage, or tags.",
       "type": "object",
-      "javaType": "org.openmetadata.schema.entity.services.connections.TestConnectionStep",
+      "javaType": "com.mobigen.vdap.schema.entity.services.connections.TestConnectionStep",
       "properties": {
         "name": {
           "description": "Name of the step being tested",
@@ -36,7 +35,11 @@
         }
       },
       "additionalProperties": false,
-      "required": ["name", "mandatory", "description"]
+      "required": [
+        "name",
+        "mandatory",
+        "description"
+      ]
     }
   },
   "properties": {
@@ -56,10 +59,6 @@
       "description": "Description of the test connection def.",
       "$ref": "../../../type/basic.json#/definitions/markdown"
     },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../../type/basic.json#/definitions/fullyQualifiedEntityName"
-    },
     "steps": {
       "description": "Steps to test the connection. Order matters.",
       "type": "array",
@@ -77,8 +76,8 @@
       "$ref": "../../../type/entityHistory.json#/definitions/entityVersion"
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in date-time.",
+      "$ref": "../../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -90,18 +89,17 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
-    },
-    "domain" : {
-      "description": "Domain the asset belongs to. When not set, the asset inherits the domain from the parent it belongs to.",
-      "$ref": "../../../type/entityReference.json"
     }
   },
   "additionalProperties": false,
-  "required": ["name", "steps"]
+  "required": [
+    "name",
+    "steps"
+  ]
 }

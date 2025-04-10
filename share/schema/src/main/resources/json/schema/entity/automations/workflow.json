@@ -1,14 +1,13 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/automations/workflow.json",
+  "$id": "https://mobigen.com/schema/entity/automations/workflow.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Workflow",
-  "description": "A unit of work that will be triggered as an API call to the OpenMetadata server.",
+  "description": "A unit of work that will be triggered as an API call to the Open VDAP server.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.automations.Workflow",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.automations.Workflow",
   "definitions": {
     "workflowType": {
-      "javaType": "org.openmetadata.schema.entity.automations.WorkflowType",
+      "javaType": "com.mobigen.vdap.schema.entity.automations.WorkflowType",
       "description": "This enum defines the type for which this workflow applies to.",
       "type": "string",
       "enum": [
@@ -16,7 +15,7 @@
       ]
     },
     "workflowStatus": {
-      "javaType": "org.openmetadata.schema.entity.automations.WorkflowStatus",
+      "javaType": "com.mobigen.vdap.schema.entity.automations.WorkflowStatus",
       "description": "Enum defining possible Workflow status",
       "type": "string",
       "enum": ["Pending", "Successful", "Failed", "Running"]
@@ -38,10 +37,6 @@
     "description": {
       "description": "Description of the test connection def.",
       "$ref": "../../type/basic.json#/definitions/markdown"
-    },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as `name`.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "workflowType": {
       "description": "Type of the workflow.",
@@ -68,8 +63,8 @@
         }
       ]
     },
-    "openMetadataServerConnection": {
-      "$ref": "../services/connections/metadata/openMetadataConnection.json"
+    "serverConnection": {
+      "$ref": "../services/connections/metadata/vdapServerConnection.json"
     },
     "owners": {
       "description": "Owners of this workflow.",
@@ -81,8 +76,8 @@
       "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in date-time.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -94,20 +89,12 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
-    },
-    "domain" : {
-      "description": "Domain the asset belongs to. When not set, the asset inherits the domain from the parent it belongs to.",
-      "$ref": "../../type/entityReference.json"
-    },
-    "dataProducts" : {
-      "description": "List of data products this entity is part of.",
-      "$ref" : "../../type/entityReferenceList.json"
     }
   },
   "additionalProperties": false,

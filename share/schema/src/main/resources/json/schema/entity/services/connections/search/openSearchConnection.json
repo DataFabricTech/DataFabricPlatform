@@ -1,15 +1,17 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/search/openSearchConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/search/openSearchConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "OpenSearch Connection",
   "description": "OpenSearch Connection.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.search.OpenSearchConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.search.OpenSearchConnection",
   "definitions": {
     "openSearchType": {
       "description": "OpenSearch service type",
       "type": "string",
-      "enum": ["OpenSearch"],
+      "enum": [
+        "OpenSearch"
+      ],
       "default": "OpenSearch"
     }
   },

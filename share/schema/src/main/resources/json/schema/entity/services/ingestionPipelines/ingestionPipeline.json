@@ -1,21 +1,31 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/ingestionPipelines/ingestionPipeline.json",
+  "$id": "https://mobigen.com/schema/entity/services/ingestionPipelines/ingestionPipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "IngestionPipeline",
   "description": "Ingestion Pipeline Config is used to set up a DAG and deploy. This entity is used to setup metadata/quality pipelines on Apache Airflow.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.IngestionPipeline",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.IngestionPipeline",
   "definitions": {
     "pipelineType": {
       "description": "Type of Pipeline - metadata, usage",
       "type": "string",
-      "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.PipelineType",
-      "enum": ["metadata", "usage", "lineage", "profiler", "autoClassification", "TestSuite", "dataInsight", "elasticSearchReindex", "dbt", "application"]
+      "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.PipelineType",
+      "enum": [
+        "metadata",
+        "usage",
+        "lineage",
+        "profiler",
+        "autoClassification",
+        "TestSuite",
+        "dataInsight",
+        "elasticSearchReindex",
+        "dbt",
+        "application"
+      ]
     },
     "pipelineStatus": {
       "type": "object",
-      "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.PipelineStatus",
+      "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.PipelineStatus",
       "description": "This defines runtime status of Pipeline.",
       "properties": {
         "runId": {
@@ -25,8 +35,14 @@
         "pipelineState": {
           "description": "Pipeline status denotes if its failed or succeeded.",
           "type": "string",
-          "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.PipelineStatusType",
-          "enum": ["queued","success","failed","running","partialSuccess"]
+          "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.PipelineStatusType",
+          "enum": [
+            "queued",
+            "success",
+            "failed",
+            "running",
+            "partialSuccess"
+          ]
         },
         "startDate": {
           "description": "startDate of the pipeline run for this particular execution.",
@@ -43,6 +59,10 @@
         "status": {
           "description": "Ingestion Pipeline summary status. Informed at the end of the execution.",
           "$ref": "status.json#/definitions/ingestionStatus"
+        },
+        "config": {
+          "description": "Pipeline configuration for this particular execution.",
+          "$ref": "../../../type/basic.json#/definitions/map"
         }
       },
       "additionalProperties": false
@@ -50,7 +70,7 @@
     "airflowConfig": {
       "description": "Properties to configure the Airflow pipeline that will run the workflow.",
       "type": "object",
-      "javaType": "org.openmetadata.schema.entity.services.ingestionPipelines.AirflowConfig",
+      "javaType": "com.mobigen.vdap.schema.entity.services.ingestionPipelines.AirflowConfig",
       "properties": {
         "pausePipeline": {
           "description": "pause the pipeline from running once the deploy is finished successfully.",
@@ -147,15 +167,11 @@
       "$ref": "../../../type/entityReferenceList.json",
       "default": null
     },
-    "fullyQualifiedName": {
-      "description": "Name that uniquely identifies a Pipeline.",
-      "$ref": "../../../type/basic.json#/definitions/fullyQualifiedEntityName"
-    },
     "sourceConfig": {
       "$ref": "../../../metadataIngestion/workflow.json#/definitions/sourceConfig"
     },
-    "openMetadataServerConnection": {
-      "$ref": "../connections/metadata/openMetadataConnection.json"
+    "serverConnection": {
+      "$ref": "../connections/metadata/vdapServerConnection.json"
     },
     "airflowConfig": {
       "$ref": "#/definitions/airflowConfig"
@@ -200,19 +216,15 @@
     },
     "changeDescription": {
       "description": "Change that led to this version of the entity.",
-      "$ref": "../../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
     },
-    "provider" : {
+    "provider": {
       "$ref": "../../../type/basic.json#/definitions/providerType"
-    },
-    "domain" : {
-      "description": "Domain the asset belongs to. When not set, the asset inherits the domain from the parent it belongs to.",
-      "$ref": "../../../type/entityReference.json"
     },
     "applicationType": {
       "description": "Type of the application when pipelineType is 'application'.",

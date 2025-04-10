@@ -1,12 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/data/glossary.json",
+  "$id": "https://mobigen.com/schema/entity/data/glossary.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Glossary",
   "description": "This schema defines the Glossary entity. A Glossary is collection of hierarchical GlossaryTerms.",
-  "$comment": "@om-entity-type",
   "type": "object",
-  "javaType": "org.openmetadata.schema.entity.data.Glossary",
-  "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "javaType": "com.mobigen.vdap.schema.entity.data.Glossary",
   "properties": {
     "id": {
       "description": "Unique identifier of a glossary instance.",
@@ -15,10 +13,6 @@
     "name": {
       "description": "Name of the glossary",
       "$ref": "../../type/basic.json#/definitions/entityName"
-    },
-    "fullyQualifiedName": {
-      "description": "FullyQualifiedName same as name.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
     },
     "displayName": {
       "description": "Display Name that identifies this glossary.",
@@ -33,8 +27,8 @@
       "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
     },
     "updatedAt": {
-      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "description": "Last update time corresponding to the new version of the entity in date-time.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -74,7 +68,7 @@
     },
     "changeDescription": {
       "description": "Change that lead to this version of the entity.",
-      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+      "type": "string"
     },
     "deleted": {
       "description": "When `true` indicates the entity has been soft deleted.",
@@ -92,14 +86,6 @@
       "description" : "Glossary terms that are direct children in this glossary are mutually exclusive. When mutually exclusive is `true` only one term can be used to label an entity. When mutually exclusive is `false`, multiple terms from this group can be used to label an entity.",
       "type" : "boolean",
       "default" : "false"
-    },
-    "domain": {
-      "description": "Domain the Glossary belongs to.",
-      "$ref": "../../type/entityReference.json"
-    },
-    "dataProducts": {
-      "description": "List of data products this entity is part of.",
-      "$ref" : "../../type/entityReferenceList.json"
     },
     "votes": {
       "description": "Votes on the entity.",

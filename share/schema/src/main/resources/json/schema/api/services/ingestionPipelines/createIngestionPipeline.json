@@ -1,11 +1,10 @@
 {
-  "$id": "https://open-metadata.org/schema/api/services/ingestionPipelines/createIngestionPipeline.json",
+  "$id": "https://mobigen.com/schema/api/services/ingestionPipelines/createIngestionPipeline.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CreateIngestionPipelineRequest",
   "description": "Ingestion Pipeline Config is used to set up an Airflow DAG.",
   "type": "object",
-  "javaType": "org.openmetadata.schema.api.services.ingestionPipelines.CreateIngestionPipeline",
-  "javaInterfaces": ["org.openmetadata.schema.CreateEntity"],
+  "javaType": "com.mobigen.vdap.schema.api.services.ingestionPipelines.CreateIngestionPipeline",
   "properties": {
     "name": {
       "description": "Name that identifies this pipeline instance uniquely.",
@@ -40,10 +39,6 @@
       "description": "Owner of this Ingestion Pipeline.",
       "$ref": "../../../type/entityReferenceList.json",
       "default": null
-    },
-    "domain" : {
-      "description": "Fully qualified name of the domain the Table belongs to.",
-      "type": "string"
     }
   },
   "required": [

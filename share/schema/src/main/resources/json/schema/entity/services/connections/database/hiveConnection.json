@@ -1,21 +1,27 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/connections/database/hiveConnection.json",
+  "$id": "https://mobigen.com/schema/entity/services/connections/database/hiveConnection.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "HiveConnection",
   "description": "Hive SQL Connection Config",
   "type": "object",
-  "javaType": "org.openmetadata.schema.services.connections.database.HiveConnection",
+  "javaType": "com.mobigen.vdap.schema.services.connections.database.HiveConnection",
   "definitions": {
     "hiveType": {
       "description": "Service type.",
       "type": "string",
-      "enum": ["Hive"],
+      "enum": [
+        "Hive"
+      ],
       "default": "Hive"
     },
     "hiveScheme": {
       "description": "SQLAlchemy driver scheme options.",
       "type": "string",
-      "enum": ["hive", "hive+http", "hive+https"],
+      "enum": [
+        "hive",
+        "hive+http",
+        "hive+https"
+      ],
       "default": "hive"
     }
   },
@@ -52,7 +58,17 @@
       "title": "Authentication Mode",
       "description": "Authentication mode to connect to hive.",
       "type": "string",
-      "enum": ["NONE", "LDAP", "KERBEROS", "CUSTOM", "NOSASL", "BASIC", "GSSAPI", "JWT", "PLAIN"],
+      "enum": [
+        "NONE",
+        "LDAP",
+        "KERBEROS",
+        "CUSTOM",
+        "NOSASL",
+        "BASIC",
+        "GSSAPI",
+        "JWT",
+        "PLAIN"
+      ],
       "default": "NONE"
     },
     "kerberosServiceName": {
@@ -62,12 +78,12 @@
     },
     "databaseSchema": {
       "title": "Database Schema",
-      "description": "Database Schema of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single schema. When left blank, OpenMetadata Ingestion attempts to scan all the schemas.",
+      "description": "Database Schema of the data source. This is optional parameter, if you would like to restrict the metadata reading to a single schema. When left blank, Open VDAP Ingestion attempts to scan all the schemas.",
       "type": "string"
     },
     "databaseName": {
       "title": "Database Name",
-      "description": "Optional name to give to the database in OpenMetadata. If left blank, we will use default as the database name.",
+      "description": "Optional name to give to the database in Open VDAP. If left blank, we will use default as the database name.",
       "type": "string"
     },
     "authOptions": {
@@ -75,7 +91,7 @@
       "description": "Authentication options to pass to Hive connector. These options are based on SQLAlchemy.",
       "type": "string"
     },
-    "metastoreConnection":{
+    "metastoreConnection": {
       "title": "Hive Metastore Connection Details",
       "description": "Hive Metastore Connection Details",
       "oneOf": [
@@ -111,14 +127,12 @@
       "title": "Supports Profiler",
       "$ref": "../connectionBasicType.json#/definitions/supportsProfiler"
     },
-    "sampleDataStorageConfig": {
-      "title": "Storage Config for Sample Data",
-      "$ref": "../connectionBasicType.json#/definitions/sampleDataStorageConfig"
-    },
     "supportsViewLineageExtraction": {
       "$ref": "../connectionBasicType.json#/definitions/supportsViewLineageExtraction"
     }
   },
   "additionalProperties": false,
-  "required": ["hostPort"]
+  "required": [
+    "hostPort"
+  ]
 }
