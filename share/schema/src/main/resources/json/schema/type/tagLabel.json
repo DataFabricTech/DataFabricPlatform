@@ -11,7 +11,8 @@
       "default": "Classification",
       "enum": [
         "Classification",
-        "Glossary"
+        "Glossary",
+        "GlossaryTerm"
       ]
     }
   },
@@ -32,32 +33,12 @@
       "$ref": "../type/basic.json#/definitions/markdown"
     },
     "parentId": {
-      "description": "id of parent entity(classification, glossary?)",
+      "description": "id of parent entity(classification or glossary(root), glossary term).",
       "$ref": "./basic.json#/definitions/uuid"
     },
     "source": {
       "description": "Label is from Tags or Glossary.",
       "$ref": "#/definitions/TagSource"
-    },
-    "labelType": {
-      "description": "Label type describes how a tag label was applied. 'Manual' indicates the tag label was applied by a person. 'Derived' indicates a tag label was derived using the associated tag relationship (see Classification.json for more details). 'Propagated` indicates a tag label was propagated from upstream based on lineage. 'Automated' is used when a tool was used to determine the tag label.",
-      "type": "string",
-      "enum": [
-        "Manual",
-        "Propagated",
-        "Automated",
-        "Derived"
-      ],
-      "default": "Manual"
-    },
-    "state": {
-      "description": "'Suggested' state is used when a tag label is suggested by users or tools. Owner of the entity must confirm the suggested labels before it is marked as 'Confirmed'.",
-      "type": "string",
-      "enum": [
-        "Suggested",
-        "Confirmed"
-      ],
-      "default": "Confirmed"
     },
     "href": {
       "description": "Link to the tag resource.",

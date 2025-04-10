@@ -46,7 +46,9 @@ jsonSchema2Pojo {
 
     // Iterable<File> sourceFiles
     // Location of the JSON Schema file(s). This may refer to a single file or a directory of files.
-    sourceFiles = files("${project.projectDir}/src/main/resources/json/schema")
+    sourceFiles = files("${project.projectDir}/src/main/resources/json/schema").asFileTree.matching {
+        include("**/*.json")
+    }
 
     //  File targetDirectory
     // Target directory for generated Java source files. The plugin will add this directory to the

@@ -60,3 +60,9 @@ otel:
     exporter: none
   metrics:
     exporter: none
+
+auth:
+  url: ${KEYCLOAK_URL:http://192.168.105.51:38080}
+  realm: ${KEYCLOAK_REALM:datafabric}
+  admin: ${KEYCLOAK_ADMIN:admin}
+  password: ${KEYCLOAK_PASSWORD:Mobigen.07$}

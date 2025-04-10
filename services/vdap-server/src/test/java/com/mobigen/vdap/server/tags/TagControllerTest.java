@@ -10,9 +10,11 @@ import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.schema.type.ProviderType;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.entity.EntityExtension;
+import com.mobigen.vdap.server.extensions.ExtensionRepository;
+import com.mobigen.vdap.server.extensions.ExtensionService;
 import com.mobigen.vdap.server.models.PageModel;
-import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
-import com.mobigen.vdap.server.repositories.TagUsageRepository;
+import com.mobigen.vdap.server.relationship.TagUsageRepository;
+import com.mobigen.vdap.server.users.KeyCloakAgent;
 import com.mobigen.vdap.server.util.EntityUtil;
 import com.mobigen.vdap.server.util.JsonUtils;
 import com.mobigen.vdap.server.util.Utilities;
@@ -22,10 +24,10 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.MySQLContainer;
@@ -53,9 +55,14 @@ class TagControllerTest {
     @Autowired
     private ClassificationRepository classificationRepository;
     @Autowired
-    private EntityExtensionRepository entityExtensionRepository;
+    private ExtensionRepository extensionRepository;
+    @Autowired
+    private ExtensionService extensionService;
     @Autowired
     private TagUsageRepository tagUsageRepository;
+
+    @MockitoBean
+    private KeyCloakAgent keyCloakAgent;
 
     @Container
     public static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.3.0")
@@ -90,7 +97,7 @@ class TagControllerTest {
     @BeforeEach
     void beforeEach() {
         tagUsageRepository.deleteAll();
-        entityExtensionRepository.deleteAll();
+        extensionRepository.deleteAll();
         tagRepository.deleteAll();
         classificationRepository.deleteAll();
     }
@@ -261,8 +268,7 @@ class TagControllerTest {
         // Extension(version history) 삭제 확인
         String versionPrefix = EntityUtil.getVersionExtensionPrefix(Entity.TAG);
         List<EntityExtension> extensions  =
-                entityExtensionRepository.findByIdAndExtensionStartingWith(tag.getId().toString(),
-                        versionPrefix + ".", Sort.by(Sort.Order.asc("extension")));
+                extensionService.getExtensions(tag.getId().toString(), versionPrefix + ".");
         Assertions.assertEquals(0, extensions.size());
     }
 

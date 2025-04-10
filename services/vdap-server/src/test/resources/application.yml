@@ -1,9 +1,6 @@
 logging:
   level:
-    org.testcontainers: "info"
-    org.springframework: "info"
-    ch.qos.logback: "info"
-    com.mobigen: "debug"
+    root: info
 
 spring:
   application:

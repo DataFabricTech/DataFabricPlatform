@@ -8,7 +8,8 @@ import com.mobigen.vdap.schema.type.EntityHistory;
 import com.mobigen.vdap.schema.type.ProviderType;
 import com.mobigen.vdap.server.Entity;
 import com.mobigen.vdap.server.models.PageModel;
-import com.mobigen.vdap.server.repositories.EntityExtensionRepository;
+import com.mobigen.vdap.server.extensions.ExtensionRepository;
+import com.mobigen.vdap.server.users.KeyCloakAgent;
 import com.mobigen.vdap.server.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.MySQLContainer;
@@ -45,7 +47,10 @@ class ClassificationControllerTest {
     @Autowired
     private ClassificationRepository repository;
     @Autowired
-    private EntityExtensionRepository entityExtensionRepository;
+    private ExtensionRepository extensionRepository;
+
+    @MockitoBean
+    private KeyCloakAgent keyCloakAgent;
 
     @Container
     public static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.3.0")
@@ -80,7 +85,7 @@ class ClassificationControllerTest {
     @BeforeEach
     void beforeEach() {
         repository.deleteAll();
-        entityExtensionRepository.deleteAll();
+        extensionRepository.deleteAll();
     }
 
     @Test

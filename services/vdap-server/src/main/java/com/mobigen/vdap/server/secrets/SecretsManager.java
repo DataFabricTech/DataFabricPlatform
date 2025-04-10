@@ -70,10 +70,10 @@ public class SecretsManager {
     }
 
     public Object decryptServiceConnectionConfig(
-            Object connectionConfig, String connectionType, ServiceType serviceType) {
+            Object connectionConfig, String connectionType, String connectionName, ServiceType serviceType) {
         try {
             Object newConnectionConfig =
-                    SecretsUtil.convert(connectionConfig, connectionType, null, serviceType);
+                    SecretsUtil.convert(connectionConfig, connectionType, connectionName, serviceType);
             return decryptPasswordFields(newConnectionConfig);
         } catch (Exception e) {
             String message =
