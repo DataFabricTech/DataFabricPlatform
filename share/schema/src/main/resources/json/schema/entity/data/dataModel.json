@@ -1,0 +1,1401 @@
+{
+  "$id": "https://mobigen.com/schema/entity/data/dataModel.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DataModel",
+  "description": "A `DataModel` entity is OpenVDAP Standard Metadata Model",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.entity.data.DataModel",
+  "definitions": {
+    "identifierType": {
+      "description": "Type of Identifier",
+      "type": "string",
+      "enum": [
+        "DOI",
+        "ARK"
+      ]
+    },
+    "dataType": {
+      "description": "Type of Data (Dataset, Structured, Semi-Structured, Unstructured)",
+      "type": "string",
+      "enum": [
+        "DATASET",
+        "STRUCTURED",
+        "SEMI_STRUCTURED",
+        "UNSTRUCTURED"
+      ]
+    },
+    "availability": {
+      "javaType": "com.mobigen.vdap.schema.type.Availability",
+      "description": "This schema defines the type used to describe the contact information of the responsible person or organization related to the resource.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name of the responsible person or organization for the availability",
+          "type": "string"
+        },
+        "email": {
+          "description": "Email of the responsible person or organization for the availability",
+          "$ref": "../../type/basic.json#/definitions/email"
+        },
+        "phone": {
+          "description": "Phone of the responsible person or organization for the availability",
+          "type": "string"
+        }
+      }
+    },
+    "mandate": {
+      "javaType": "com.mobigen.vdap.schema.type.Mandate",
+      "description": "This schema defines the type used to describe the legal mandate for making the data available.",
+      "type": "object",
+      "properties": {
+        "lawName": {
+          "description": "Name of the law or regulation.",
+          "type": "string"
+        },
+        "lawReference": {
+          "description": "Reference or citation of the law or regulation.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lawName"
+      ],
+      "additionalProperties": false
+    },
+    "profileSampleType": {
+      "description": "Type of Profile Sample (percentage or rows)",
+      "type": "string",
+      "enum": [
+        "PERCENTAGE",
+        "ROWS"
+      ],
+      "default": "PERCENTAGE"
+    },
+    "samplingMethodType": {
+      "description": "Type of Sampling Method (BERNOULLI or SYSTEM)",
+      "type": "string",
+      "enum": [
+        "BERNOULLI",
+        "SYSTEM"
+      ]
+    },
+    "tableType": {
+      "javaType": "com.mobigen.vdap.schema.type.TableType",
+      "description": "This schema defines the type used for describing different types of tables.",
+      "type": "string",
+      "enum": [
+        "Regular",
+        "External",
+        "Dynamic",
+        "View",
+        "SecureView",
+        "MaterializedView",
+        "Local",
+        "Partitioned",
+        "Foreign",
+        "Transient"
+      ],
+      "javaEnums": [
+        {
+          "name": "Regular"
+        },
+        {
+          "name": "External"
+        },
+        {
+          "name": "Dynamic"
+        },
+        {
+          "name": "View"
+        },
+        {
+          "name": "SecureView"
+        },
+        {
+          "name": "MaterializedView"
+        },
+        {
+          "name": "Local"
+        },
+        {
+          "name": "Partitioned"
+        },
+        {
+          "name": "Foreign"
+        },
+        {
+          "name": "Transient"
+        }
+      ]
+    },
+    "columnDataType": {
+      "javaType": "com.mobigen.vdap.schema.type.ColumnDataType",
+      "description": "This enum defines the type of data stored in a column.",
+      "type": "string",
+      "enum": [
+        "NUMBER",
+        "TINYINT",
+        "SMALLINT",
+        "INT",
+        "BIGINT",
+        "BYTEINT",
+        "BYTES",
+        "FLOAT",
+        "DOUBLE",
+        "DECIMAL",
+        "NUMERIC",
+        "TIMESTAMP",
+        "TIMESTAMPZ",
+        "TIME",
+        "DATE",
+        "DATETIME",
+        "INTERVAL",
+        "STRING",
+        "MEDIUMTEXT",
+        "TEXT",
+        "CHAR",
+        "LONG",
+        "VARCHAR",
+        "BOOLEAN",
+        "BINARY",
+        "VARBINARY",
+        "ARRAY",
+        "BLOB",
+        "LONGBLOB",
+        "MEDIUMBLOB",
+        "MAP",
+        "STRUCT",
+        "UNION",
+        "SET",
+        "GEOGRAPHY",
+        "ENUM",
+        "JSON",
+        "UUID",
+        "VARIANT",
+        "GEOMETRY",
+        "BYTEA",
+        "AGGREGATEFUNCTION",
+        "ERROR",
+        "FIXED",
+        "RECORD",
+        "NULL",
+        "SUPER",
+        "HLLSKETCH",
+        "PG_LSN",
+        "PG_SNAPSHOT",
+        "TSQUERY",
+        "TXID_SNAPSHOT",
+        "XML",
+        "MACADDR",
+        "TSVECTOR",
+        "UNKNOWN",
+        "CIDR",
+        "INET",
+        "CLOB",
+        "ROWID",
+        "LOWCARDINALITY",
+        "YEAR",
+        "POINT",
+        "POLYGON",
+        "TUPLE",
+        "SPATIAL",
+        "TABLE",
+        "NTEXT",
+        "IMAGE",
+        "IPV4",
+        "IPV6",
+        "DATETIMERANGE",
+        "HLL",
+        "LARGEINT",
+        "QUANTILE_STATE",
+        "AGG_STATE",
+        "BITMAP",
+        "UINT",
+        "BIT",
+        "MONEY"
+      ]
+    },
+    "constraint": {
+      "javaType": "com.mobigen.vdap.schema.type.ColumnConstraint",
+      "description": "This enum defines the type for column constraint.",
+      "type": "string",
+      "enum": [
+        "NULL",
+        "NOT_NULL",
+        "UNIQUE",
+        "PRIMARY_KEY"
+      ],
+      "default": null,
+      "additionalProperties": false
+    },
+    "tableConstraint": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.TableConstraint",
+      "title": "TableConstraint",
+      "description": "This enum defines the type for table constraint.",
+      "properties": {
+        "constraintType": {
+          "type": "string",
+          "enum": [
+            "UNIQUE",
+            "PRIMARY_KEY",
+            "FOREIGN_KEY",
+            "SORT_KEY",
+            "DIST_KEY",
+            "CLUSTER_KEY"
+          ]
+        },
+        "columns": {
+          "description": "List of column names corresponding to the constraint.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relationshipType": {
+          "type": "string",
+          "enum": [
+            "ONE_TO_ONE",
+            "ONE_TO_MANY",
+            "MANY_TO_ONE",
+            "MANY_TO_MANY"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "columnName": {
+      "description": "Local name (not fully qualified name) of the column. ColumnName is `-` when the column is not named in struct dataType. For example, BigQuery supports struct with unnamed fields.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^((?!::).)*$"
+    },
+    "partitionIntervalTypes": {
+      "javaType": "com.mobigen.vdap.schema.type.PartitionIntervalTypes",
+      "description": "type of partition interval",
+      "type": "string",
+      "enum": [
+        "TIME-UNIT",
+        "INTEGER-RANGE",
+        "INGESTION-TIME",
+        "COLUMN-VALUE",
+        "INJECTED",
+        "ENUM",
+        "OTHER"
+      ]
+    },
+    "tablePartition": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.TablePartition",
+      "description": "This schema defines the partition column of a table and format the partition is created.",
+      "properties": {
+        "columns": {
+          "description": "List of column partitions with their type and interval.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/partitionColumnDetails"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "partitionColumnDetails": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.PartitionColumnDetails",
+      "description": "This schema defines the partition column of a table and format the partition is created.",
+      "properties": {
+        "columnName": {
+          "description": "List of column names corresponding to the partition.",
+          "type": "string"
+        },
+        "intervalType": {
+          "$ref": "#/definitions/partitionIntervalTypes"
+        },
+        "interval": {
+          "type": "string",
+          "description": "partition interval , example hourly, daily, monthly."
+        }
+      },
+      "additionalProperties": false
+    },
+    "column": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.Column",
+      "description": "This schema defines the type for a column in a table.",
+      "properties": {
+        "id": {
+          "description": "Column ID(DataModelID_Name)",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/definitions/columnName"
+        },
+        "displayName": {
+          "description": "Display Name that identifies this column name.",
+          "type": "string"
+        },
+        "dataType": {
+          "description": "Data type of the column (int, date etc.).",
+          "$ref": "#/definitions/columnDataType"
+        },
+        "arrayDataType": {
+          "description": "Data type used array in dataType. For example, `array<int>` has dataType as `array` and arrayDataType as `int`.",
+          "$ref": "#/definitions/columnDataType"
+        },
+        "dataLength": {
+          "description": "Length of `char`, `varchar`, `binary`, `varbinary` `dataTypes`, else null. For example, `varchar(20)` has dataType as `varchar` and dataLength as `20`.",
+          "type": "integer"
+        },
+        "precision": {
+          "description": "The precision of a numeric is the total count of significant digits in the whole number, that is, the number of digits to both sides of the decimal point. Precision is applicable Integer types, such as `INT`, `SMALLINT`, `BIGINT`, etc. It also applies to other Numeric types, such as `NUMBER`, `DECIMAL`, `DOUBLE`, `FLOAT`, etc.",
+          "type": "integer"
+        },
+        "scale": {
+          "description": "The scale of a numeric is the count of decimal digits in the fractional part, to the right of the decimal point. For Integer types, the scale is `0`. It mainly applies to non Integer Numeric types, such as `NUMBER`, `DECIMAL`, `DOUBLE`, `FLOAT`, etc.",
+          "type": "integer"
+        },
+        "dataTypeDisplay": {
+          "description": "Display name used for dataType. This is useful for complex types, such as `array<int>`, `map<int,string>`, `struct<>`, and union types.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the column.",
+          "$ref": "../../type/basic.json#/definitions/markdown"
+        },
+        "tags": {
+          "description": "Tags associated with the column.",
+          "type": "array",
+          "items": {
+            "$ref": "../../type/tagLabel.json"
+          },
+          "default": []
+        },
+        "constraint": {
+          "description": "Column level constraint.",
+          "$ref": "#/definitions/constraint"
+        },
+        "ordinalPosition": {
+          "description": "Ordinal position of the column.",
+          "type": "integer"
+        },
+        "jsonSchema": {
+          "description": "Json schema only if the dataType is JSON else null.",
+          "type": "string"
+        },
+        "children": {
+          "description": "Child columns if dataType or arrayDataType is `map`, `struct`, or `union` else `null`.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/column"
+          },
+          "default": null
+        },
+        "profile": {
+          "description": "Latest Data profile for a Column.",
+          "$ref": "#/definitions/columnProfile",
+          "default": null
+        }
+      },
+      "required": [
+        "name",
+        "dataType"
+      ],
+      "additionalProperties": false
+    },
+    "tableData": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.TableData",
+      "description": "This schema defines the type to capture rows of sample data for a table.",
+      "properties": {
+        "columns": {
+          "description": "List of local column names (not fully qualified column names) of the table.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/columnName"
+          }
+        },
+        "rows": {
+          "description": "Data for multiple rows of the table.",
+          "type": "array",
+          "items": {
+            "description": "Data for a single row of the table within the same order as columns fields.",
+            "type": "array"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "columnProfile": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.ColumnProfile",
+      "description": "This schema defines the type to capture the table's column profile.",
+      "properties": {
+        "id": {
+          "description": "Column ID(DataModelID_ColumnName)",
+          "type": "string"
+        },
+        "name": {
+          "description": "Column Name.",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "Timestamp on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/timestamp"
+        },
+        "valuesCount": {
+          "description": "Total count of the values in this column.",
+          "type": "number"
+        },
+        "valuesPercentage": {
+          "description": "Percentage of values in this column with respect to row count.",
+          "type": "number"
+        },
+        "validCount": {
+          "description": "Total count of valid values in this column.",
+          "type": "number"
+        },
+        "duplicateCount": {
+          "description": "No.of Rows that contain duplicates in a column.",
+          "type": "number"
+        },
+        "nullCount": {
+          "description": "No.of null values in a column.",
+          "type": "number"
+        },
+        "nullProportion": {
+          "description": "No.of null value proportion in columns.",
+          "type": "number"
+        },
+        "missingPercentage": {
+          "description": "Missing Percentage is calculated by taking percentage of validCount/valuesCount.",
+          "type": "number"
+        },
+        "missingCount": {
+          "description": "Missing count is calculated by subtracting valuesCount - validCount.",
+          "type": "number"
+        },
+        "uniqueCount": {
+          "description": "No. of unique values in the column.",
+          "type": "number"
+        },
+        "uniqueProportion": {
+          "description": "Proportion of number of unique values in a column.",
+          "type": "number"
+        },
+        "distinctCount": {
+          "description": "Number of values that contain distinct values.",
+          "type": "number"
+        },
+        "distinctProportion": {
+          "description": "Proportion of distinct values in a column.",
+          "type": "number"
+        },
+        "min": {
+          "description": "Minimum value in a column.",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/dateTime"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/time"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/date"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "max": {
+          "description": "Maximum value in a column.",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/dateTime"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/time"
+            },
+            {
+              "$ref": "../../type/basic.json#/definitions/date"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "minLength": {
+          "description": "Minimum string length in a column.",
+          "type": "number"
+        },
+        "maxLength": {
+          "description": "Maximum string length in a column.",
+          "type": "number"
+        },
+        "mean": {
+          "description": "Avg value in a column.",
+          "type": "number"
+        },
+        "sum": {
+          "description": "Median value in a column.",
+          "type": "number"
+        },
+        "stddev": {
+          "description": "Standard deviation of a column.",
+          "type": "number"
+        },
+        "variance": {
+          "description": "Variance of a column.",
+          "type": "number"
+        },
+        "median": {
+          "description": "Median of a column.",
+          "type": "number"
+        },
+        "firstQuartile": {
+          "description": "First quartile of a column.",
+          "type": "number"
+        },
+        "thirdQuartile": {
+          "description": "First quartile of a column.",
+          "type": "number"
+        },
+        "interQuartileRange": {
+          "description": "Inter quartile range of a column.",
+          "type": "number"
+        },
+        "nonParametricSkew": {
+          "description": "Non parametric skew of a column.",
+          "type": "number"
+        },
+        "histogram": {
+          "description": "Histogram of a column.",
+          "properties": {
+            "boundaries": {
+              "description": "Boundaries of Histogram.",
+              "type": "array"
+            },
+            "frequencies": {
+              "description": "Frequencies of Histogram.",
+              "type": "array"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name",
+        "timestamp"
+      ],
+      "additionalProperties": false
+    },
+    "dmlOperationType": {
+      "javaType": "com.mobigen.vdap.schema.type.DmlOperationType",
+      "description": "This schema defines the type of DML operation.",
+      "type": "string",
+      "enum": [
+        "UPDATE",
+        "INSERT",
+        "DELETE"
+      ]
+    },
+    "systemProfile": {
+      "description": "This schema defines the System Profile object holding profile data from system tables.",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.SystemProfile",
+      "properties": {
+        "timestamp": {
+          "description": "Timestamp on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/timestamp"
+        },
+        "operation": {
+          "description": "Operation performed.",
+          "$ref": "#/definitions/dmlOperationType"
+        },
+        "rowsAffected": {
+          "description": "Number of rows affected.",
+          "type": "integer"
+        }
+      }
+    },
+    "columnProfilerConfig": {
+      "description": "This schema defines the type for Table profile config include Columns.",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.ColumnProfilerConfig",
+      "properties": {
+        "columnName": {
+          "description": "Column Name of the table to be included.",
+          "type": "string"
+        },
+        "metrics": {
+          "description": "Include only following metrics.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": null
+        }
+      }
+    },
+    "partitionProfilerConfig": {
+      "description": "This schema defines the partition configuration used by profiler.",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.PartitionProfilerConfig",
+      "properties": {
+        "enablePartitioning": {
+          "description": "whether to use partition",
+          "type": "boolean",
+          "default": false
+        },
+        "partitionColumnName": {
+          "description": "name of the column to use for the partition",
+          "type": "string"
+        },
+        "partitionIntervalType": {
+          "$ref": "#/definitions/partitionIntervalTypes"
+        },
+        "partitionInterval": {
+          "description": "The interval to use for the partitioning",
+          "type": "integer"
+        },
+        "partitionIntervalUnit": {
+          "description": "unit used for the partition interval",
+          "type": "string",
+          "enum": [
+            "YEAR",
+            "MONTH",
+            "DAY",
+            "HOUR"
+          ]
+        },
+        "partitionValues": {
+          "description": "unit used for the partition interval",
+          "type": "array"
+        },
+        "partitionIntegerRangeStart": {
+          "description": "start of the integer range for partitioning",
+          "type": "integer",
+          "default": null
+        },
+        "partitionIntegerRangeEnd": {
+          "description": "end of the integer range for partitioning",
+          "type": "integer",
+          "default": null
+        }
+      }
+    },
+    "tableProfilerConfig": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.TableProfilerConfig",
+      "description": "This schema defines the type for Table profile config.",
+      "properties": {
+        "profileSampleType": {
+          "$ref": "#/definitions/profileSampleType"
+        },
+        "profileSample": {
+          "description": "Percentage of data or no. of rows used to compute the profiler metrics and run data quality tests",
+          "type": "number",
+          "default": null
+        },
+        "samplingMethodType": {
+          "$ref": "#/definitions/samplingMethodType"
+        },
+        "sampleDataCount": {
+          "description": "Number of sample rows to ingest when 'Generate Sample Data' is enabled",
+          "type": "integer",
+          "default": 50,
+          "title": "Sample Data Rows Count"
+        },
+        "profileQuery": {
+          "description": "Users' raw SQL query to fetch sample data and profile the table",
+          "type": "string",
+          "default": null
+        },
+        "excludeColumns": {
+          "description": "column names to exclude from profiling.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": null
+        },
+        "includeColumns": {
+          "description": "Only run profiler on included columns with specific metrics.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/columnProfilerConfig"
+          },
+          "default": null
+        },
+        "partitioning": {
+          "description": "Partitioning configuration",
+          "$ref": "#/definitions/partitionProfilerConfig"
+        },
+        "computeTableMetrics": {
+          "description": "Option to turn on/off table metric computation. If enabled, profiler will compute table level metrics.",
+          "type": "boolean",
+          "default": true,
+          "title": "Compute Table Metrics"
+        },
+        "computeColumnMetrics": {
+          "description": "Option to turn on/off column metric computation. If enabled, profiler will compute column level metrics.",
+          "type": "boolean",
+          "default": true,
+          "title": "Compute Column Metrics"
+        }
+      }
+    },
+    "tableStatistics": {
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.TableStatistics",
+      "description": "This schema defines the type to capture the table's data profile.",
+      "properties": {
+        "timestamp": {
+          "description": "Timestamp on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/timestamp"
+        },
+        "profileSample": {
+          "description": "Percentage of data or no. of rows we want to execute the profiler and tests on",
+          "type": "number",
+          "default": null
+        },
+        "profileSampleType": {
+          "$ref": "#/definitions/profileSampleType"
+        },
+        "samplingMethodType": {
+          "$ref": "#/definitions/samplingMethodType"
+        },
+        "columnCount": {
+          "description": "No.of columns in the table.",
+          "type": "number"
+        },
+        "rowCount": {
+          "description": "No.of rows in the table. This is always executed on the whole table.",
+          "type": "number"
+        },
+        "sizeInByte": {
+          "description": "Table size in GB",
+          "type": "number"
+        },
+        "createDateTime": {
+          "description": "Table creation time.",
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "timestamp"
+      ],
+      "additionalProperties": false
+    },
+    "fileFormat": {
+      "javaType": "com.mobigen.vdap.schema.type.FileFormat",
+      "description": "File format of file",
+      "type": "string",
+      "enum": [
+        "zip",
+        "gz",
+        "csv",
+        "tsv",
+        "xls",
+        "xlsx",
+        "json",
+        "doc",
+        "docx",
+        "hwp",
+        "hwpx",
+        "jpg",
+        "png"
+      ],
+      "javaEnums": [
+        {
+          "name": "Zip"
+        },
+        {
+          "name": "Gz"
+        },
+        {
+          "name": "Csv"
+        },
+        {
+          "name": "Tsv"
+        },
+        {
+          "name": "Xls"
+        },
+        {
+          "name": "Xlsx"
+        },
+        {
+          "name": "Json"
+        },
+        {
+          "name": "Doc"
+        },
+        {
+          "name": "Docx"
+        },
+        {
+          "name": "Hwp"
+        },
+        {
+          "name": "Hwpx"
+        },
+        {
+          "name": "Jpg"
+        },
+        {
+          "name": "Png"
+        }
+      ]
+    },
+    "tableProfile": {
+      "type": "object",
+      "description": "Table Data Profile",
+      "javaType": "com.mobigen.vdap.schema.type.TableProfile",
+      "properties": {
+        "schemaDefinition": {
+          "description": "DDL for Tables and Views",
+          "$ref": "../../type/basic.json#/definitions/sqlQuery"
+        },
+        "tablePartition": {
+          "$ref": "#/definitions/tablePartition"
+        },
+        "tableConstraints": {
+          "description": "Table constraints.",
+          "type": "array",
+          "items": {
+            "title": "TableConstraint",
+            "$ref": "#/definitions/tableConstraint"
+          },
+          "default": null
+        },
+        "tableProfilerConfig": {
+          "description": "Table Profiler Config to include or exclude columns from profiling.",
+          "$ref": "#/definitions/tableProfilerConfig"
+        },
+        "tableStatistics": {
+          "description": "Latest Data profile for a table.",
+          "$ref": "#/definitions/tableStatistics",
+          "default": null
+        },
+        "columns": {
+          "description": "Columns in this data.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/column"
+          },
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "documentProfile": {
+      "description": "Document Data Profile",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.DocumentProfile",
+      "properties": {
+        "MLModelInfo": {
+          "description": "This is used to create the document profile.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the document.",
+          "type": "string"
+        },
+        "author": {
+          "description": "Author of the document.",
+          "type": "string"
+        },
+        "company": {
+          "description": "Company of the document.",
+          "type": "string"
+        },
+        "abstractive": {
+          "description": "Abstractive summary of the document.",
+          "type": "string"
+        },
+        "comment": {
+          "description": "Comment of the document.",
+          "type": "string"
+        },
+        "keywords": {
+          "description": "Keywords of the document.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain": {
+          "description": "Domain of the document.",
+          "type": "string"
+        },
+        "lastModifiedBy": {
+          "description": "Last modified by of the document.",
+          "type": "string"
+        },
+        "createdAt": {
+          "description": "Created at of the document.",
+          "$ref": "../../type/basic.json#/definitions/timestamp"
+        },
+        "modifiedAt": {
+          "description": "Modified at of the document.",
+          "$ref": "../../type/basic.json#/definitions/timestamp"
+        },
+        "pageCount": {
+          "description": "Page count of the document.",
+          "type": "integer"
+        },
+        "wordCount": {
+          "description": "Word count of the document.",
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pictureProfile": {
+      "description": "Picture Data Profile",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.PictureProfile",
+      "properties": {
+        "MLModelInfo": {
+          "description": "This is used to create the document profile.",
+          "type": "string"
+        },
+        "camera": {
+          "description": "Camera used to take the picture.",
+          "type": "string"
+        },
+        "shutterSpeed": {
+          "description": "Shutter speed of the picture.",
+          "type": "string"
+        },
+        "aperture": {
+          "description": "Aperture of the picture.",
+          "type": "string"
+        },
+        "iso": {
+          "description": "ISO of the picture.",
+          "type": "integer"
+        },
+        "focalLength": {
+          "description": "Focal length(mm) of the picture.",
+          "type": "integer"
+        },
+        "whiteBalance": {
+          "description": "White balance of the picture.",
+          "type": "string"
+        },
+        "flash": {
+          "description": "Flash used to take the picture.",
+          "type": "string"
+        },
+        "latitude": {
+          "description": "Latitude of the picture.",
+          "type": "string"
+        },
+        "longitude": {
+          "description": "Longitude of the picture.",
+          "type": "string"
+        },
+        "accuracy": {
+          "description": "Accuracy of the picture.",
+          "type": "string"
+        },
+        "averageColor": {
+          "description": "Average color of the picture.",
+          "type": "string"
+        },
+        "dominantColor": {
+          "description": "Dominant color of the picture.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "contrast": {
+          "description": "Contrast of the picture.",
+          "type": "number"
+        },
+        "brightness": {
+          "description": "Brightness of the picture.",
+          "type": "number"
+        },
+        "saturation": {
+          "description": "Saturation of the picture.",
+          "type": "number"
+        },
+        "resolution": {
+          "description": "Resolution of the picture.",
+          "type": "string"
+        },
+        "pixelDensity": {
+          "description": "Pixel density of the picture.",
+          "type": "number"
+        },
+        "objects": {
+          "description": "Object(human, car, ...) information of the picture.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "landscape": {
+          "description": "Landscape of the picture.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "textDetection": {
+          "description": "Text detection of the picture.",
+          "type": "string"
+        },
+        "editor": {
+          "description": "Editor of the picture.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pictureSample": {
+      "description": "Sample data for a picture data.",
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "image/png"
+    },
+    "speakerDiarization": {
+      "description": "This schema defines the type for speaker diarization.",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.SpeakerDiarization",
+      "properties": {
+        "speakerID": {
+          "description": "Names of the speakers.",
+          "type": "string"
+        },
+        "startTime": {
+          "description": "Start time of the speaker.",
+          "type": "integer"
+        },
+        "endTime": {
+          "description": "End time of the speaker.",
+          "type": "integer"
+        },
+        "transcript": {
+          "description": "Transcript of the speaker.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audioProfile": {
+      "description": "Audio Data Profile",
+      "type": "object",
+      "javaType": "com.mobigen.vdap.schema.type.AudioProfile",
+      "properties": {
+        "MLModelInfo": {
+          "description": "This is used to create the document profile.",
+          "type": "string"
+        },
+        "duration": {
+          "description": "Duration of the audio.",
+          "type": "integer"
+        },
+        "bitRate": {
+          "description": "Bit rate of the audio.",
+          "type": "integer"
+        },
+        "sampleRate": {
+          "description": "Sample rate of the audio.",
+          "type": "integer"
+        },
+        "channels": {
+          "description": "Channels of the audio.",
+          "type": "integer"
+        },
+        "speakers": {
+          "description": "Speakers of the audio.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "speakerDiarization": {
+          "description": "Speaker diarization of the audio.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/speakerDiarization"
+          }
+        },
+        "emotionAnalysis": {
+          "description": "Emotion analysis of the audio.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "backgroundNoise": {
+          "description": "Background noise of the audio.",
+          "type": "string"
+        },
+        "stt": {
+          "description": "Speech to text of the audio.",
+          "type": "string"
+        },
+        "language": {
+          "description": "Language of the audio.",
+          "type": "string"
+        },
+        "dialect": {
+          "description": "Dialect of the audio.",
+          "type": "string"
+        },
+        "keywords": {
+          "description": "Keywords of the audio.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "namedEntities": {
+          "description": "Named entities of the audio.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "intent": {
+          "description": "Intent of the audio.",
+          "type": "string"
+        },
+        "summary": {
+          "description": "Summary of the audio.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audioData": {
+      "description": "Sample data for a audio data.",
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "audio/mpeg"
+    },
+    "childrenSummary": {
+      "description": "For dataset searching",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "properties": {
+    "id": {
+      "description": "Unique identifier of this data model instance.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "identifierType": {
+      "description": "type of identifier(doi, ark, uri, url, uci).",
+      "$ref": "#/definitions/identifierType",
+      "default": null
+    },
+    "identifier": {
+      "description": "data(original) id.",
+      "type": "string",
+      "default": null
+    },
+    "name": {
+      "description": "Name of a datamodel. Expected to be unique within a database.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "displayName": {
+      "description": "Display Name that identifies this datamodel. It could be title or label from the source services.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of a data.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "subject": {
+      "description": "Subject of a data.",
+      "type": "string"
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "availability": {
+      "description": "Availability of the data.",
+      "$ref": "#/definitions/availability"
+    },
+    "lifeCycle": {
+      "description": "Life Cycle properties of the entity",
+      "$ref": "../../type/lifeCycle.json"
+    },
+    "right": {
+      "description": "Rights of the data.",
+      "type": "string"
+    },
+    "owners": {
+      "description": "Owners of this data(in OpenVDAP).",
+      "$ref": "../../type/entityReferenceList.json",
+      "default": null
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "type": "string"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    },
+    "href": {
+      "description": "Link to this data resource.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "dataType": {
+      "$ref": "#/definitions/dataType"
+    },
+    "tableType": {
+      "$ref": "#/definitions/tableType"
+    },
+    "fileFormat": {
+      "$ref": "#/definitions/fileFormat"
+    },
+    "serviceType": {
+      "description": "Data Store Service type this data is hosted in.",
+      "$ref": "../services/storageService.json#/definitions/storageServiceType"
+    },
+    "service": {
+      "description": "Link to Data Store Service this data is hosted in.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "database": {
+      "description": "Reference to Database that contains this data.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "databaseSchema": {
+      "description": "Reference to database schema that contains this data.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "bucket": {
+      "description": "Reference to Bucket that contains this data.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "folder": {
+      "description": "Reference to Folder that contains this data.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "parent": {
+      "description": "Link to the parent data under which this entity sits, if not top level.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "children": {
+      "description": "References to child residing under this entity.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "numberOfObjects": {
+      "description": "The number of objects/files this data has.",
+      "type": "number",
+      "default": null
+    },
+    "size": {
+      "description": "The total size in KB this data has.",
+      "type": "number",
+      "default": null
+    },
+    "locationPath": {
+      "description": "Full path of this data.",
+      "type": "string",
+      "default": null
+    },
+    "tableProfile": {
+      "description": "Table Data Profile",
+      "$ref": "#/definitions/tableProfile"
+    },
+    "tableSample": {
+      "description": "Sample data for a table data.",
+      "$ref": "#/definitions/tableData",
+      "default": null
+    },
+    "documentProfile": {
+      "description": "Document Data Profile",
+      "$ref": "#/definitions/documentProfile"
+    },
+    "documentSample": {
+      "description": "Sample data for a document data.",
+      "type": "string"
+    },
+    "pictureProfile": {
+      "description": "Picture Data Profile",
+      "$ref": "#/definitions/pictureProfile"
+    },
+    "pictureSample": {
+      "description": "Sample data for a picture data.",
+      "$ref": "#/definitions/pictureSample"
+    },
+    "audioProfile": {
+      "description": "Audio Data Profile",
+      "$ref": "#/definitions/audioProfile"
+    },
+    "audioSample": {
+      "description": "Sample data for a audio data.",
+      "$ref": "#/definitions/audioData"
+    },
+    "childrenSummary": {
+      "description": "Summary of child entities.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/childrenSummary"
+      },
+      "default": null
+    },
+    "tags": {
+      "description": "Tags for this data.",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/tagLabel.json"
+      },
+      "default": null
+    },
+    "testSuite": {
+      "description": "Executable test suite associated with this data",
+      "$ref": "../../type/entityReference.json"
+    },
+    "votes": {
+      "description": "Votes on the entity.",
+      "$ref": "../../type/votes.json"
+    },
+    "followers": {
+      "description": "Followers of this data.",
+      "$ref": "../../type/entityReferenceList.json"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ],
+  "additionalProperties": false
+}

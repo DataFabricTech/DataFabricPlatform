@@ -1,0 +1,121 @@
+{
+  "$id": "https://mobigen.com/schema/api/data/createDataModel.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateDataModelRequest",
+  "description": "This schema defines the structure for creating a data model (metadata) in the system. It includes properties such as name, display name, description, and other metadata attributes required to define an entity.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.api.data.CreateDataModel",
+  "properties": {
+    "name": {
+      "description": "Name that identifies the this entity instance uniquely. Same as id if when name is not unique",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "displayName": {
+      "description": "Display Name that identifies this.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of entity instance.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "subject": {
+      "description": "Subject of the entity",
+      "type": "string"
+    },
+    "dataType": {
+      "$ref": "../../entity/data/dataModel.json#/definitions/dataType"
+    },
+    "tableType": {
+      "$ref": "../../entity/data/dataModel.json#/definitions/tableType"
+    },
+    "fileFormat": {
+      "$ref": "../../entity/data/dataModel.json#/definitions/fileFormat"
+    },
+    "locationPath": {
+      "description": "Full storage path in case of external and managed tables.",
+      "type": "string",
+      "default": null
+    },
+    "parent": {
+      "description": "Link to the parent data under which this entity sits, if not top level.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "children": {
+      "description": "References to child residing under this entity.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "numberOfObjects": {
+      "description": "The number of objects/files this data has.",
+      "type": "number",
+      "default": null
+    },
+    "size": {
+      "description": "The total size in KB this data has.",
+      "type": "number",
+      "default": null
+    },
+    "tableProfile": {
+      "description": "Table Data Profile",
+      "$ref": "../../entity/data/dataModel.json#/definitions/tableProfile",
+      "default": null
+    },
+    "tableSample": {
+      "description": "Sample data for a table data.",
+      "$ref": "../../entity/data/dataModel.json/#definitions/tableData",
+      "default": null
+    },
+    "documentProfile": {
+      "description": "Document Data Profile",
+      "$ref": "../../entity/data/dataModel.json/#definitions/documentProfile",
+      "default": null
+    },
+    "documentSample": {
+      "description": "Sample data for a document data.",
+      "type": "string",
+      "default": null
+    },
+    "pictureProfile": {
+      "description": "Picture Data Profile",
+      "$ref": "../../entity/data/dataModel.json/#definitions/pictureProfile",
+      "default": null
+    },
+    "pictureSample": {
+      "description": "Sample data for a picture data.",
+      "$ref": "../../entity/data/dataModel.json/#definitions/pictureSample",
+      "default": null
+    },
+    "audioProfile": {
+      "description": "Audio Data Profile",
+      "$ref": "../../entity/data/dataModel.json/#definitions/audioProfile",
+      "default": null
+    },
+    "audioSample": {
+      "description": "Sample data for a audio data.",
+      "$ref": "../../entity/data/dataModel.json/#definitions/audioData",
+      "default": null
+    },
+    "owners": {
+      "description": "Owners of this entity",
+      "$ref": "../../type/entityReferenceList.json",
+      "default": null
+    },
+    "tags": {
+      "description": "Tags for this table",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/tagLabel.json"
+      },
+      "default": null
+    },
+    "sourceUrl": {
+      "description": "Source URL of table.",
+      "$ref": "../../type/basic.json#/definitions/sourceUrl"
+    },
+    "lifeCycle": {
+      "description": "Life Cycle of the entity",
+      "$ref": "../../type/lifeCycle.json"
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}

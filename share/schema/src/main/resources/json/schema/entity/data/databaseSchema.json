@@ -1,0 +1,95 @@
+{
+  "$id": "https://mobigen.com/schema/entity/data/databaseSchema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Database Schema",
+  "description": "This schema defines the Database Schema entity. A `Database Schema` is collection of tables, views, stored procedures, and other database objects.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.entity.data.DatabaseSchema",
+  "definitions": {
+  },
+  "properties": {
+    "id": {
+      "description": "Unique identifier that identifies this schema instance.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "description": "Name that identifies the schema.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "displayName": {
+      "description": "Display Name that identifies this schema.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the schema instance.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this entity.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "owners": {
+      "description": "Owner of this schema.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "service": {
+      "description": "Link to the database cluster/service where this schema is hosted in.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "serviceType": {
+      "description": "Service type where this schema is hosted in.",
+      "$ref": "../services/storageService.json#/definitions/storageServiceType"
+    },
+    "database": {
+      "description": "Reference to Database that contains this table.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "tables": {
+      "description": "References to tables in the schema.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "tags": {
+      "description": "Tags for this Database Schema Service.",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/tagLabel.json"
+      },
+      "default": []
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "type": "string"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    },
+    "sourceUrl": {
+      "description": "Source URL of database schema.",
+      "$ref": "../../type/basic.json#/definitions/sourceUrl"
+    },
+    "votes": {
+      "description": "Votes on the entity.",
+      "$ref": "../../type/votes.json"
+    },
+    "lifeCycle": {
+      "description": "Life Cycle properties of the entity",
+      "$ref": "../../type/lifeCycle.json"
+    }
+  },
+  "required": ["name", "database", "service"],
+  "additionalProperties": false
+}

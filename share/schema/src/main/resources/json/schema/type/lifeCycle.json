@@ -6,23 +6,18 @@
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.type.LifeCycle",
   "definitions": {
-    "accessDetails": {
-      "description": "Access details of an entity ",
+    "lifeCycleDetails": {
+      "description": "details of an entity ",
       "type": "object",
       "properties": {
         "timestamp": {
-          "description": "Timestamp of data asset accessed for creation, update, read.",
+          "description": "Timestamp of data asset for creation, update, valid, available.",
           "$ref": "basic.json#/definitions/timestamp",
           "default": null
         },
-        "accessedBy": {
-          "description": "User, Pipeline, Query that created,updated or accessed the data asset",
+        "madeBy": {
+          "description": "User/Organization, Process that created, updated, ... the data asset",
           "$ref": "entityReference.json",
-          "default": null
-        },
-        "accessedByAProcess": {
-          "description": "Any process that accessed the data asset that is not captured in Open VDAP.",
-          "type": "string",
           "default": null
         }
       },
@@ -34,16 +29,20 @@
   },
   "properties": {
     "created": {
-      "description": "Access Details about created aspect of the data asset",
-      "$ref": "#/definitions/accessDetails"
+      "description": "Details about created aspect of the data asset",
+      "$ref": "#/definitions/lifeCycleDetails"
     },
     "updated": {
-      "description": "Access Details about updated aspect of the data asset",
-      "$ref": "#/definitions/accessDetails"
+      "description": "Details about updated aspect of the data asset",
+      "$ref": "#/definitions/lifeCycleDetails"
     },
-    "accessed": {
-      "description": "Access Details about accessed aspect of the data asset",
-      "$ref": "#/definitions/accessDetails"
+    "validTo": {
+      "description": "The timestamp indicating when the data becomes valid.",
+      "$ref": "#/definitions/lifeCycleDetails"
+    },
+    "availableTo": {
+      "description": "The timestamp indicating when the data becomes available for use.",
+      "$ref": "#/definitions/lifeCycleDetails"
     }
   },
   "additionalProperties": false

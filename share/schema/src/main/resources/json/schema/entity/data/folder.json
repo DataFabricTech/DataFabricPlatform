@@ -1,0 +1,107 @@
+{
+  "$id": "https://mobigen.com/schema/entity/data/folder.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Folder",
+  "description": "This schema defines the Folder entity.",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.entity.data.Folder",
+  "properties": {
+    "id": {
+      "description": "Unique identifier that identifies this data instance.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "description": "Name that identifies the folder.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
+    "displayName": {
+      "description": "Display Name that identifies this folder.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the folder instance.",
+      "$ref": "../../type/basic.json#/definitions/markdown"
+    },
+    "version": {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt": {
+      "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
+      "$ref": "../../type/basic.json#/definitions/timestamp"
+    },
+    "updatedBy": {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this entity.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "owners": {
+      "description": "Owners of this folder.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "serviceType": {
+      "description": "Service type this data is hosted in.",
+      "$ref": "../services/storageService.json#/definitions/storageServiceType"
+    },
+    "service": {
+      "description": "Link to the storage service where this folder is hosted in.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "parent": {
+      "description": "Link to the parent data under which this entity sits, if not top level.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "children": {
+      "description": "References to child residing under this entity.",
+      "$ref": "../../type/entityReferenceList.json"
+    },
+    "numberOfObjects": {
+      "description": "The number of objects/files this folder has.",
+      "type": "number",
+      "default": null
+    },
+    "size": {
+      "description": "The total size in KB this folder has.",
+      "type": "number",
+      "default": null
+    },
+    "tags": {
+      "description": "Tags for this folder.",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/tagLabel.json"
+      },
+      "default": []
+    },
+    "changeDescription": {
+      "description": "Change that lead to this version of the entity.",
+      "type": "string"
+    },
+    "deleted": {
+      "description": "When `true` indicates the entity has been soft deleted.",
+      "type": "boolean",
+      "default": false
+    },
+    "sourceUrl": {
+      "description": "Source URL of folder.",
+      "$ref": "../../type/basic.json#/definitions/sourceUrl"
+    },
+    "votes": {
+      "description": "Votes on the entity.",
+      "$ref": "../../type/votes.json"
+    },
+    "lifeCycle": {
+      "description": "Life Cycle properties of the entity",
+      "$ref": "../../type/lifeCycle.json"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "service"
+  ],
+  "additionalProperties": false
+}
