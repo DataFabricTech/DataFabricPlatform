@@ -25,4 +25,6 @@ public interface ServicesRepository extends JpaRepository<Services, UUID> {
             "from services " +
             "where deleted = ?1")
     public List<ServicesResponse> findServiceResponse(boolean deleted, Pageable pageRequest);
+
+    List<Services> findAllByDeletedIsFalse();
 }

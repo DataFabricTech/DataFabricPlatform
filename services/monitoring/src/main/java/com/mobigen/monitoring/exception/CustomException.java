@@ -14,12 +14,14 @@ public class CustomException extends RuntimeException {
         this.errorCode = code;
         this.errorVars = vars;
     }
+
     public CustomException( Exception e, String errMsg ) {
         super( e );
         this.msg = errMsg;
         this.errorCode = ResponseCode.ERROR_UNKNOWN;
         this.errorVars = null;
     }
+
     public CustomException( String errMsg ) {
         super( errMsg );
         this.msg = errMsg;

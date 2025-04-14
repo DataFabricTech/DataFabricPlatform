@@ -5,6 +5,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+/**
+ * open metadata server 에 요청할 url 모음
+ * */
 @Getter
 @Setter
 @Component

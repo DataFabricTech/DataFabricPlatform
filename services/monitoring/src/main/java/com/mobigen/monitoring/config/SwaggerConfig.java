@@ -13,9 +13,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("My API Documentation")
+                        .title("Monitoring API Documentation")
                         .version("1.0")
-                        .description("API documentation using springdoc-openapi and Swagger UI"));
+                        .description("Monitoring API Documentation"));
     }
 //
 //    @Bean

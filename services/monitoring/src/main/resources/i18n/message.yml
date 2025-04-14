@@ -1,0 +1,25 @@
+# 404
+DFM0000: "Invalid request path"
+
+# K8S API ERROR
+DFM1000: "K8S API error"
+DFM1001: "Not found [{0}]'s node port"
+
+# open metadata api error
+DFM2000: "No response of open metadata api"
+DFM2001: "Form of response is invalid json form"
+
+# API ERROR
+DFM3000: "API [{0}] Connection failed"
+
+# Query string load failed
+DFM4000: "Failed to load query file [{0}]"
+
+# Database info error
+DFM5000: "Unsupported database type [{0}]"
+
+# Related Services error
+DFM6000: "Not found serviceId [{0}]"
+
+# Insufficient privileges
+DFM7000: "Insufficient privileges"

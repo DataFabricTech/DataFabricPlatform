@@ -9,6 +9,7 @@ import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.repository.MonitoringHistoryRepository;
 import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.repository.SlowQueriesRepository;
@@ -58,6 +59,7 @@ import static java.lang.Boolean.*;
 @Slf4j
 @RequiredArgsConstructor
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
+    // repositories
     private final ServicesRepository servicesRepository;
     private final SlowQueriesRepository slowQueriesRepository;
     private final MonitoringHistoryRepository monitoringHistoryRepository;
@@ -65,25 +67,35 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     private final Utils utils = new Utils();
     private final ServiceModelRegistry serviceModelRegistry;
 
+    // services
     private final ModelRegistrationService modelRegistrationService;
     private final ConnectionService connectionService;
     private final MetadataService metadataService;
     private final K8SService k8sService;
     private final ModelService modelService;
 
+    // kubernetes api 사용을 위한 host 주소
     @Value("${k8s.ip}")
     private String hostIP;
 
+    /**
+     * application 실행 시 실행
+     * db에 데이터가 없을 경우 open metadata 에서 정보 받아서 디비에 저장
+     * in memory 에 open metadata 로 부터 받은 데이터를 저장
+     */
     @PostConstruct
     public void init() {
         final List<Services> allService = servicesRepository.findAll();
 
         if (allService.isEmpty()) {
+            // db 에 값이 없을 경우 service, connection, model 정보들을 디비에 저장
             initializeServiceTable(SCHEDULER.getName());
         } else {
+            // in-memory 에만 저장
             modelService.getServiceListFromFabricServer();
         }
 
+        // connection 정보를 in-memory 에 저장하는 로직
         for (Services service : allService) {
             if (service.getServiceType().equals(MINIO.getName())) {
                 GetObjectStorageResponseDto storageService = serviceModelRegistry.getStorageServices().get(service.getServiceID().toString());
@@ -99,10 +111,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
+    /**
+     * Service(object storage, database) 의 connection 을 확인하는 함수
+     */
     @Override
-    public Boolean checkDatabaseConnection(DatabaseConnectionRequest request) {
+    public Boolean checkServiceConnection(DatabaseConnectionRequest request) {
         if (!isDatabaseService(request.getDbType())) {
-            return testMinioConnection(request) != null ? TRUE : FALSE;
+            return checkMinioConnection(request) != null ? TRUE : FALSE;
         }
 
         DataSource dataSource = createDataSource(request);
@@ -110,8 +125,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         try (Connection connection = dataSource.getConnection()) {
             return connection.isValid(2);  // 2초 내에 응답 확인
         } catch (SQLException e) {
-            System.err.println("DB 연결 실패: " + e.getMessage());
-            return false;  // 연결 실패
+            log.error("Connection refused");
+
+            return false;
         }
     }
 
@@ -152,10 +168,19 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         } else if (request.getDbType().equalsIgnoreCase(MARIADB.getName()) || request.getDbType().equalsIgnoreCase(MYSQL.getName())) {
             return "jdbc:" + request.getDbType().toLowerCase() + "://" + request.getHost() + ":" + request.getPort();
         } else {
-            throw new CustomException("Unsupported database type: " + request.getDbType());
+            log.error("Unknown database type: {}", request.getDbType());
+
+            throw new CustomException(
+                    ResponseCode.DFM5000,
+                    String.format("Unsupported database type %s", request.getDbType()),
+                    request.getDbType()
+            );
         }
     }
 
+    /**
+     * RDB Database 리스트를 가져오는 함수
+     */
     @Override
     public List<String> getDatabases(DatabaseConnectionRequest request) {
         String query;
@@ -187,6 +212,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return databases;
     }
 
+    /**
+     * Table 리스트를 가져오는 함수
+     */
     @Override
     public Map<String, List<String>> getTables(DatabaseConnectionRequest request) {
         String query;
@@ -209,10 +237,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return schemaMap;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public Object getRows(DatabaseConnectionRequest request) {
         String query;
+
         if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
             query = GET_ALL_TABLE_ROWS_FROM_ORACLE.getQueryString();
         } else {
@@ -224,7 +253,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         final List<Map<String, Object>> maps = executeQuery(request, query);
 
         for (Map<String, Object> entry : maps) {
-            log.info("query: {}", entry);
             if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) queries.add((String) entry.get("QUERY"));
             else queries.add((String) entry.get("query"));
         }
@@ -262,15 +290,15 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 }
             }
 
-            conn.commit(); // 필요하면 유지
+            conn.commit();
         } catch (SQLException e) {
             try {
                 conn.rollback(); // 오류 발생 시 롤백
             } catch (SQLException rollbackEx) {
-                rollbackEx.printStackTrace();
+                log.error("rollback exception: {}", rollbackEx.getMessage(), rollbackEx);
             }
         } finally {
-            DataSourceUtils.releaseConnection(conn, dataSource); // ConnectionDao 반환
+            DataSourceUtils.releaseConnection(conn, dataSource);
         }
 
         return results;
@@ -302,7 +330,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         DataSource dataSource = createDataSource(request);
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-        return jdbcTemplate.queryForList(query);
+        try {
+            return jdbcTemplate.queryForList(query);
+        } finally {
+            if (dataSource instanceof HikariDataSource) {
+                ((HikariDataSource) dataSource).close();
+            }
+        }
     }
 
     @Override
@@ -317,7 +351,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public Integer testMinioConnection(DatabaseConnectionRequest request) {
+    public Integer checkMinioConnection(DatabaseConnectionRequest request) {
         try {
             MinioClient minioClient = MinioClient.builder()
                     .endpoint("http://" + request.getHost() + ":" + request.getPort())
@@ -326,23 +360,29 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             return minioClient.listBuckets().size();  // Minio 연결 테스트
         } catch (MinioException | IllegalArgumentException e) {
-            System.err.println("Minio 연결 실패: " + e.getMessage());
+            log.debug("Minio 연결 실패: " + e.getMessage());
             return null;
         } catch (IOException e) {
+            log.error("[MINIO CONNECTION ERROR] Cannot accept minio", e);
+
             throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (InvalidKeyException e) {
+            log.error("[MINIO CONNECTION ERROR] Authentication failed", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * db 에 service 정보 저장
+     * service, model registration, metadata, connection, connection history, monitoring history 등록
+     */
     @Override
     public void initializeServiceTable(String userName) {
         // service 등록
         // Create Service entity
-        // in memory 에 service 들 저장
-        final List<Services> services = saveServicesToDatabase();
+        final List<Services> services = saveServicesFromFabricServer();
 
         // connection 등록
         // model registration 저장
@@ -362,11 +402,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
+    // connection 정보 저장
     public void saveConnections(final List<Services> services) {
         // response time == 직접 디비에서 show databases; 햔 시간
         // executed_at, execute_by, query_execution_time, service_id
         List<ConnectionDao> connections = new ArrayList<>();
         List<ConnectionHistory> connectionHistories = new ArrayList<>();
+        final Long now = getCurrentMillis();
 
         for (Services service : services) {
             // check response time
@@ -396,6 +438,10 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             // save model registration
             saveModelRegistration(service);
+
+            // 시간 업데이트
+            service.setUpdatedAt(now);
+            service.setCreatedAt(now);
         }
 
         connectionService.saveAllConnection(connections);
@@ -421,7 +467,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                                     .updatedAt(getCurrentMillis())
                                     .omModelCount(modelService.getStorageModelCountFromOM(service.getServiceID()))
                                     .modelCount(
-                                            testMinioConnection(
+                                            checkMinioConnection(
                                                     builder()
                                                             .dbType(objectStorageResponseDto.getServiceType())
                                                             .host(uri.getHost())
@@ -460,7 +506,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     @Override
     public Integer getModelCount(Services service) {
         // table 개수 세기
+        // 연결 안되는 서비스는 model 이 0
         if (!service.getConnectionStatus().equals(ConnectionStatus.CONNECTED)) return 0;
+
         if (isRDBMS(service.getServiceType())) {
             final String serviceId = service.getServiceID().toString();
             final GetDatabasesResponseDto getDatabasesResponseDto = serviceModelRegistry.getDatabaseServices().get(serviceId);
@@ -479,8 +527,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 database = getDatabasesResponseDto.getConnection().getOracleConnectionType().getOracleServiceName();
             }
 
+            // database 정보가 없는 경우
             if (database == null) {
-                log.error("service: {}", getDatabasesResponseDto);
+                log.debug("service: {}", getDatabasesResponseDto);
             }
 
             DatabaseConnectionRequest request = builder()
@@ -513,7 +562,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     .password(objectStorageResponseDto.getConnection().getMinioConfig().getSecretKey())
                     .build();
 
-            return testMinioConnection(build);
+            return checkMinioConnection(build);
         }
     }
 
@@ -522,12 +571,16 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // measure time
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
+
+        log.debug("[Connection Check] START]");
+
         ConnectionStatus status;
         Boolean isDatabaseService = DatabaseType.isDatabaseService(service.getServiceType());
 
-        // trino 때문
+        // trino or 존재하지 않는 Database Type 일 경우
         if (fromString(service.getServiceType()) == null) {
-            log.info("service type: {}", service.getServiceType());
+            log.debug("service type: {}", service.getServiceType());
+
             return CheckConnectionResponseVo.builder()
                     .status(DISCONNECTED)
                     .responseTime(stopWatch.getTotalTimeMillis())
@@ -536,8 +589,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         final DatabaseConnectionRequest request;
 
+        //rdb
         if (isDatabaseService(service.getServiceType())) {
-            //rdb
             request = getDatabaseConnectionRequest(service.getServiceID().toString());
         } else {
             // minio
@@ -557,12 +610,14 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                         .password(storageResponse.getConnection().getMinioConfig().getSecretKey())
                         .build();
             } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
+                log.error("Invalid form endpoint URL: {}", endpointUrl);
+
+                throw new CustomException("Invalid form endpoint URL");
             }
         }
 
         // db connection check
-        final Boolean connectionCheckResponse = checkDatabaseConnection(request);
+        final Boolean connectionCheckResponse = checkServiceConnection(request);
 
         // connection check failed
         if (!connectionCheckResponse) {
@@ -586,8 +641,11 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         stopWatch.stop();
 
+        log.debug("[Connection Check] START]");
+
         final long responseTime = stopWatch.getTotalTimeMillis();
 
+        // in-memory 에 있는 서비스들의 connection 정보 업데이트
         if (isDatabaseService) {
             GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(service.getServiceID().toString());
 
@@ -608,7 +666,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    public List<Services> saveServicesToDatabase() {
+    public List<Services> saveServicesFromFabricServer() {
         List<JsonNode> currentServices = modelService.getServiceListFromFabricServer();
 
         List<Services> services = new ArrayList<>();
@@ -645,17 +703,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         if (serviceInfo.getServiceType().equalsIgnoreCase(ORACLE.getName())) {
             if (serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema() != null) {
                 databaseName = serviceInfo.getConnection().getOracleConnectionType().getDatabaseSchema();
-                log.info("databaseName: {}", databaseName);
             } else {
                 databaseName = serviceInfo.getConnection().getOracleConnectionType().getOracleServiceName();
-                log.info("oracleServiceName: {}", databaseName);
             }
         } else {
             databaseName = serviceInfo.getConnection().getDatabaseName() == null ?
                     serviceInfo.getConnection().getDatabase() : serviceInfo.getConnection().getDatabaseName();
         }
-
-        log.info("databaseName: {}", databaseName);
 
         return builder()
                 .dbType(serviceInfo.getServiceType())
@@ -687,10 +741,18 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 } else if (serviceInfo.getServiceType().equalsIgnoreCase(POSTGRES.getName())) {
                     query = loadQuery(GET_POSTGRES_CPU_SPENT_TIME.getQuery());
                 } else {
-                    throw new CustomException("service type is invalid");
+                    throw new CustomException(
+                            ResponseCode.DFM5000,
+                            "Unknown service type: " + serviceInfo.getServiceType(),
+                            serviceInfo.getServiceType()
+                    );
                 }
             } else {
-                throw new CustomException("Service not found");
+                throw new CustomException(
+                        ResponseCode.DFM6000,
+                        String.format("service not found [%s]", serviceId),
+                        serviceId
+                );
             }
 
             final HostPortVo hostPortVo = convertStringToHostPortVo(serviceInfo);
@@ -723,6 +785,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     .build();
         } catch (BadSqlGrammarException e) {
             log.debug("Insufficient privileges");
+
             return null;
         }
     }
@@ -894,10 +957,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return result;
     }
 
-    /**
-     * query 요청 평균 성공량 조회
-     * DB에 저장해야한다.
-     */
     @Override
     public QueryStatisticsVo getAverageQueryOutcome(String serviceId) {
         try {
@@ -955,7 +1014,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     .failedQueries(failedQueries)
                     .build();
         } catch (BadSqlGrammarException e) {
-            log.debug("Insufficient privileges: {}", e.getMessage());
+            log.debug("Insufficient privileges");
             return null;
         }
     }
@@ -982,7 +1041,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     /**
      * TODO 처음 load 시 50개만 insert
      * TODO 다음부터 50개 + 3개 비교해서 insert
-     * */
+     */
     @Override
     public List<SlowQueryVo> getSlowQueries(String serviceId) {
         try {
@@ -1061,7 +1120,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
             return response;
         } catch (BadSqlGrammarException e) {
-            log.debug("Insufficient privileges: {}", e.getMessage());
+            log.debug("Insufficient privileges");
             return List.of();
         }
     }
@@ -1091,22 +1150,41 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // connection, connection history, service, slow query, model registration
         if (serviceId == null || serviceId.isEmpty()) {
             // all update
-            final List<Services> allService = servicesRepository.findAll();
+            log.debug("[UPDATE INFO] START update all service database info");
+
+            List<Services> allService = servicesRepository.findAll();
 
             saveConnections(allService);
+
+            // Connected status service
+            allService.forEach(serviceInfo -> {
+                if (isRDBMS(serviceInfo.getServiceType()) && serviceInfo.getConnectionStatus().equals(CONNECTED)) {
+                    log.debug("[UPDATE INFO] Save all service's monitoring history");
+
+                    saveDatabaseMonitoringInfo(serviceInfo.getServiceID().toString(), SCHEDULER.getName());
+                }
+            });
+
+            log.debug("[UPDATE INFO] END update all service database info");
         } else {
-            final Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
+            log.debug("[UPDATE INFO] START update single service database info");
+
+            Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
                     () -> new CustomException("service not found")
             );
 
             // service, connection 업데이트
             saveConnections(List.of(service));
+
+            log.debug("[UPDATE INFO] Save monitoring history");
+
+            if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
+                saveDatabaseMonitoringInfo(serviceId, SCHEDULER.getName());
+
+            log.debug("[UPDATE INFO] END update single service database info");
         }
     }
 
-    /**
-     * save memory / cpu usage info, request info, slow query info
-     */
     @Override
     public void saveDatabaseMonitoringInfo(String serviceId, String ownerName) {
         // insert request info
@@ -1129,6 +1207,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
+    // slow query, cpu / memory, request 통계 내용 저장
     private void saveMonitoringHistory(Services service, String ownerName, Long now) {
         final QueryStatisticsVo averageQueryOutcome = getAverageQueryOutcome(service.getServiceID().toString());
         final List<SlowQueryVo> slowQueries = getSlowQueries(service.getServiceID().toString());
@@ -1169,16 +1248,18 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         String host;
         int port;
 
+        // 192.168.109.254:32355, mariadb-svc:3306
         if (serviceInfo.getConnection().getHostPort().contains(":")) {
             String[] parts = serviceInfo.getConnection().getHostPort().split(":");
             host = parts[0];
             port = Integer.parseInt(parts[1]);
-        } else {
+        } else { // mariadb-svc
             host = serviceInfo.getConnection().getHostPort();
             port = DatabasePort.getPortFromHost(serviceInfo.getServiceType());
         }
 
         // 영어 포함
+        // 영어로 된 이름일 경우 k8s service라고 간주
         if (host.matches(".*[a-zA-Z].*")) {
             final Integer nodePort = k8sService.getNodePort(host, port);
 
@@ -1190,19 +1271,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 .host(host)
                 .port(port)
                 .build();
-    }
-
-    public Map<String, String> checkTableChange() {
-        // table 변경 정보 in-memory 로 들고 있기
-        // 없으면 DB 에서 가져오기
-        // data 바꼈는지 체크
-        if (serviceModelRegistry.getTableAuditInfos().isEmpty()) {
-            // table 변경 이력 가져오기
-            // postgres, oracle, mariadb / mysql
-        } else {
-
-        }
-        return null;
     }
 
     private String getDatabaseName(GetDatabasesResponseDto serviceInfo) {

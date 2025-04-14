@@ -23,7 +23,7 @@ public class DatabaseConnectionController {
 
     @PostMapping("/test-connection")
     public ResponseEntity<String> testDatabaseConnection(@RequestBody DatabaseConnectionRequest request) {
-        Boolean isConnected = databaseConnectionService.checkDatabaseConnection(request);
+        Boolean isConnected = databaseConnectionService.checkServiceConnection(request);
 
         if (isConnected == null) {
             return ResponseEntity.ok("연결 체크 패스: (db type: " + request.getDbType() + ")");

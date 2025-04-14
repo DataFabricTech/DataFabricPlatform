@@ -6,7 +6,9 @@ import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.enums.ServiceEventEnum;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.repository.*;
+import com.mobigen.monitoring.service.scheduler.DynamicSchedulerService;
 import com.mobigen.monitoring.utils.UnixTimeUtil;
 import com.mobigen.monitoring.vo.ConnectionInfo;
 import com.mobigen.monitoring.vo.ServicesResponse;
@@ -36,56 +38,19 @@ public class ServicesService {
     private final ModelRegistrationRepository modelRegistrationRepository;
     private final ServiceModelRegistry serviceModelRegistry;
     private final DatabaseManagementServiceImpl databaseManagementService;
-
-    public long countByConnectionStatusIsConnected() {
-        return servicesRepository.countByConnectionStatusAndDeletedIsFalse(CONNECTED);
-    }
-
-    public long countByConnectionStatusIsDisconnected() {
-        return servicesRepository.countByConnectionStatusAndDeletedIsFalse(DISCONNECTED);
-    }
-
-    public long countByConnectionStatusIsConnectError() {
-        return servicesRepository.countByConnectionStatusAndDeletedIsFalse(CONNECT_ERROR);
-    }
-
-    public Long getCount() {
-        return servicesRepository.countServicesByDeletedIsFalse();
-    }
-
-    public List<Services> getAllService() {
-        return servicesRepository.findAll();
-    }
-
-    public List<Object> getServiceResponse(boolean deleted, PageRequest pageRequest) {
-//        return servicesRepository.findServiceResponse(deleted, pageRequest);
-        return null;
-    }
+    private final DynamicSchedulerService dynamicSchedulerService;
 
     public Optional<Services> getServices(UUID serviceID) {
         return servicesRepository.findById(serviceID);
-    }
-
-    public List<Services> saveServices(List<Services> servicesList) {
-        return servicesRepository.saveAll(servicesList);
-    }
-
-    public Services saveServices(Services services) {
-        return servicesRepository.save(services);
     }
 
     public List<ServicesResponse> getServices(final boolean deleted, final PageRequest pageRequest) {
         return servicesRepository.findServiceResponse(deleted, pageRequest);
     }
 
-    public Boolean isServiceTableEmpty() {
-        return servicesRepository.findAll().isEmpty();
-    }
-
-    public void saveService(final Services service) {
-        servicesRepository.save(service);
-    }
-
+    /**
+     * Open metadata 로부터 받은 이베트에 따른 처리
+     * */
     @Transactional
     public Object handleServiceEvent(final String serviceId, final ServiceEventEnum serviceEventEnum, Boolean isHardDelete, String type, String ownerName) {
         if (serviceEventEnum.equals(CREATED) || serviceEventEnum.equals(UPDATED)) {
@@ -172,8 +137,13 @@ public class ServicesService {
                             .build()
             );
 
+            // monitoring 등록
+            dynamicSchedulerService.addSchedule(serviceId, service.getMonitoringPeriod());
+
             return "Success create service";
         } else { // DELETED
+            dynamicSchedulerService.cancel(serviceId);
+
             if (isHardDelete) {
                 // hard delete
                 servicesRepository.deleteById(UUID.fromString(serviceId));
@@ -190,22 +160,19 @@ public class ServicesService {
                 metadata.setMetadataValue(String.valueOf(modelNum - 1));
 
                 metadataRepository.save(metadata);
-
-
+            } else {
                 // soft delete
                 // change service's deleted to true
                 Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
-                        () -> new CustomException("service is not found")
+                        () -> new CustomException(ResponseCode.DFM6000, "service is not found: " + serviceId, serviceId)
                 );
 
                 service.setDeleted(true);
 
                 servicesRepository.save(service);
-
-                return "Success soft delete";
-            } else {
-                throw new CustomException("service type is not supported");
             }
+
+            return "Success soft delete";
         }
     }
 }

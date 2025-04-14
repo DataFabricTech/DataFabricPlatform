@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface DatabaseManagementService {
-    public Boolean checkDatabaseConnection(DatabaseConnectionRequest request);
+    public Boolean checkServiceConnection(DatabaseConnectionRequest request);
 
     public DataSource createDataSource(DatabaseConnectionRequest request);
 
@@ -27,7 +27,7 @@ public interface DatabaseManagementService {
 
     public String getDriverClassName(String dbType);
 
-    public Integer testMinioConnection(DatabaseConnectionRequest request);
+    public Integer checkMinioConnection(DatabaseConnectionRequest request);
 
     public void initializeServiceTable(String userName);
 
@@ -37,7 +37,7 @@ public interface DatabaseManagementService {
 
     public CheckConnectionResponseVo getQueryExecutedTime(Services service);
 
-    public List<Services> saveServicesToDatabase();
+    public List<Services> saveServicesFromFabricServer();
 
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId);
 

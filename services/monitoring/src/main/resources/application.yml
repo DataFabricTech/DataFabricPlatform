@@ -13,6 +13,16 @@ spring:
     username: ${DATASOURCE_USERNAME:sa}
     password: ${DATASOURCE_PASSWORD:password}
     driver-class-name: ${DATASOURCE_CLASS_NAME:org.h2.Driver}
+    hikari:
+      minimum-idle: 3
+      maximum-pool-size: 6
+      idle-timeout: 2000
+      max-lifetime: 6000
+      connection-timeout: 3000
+      validation-timeout: 3000
+      connection-test-query: SELECT 1
+      initialization-fail-timeout: 5000
+      leak-detection-threshold: 5000
   jpa:
     hibernate:
       ddl-auto: none
@@ -20,7 +30,7 @@ spring:
     properties:
       hibernate:
         dialect: ${JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
-        show_sql: true
+        show_sql: false
 otel:
   traces:
     exporter: jaeger
@@ -60,6 +70,8 @@ logging:
     com:
       mobigen:
         monitoring: debug
+      zaxxer:
+        hikari: off
 
 scheduler:
   collect_expression: ${COLLECT_EXPRESSION:0 0/5 * * * *}

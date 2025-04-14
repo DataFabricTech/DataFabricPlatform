@@ -2,106 +2,127 @@ package com.mobigen.monitoring.service.scheduler;
 
 import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.domain.Services;
-import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
-import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.repository.ServicesRepository;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.storage.DatabaseManagementService;
-import com.mobigen.monitoring.vo.DynamicScheduledTask;
+import com.mobigen.monitoring.vo.Target;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/* *
- * TODO
- *  1. 계속 돈다.
- *  2. map 확인해서 cron 이 맞는지 확인
- *  3. Thread pool 에 작업 던지기
- *  4. 모니터링 시작
- *  5. thread pool 은 10으로 유지
- *  6. 실제 모니터링 작업은 async 비동기
+/**
+ * service 모니터링 시간을 동적으로 바꾸고 관리할 수 있도록 관리하는 클래스
  * */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DynamicSchedulerService {
-    private final ThreadPoolTaskScheduler taskScheduler;
-    private final Map<String, DynamicScheduledTask> tasks = new ConcurrentHashMap<>();
+    // service
     private final DatabaseManagementService databaseManagementService;
-    private final ServicesRepository servicesRepository;
-    private final ServiceModelRegistry serviceModelRegistry;
     private final ModelService modelService;
 
-    @Scheduled(fixedRate = 1000)
-    private void schedule() {
-        // Map 확인 후 cron 규칙에 맞는지 확인 후에 실행
-        for(DynamicScheduledTask task : tasks.values()) {
-            // run monitoring
-            run("serviceId");
+    // repository
+    private final ServicesRepository servicesRepository;
+
+    // open metadata 에서 받아온 데이터들을 가지고 있는 공통 변수
+    private final ServiceModelRegistry serviceModelRegistry;
+
+    // thread pool
+    // TODO thread pool 크기를 동적으로 변경
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
+
+    private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+
+    /**
+     * application 이 실행되고 호출되는 함수
+     * */
+    public void runMonitoring() {
+        final List<Services> services = servicesRepository.findAllByDeletedIsFalse();
+
+        // 모든 서비스들을 schedule 로 등록
+        for (Services service : services) {
+            schedule(
+                    Target.builder()
+                            .serviceId(service.getServiceID().toString())
+                            .period(new AtomicInteger(service.getMonitoringPeriod()))
+                            .build(),
+                    run(service.getServiceID().toString())
+            );
         }
     }
 
-    public void addTask(String serviceId, Runnable task, String cronExpression) {
-        if (tasks.containsKey(serviceId)) {
-            removeTask(serviceId); // 기존 task 제거
-        }
+    /**
+     * schedule 등록
+     */
+    public void schedule(Target target, Runnable taskLogic) {
+        cancel(target.getServiceId());
 
-        CronTrigger trigger = new CronTrigger(cronExpression);
-        ScheduledFuture<?> future = taskScheduler.schedule(task, trigger);
+        // runnable 로 실행
+        final ScheduledFuture<?> future = scheduledExecutorService.scheduleAtFixedRate(
+                taskLogic,
+                0L,
+                target.getPeriod().get(),
+                TimeUnit.SECONDS);
 
-        DynamicScheduledTask scheduledTask = new DynamicScheduledTask();
-        scheduledTask.setServiceId(serviceId);
-        scheduledTask.setTask(task);
-        scheduledTask.setFuture(future);
-        scheduledTask.setCronExpression(cronExpression);
-
-        tasks.put(serviceId, scheduledTask);
+        // schedule 중인 task 를 관리하기 위해 저장
+        scheduledTasks.put(target.getServiceId(), future); // Map 에 저장
     }
 
-    public void removeTask(String taskId) {
-        DynamicScheduledTask scheduledTask = tasks.remove(taskId);
-        if (scheduledTask != null && scheduledTask.getFuture() != null) {
-            scheduledTask.getFuture().cancel(true);
-        }
-    }
+    /**
+     * Scheduling 취소 함수
+     * */
+    public void cancel(String serviceId) {
+        ScheduledFuture<?> future = scheduledTasks.remove(serviceId);
 
-    public void editTask(String taskId, String newCron) {
-        DynamicScheduledTask scheduledTask = tasks.get(taskId);
-        if (scheduledTask != null) {
-            addTask(taskId, scheduledTask.getTask(), newCron); // 기존 task로 재등록
+        // thread 에 cancel 요청 전달
+        if (future != null) {
+            future.cancel(true);
         }
     }
 
-    public Set<String> getRunningTaskIds() {
-        return tasks.keySet();
+    /**
+     * service id 를 받아서 schedule 등록하는 함수
+     * */
+    public void addSchedule(String serviceId, int monitoringPeriodInSeconds) {
+        Target target = Target.builder()
+                .serviceId(serviceId)
+                .period(new AtomicInteger(monitoringPeriodInSeconds))
+                .build();
+
+        schedule(target, run(serviceId));
     }
 
-    public void run(final String serviceId) {
-        /* *
-         * TODO monitoring task 실행 전 hashmap 업데이트
-         **/
-        // data update
-        modelService.getServiceListFromFabricServer();
+    /**
+     * 실제 모니터링 비즈니스 로직
+     * */
+    public Runnable run(final String serviceId) {
+        return () -> {
+            log.debug("[START] MONITORING service: {}", serviceId == null ? "all" : serviceId);
 
-        // database service 일 경우
-        if (serviceModelRegistry.getDatabaseServices().get(serviceId) != null) {
-            // TODO cpu, memory, request, slow query
-            // service, connection info, model registration, metadata update
-            databaseManagementService.updateDatabaseInfo(serviceId);
-        } else if (serviceModelRegistry.getStorageServices().get(serviceId) != null) {
-            final GetObjectStorageResponseDto storageServiceInfo = serviceModelRegistry.getStorageServices().get(serviceId);
+            // data update
+            log.debug("[FETCH] Fetching service info from fabric server");
 
-        } else {
-            // database, storage service 둘다 없을 경우
-            throw new CustomException("Service not found");
-        }
+            // 현재 가지고 있는 데이터를 업데이트하기 위해
+            modelService.getServiceListFromFabricServer();
+
+            // database service 일 경우
+            if (serviceModelRegistry.getDatabaseServices().get(serviceId) != null) {
+                log.debug("[SCHEDULING] Update database info: {}", serviceId);
+
+                databaseManagementService.updateDatabaseInfo(serviceId);
+            } else {
+                // database, storage service 둘다 없을 경우
+                log.error("[SCHEDULING] Update database info failed: {}", serviceId);
+
+                throw new CustomException("Service not found");
+            }
+
+            log.debug("[END] MONITORING service: {}", serviceId == null ? "all" : serviceId);
+        };
     }
 }

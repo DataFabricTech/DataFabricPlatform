@@ -95,17 +95,7 @@ public class ConnectionService {
     }
 
     @Transactional
-    public void saveConnection(final ConnectionDao connection) {
-        connectionDaoRepository.save(connection);
-    }
-
-    @Transactional
     public void saveAllConnectionHistory(final List<ConnectionHistory> connectionHistories) {
         connectionHistoryRepository.saveAll(connectionHistories);
-    }
-
-    @Transactional
-    public void saveConnectionHistory(final ConnectionHistory connectionHistory) {
-        connectionHistoryRepository.save(connectionHistory);
     }
 }

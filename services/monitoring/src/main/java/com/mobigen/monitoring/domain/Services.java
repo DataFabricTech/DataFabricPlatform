@@ -44,4 +44,7 @@ public class Services {
 
     @Enumerated(EnumType.STRING)
     private ConnectionStatus connectionStatus;
+
+    @Column(name = "monitoring_period")
+    private Integer monitoringPeriod;
 }

@@ -63,8 +63,22 @@ dependencies {
 
     // gson
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // yaml to code
+    implementation("net.rakugakibox.util:yaml-resource-bundle:1.2")
 }
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("validate") {
+    group = "application"
+    description = "Run YamlToEnum Java class to generate enums from YAML file."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.mobigen.monitoring.builder.YamlToEnum")
+}
+
+tasks.named("check") {
+    dependsOn("validate")
 }

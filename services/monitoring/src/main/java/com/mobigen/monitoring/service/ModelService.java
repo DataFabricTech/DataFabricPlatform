@@ -9,8 +9,9 @@ import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
-import com.mobigen.monitoring.service.scheduler.DatabaseConnectionInfo;
+import com.mobigen.monitoring.vo.DatabaseConnectionInfo;
 import com.mobigen.monitoring.utils.UnixTimeUtil;
 import com.mobigen.monitoring.vo.ModelInfoVo;
 import com.mobigen.monitoring.vo.TableModelInfo;
@@ -31,10 +32,14 @@ import static com.mobigen.monitoring.enums.OpenMetadataEnum.ID;
 @Slf4j
 public class ModelService {
     private final OpenMetadataService openMetadataService;
+
     private final ServiceModelRegistry serviceModelRegistry;
     private final ObjectMapper objectMapper;
     private final OpenMetadataConfig openMetadataConfig;
 
+    /**
+     * fabric server 로부터 받아온 데이터를 in-memory 에 저장
+     * */
     public List<JsonNode> getServiceListFromFabricServer() {
         JsonNode databaseServices = openMetadataService.getDatabaseServices();
         JsonNode storageServices = openMetadataService.getStorageServices();
@@ -84,7 +89,7 @@ public class ModelService {
                         value
                 );
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                throw new CustomException(ResponseCode.DFM2001, "Form of response is invalid json form");
             }
         }
     }
@@ -115,7 +120,7 @@ public class ModelService {
                                 .build()
                 );
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                throw new CustomException(ResponseCode.DFM2001, "Form of response is invalid json form");
             }
         }
     }

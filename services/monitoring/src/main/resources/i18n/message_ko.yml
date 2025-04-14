@@ -1,0 +1,25 @@
+# 404
+DFM0000: "존재하지 않는 PATH 입니다"
+
+# K8S API ERROR
+DFM1000: "K8S API 에러"
+DFM1001: "[{0}] 의 node port 를 찾을 수 없습니다"
+
+# open metadata api error
+DFM2000: "Open metadata 의 api 의 결과가 없습니다"
+DFM2001: "Response 의 json 형태가 올바르지 않습니다"
+
+# API ERROR
+DFM3000: "API [{0}] 통신 에러"
+
+# query string load failed
+DFM4000: "쿼리 파일 [{0}] 변환 실패"
+
+# Database info error
+DFM5000: "지원하지 않는 데이터베이스 타입 [{0}] 입니다"
+
+# Related Services error
+DFM6000: "serviceId [{0}] 를 찾을 수 없습니다"
+
+# Insufficient privileges
+DFM7000: "권한이 없어서 조회가 불가능합니다"

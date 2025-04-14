@@ -1,15 +1,26 @@
 package com.mobigen.monitoring.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mobigen.monitoring.dto.response.fabric.AuthType;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
+@Builder
+@ToString
+@Slf4j
 public class DatabaseConnectionInfo {
-    private String url;
-    private String username;
-    private String password;
+    private String type;
+    private String scheme;
+    private String databaseName;
     private String database;
+    private String username;
+    @JsonProperty("authType")
+    private AuthType authType;
+    private String password;
+    private String hostPort;
+    private OracleConnectionType oracleConnectionType;
 }

@@ -22,25 +22,8 @@ public class ConnectionHistoryService {
     private final ConnectionHistoryRepository connectionHistoryRepository;
     private final MetadataService metadataService;
 
-    public List<Object> getConnectionHistoriesResponse(PageRequest pageRequest) {
-        return null;
-    }
-
-    public List<Object> getConnectionHistoriesResponse(UUID serviceID, PageRequest pageRequest) {
-        return null;
-    }
-
     public List<ConnectionHistory> getConnectionHistories(UUID serviceID, PageRequest pageRequest) {
         return connectionHistoryRepository.findByServiceIDOrderByUpdatedAtDesc(serviceID, pageRequest);
-    }
-
-    public void saveConnectionHistory(List<ConnectionHistory> historyDTOs) {
-        connectionHistoryRepository.saveAll(historyDTOs);
-    }
-
-    public void deleteConnectionHistory(int retentionDays) {
-        var cutOffDays = LocalDateTime.now().minusDays(retentionDays).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        connectionHistoryRepository.deleteAllByUpdatedAtLessThan(cutOffDays);
     }
 
     public AllConnectionHistoryResponseDto getAllConnectionHistory(final PageRequest pageRequest) {

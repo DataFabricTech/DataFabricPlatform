@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.config.OpenMetadataConfig;
 import com.mobigen.monitoring.exception.CustomException;
+import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -34,12 +35,17 @@ public class OpenMetadataService {
         getToken();
     }
 
+    /**
+     * GET Api to open metadata
+     * */
     public JsonNode get(String endPoint) {
+//        log.debug("[OPEN METADATA] Get endpoint {}", endPoint);
+
         String sb = this.tokenType +
                 " " +
                 this.accessToken;
-        var url = openMetadataConfig.getOrigin() + endPoint;
-        var request = new Request.Builder()
+        String url = openMetadataConfig.getOrigin() + endPoint;
+        Request request = new Request.Builder()
                 .url(url)
                 .method("GET", null)
                 .addHeader("Authorization", sb)
@@ -48,58 +54,29 @@ public class OpenMetadataService {
         try (
                 Response response = client.newCall(request).execute();
         ) {
-            return utils.getJsonNode(response.body().string());
+            if (response.body() != null) {
+                return utils.getJsonNode(response.body().string());
+            } else {
+                log.error("[OPEN METADATA] Response of {} api is null", url);
+
+                throw new CustomException(ResponseCode.DFM2000, "OpenMetadata API Response is null");
+            }
         } catch (JsonProcessingException e) {
-//            throw CommonException.builder()
-//                    .errorCode(ErrorCode.JSON_MAPPER_FAIL)
-//                    .build();
-            throw new CustomException(e.getMessage());
+            log.error("[OPEN METADATA] Json form is invalid, url {}", url);
+
+            throw new CustomException(ResponseCode.DFM2001, "Form of response is invalid json form");
         } catch (IOException e) {
-//            throw CommonException.builder()
-//                    .errorCode(ErrorCode.GET_FAIL)
-//                    .build();
-            throw new CustomException(e.getMessage());
+            log.error("[OPEN METADATA] API connection error: {}", url);
+
+            throw new CustomException(ResponseCode.DFM3000, String.format("Api [%s] connection error", url), url);
         }
     }
 
-    public JsonNode getDatabaseServices() {
-        return get(openMetadataConfig.getPath().getDatabaseService() + "?limit=1000").get(DATA.getName());
-    }
-
-    public JsonNode getStorageServices() {
-        return get(openMetadataConfig.getPath().getStorageService()).get(DATA.getName());
-    }
-
-    public JsonNode getTableModels(String endPoint) {
-        return get(openMetadataConfig.getPath().getDatabaseModel() + endPoint).get(PAGING.getName());
-    }
-
-    public JsonNode getStorageModels(String endPoint) {
-        return get(openMetadataConfig.getPath().getStorageModel() + endPoint);
-    }
-
-    public JsonNode getAllIngestion() {
-        return get(openMetadataConfig.getPath().getIngestionPipeline() + "?limit=1000000").get(DATA.getName());
-    }
-
-    public JsonNode getIngestionState(String fqn, String name) {
-        var now = LocalDateTime.now().atZone(ZoneId.systemDefault());
-        return get(openMetadataConfig.getPath().getIngestionPipeline() + "/" + fqn + "." + name +
-                "/pipelineStatus?limit=1000000&startTs=" + now.minusDays(90).toInstant().toEpochMilli() +
-                "&endTs=" + now.toInstant().toEpochMilli()).get(DATA.getName());
-    }
-
-    public JsonNode getIngestion(UUID ingestionID) {
-        return get(openMetadataConfig.getPath().getIngestionPipeline() + "/" + ingestionID).get(DATA.getName());
-    }
-
-    public JsonNode getQuery(String param) {
-        var queryUrl = openMetadataConfig.getPath().getQuery();
-
-        return get(queryUrl + param);
-    }
-
+    /**
+     * POST Api to open metadata
+     * */
     public String post(String endPoint, String body) {
+        log.debug("[OPEN METADATA] POST {}", endPoint);
         var mediaType = MediaType.parse("application/json");
         var request_body = RequestBody.create(body, mediaType);
 
@@ -122,17 +99,73 @@ public class OpenMetadataService {
         try (
                 Response response = client.newCall(as).execute();
         ) {
-            return response.body().string();
+            if (response.body() != null) {
+                return response.body().string();
+            }
+
+            log.error("[OPEN METADATA] POST API connection error: {}", url);
+
+            throw new CustomException(ResponseCode.DFM3000, String.format("Api [%s] connection error", url), url);
         } catch (IOException e) {
-//            throw CommonException.builder()
-//                    .errorCode(ErrorCode.GET_TOKEN_FAIL)
-//                    .build();
-            throw new CustomException(e.getMessage());
+            log.error("[OPEN METADATA] POST API connection error: {}", url);
+
+            throw new CustomException(ResponseCode.DFM3000, String.format("Api [%s] connection error", url), url);
         }
     }
 
+    /**
+     * Get database service list from open metadata server
+     * */
+    public JsonNode getDatabaseServices() {
+        return get(openMetadataConfig.getPath().getDatabaseService() + "?limit=1000").get(DATA.getName());
+    }
+
+    /**
+     * Get storage service from open metadata server
+     * */
+    public JsonNode getStorageServices() {
+        return get(openMetadataConfig.getPath().getStorageService()).get(DATA.getName());
+    }
+
+    /**
+     * Get RDB models from open metadata server
+     * */
+    public JsonNode getTableModels(String endPoint) {
+        return get(openMetadataConfig.getPath().getDatabaseModel() + endPoint).get(PAGING.getName());
+    }
+
+    /**
+     * Get Object storage models from open metadata server
+     * */
+    public JsonNode getStorageModels(String endPoint) {
+        return get(openMetadataConfig.getPath().getStorageModel() + endPoint);
+    }
+
+    /**
+     * Get Ingestion info
+     * */
+    public JsonNode getAllIngestion() {
+        return get(openMetadataConfig.getPath().getIngestionPipeline() + "?limit=1000000").get(DATA.getName());
+    }
+
+    public JsonNode getIngestionState(String fqn, String name) {
+        var now = LocalDateTime.now().atZone(ZoneId.systemDefault());
+        return get(openMetadataConfig.getPath().getIngestionPipeline() + "/" + fqn + "." + name +
+                "/pipelineStatus?limit=1000000&startTs=" + now.minusDays(90).toInstant().toEpochMilli() +
+                "&endTs=" + now.toInstant().toEpochMilli()).get(DATA.getName());
+    }
+
+    public JsonNode getIngestion(UUID ingestionID) {
+        return get(openMetadataConfig.getPath().getIngestionPipeline() + "/" + ingestionID).get(DATA.getName());
+    }
+
+    /**
+     * Open metadata 에서 쓰이는 token 정보 가져오는 함수
+     * */
     public void getToken() {
         // getHostToken
+        log.debug("[OPEN METADATA] Get access token");
+
         var id = this.openMetadataConfig.getAuth().getId();
         var pw = this.openMetadataConfig.getAuth().getPasswd();
         var encodePw = Base64.getEncoder().encodeToString(pw.getBytes());
@@ -144,10 +177,9 @@ public class OpenMetadataService {
             this.accessToken = tokenJson.get(ACCESS_TOKEN.getName()).asText();
             this.tokenType = tokenJson.get(TOKEN_TYPE.getName()).asText();
         } catch (JsonProcessingException e) {
-//            throw CommonException.builder()
-//                    .errorCode(ErrorCode.GET_TOKEN_FAIL)
-//                    .build();
-            throw new CustomException(e.getMessage());
+            log.error("[OPEN METADATA] Failed to parse token");
+
+            throw new CustomException(ResponseCode.DFM2001, "Form of response is invalid json form");
         }
 
         // getBotId

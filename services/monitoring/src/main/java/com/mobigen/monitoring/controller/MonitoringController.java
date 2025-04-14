@@ -37,11 +37,6 @@ public class MonitoringController {
     private final IngestionHistoryService ingestionHistoryService;
     private final ModelService modelService;
 
-    /**
-     * TODO
-     * monitoring start, edit, remove
-     * */
-
     @GetMapping("/service-type")
     @CommonResponse
     public Object serviceType() {

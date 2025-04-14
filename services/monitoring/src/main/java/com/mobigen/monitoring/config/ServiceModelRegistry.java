@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * open metadata 에서 받아온 정보들을 in-memory 에 저장하고 범용적으로 사용하기 위한 클래스
+ * */
 @Configuration
 @Getter
 public class ServiceModelRegistry {
