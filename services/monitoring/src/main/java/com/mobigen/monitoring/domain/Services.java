@@ -48,10 +48,17 @@ public class Services {
     @Column(name = "monitoring_period")
     private Integer monitoringPeriod;
 
+    @Column(name = "monitoring")
+    private Boolean monitoring;
+
     @PrePersist
     public void prePersist() {
         if (monitoringPeriod == null) {
             monitoringPeriod = 30;
+        }
+
+        if (monitoring == null) {
+            monitoring = true;
         }
     }
 }

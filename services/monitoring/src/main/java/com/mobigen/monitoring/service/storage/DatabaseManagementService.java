@@ -61,7 +61,11 @@ public interface DatabaseManagementService {
 
     public Object getSlowQueries();
 
-    void updateDatabaseInfo(String serviceId);
+    public void updateDatabaseInfo(String serviceId);
 
-    void saveDatabaseMonitoringInfo(String serviceId, String ownerName);
+    public void saveDatabaseMonitoringInfo(String serviceId, String ownerName);
+
+    public void disableMonitoring(String serviceId);
+
+    public void enableMonitoring(String serviceId, Integer period);
 }

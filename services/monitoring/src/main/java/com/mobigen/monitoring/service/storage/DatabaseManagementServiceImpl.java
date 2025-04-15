@@ -1203,6 +1203,29 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
+    @Override
+    public void disableMonitoring(final String serviceId) {
+        Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
+                () -> new CustomException(ResponseCode.DFM1000, "service not found")
+        );
+
+        service.setMonitoring(false);
+
+        servicesRepository.save(service);
+    }
+
+    @Override
+    public void enableMonitoring(final String serviceId, Integer period) {
+        Services services = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
+                () -> new CustomException(ResponseCode.DFM1000, "service not found")
+        );
+
+        services.setMonitoring(true);
+        services.setMonitoringPeriod(period);
+
+        servicesRepository.save(services);
+    }
+
     // slow query, cpu / memory, request 통계 내용 저장
     private void saveMonitoringHistory(Services service, String ownerName, Long now) {
         final QueryStatisticsVo averageQueryOutcome = getAverageQueryOutcome(service.getServiceID().toString());

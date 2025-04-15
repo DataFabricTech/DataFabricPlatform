@@ -42,7 +42,7 @@ public class DynamicSchedulerService {
      * application 이 실행되고 호출되는 함수
      * */
     public void runMonitoring() {
-        final List<Services> services = servicesRepository.findAllByDeletedIsFalse();
+        final List<Services> services = servicesRepository.findAllByDeletedIsFalseAndMonitoringIsTrue();
 
         // 모든 서비스들을 schedule 로 등록
         for (Services service : services) {
@@ -124,5 +124,9 @@ public class DynamicSchedulerService {
 
             log.debug("[END] MONITORING service: {}", serviceId == null ? "all" : serviceId);
         };
+    }
+
+    public Object getTasks() {
+        return scheduledTasks.keySet();
     }
 }
