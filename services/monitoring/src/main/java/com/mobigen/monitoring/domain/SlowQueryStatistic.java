@@ -2,19 +2,21 @@ package com.mobigen.monitoring.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
-@Table(name = "slow_queries")
 @Entity
+@Table(name = "slow_query_statistic")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Getter
 @Setter
-public class SlowQueries {
+@Builder
+public class SlowQueryStatistic {
     @Id
-    @GeneratedValue(generator = "UUID")
+    @GeneratedValue(generator = "uuid2")
+    @UuidGenerator
     @Column(name = "id")
     private UUID id;
 
@@ -24,8 +26,11 @@ public class SlowQueries {
     @Column(name = "query")
     private String query;
 
-    @Column(name = "duration_time")
-    private Float durationTime;
+    @Column(name = "total_count")
+    private Integer totalCount;
+
+    @Column(name = "average_executed_time")
+    private Float averageExecutedTime;
 
     @Column(name = "created_at")
     private Long createdAt;

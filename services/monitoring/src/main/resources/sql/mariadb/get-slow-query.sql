@@ -1,1 +1,10 @@
-SELECT query_time as exec_time, sql_text as sql_text FROM mysql.slow_log ORDER BY start_time DESC;
+SELECT
+    sql_text,
+    COUNT(*) AS total_count,
+    ROUND(AVG(query_time), 1) AS avg_exec_time
+FROM
+    mysql.slow_log
+GROUP BY
+    sql_text
+order by
+    avg_exec_time DESC;

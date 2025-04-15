@@ -47,4 +47,11 @@ public class Services {
 
     @Column(name = "monitoring_period")
     private Integer monitoringPeriod;
+
+    @PrePersist
+    public void prePersist() {
+        if (monitoringPeriod == null) {
+            monitoringPeriod = 30;
+        }
+    }
 }

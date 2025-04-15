@@ -9,5 +9,6 @@ import lombok.*;
 @Builder
 public class SlowQueryVo {
     private String sqlText;
-    private Float execTime;
+    private Integer totalCount;
+    private Float avgExecTime;
 }

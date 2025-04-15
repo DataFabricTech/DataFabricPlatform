@@ -1,1 +1,1 @@
-select view_name from all_views;
+select view_name from all_views

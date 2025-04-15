@@ -12,7 +12,7 @@ import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.repository.MonitoringHistoryRepository;
 import com.mobigen.monitoring.repository.ServicesRepository;
-import com.mobigen.monitoring.repository.SlowQueriesRepository;
+import com.mobigen.monitoring.repository.SlowQueryStatisticRepository;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.k8s.K8SService;
@@ -23,6 +23,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,6 @@ import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.mobigen.monitoring.dto.request.DatabaseConnectionRequest.*;
@@ -61,7 +60,7 @@ import static java.lang.Boolean.*;
 public class DatabaseManagementServiceImpl implements DatabaseManagementService {
     // repositories
     private final ServicesRepository servicesRepository;
-    private final SlowQueriesRepository slowQueriesRepository;
+    private final SlowQueryStatisticRepository slowQueryStatisticRepository;
     private final MonitoringHistoryRepository monitoringHistoryRepository;
 
     private final Utils utils = new Utils();
@@ -162,6 +161,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     @Override
     public String buildJdbcUrl(DatabaseConnectionRequest request) {
         if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
+            if (request.getDatabaseName() == null)
+                throw new CustomException("Database");
             return "jdbc:oracle:thin:@" + request.getHost() + ":" + request.getPort() + "/" + request.getDatabaseName();
         } else if (request.getDbType().equalsIgnoreCase(POSTGRES.getName())) {
             return "jdbc:postgresql://" + request.getHost() + ":" + request.getPort() + "/" + request.getDatabaseName();
@@ -1038,10 +1039,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return result;
     }
 
-    /**
-     * TODO 처음 load 시 50개만 insert
-     * TODO 다음부터 50개 + 3개 비교해서 insert
-     */
     @Override
     public List<SlowQueryVo> getSlowQueries(String serviceId) {
         try {
@@ -1090,9 +1087,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                                     .sqlText(
                                             new String((byte[]) slowQuery.get("sql_text"))
                                     )
-                                    .execTime(
-                                            (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
-                                    )
+                                    .totalCount(Integer.valueOf(slowQuery.get("total_count").toString()))
+                                    .avgExecTime(Float.valueOf(slowQuery.get("avg_exec_time").toString()))
                                     .build()
                     );
                 }
@@ -1101,9 +1097,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     response.add(
                             SlowQueryVo.builder()
                                     .sqlText(slowQuery.get("sql_text").toString())
-                                    .execTime(
-                                            (float) LocalTime.parse(slowQuery.get("exec_time").toString(), DateTimeFormatter.ofPattern("HH:mm:ss")).toSecondOfDay()
-                                    )
+                                    .totalCount(Integer.valueOf(slowQuery.get("total_count").toString()))
+                                    .avgExecTime(Float.valueOf(slowQuery.get("avg_exec_time").toString()))
                                     .build()
                     );
                 }
@@ -1112,7 +1107,8 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                     response.add(
                             SlowQueryVo.builder()
                                     .sqlText(slowQuery.get("sql_text").toString())
-                                    .execTime(Float.valueOf(slowQuery.get("exec_time").toString()))
+                                    .totalCount(Integer.valueOf(slowQuery.get("total_count").toString()))
+                                    .avgExecTime(Float.valueOf(slowQuery.get("avg_exec_time").toString()))
                                     .build()
                     );
                 }
@@ -1232,11 +1228,12 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             log.debug("Insufficient privileges");
         } else {
             for (SlowQueryVo slowQuery : slowQueries) {
-                slowQueriesRepository.save(
-                        SlowQueries.builder()
+                slowQueryStatisticRepository.save(
+                        SlowQueryStatistic.builder()
                                 .serviceId(service.getServiceID())
                                 .query(slowQuery.getSqlText())
-                                .durationTime(slowQuery.getExecTime())
+                                .totalCount(slowQuery.getTotalCount())
+                                .averageExecutedTime(slowQuery.getAvgExecTime())
                                 .createdAt(now)
                                 .build()
                 );
