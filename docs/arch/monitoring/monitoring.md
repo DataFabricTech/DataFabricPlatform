@@ -196,14 +196,11 @@ monitoring -> database ++ : Update
 monitoring <-- database -- : Success
 user <-- monitoring -- : Success
 |||
--> user ++ : 저장소 별 모니티링 설정
 user -> monitoring ++ : 저장소 별 모니터링 설정 업데이트
 monitoring -> database ++ : Update
 monitoring <-- database -- : Success
 user <-- monitoring -- : Success
-<-- user -- : 
 |||
--> user ++ : 데이터 보관 정책
 user -> monitoring ++ : 데이터 보관 정책 업데이트
 monitoring -> database ++ : Update
 monitoring <-- database -- : Success
@@ -212,7 +209,6 @@ user -> monitoring ++ : 조건에 따른 데이터 삭제
 monitoring -> database ++ : Delete
 monitoring <-- database -- : Success
 user <-- monitoring -- : Success
-<-- user -- : 
 @enduml
 ```
 
@@ -236,7 +232,6 @@ Monitoring -> FabricServer : 데이터 변경에 따른 메타데이터 수집 �
 - Dashboard
 
 - Setting
-
 
 ## 6. 클래스
 
@@ -436,18 +431,18 @@ Dashboard -> Alarm_Noti
 
 **Stat**  
 
-| Column       | Data Type | Constraints                         | Index | Desc                                      |
-| ------------ | --------- | ----------------------------------- | :---: | ----------------------------------------- |
-| `time`       | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간                                      |
+| Column | Data Type | Constraints                         | Index | Desc |
+| ------ | --------- | ----------------------------------- | :---: | ---- |
+| `time` | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간 |
 
 ### 6.5. 히스토리
 
 **History**  
 
-| Column       | Data Type | Constraints                         | Index | Desc                                      |
-| ------------ | --------- | ----------------------------------- | :---: | ----------------------------------------- |
-| `time`       | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간                                      |
-| `time`       | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간                                      |
+| Column | Data Type | Constraints                         | Index | Desc |
+| ------ | --------- | ----------------------------------- | :---: | ---- |
+| `time` | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간 |
+| `time` | DATETIME  | NOT NULL, DEFAULT CURRENT_TIMESTAMP |   v   | 시간 |
 
 ### 6.6. 알림
 
