@@ -23,3 +23,9 @@ DFM6000: "Not found serviceId [{0}]"
 
 # Insufficient privileges
 DFM7000: "Insufficient privileges"
+
+# Config error
+DFM8000: "Database type [{0}] is already exists"
+
+# Config error
+DFM8001: "Database type [{0}] is not exists"

@@ -17,6 +17,8 @@ public enum ResponseCode {
     DFM5000( "DFM5000"),         //  "Unsupported database type [{0}]"
     DFM6000( "DFM6000"),         //  "Not found serviceId [{0}]"
     DFM7000( "DFM7000"),         //  "Insufficient privileges"
+    DFM8000( "DFM8000"),         //  "Database type [{0}] is already exists"
+    DFM8001( "DFM8001"),         //  "Database type [{0}] is not exists"
     ;
 
     private final String name;

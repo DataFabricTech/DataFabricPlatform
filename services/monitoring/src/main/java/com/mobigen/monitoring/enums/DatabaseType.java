@@ -20,15 +20,6 @@ public enum DatabaseType {
         this.name = name;
     }
 
-    public static DatabaseType fromString(String dbType) {
-        for (DatabaseType type : DatabaseType.values()) {
-            if (type.name.equalsIgnoreCase(dbType)) {
-                    return type;
-            }
-        }
-        return null;
-    }
-
     public static Boolean isDatabaseService(String serviceType) {
         if (DatabaseType.MINIO.name().equalsIgnoreCase(serviceType)) {
             return false;

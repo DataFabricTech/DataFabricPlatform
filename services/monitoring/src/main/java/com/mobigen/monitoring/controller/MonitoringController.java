@@ -1,6 +1,7 @@
 package com.mobigen.monitoring.controller;
 
 import com.mobigen.monitoring.annotation.CommonResponse;
+import com.mobigen.monitoring.config.ServiceTypeConfig;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.dto.response.CommonResponseDto;
@@ -36,11 +37,12 @@ public class MonitoringController {
     private final ModelRegistrationService modelRegistrationService;
     private final IngestionHistoryService ingestionHistoryService;
     private final ModelService modelService;
+    private final ServiceTypeConfig serviceTypeConfig;
 
     @GetMapping("/service-type")
     @CommonResponse
     public Object serviceType() {
-        return DatabaseType.values();
+        return serviceTypeConfig.getTypes();
     }
 
     // ko monitoring

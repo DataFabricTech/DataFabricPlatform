@@ -2,6 +2,7 @@ package com.mobigen.monitoring.service.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.config.ServiceModelRegistry;
+import com.mobigen.monitoring.config.ServiceTypeConfig;
 import com.mobigen.monitoring.domain.*;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
@@ -23,7 +24,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +65,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
     private final Utils utils = new Utils();
     private final ServiceModelRegistry serviceModelRegistry;
+    private final ServiceTypeConfig serviceTypeConfig;
 
     // services
     private final ModelRegistrationService modelRegistrationService;
@@ -579,7 +580,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         Boolean isDatabaseService = DatabaseType.isDatabaseService(service.getServiceType());
 
         // trino or 존재하지 않는 Database Type 일 경우
-        if (fromString(service.getServiceType()) == null) {
+        if (serviceTypeConfig.findType(service.getServiceType()) == null) {
             log.debug("service type: {}", service.getServiceType());
 
             return CheckConnectionResponseVo.builder()

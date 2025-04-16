@@ -1,5 +1,6 @@
 package com.mobigen.monitoring.controller;
 
+import com.mobigen.monitoring.config.ServiceTypeConfig;
 import com.mobigen.monitoring.domain.MonitoringLog;
 import com.mobigen.monitoring.repository.MonitoringTaskRepository;
 import com.mobigen.monitoring.service.ModelService;
@@ -20,6 +21,7 @@ public class TestController {
     private final DatabaseManagementService databaseManagementServiceImpl;
     private final OpenMetadataService openMetadataService;
     private final ModelService modelService;
+    private final ServiceTypeConfig serviceTypeConfig;
 
     @GetMapping
     public Object getAll() {
@@ -36,11 +38,6 @@ public class TestController {
                         .status("RUNNING")
                         .build());
     }
-//
-//    @GetMapping("/getDatabases")
-//    public Object getDatabases() {
-//        return databaseManagementService.getTest();
-//    }
 
     @GetMapping("table-model")
     public Object getTableModels() {
@@ -90,5 +87,23 @@ public class TestController {
     @GetMapping("databaseServices")
     public Object getDatabaseServices() {
         return openMetadataService.getDatabaseServices();
+    }
+
+    @GetMapping("/add/type")
+    public Object getAddType(@RequestParam(required = false) String type) {
+        serviceTypeConfig.addType(type);
+        return serviceTypeConfig.getTypes();
+    }
+
+    @GetMapping("/remove/type")
+    public Object getRemoveType(@RequestParam(required = false) String type) {
+        serviceTypeConfig.removeType(type);
+
+        return serviceTypeConfig.getTypes();
+    }
+
+    @GetMapping("/type")
+    public Object getType() {
+        return serviceTypeConfig.getTypes();
     }
 }
