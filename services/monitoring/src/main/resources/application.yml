@@ -116,3 +116,7 @@ pageable-config:
   registration:
     page_number: ${REGISTRATION_PAGING_PAGE:0}
     page_size: ${REGISTRATION_PAGING_SIZE:5}
+monitoring:
+  history:
+    delete:
+      period: 1 # 일 단위

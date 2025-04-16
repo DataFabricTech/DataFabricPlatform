@@ -5,6 +5,7 @@ import com.mobigen.monitoring.vo.ConnectionHistoryVo;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -27,4 +28,8 @@ public interface ConnectionHistoryRepository extends JpaRepository<ConnectionHis
     public List<ConnectionHistoryVo> findConnectHistoryResponse(UUID serviceId, PageRequest pageRequest);
 
     public void deleteByServiceID(UUID serviceID);
+
+    @Modifying
+    @Query(nativeQuery = true, value = "DELETE FROM connection_history e WHERE e.updated_at > ?1")
+    public void deleteOlderThan(long threshold);
 }

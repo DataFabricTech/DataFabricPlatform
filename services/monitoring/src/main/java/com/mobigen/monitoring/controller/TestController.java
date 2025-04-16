@@ -5,6 +5,7 @@ import com.mobigen.monitoring.domain.MonitoringLog;
 import com.mobigen.monitoring.repository.MonitoringTaskRepository;
 import com.mobigen.monitoring.service.ModelService;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
+import com.mobigen.monitoring.service.scheduler.DynamicSchedulerService;
 import com.mobigen.monitoring.service.storage.DatabaseManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class TestController {
     private final OpenMetadataService openMetadataService;
     private final ModelService modelService;
     private final ServiceTypeConfig serviceTypeConfig;
+    private final DynamicSchedulerService dynamicSchedulerService;
 
     @GetMapping
     public Object getAll() {
@@ -105,5 +107,10 @@ public class TestController {
     @GetMapping("/type")
     public Object getType() {
         return serviceTypeConfig.getTypes();
+    }
+
+    @GetMapping("/delete")
+    public void delete() {
+        dynamicSchedulerService.deleteMonitoring();
     }
 }
