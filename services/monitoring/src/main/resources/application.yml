@@ -31,16 +31,7 @@ spring:
       hibernate:
         dialect: ${JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
         show_sql: false
-otel:
-  traces:
-    exporter: jaeger
-  exporter:
-    jaeger:
-      endpoint: http://${JAEGER_HOST:0.0.0.0}:${JAEGER_PORT:14250}
-  metrics:
-    exporter: none
-  logs:
-    exporter: none
+
 springdoc:
   api-docs:
     path: /api-docs
@@ -73,11 +64,6 @@ logging:
       zaxxer:
         hikari: off
 
-scheduler:
-  collect_expression: ${COLLECT_EXPRESSION:0 0/5 * * * *}
-  save_expression: ${SAVE_EXPRESSION:0 0/30 * * * *}
-  delete_expression: ${DELETE_EXPRESSION:0 0/30 2 * * *}
-
 open-metadata:
   path:
     database_service: "/api/v1/services/databaseServices"
@@ -96,26 +82,6 @@ k8s:
   namespace: ${NAMESPACE:datafabric}
   ip: ${K8S_IP:192.168.109.254}
 
-data-cleanup-condition:
-  retention_days: 90
-  maximum_rows: 30
-
-pageable-config:
-  connection-history:
-    page_number: ${CONNECTION_HISTORY_PAGING_PAGE:0}
-    page_size: ${CONNECTION_HISTORY_PAGING_SIZE:30}
-  ingestion-history:
-    page_number: ${INGESTION_HISTORY_PAGING_PAGE:0}
-    page_size: ${INGESTION_HISTORY_PAGING_SIZE:30}
-  connect:
-    page_number: ${CONNECT_PAGING_PAGE:0}
-    page_size: ${CONNECT_PAGING_SIZE:5}
-  event:
-    page_number: ${EVENT_PAGING_PAGE:0}
-    page_size: ${EVENT_PAGING_SIZE:5}
-  registration:
-    page_number: ${REGISTRATION_PAGING_PAGE:0}
-    page_size: ${REGISTRATION_PAGING_SIZE:5}
 monitoring:
   history:
     delete:
