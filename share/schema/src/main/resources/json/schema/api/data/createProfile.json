@@ -1,0 +1,41 @@
+{
+  "$id": "https://mobigen.com/schema/api/data/createProfile.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateProfile",
+  "description": "Schema corresponding to a data model profile",
+  "type": "object",
+  "javaType": "com.mobigen.vdap.schema.api.data.CreateProfile",
+  "properties": {
+    "tableProfile": {
+      "description": "Table Profile.",
+      "$ref": "../../entity/data/dataModel.json#/definitions/tableProfile"
+    },
+    "columnProfile": {
+      "description": "List of local column profiles of the table.",
+      "type": "array",
+      "items": {
+        "$ref": "../../entity/data/dataModel.json#/definitions/columnProfile"
+      }
+    },
+    "documentProfile": {
+      "description": "profile of the document type data.",
+       "$ref": "../../entity/data/dataModel.json#/definitions/documentProfile"
+    },
+    "pictureProfile": {
+      "description": "profile of the picture type data.",
+      "$ref": "../../entity/data/dataModel.json#/definitions/pictureProfile"
+    },
+    "audioProfile": {
+      "description": "profile of the audio type data.",
+      "$ref": "../../entity/data/dataModel.json#/definitions/audioProfile"
+    },
+    "systemProfile": {
+      "description": "List of system profiles for the table.",
+      "type": "array",
+      "items": {
+        "$ref": "../../entity/data/dataModel.json#/definitions/systemProfile"
+      }
+    }
+  },
+  "additionalProperties": false
+}

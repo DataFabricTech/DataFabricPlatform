@@ -52,6 +52,7 @@
     - first, random, ...
   - 데이터 셋
     - ...
+
 ## 3. Usecase
 
 ```plantuml
@@ -586,7 +587,7 @@ UserDefine Driver를 사용할 수 있는 구조로 변경.
 | ------------ | --------- | -------------------------------- | -------------------------------------- |
 | `id`         | UUID      | PRIMARY_KEY                      | 아이디                                 |
 | `json`       | JSON      | NOT NULL                         | 저장소 공통 설정 정보                  |
-| `version`    | INT       | NOT NULL                         | 저장소 업데이트 정보 |
+| `version`    | INT       | NOT NULL                         | 저장소 업데이트 정보                   |
 | `updated_at` | DATETIME  | NOT NULL, CURRENT_TIME ON UPDAET | 저장소 공통 설정 정보 업데이트 시간    |
 | `updated_by` | UUID      | NOT NULL, FK('user.id')          | 저장소 공통 설정 정보 변경 사용자 정보 |
 

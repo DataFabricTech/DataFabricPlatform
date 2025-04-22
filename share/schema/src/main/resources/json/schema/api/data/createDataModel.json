@@ -36,6 +36,22 @@
       "type": "string",
       "default": null
     },
+    "service": {
+      "description": "Link to Data Store Service this data is hosted in.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "database": {
+      "description": "Reference to Database that contains this data.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "databaseSchema": {
+      "description": "Reference to database schema that contains this data.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "bucket": {
+      "description": "Reference to Bucket that contains this data.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
     "parent": {
       "description": "Link to the parent data under which this entity sits, if not top level.",
       "$ref": "../../type/entityReference.json"
@@ -100,7 +116,7 @@
       "default": null
     },
     "tags": {
-      "description": "Tags for this table",
+      "description": "Tags for this data",
       "type": "array",
       "items": {
         "$ref": "../../type/tagLabel.json"
@@ -108,7 +124,7 @@
       "default": null
     },
     "sourceUrl": {
-      "description": "Source URL of table.",
+      "description": "Source URL of data.",
       "$ref": "../../type/basic.json#/definitions/sourceUrl"
     },
     "lifeCycle": {

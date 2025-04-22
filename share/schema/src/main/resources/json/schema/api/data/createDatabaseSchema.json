@@ -25,7 +25,7 @@
     },
     "database": {
       "description": "Link to the database fully qualified name where this schema is hosted in",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+      "$ref": "../../type/basic.json#/definitions/uuid"
     },
     "tags": {
       "description": "Tags for this table",

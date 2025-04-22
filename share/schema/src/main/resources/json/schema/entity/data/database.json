@@ -36,7 +36,7 @@
     },
     "updatedAt": {
       "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -60,7 +60,7 @@
     },
     "location": {
       "description": "Reference to the Location that contains this database.",
-      "$ref": "../../type/entityReference.json"
+      "type": "string"
     },
     "databaseSchemas": {
       "description": "References to schemas in the database.",

@@ -1,104 +1,81 @@
-# 표준 메타데이터
+# 데이터패브릭 - 데이터 카탈로그
 
-## 1. 개요
+## 개요
 
-본 문서는 표준 메타데이터 정의하고자 한다.
+우리는 카탈로그를 주변에서 쉽게 마주합니다. 마트의 제품 할인 정보와 판매 중인 상품에 대한 정보가 담긴 카탈로그,
+자동차 판매를 목적으로 자동차 외부, 내부, 엔진의 스펙 등 다양한 정보가 담긴 카탈로그 같은 것들을 말이죠.
 
-## 2. 참고 자료
+데이터 패브릭에서 데이터 카탈로그는 자동차 카탈로그와 유사합니다.
+하나의 데이터에 대해 이름, 데이터의 구조, 데이터 샘플, 데이터 관계, 데이터의 특성 등 다양항 데이터(메타데이터)를 수집하고 관리합니다.
+이를 통해 사용자는 데이터 탐색 시 보다 쉽게 찾고자 하는 데이터를 사용할 수 있는 이점이 생깁니다.
 
-OpenMetadata, 공공데이터 표준, KISTI 메타데이터 표준을 참고하여 작성함.
+## 데이터 가상화
 
-## 3. 메타데이터
+데이터 가상화는 다음과 같은 절차를 거쳐 이루어집니다.
 
-| DataName:Depth - 1 | Depth - 2     | Depth - 3 | 데이터타입       | 설명                                                                              | 자동 수집 가능 여부 |
-| ------------------ | ------------- | --------- | ---------------- | --------------------------------------------------------------------------------- | :-----------------: |
-| ID                 | -             | -         | UUID             | 자원 식별 고유 아이디(OpenVDAP 부여 아이디)                                       |          o          |
-| IdentifierType     | -             | -         | String(ENUM)     | 식별자 유형(DOI, ARK, URI, URL, UCI 등)                                           |          x          |
-| Identifier         | -             | -         | String           | 프로젝트 내부의 참조 번호나 DOI 와 같은 국제표준식별자 ex : 표준(TTAS.OT-10.0058) |          x          |
-| Name               | -             | -         | String           | 자원에 부여된 이름 ex : TableName, FileName, DatasetName                          |          o          |
-| DisplayName        | -             | -         | String           | 부제목 : OpenVDAP 에서 사용자가 설정한 이름                                       |          x          |
-| Description        | -             | -         | String           | 자원에 설정된 설명 혹은 OpenVDAP 에서 사용자가 입력한 설명                        |          △          |
-| Subject(주제)      | -             | -         | String           | 데이터의 주제 혹은 데이터의 내용을 설명하는 키워드 혹은 구 (phrases)              |          △          |
-| Version            | -             | -         | Double           | 자원(실데이터)의 변경 or 사용자에 의한 데이터 변경에 따라 증가하는 버전 정보      |          o          |
-| Creator(생산자)    | -             | -         | String           | 데이터를 생성한 개체 정보(기관 혹은 개인 식별 정보)                               |          x          |
-| Publisher(출판자)  | -             | -         | String           | 자원을 현재의 형태로 이용가능하게 만든 개체                                       |          x          |
-| Availability       | -             | -         | Availability     | 자원 관련 담당자/기관 정보                                                        |          -          |
-| -                  | Name          | -         | String           | 자원 담당자(기관)의 이름                                                          |          x          |
-| -                  | Email         | -         | String           | 연락처(email, phone)                                                              |          x          |
-| -                  | phone         | -         | String           | 연락처(email, phone)                                                              |          x          |
-| Audience           | -             | -         | Audience         | 자원 이용하기에 적합한 이용자 계층, 계층에 유용성 정보                            |          -          |
-| -                  | AudienceType  | -         | String           | 자원을 이용하기에 적합한 이용자 계층                                              |          x          |
-| -                  | Accessibility | -         | String           | 특정 계층에게 있어 자원의 이용 가능성과 유용성                                    |          x          |
-| AccessControl      | -             | -         | AccessControl    | 보안 정보                                                                         |          -          |
-| -                  | Level         | -         | String           | 보안 등급                                                                         |          x          |
-| -                  | Reason        | -         | String           | 보안 등급 근거                                                                    |          x          |
-| -                  | ReleaseDate   | -         | DateTime         | 공개 예정일                                                                       |          x          |
-| Mandate            | -             | -         | Mandate          | 법규 - 자원을 생산 또는 이용가능하게 만든 볍률 정보                               |          x          |
-| -                  | Name          | -         | String           | 자원 생산 또는 이용 가능하게 만든 법률 또는 법규의 이름                           |          x          |
-| -                  | Refence       | -         | String           | 자원 생산 또는 이용 가능하게 만든 법률 또는 법규의 해당 조항 및 설명              |          x          |
-| Right              | -             | -         | String           | 지적재산권 내용                                                                   |          x          |
-| LifeCycle          | -             | -         | -                | 데이터의 생성, 변경, 유효기간, 이용가능기한 정보                                  |          -          |
-| -                  | Created       | -         | DateTime         | 생성일                                                                            |          o          |
-| -                  | Modified      | -         | DateTime         | 마지막 변경 시간                                                                  |          o          |
-| -                  | Valid         | -         | DateTime         | 유효 기간                                                                         |          x          |
-| -                  | Available     | -         | DateTime         | 이용 가능 기간                                                                    |          x          |
-| Language           | -             | -         | String           | 데이터에 사용된 언어                                                              |          o          |
-| TagLabels          | -             | -         | Taglabel[]       | 데이터 관련 키워드/사전 정보                                                      |          -          |
-| -                  | id            | -         | UUID             | 데이터 관련 키워드/사전 정보                                                      |          -          |
-| -                  | name          | -         | String           | 태그/사전 이름                                                                    |          -          |
-| -                  | displayName   | -         | String           | 태그/사전 부제                                                                    |          -          |
-| -                  | description   | -         | String           | 태그/사전 설명                                                                    |          -          |
-| -                  | source        | -         | String           | 태그/사전의 부모 개체 타입 ex : Classification/Glossary/GlossaryTerms             |          -          |
-| -                  | sourceId      | -         | String           | 태그/사전의 부모 개체 아이디                                                      |          -          |
-| DataType           | -             | -         | String           | 데이터의 유형 ex: Dataset/Structured/Unstructured/Semi-Structured                 |          o          |
-| DataSize           | -             | -         | Long             | 테이블, 파일 데이터의 크기(Byte)                                                  |          o          |
-| TableType          | -             | -         | String           | 테이블 데이터의 유형(Regular, View, ...) Regular, View                            |          o          |
-| FileFormat         | -             | -         | String           | 파일 데이터의 유형 ex : CSV, DOC, JPG, ...                                        |          o          |
-| DataStoreType      | -             | -         | String           | 자원 저장소 타입( Mysql, Mariadb, Mssql, Postgresql, ...)                         |          o          |
-| DataStore          | -             | -         | ReferenceModel   | 자원 저장소 정보                                                                  |          -          |
-| -                  | source        | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                        |          o          |
-| -                  | id            | -         | UUID             | DataStore 의 아이디                                                               |          o          |
-| -                  | name          | -         | String           | DataStore 의 이름                                                                 |          o          |
-| -                  | displayName   | -         | String           | DataStore 의 부제                                                                 |          o          |
-| -                  | description   | -         | String           | DataStore 의 설명                                                                 |          o          |
-| -                  | href          | -         | String           | DataStore 링크 URI                                                                |          o          |
-| Database           | -             | -         | ReferenceModel   | 데이터베이스 정보                                                                 |          -          |
-| -                  | source        | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                        |          o          |
-| -                  | id            | -         | UUID             | Database 의 아이디                                                                |          o          |
-| -                  | name          | -         | String           | Database 의 이름                                                                  |          o          |
-| -                  | displayName   | -         | String           | Database 의 부제                                                                  |          o          |
-| -                  | description   | -         | String           | Database 의 설명                                                                  |          o          |
-| -                  | href          | -         | String           | Database  링크 URI                                                                |          o          |
-| DatabaseSchema     | -             | -         | ReferenceModel   | 데이터베이스 스키마 정보                                                          |          -          |
-| -                  | source        | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                        |          o          |
-| -                  | id            | -         | UUID             | DatabaseSchema 의 아이디                                                          |          o          |
-| -                  | name          | -         | String           | DatabaseSchema 의 이름                                                            |          o          |
-| -                  | displayName   | -         | String           | DatabaseSchema 의 부제                                                            |          o          |
-| -                  | description   | -         | String           | DatabaseSchema 의 설명                                                            |          o          |
-| -                  | href          | -         | String           | DatabaseSchema  링크 URI                                                          |          o          |
-| Bucket             | -             | -         | ReferenceModel   | S3, MinIO 의 저장소 버켓 정보                                                     |          -          |
-| -                  | source        | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                        |          o          |
-| -                  | id            | -         | UUID             | Bucket 의 아이디                                                                  |          o          |
-| -                  | name          | -         | String           | Bucket 의 이름                                                                    |          o          |
-| -                  | displayName   | -         | String           | Bucket 의 부제                                                                    |          o          |
-| -                  | description   | -         | String           | Bucket 의 설명                                                                    |          o          |
-| -                  | href          | -         | String           | Bucket  링크 URI                                                                  |          o          |
-| Folder             | -             | -         | ReferenceModel   | 폴더 정보                                                                         |          -          |
-| -                  | source        | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                        |          o          |
-| -                  | id            | -         | UUID             | Folder 의 아이디                                                                  |          o          |
-| -                  | name          | -         | String           | Folder 의 이름                                                                    |          o          |
-| -                  | displayName   | -         | String           | Folder 의 부제                                                                    |          o          |
-| -                  | description   | -         | String           | Folder 의 설명                                                                    |          o          |
-| -                  | href          | -         | String           | Folder  링크 URI                                                                  |          o          |
-| LocationPath       | -             | -         | String           | 데이터 위치 정보 (Path, Link)                                                     |          o          |
-| Parent             | -             | -         | ReferenceModel[] | 상위 데이터모델(데이터 셋에 포함된 모델일 경우 데이터 셋) 정보                    |          o          |
-| Children           | -             | -         | ReferenceModel[] | 하위 데이터모델(데이터셋에 포함된 데이터 모델) 정보                               |          o          |
-| Votes              | -             | -         | Vote             | 데이터 관련 키워드/사전 정보                                                      |          -          |
-| -                  | upVotes       | -         | Long             | 추천 수                                                                           |          -          |
-| -                  | downVotes     | -         | Long             | 비추천 수                                                                         |          -          |
-| -                  | upVoters      | -         | ReferenceModel[] | 추천 사용자 리스트                                                                |          -          |
-| -                  | downVoters    | -         | ReferenceModel[] | 비추천 사용자 리스트                                                              |          -          |
-| Followers          | -             | -         | ReferenceModel[] | 즐겨찾기 사용자 리스트                                                            |          -          |
+1. 저장소(다양한 저장소 - MySQL, MariaDB, PostgreSQL, S3, MinIO, Hadoop 등)의 가상화  
+    1. 사용자로부터 저장소 정보를 입력 받아 저장  
+      - 연결정보 : IP, Port  
+      - 인증정보 : ID, Password  
+      - 가상화 대상 정보 : Database(include/exclude), Bucket(include/exclude)  
+2. 데이터 가상화 - 데이터 정보 수집
+  메타데이터 단락의 자동 수집 데이터를 참고
+3. 검색 엔진 적재
+
+## 메타데이터
+
+다음은 데이터패브릭의 메타데이터 구성입니다.
+
+| DataName:Depth - 1 | Depth - 2   | Depth - 3 | 데이터타입       | 설명                                                                         | 자동 수집 가능 여부 |
+| ------------------ | ----------- | --------- | ---------------- | ---------------------------------------------------------------------------- | :-----------------: |
+| ID                 | -           | -         | UUID             | 자원 식별 고유 아이디(OpenVDAP 부여 아이디)                                  |          o          |
+| Name               | -           | -         | String           | 자원에 부여된 이름 ex : TableName, FileName, DatasetName                     |          o          |
+| Description        | -           | -         | String           | 자원에 설정된 설명 혹은 OpenVDAP 에서 사용자가 입력한 설명                   |          △          |
+| Subject(주제)      | -           | -         | String           | 데이터의 주제 혹은 데이터의 내용을 설명하는 키워드 혹은 구 (phrases)         |          △          |
+| Version            | -           | -         | Double           | 자원(실데이터)의 변경 or 사용자에 의한 데이터 변경에 따라 증가하는 버전 정보 |          -          |
+| Creator(생산자)    | -           | -         | String           | 데이터를 생성한 개체 정보(기관 혹은 개인 식별 정보)                          |          -          |
+| LifeCycle          | -           | -         | -                | 데이터의 생성, 변경, 유효기간, 이용가능기한 정보                             |          -          |
+| -                  | Created     | -         | DateTime         | 생성일                                                                       |          o          |
+| -                  | Modified    | -         | DateTime         | 마지막 변경 시간                                                             |          o          |
+| -                  | Valid       | -         | DateTime         | 유효 기간                                                                    |          x          |
+| -                  | Available   | -         | DateTime         | 이용 가능 기간                                                               |          x          |
+| Language           | -           | -         | String           | 데이터에 사용된 언어                                                         |          o          |
+| TagLabels          | -           | -         | Taglabel[]       | 데이터 관련 키워드/사전 정보                                                 |          -          |
+| -                  | id          | -         | UUID             | 데이터 관련 키워드/사전 정보                                                 |          -          |
+| -                  | name        | -         | String           | 태그/사전 이름                                                               |          -          |
+| -                  | description | -         | String           | 태그/사전 설명                                                               |          -          |
+| -                  | source      | -         | String           | 태그/사전의 부모 개체 타입 ex : Classification/Glossary/GlossaryTerms        |          -          |
+| -                  | sourceId    | -         | String           | 태그/사전의 부모 개체 아이디                                                 |          -          |
+| DataType           | -           | -         | String           | 데이터의 유형 ex: Dataset/Structured/Unstructured/Semi-Structured            |          o          |
+| DataSize           | -           | -         | Long             | 테이블, 파일 데이터의 크기(Byte)                                             |          o          |
+| TableType          | -           | -         | String           | 테이블 데이터의 유형(Regular, View, ...) Regular, View                       |          o          |
+| FileFormat         | -           | -         | String           | 파일 데이터의 유형 ex : CSV, DOC, JPG, ...                                   |          o          |
+| DataStoreType      | -           | -         | String           | 자원 저장소 타입( Mysql, Mariadb, Mssql, Postgresql, ...)                    |          o          |
+| DataStore          | -           | -         | ReferenceModel   | 자원 저장소 정보                                                             |          -          |
+| -                  | source      | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                   |          o          |
+| -                  | id          | -         | UUID             | DataStore 의 아이디                                                          |          o          |
+| -                  | name        | -         | String           | DataStore 의 이름                                                            |          o          |
+| -                  | description | -         | String           | DataStore 의 설명                                                            |          o          |
+| Database           | -           | -         | ReferenceModel   | 데이터베이스 정보                                                            |          -          |
+| -                  | source      | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                   |          o          |
+| -                  | id          | -         | UUID             | Database 의 아이디                                                           |          o          |
+| -                  | name        | -         | String           | Database 의 이름                                                             |          o          |
+| -                  | description | -         | String           | Database 의 설명                                                             |          o          |
+| DatabaseSchema     | -           | -         | ReferenceModel   | 데이터베이스 스키마 정보                                                     |          -          |
+| -                  | source      | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                   |          o          |
+| -                  | id          | -         | UUID             | DatabaseSchema 의 아이디                                                     |          o          |
+| -                  | name        | -         | String           | DatabaseSchema 의 이름                                                       |          o          |
+| -                  | description | -         | String           | DatabaseSchema 의 설명                                                       |          o          |
+| Bucket             | -           | -         | ReferenceModel   | S3, MinIO 의 저장소 버켓 정보                                                |          -          |
+| -                  | source      | -         | String           | 타입 (DataStore, Database, DatabaseSchema, Bucket, Folder)                   |          o          |
+| -                  | id          | -         | UUID             | Bucket 의 아이디                                                             |          o          |
+| -                  | name        | -         | String           | Bucket 의 이름                                                               |          o          |
+| -                  | description | -         | String           | Bucket 의 설명                                                               |          o          |
+| -                  | href        | -         | String           | Bucket  링크 URI                                                             |          o          |
+| Location           | -           | -         | String           | 데이터 위치 정보 : Service - database - databaseschema - Table               |          o          |
+| LocationPath       | -           | -         | String           | 데이터 위치 정보 : Path                                                      |
+| Parent             | -           | -         | ReferenceModel[] | 상위 데이터모델(데이터 셋에 포함된 모델일 경우 데이터 셋) 정보               |          o          |
+| Children           | -           | -         | ReferenceModel[] | 하위 데이터모델(데이터셋에 포함된 데이터 모델) 정보                          |          o          |
 
 **테이블 데이터 상세**  
 
@@ -244,10 +221,427 @@ OpenMetadata, 공공데이터 표준, KISTI 메타데이터 표준을 참고하�
 | -                              | Summary (요약)                   | -          | String             | 전체 오디오 내용의 요약 문장                             |          o          |
 | AudioSample(오디오 샘플)       | -                                | -          | String             | 오디오 샘플(STT를 이용해 텍스트로 변환된 데이터 중 일부) |          -          |
 
-## 4. 추가사항
+## 데이터 적재 - 검색엔진  
 
-공공데이터 표준에 따라 데이터의 이름이 작성된 경우 데이터 사전을 참고하여 국문, 영문의 데이터를 추출할 수 있을 것이다.
-[공공데이터 표준 용어 사전](https://www.data.go.kr/bbs/rcr/selectRecsroom.do?pageIndex=1&originId=PDS_0000000001230+++&atchFileId=FILE_000000003064335&searchCondition3=&searchCondition2=2&cndCtgryLaword=N&cndCtgryEdc=N&cndCtgryBigdata=N&cndCtgryStd=Y&cndCtgryNews=N&cndCtgryContest=&cndCtgryEtc=N&cndCtgryCardNews=&bindCndCtgry=PDTY04&sort-post=2&searchKeyword1=&Std=PDTY04)
+한글 처리 토크나이저와 데이터 검색 성능 향상을 위한 필터(인덱싱)를 고려한 데이터 적재 설계
 
-> 공공데이터 용어사전을 기반으로 데이터의 이름(테이블 이름, 컬럼 이름 등)을
-> 용어 사전과 대조하여 한글이름 or 영문이름을 추가하고 설명을 추가 작성할 수 있을 것 입니다.
+```json
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "fabric_analyzer": {
+          "tokenizer": "nori_tokenizer",
+          "filter": [
+            "lowercase",
+            "word_delimiter_filter",
+            "om_stemmer"
+          ]
+        },
+        "fabric_ngram": {
+          "type": "custom",
+          "tokenizer": "edge_ngram_tokenizer",
+          "filter": ["lowercase"]
+        }
+      },
+      "tokenizer": {
+        "edge_ngram_tokenizer": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20,
+          "token_chars": ["letter", "digit", "hangul"]
+        }
+      },
+      "filter": {
+        "om_stemmer": {
+          "type": "stemmer",
+          "name": "kstem"
+        },
+        "word_delimiter_filter": {
+          "type": "word_delimiter",
+          "preserve_original": true
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "text"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "fabric_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256,
+            "normalizer": "lowercase_normalizer"
+          },
+          "ngram": {
+            "type": "text",
+            "analyzer": "fabric_ngram"
+          }
+        }
+      },
+      "displayName": {
+        "type": "text",
+        "analyzer": "fabric_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "normalizer": "lowercase_normalizer",
+            "ignore_above": 256
+          },
+          "ngram": {
+            "type": "text",
+            "analyzer": "fabric_ngram"
+          }
+        }
+      },
+      "subject": {
+        "type": "text",
+        "analyzer": "fabric_analyzer",
+        "index_options": "docs"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "fabric_analyzer",
+        "index_options": "docs"
+      },
+      "version": {
+        "type": "float"
+      },
+      "updatedAt": {
+        "type": "date",
+      },
+      "updatedBy": {
+        "type": "text"
+      },
+      "href": {
+        "type": "text"
+      },
+      "fileFormat": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "tableType": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "tableProfile": {
+        "schemaDefinition": {
+          "type": "text"
+        },
+        "tableStatistics": {
+          "properties": {
+            "time": {
+              "type": "date"
+            },
+            "columnCount": {
+              "type": "float"
+            },
+            "rowCount": {
+              "type": "float"
+            },
+            "size": {
+              "type": "float"
+            }
+          }
+        },
+        "columns": {
+          "properties": {
+            "name": {
+              "type": "text",
+              "analyzer": "fabric_analyzer",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "lowercase_normalizer"
+                },
+                "ngram": {
+                  "type": "text",
+                  "analyzer": "fabric_ngram"
+                }
+              }
+            },
+            "dataType": {
+              "type": "text"
+            },
+            "dataTypeDisplay": {
+              "type": "text"
+            },
+            "description": {
+              "type": "text",
+              "analyzer": "fabric_analyzer",
+              "index_options": "docs"
+            },
+            "tags": {
+              "properties": {
+                "tagFQN": {
+                  "type": "keyword",
+                  "normalizer": "lowercase_normalizer"
+                },
+                "labelType": {
+                  "type": "keyword"
+                },
+                "description": {
+                  "type": "text",
+                  "index_options": "docs"
+                },
+                "source": {
+                  "type": "keyword"
+                },
+                "state": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "ordinalPosition": {
+              "type": "integer"
+            }
+          }
+        },
+        "columnNames": {
+          "type": "keyword"
+        },
+      },
+      "databaseSchema": {
+        "properties": {
+          "id": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 36
+              }
+            }
+          },
+          "type": {
+            "type": "text"
+          },
+          "name": {
+            "type": "keyword",
+            "normalizer": "lowercase_normalizer",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "displayName": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase_normalizer",
+                "ignore_above": 256
+              }
+            }
+          },
+          "description": {
+            "type": "text"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "href": {
+            "type": "text"
+          }
+        }
+      },
+      "database": {
+        "properties": {
+          "id": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 36
+              }
+            }
+          },
+          "type": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword",
+            "normalizer": "lowercase_normalizer",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "displayName": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase_normalizer",
+                "ignore_above": 256
+              }
+            }
+          },
+          "description": {
+            "type": "text"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "href": {
+            "type": "text"
+          }
+        }
+      },
+      "service": {
+        "properties": {
+          "id": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 36
+              }
+            }
+          },
+          "type": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "displayName": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase_normalizer",
+                "ignore_above": 256
+              }
+            }
+          },
+          "description": {
+            "type": "text"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "href": {
+            "type": "text"
+          }
+        }
+      },
+      "owners": {
+        "properties": {
+          "id": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 36
+              }
+            }
+          },
+          "type": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword",
+            "normalizer": "lowercase_normalizer",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "displayName": {
+            "type": "keyword",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "normalizer": "lowercase_normalizer",
+                "ignore_above": 256
+              }
+            }
+          },
+          "description": {
+            "type": "text"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "href": {
+            "type": "text"
+          }
+        }
+      },
+      "lifeCycle": {
+        "type": "object"
+      },
+      "location": {
+        "type": "text"
+      },
+      "locationPath": {
+        "type": "keyword"
+      },
+      "deleted": {
+        "type": "boolean"
+      },
+      "followers": {
+        "type": "keyword"
+      },
+      "tags": {
+        "properties": {
+          "tagFQN": {
+            "type": "keyword",
+            "normalizer": "lowercase_normalizer"
+          },
+          "labelType": {
+            "type": "keyword"
+          },
+          "description": {
+            "type": "text"
+          },
+          "source": {
+            "type": "keyword"
+          },
+          "state": {
+            "type": "keyword"
+          }
+        }
+      },
+      "lineage": {
+        "type" : "object"
+      },
+      "entityRelationship": {
+        "type" : "object"
+      },
+      "serviceType": {
+        "type": "keyword",
+        "normalizer": "lowercase_normalizer"
+      },
+      "dataTypeType": {
+        "type": "keyword"
+      },
+      "totalVotes": {
+        "type": "long",
+        "null_value": 0
+      },
+      "votes" : {
+        "type": "object"
+      }
+    }
+  }
+}
+```

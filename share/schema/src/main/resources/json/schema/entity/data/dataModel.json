@@ -252,6 +252,14 @@
             "type": "string"
           }
         },
+        "referredColumns": {
+          "description": "List of referred column for the constraint.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": null
+        },
         "relationshipType": {
           "type": "string",
           "enum": [
@@ -439,9 +447,9 @@
           "description": "Column Name.",
           "type": "string"
         },
-        "timestamp": {
-          "description": "Timestamp on which profile is taken.",
-          "$ref": "../../type/basic.json#/definitions/timestamp"
+        "dateTime": {
+          "description": "DataTime on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/dateTime"
         },
         "valuesCount": {
           "description": "Total count of the values in this column.",
@@ -598,7 +606,7 @@
       },
       "required": [
         "name",
-        "timestamp"
+        "dateTime"
       ],
       "additionalProperties": false
     },
@@ -617,9 +625,9 @@
       "type": "object",
       "javaType": "com.mobigen.vdap.schema.type.SystemProfile",
       "properties": {
-        "timestamp": {
-          "description": "Timestamp on which profile is taken.",
-          "$ref": "../../type/basic.json#/definitions/timestamp"
+        "dateTime": {
+          "description": "DateTime on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/dateTime"
         },
         "operation": {
           "description": "Operation performed.",
@@ -763,9 +771,9 @@
       "javaType": "com.mobigen.vdap.schema.type.TableStatistics",
       "description": "This schema defines the type to capture the table's data profile.",
       "properties": {
-        "timestamp": {
-          "description": "Timestamp on which profile is taken.",
-          "$ref": "../../type/basic.json#/definitions/timestamp"
+        "dateTime": {
+          "description": "DateTime on which profile is taken.",
+          "$ref": "../../type/basic.json#/definitions/dateTime"
         },
         "profileSample": {
           "description": "Percentage of data or no. of rows we want to execute the profiler and tests on",
@@ -797,7 +805,7 @@
         }
       },
       "required": [
-        "timestamp"
+        "dateTime"
       ],
       "additionalProperties": false
     },
@@ -806,6 +814,7 @@
       "description": "File format of file",
       "type": "string",
       "enum": [
+        "folder",
         "zip",
         "gz",
         "csv",
@@ -821,6 +830,9 @@
         "png"
       ],
       "javaEnums": [
+        {
+          "name": "Folder"
+        },
         {
           "name": "Zip"
         },
@@ -949,11 +961,11 @@
         },
         "createdAt": {
           "description": "Created at of the document.",
-          "$ref": "../../type/basic.json#/definitions/timestamp"
+          "$ref": "../../type/basic.json#/definitions/dateTime"
         },
         "modifiedAt": {
           "description": "Modified at of the document.",
-          "$ref": "../../type/basic.json#/definitions/timestamp"
+          "$ref": "../../type/basic.json#/definitions/dateTime"
         },
         "pageCount": {
           "description": "Page count of the document.",
@@ -1256,7 +1268,7 @@
     },
     "updatedAt": {
       "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -1304,10 +1316,6 @@
       "description": "Reference to Bucket that contains this data.",
       "$ref": "../../type/entityReference.json"
     },
-    "folder": {
-      "description": "Reference to Folder that contains this data.",
-      "$ref": "../../type/entityReference.json"
-    },
     "parent": {
       "description": "Link to the parent data under which this entity sits, if not top level.",
       "$ref": "../../type/entityReference.json"
@@ -1324,6 +1332,11 @@
     "size": {
       "description": "The total size in KB this data has.",
       "type": "number",
+      "default": null
+    },
+    "location": {
+      "description": "service-id.{Database/Bucket}.{DatabaseSchema/DataModel(Folder)}",
+      "type": "string",
       "default": null
     },
     "locationPath": {
@@ -1391,6 +1404,10 @@
     "followers": {
       "description": "Followers of this data.",
       "$ref": "../../type/entityReferenceList.json"
+    },
+    "sourceUrl": {
+      "description": "Source URL of data.",
+      "$ref": "../../type/basic.json#/definitions/sourceUrl"
     }
   },
   "required": [

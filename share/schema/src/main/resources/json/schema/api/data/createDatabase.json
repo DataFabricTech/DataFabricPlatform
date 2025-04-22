@@ -33,7 +33,7 @@
     },
     "service": {
       "description": "Link to the database service fully qualified name where this database is hosted in",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+      "$ref": "../../type/basic.json#/definitions/uuid"
     },
     "default": {
       "description": "Some databases don't support a database/catalog in the hierarchy and use default database. For example, `MySql`. For such databases, set this flag to true to indicate that this is a default database.",

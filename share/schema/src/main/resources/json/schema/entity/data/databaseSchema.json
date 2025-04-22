@@ -30,7 +30,7 @@
     },
     "updatedAt": {
       "description": "Last update time corresponding to the new version of the entity in Unix epoch time milliseconds.",
-      "$ref": "../../type/basic.json#/definitions/timestamp"
+      "$ref": "../../type/basic.json#/definitions/dateTime"
     },
     "updatedBy": {
       "description": "User who made the update.",
@@ -51,6 +51,10 @@
     "serviceType": {
       "description": "Service type where this schema is hosted in.",
       "$ref": "../services/storageService.json#/definitions/storageServiceType"
+    },
+    "location": {
+      "description": "Reference to the Location that contains this database.",
+      "type": "string"
     },
     "database": {
       "description": "Reference to Database that contains this table.",

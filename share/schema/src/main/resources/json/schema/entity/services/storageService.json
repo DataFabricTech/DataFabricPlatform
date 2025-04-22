@@ -5,8 +5,16 @@
   "description": "This schema defines the Storage Service entity, such as MinIO.",
   "type": "object",
   "javaType": "com.mobigen.vdap.schema.entity.services.StorageService",
+  "javaInterfaces": [
+    "org.openmetadata.schema.EntityInterface",
+    "org.openmetadata.schema.ServiceEntityInterface"
+  ],
   "definitions": {
     "storageServiceType": {
+      "javaType": "com.mobigen.vdap.schema.type.StorageServiceType",
+      "javaInterfaces": [
+        "com.mobigen.vdap.schema.EnumInterface"
+      ],
       "description": "Type of storage service such as MinIO...",
       "type": "string",
       "enum": [
