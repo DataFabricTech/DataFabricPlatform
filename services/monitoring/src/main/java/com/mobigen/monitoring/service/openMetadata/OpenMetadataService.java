@@ -115,6 +115,7 @@ public class OpenMetadataService {
 
     /**
      * Get database service list from open metadata server
+     * @return table info list
      * */
     public JsonNode getDatabaseServices() {
         return get(openMetadataConfig.getPath().getDatabaseService() + "?limit=1000").get(DATA.getName());
@@ -188,5 +189,17 @@ public class OpenMetadataService {
 
         var botConfig = get(openMetadataConfig.getPath().getAuthMechanism() + "/" + botId);
         this.accessToken = botConfig.get(CONFIG.getName()).get(JWT_TOKEN.getName()).asText();
+    }
+
+    /**
+     * fqn: database service 의 fully qualified name
+     * @return database schema 에 저장되어 있는 모든 table 정보
+     * */
+    public JsonNode getTableInfo(String fqn) {
+        return get(openMetadataConfig.getPath().getTables() + fqn).get(DATA.getName());
+    }
+
+    public JsonNode getTableProfile(String fqn) {
+        return get(String.format(openMetadataConfig.getPath().getTableProfile(), fqn));
     }
 }

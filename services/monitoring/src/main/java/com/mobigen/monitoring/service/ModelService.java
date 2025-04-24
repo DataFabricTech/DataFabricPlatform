@@ -8,20 +8,17 @@ import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.ObjectStorageConnectionInfo;
+import com.mobigen.monitoring.dto.response.fabric.TableInfoResponseDto;
 import com.mobigen.monitoring.exception.CustomException;
 import com.mobigen.monitoring.exception.ResponseCode;
 import com.mobigen.monitoring.service.openMetadata.OpenMetadataService;
-import com.mobigen.monitoring.vo.DatabaseConnectionInfo;
+import com.mobigen.monitoring.vo.*;
 import com.mobigen.monitoring.utils.UnixTimeUtil;
-import com.mobigen.monitoring.vo.ModelInfoVo;
-import com.mobigen.monitoring.vo.TableModelInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.mobigen.monitoring.enums.DatabaseType.isDatabaseService;
 import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
@@ -30,6 +27,9 @@ import static com.mobigen.monitoring.enums.OpenMetadataEnum.ID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+/**
+ * open metadata 에서 가져온 값을 ServiceModelRegistry 에 저장하는 클래스
+ * */
 public class ModelService {
     private final OpenMetadataService openMetadataService;
 
@@ -39,7 +39,7 @@ public class ModelService {
 
     /**
      * fabric server 로부터 받아온 데이터를 in-memory 에 저장
-     * */
+     */
     public List<JsonNode> getServiceListFromFabricServer() {
         JsonNode databaseServices = openMetadataService.getDatabaseServices();
         JsonNode storageServices = openMetadataService.getStorageServices();
@@ -61,13 +61,7 @@ public class ModelService {
     }
 
     public void setDatabaseServices(JsonNode databaseServices) {
-        List<JsonNode> data = new ArrayList<>();
-
-        if (databaseServices != null && databaseServices.isArray()) {  // 배열인지 확인
-            for (JsonNode node : databaseServices) {
-                data.add(node);
-            }
-        }
+        final List<JsonNode> data = convertJsonNodeList(databaseServices);
 
         for (JsonNode databaseService : data) {
             try {
@@ -94,14 +88,41 @@ public class ModelService {
         }
     }
 
-    public void setStorageServiceList(JsonNode storageServices) {
-        List<JsonNode> data = new ArrayList<>();
+    /**
+     * table model 정보 불러와서 VO 로 바꾸는 함수
+     * return 값이 null 인 경우 database service 가 아닌 경우
+     * return 값이 빈 배열인 경우 등록된 모델이 없는 경우
+     */
+    public List<TableInfoResponseDto> getTableInfos(String serviceId) {
+        // fqn 가져오기
+        if (serviceModelRegistry.getDatabaseServices().containsKey(serviceId)) {
+            String fqn = serviceModelRegistry.getDatabaseServices().get(serviceId).getFullyQualifiedName();
 
-        if (storageServices != null && storageServices.isArray()) {  // 배열인지 확인
-            for (JsonNode node : storageServices) {
-                data.add(node);
+            // Open metadata 에서 table list 가져오기
+            final JsonNode tableInfoResponse = openMetadataService.getTableInfo(fqn);
+
+            // 비어 있으면 등록된 모델이 없는 경우
+            if (tableInfoResponse.isArray() && tableInfoResponse.isEmpty()) {
+                return List.of();
             }
+
+            final List<JsonNode> data = convertJsonNodeList(tableInfoResponse);
+            List<TableInfoResponseDto> response = new ArrayList<>();
+
+            // convert json node to VO
+            for (JsonNode tableInfoJsonNode : data) {
+                response.add(TableInfoResponseDto.of(tableInfoJsonNode));
+            }
+
+            return response;
         }
+
+        // service 가 object storage 인 경우
+        return null;
+    }
+
+    public void setStorageServiceList(JsonNode storageServices) {
+        List<JsonNode> data = convertJsonNodeList(storageServices);
 
         for (JsonNode storageService : data) {
             try {
@@ -125,6 +146,7 @@ public class ModelService {
         }
     }
 
+    // TODO O.M 에서 데이터 받아와서 처리하도록 변경
     public void setServiceModels(final List<JsonNode> currentServices) {
         // table 개수 세기
         // om의 model 개수 세기
@@ -159,6 +181,47 @@ public class ModelService {
         }
     }
 
+    /**
+     * O.M 의 table profile API 에서 받아온 데이터를 저장하는 함수
+     * @Param fqn: table fqn
+     */
+    public void setTableProfile(String serviceId) {
+        // O.M 에서 가져온 data 중 rows 만 추출
+        if (!serviceModelRegistry.getDatabaseServices().containsKey(serviceId)) {
+            return;
+        }
+
+        // serviceId 에 해당하는 모든 table fqn 가져와서 요청
+        final Map<String, TableInfoResponseDto> tableInfoMap = serviceModelRegistry.getTableInfos().get(serviceId);
+
+        // profile ingestion 이 실행된 적 없으면 데이터가 없음
+        if (tableInfoMap == null) {
+            log.debug("[Table Profile] Profile ingestion is not activated");
+            return;
+        }
+
+        for (Map.Entry<String, TableInfoResponseDto> tableInfo : tableInfoMap.entrySet()) {
+            String fqn = tableInfo.getKey();
+
+            final JsonNode tableProfile = openMetadataService.getTableProfile(fqn);
+
+            // table profile data 를 저장
+            TableProfileVo tableProfileVo = TableProfileVo.builder()
+                    .name(tableProfile.get(NAME.getName()).asText())
+                    .fullyQualifiedName(tableProfile.get(FULLY_QUALIFIED_NAME.getName()).asText())
+                    .updatedAt(Long.parseLong(tableProfile.get(UPDATED_AT.getName()).asText()))
+                    .columnCount(Long.parseLong(tableProfile.get(PROFILE.getName()).get(COLUMN_COUNT.getName()).asText().split("\\.")[0]))
+                    .rowCount(Long.parseLong(tableProfile.get(PROFILE.getName()).get(ROW_COUNT.getName()).asText().split("\\.")[0]))
+                    .build();
+
+            // tableRows 내부 Map 에 값 저장 (누적 or 최초 생성)
+            serviceModelRegistry.getTableRows()
+                    .computeIfAbsent(serviceId, k -> new HashMap<>())
+                    .put(tableProfileVo.getName(), tableProfileVo);
+        }
+    }
+
+    // table 개수 가져오는 함수
     public TableModelInfo getModelCountFromOM(final UUID serviceID) {
         if (serviceModelRegistry.getDatabaseServices().get(serviceID.toString()) == null) {
             log.error("serviceID: {}", serviceID);
@@ -200,5 +263,17 @@ public class ModelService {
         } catch (Exception e) {
             throw new CustomException(e.getMessage());
         }
+    }
+
+    private List<JsonNode> convertJsonNodeList(JsonNode jsonNode) {
+        List<JsonNode> data = new ArrayList<>();
+
+        if (jsonNode != null && jsonNode.isArray()) {  // 배열인지 확인
+            for (JsonNode node : jsonNode) {
+                data.add(node);
+            }
+        }
+
+        return data;
     }
 }

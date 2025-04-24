@@ -30,9 +30,6 @@ public class Services {
     @Column(name = "service_type", nullable = false)
     private String serviceType;
 
-    @Column(name = "owner_name")
-    private String ownerName;
-
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
 

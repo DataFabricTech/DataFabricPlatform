@@ -86,3 +86,22 @@ monitoring:
   history:
     delete:
       period: 1 # 일 단위
+  check:
+    table: false
+
+pageable-config:
+  connection-history:
+    page_number: ${CONNECTION_HISTORY_PAGING_PAGE:0}
+    page_size: ${CONNECTION_HISTORY_PAGING_SIZE:30}
+  ingestion-history:
+    page_number: ${INGESTION_HISTORY_PAGING_PAGE:0}
+    page_size: ${INGESTION_HISTORY_PAGING_SIZE:30}
+  connect:
+    page_number: ${CONNECT_PAGING_PAGE:0}
+    page_size: ${CONNECT_PAGING_SIZE:5}
+  event:
+    page_number: ${EVENT_PAGING_PAGE:0}
+    page_size: ${EVENT_PAGING_SIZE:5}
+  registration:
+    page_number: ${REGISTRATION_PAGING_PAGE:0}
+    page_size: ${REGISTRATION_PAGING_SIZE:5}

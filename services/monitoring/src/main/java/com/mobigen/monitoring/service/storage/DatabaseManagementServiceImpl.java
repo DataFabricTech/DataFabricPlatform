@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.config.ServiceTypeConfig;
 import com.mobigen.monitoring.domain.*;
+import com.mobigen.monitoring.dto.response.fabric.ColumnInfo;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
+import com.mobigen.monitoring.dto.response.fabric.TableInfoResponseDto;
 import com.mobigen.monitoring.enums.ConnectionStatus;
 import com.mobigen.monitoring.enums.DatabasePort;
 import com.mobigen.monitoring.enums.DatabaseType;
@@ -24,7 +26,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.minio.MinioClient;
 import io.minio.errors.MinioException;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,9 +44,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mobigen.monitoring.dto.request.DatabaseConnectionRequest.*;
-import static com.mobigen.monitoring.enums.Common.*;
 import static com.mobigen.monitoring.enums.ConnectionStatus.*;
 import static com.mobigen.monitoring.enums.DatabaseType.*;
 import static com.mobigen.monitoring.enums.OpenMetadataEnum.*;
@@ -74,6 +75,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     private final K8SService k8sService;
     private final ModelService modelService;
 
+    @Value("${monitoring.check.table}")
+    private Boolean checkTableModification;
+
     // kubernetes api 사용을 위한 host 주소
     @Value("${k8s.ip}")
     private String hostIP;
@@ -85,11 +89,12 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
      */
     @PostConstruct
     public void init() {
+        // table row 개수 데이터 가지고 있기
         final List<Services> allService = servicesRepository.findAll();
 
         if (allService.isEmpty()) {
             // db 에 값이 없을 경우 service, connection, model 정보들을 디비에 저장
-            initializeServiceTable(SCHEDULER.getName());
+            initializeServiceTable();
         } else {
             // in-memory 에만 저장
             modelService.getServiceListFromFabricServer();
@@ -240,10 +245,13 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
     }
 
     @Override
-    @Transactional
-    public Object getRows(DatabaseConnectionRequest request) {
+    public Map<String, Integer> getTableRows(String serviceId) {
         String query;
 
+        final DatabaseConnectionRequest request = this.getDatabaseConnectionRequest(serviceId);
+
+        // select query 만드는 작업
+        // ex) select count(*) from schema_name.table_name
         if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
             query = GET_ALL_TABLE_ROWS_FROM_ORACLE.getQueryString();
         } else {
@@ -254,40 +262,37 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
 
         final List<Map<String, Object>> maps = executeQuery(request, query);
 
+        // query 목록 만들기
         for (Map<String, Object> entry : maps) {
-            if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) queries.add((String) entry.get("QUERY"));
-            else queries.add((String) entry.get("query"));
+            if (request.getDbType().equalsIgnoreCase(ORACLE.getName())) {
+                queries.add((String) entry.get("QUERY"));
+            } else {
+                queries.add((String) entry.get("query"));
+            }
         }
 
+        // 수동 연결을 위해 세팅
         DataSource dataSource = createDataSource(request);
         Connection conn = DataSourceUtils.getConnection(dataSource);
 
-        List<Object> results = new ArrayList<>();
+        Map<String, Integer> results = new HashMap<>();
 
         try {
+            // connection 을 너무 많이 생성해서 수동으로 commit 관리하는 방법으로 변경
             conn.setAutoCommit(false); // 수동 커밋 모드 (트랜잭션 유지)
 
             for (String queryString : queries) {
-                log.info("queryString: {}", queryString);
-                try (PreparedStatement stmt = conn.prepareStatement(queryString);
-                     ResultSet rs = stmt.executeQuery()) { // SELECT 실행
-                    List<Map<String, Object>> resultSetData = new ArrayList<>();
-                    ResultSetMetaData metaData = rs.getMetaData();
-
-                    log.info("metadata: {}", metaData);
-                    int columnCount = metaData.getColumnCount();
-
-                    log.info("columnCount: {}", columnCount);
-
+                try (
+                        PreparedStatement stmt = conn.prepareStatement(queryString);
+                        ResultSet rs = stmt.executeQuery()
+                ) { // SELECT 실행
+                    // schema_name, table_name, count 의 데이터가 결과로 나오고 이를 key: value 형태로 저장하기 위한 작업
                     while (rs.next()) {
-                        Map<String, Object> row = new HashMap<>();
-                        for (int i = 1; i <= columnCount; i++) {
-                            row.put(metaData.getColumnName(i), rs.getObject(i));
-                        }
-
-                        if (resultSetData.size() <= 1) {
-                            results.add(row);
-                        }
+                        results.put(
+                                // database.table_name
+                                String.format("%s.%s", rs.getObject(2).toString(), rs.getObject(1).toString()),
+                                Integer.valueOf(rs.getObject(3).toString())
+                        );
                     }
                 }
             }
@@ -300,15 +305,22 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 log.error("rollback exception: {}", rollbackEx.getMessage(), rollbackEx);
             }
         } finally {
+            // connection 을 물고 놓지 않아서 강제로 수동으로 release
             DataSourceUtils.releaseConnection(conn, dataSource);
         }
 
         return results;
     }
 
+    /**
+     * serviceId 로 DB 연결 정보를 가져와 database 에 있는 모든 table schema 를 가져오는 함수
+     * */
     @Override
-    public Object getSchema(DatabaseConnectionRequest request) {
+    public Map<String, List<TableSchemaInfo>> getTableSchema(String serviceId) {
         String query = GET_SCHEMA.getQueryString();
+
+        final DatabaseConnectionRequest request = this.getDatabaseConnectionRequest(serviceId);
+
         final List<Map<String, Object>> maps = executeQuery(request, query);
         Map<String, List<TableSchemaInfo>> response = new HashMap<>();
 
@@ -381,7 +393,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
      * service, model registration, metadata, connection, connection history, monitoring history 등록
      */
     @Override
-    public void initializeServiceTable(String userName) {
+    public void initializeServiceTable() {
         // service 등록
         // Create Service entity
         final List<Services> services = saveServicesFromFabricServer();
@@ -400,7 +412,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         // cpu, memory, request, slow query
         for (Services service : services) {
             if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(ConnectionStatus.CONNECTED))
-                saveMonitoringHistory(service, userName, getCurrentMillis());
+                saveMonitoringHistory(service, getCurrentMillis());
         }
     }
 
@@ -420,7 +432,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             connections.add(
                     ConnectionDao.builder()
                             .executeAt(getCurrentMillis())
-                            .executeBy(SCHEDULER.getName())
                             .queryExecutionTime(checkDatabaseResponse.getResponseTime())
                             .serviceID(service.getServiceID())
                             .build()
@@ -568,6 +579,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         }
     }
 
+    /**
+     * 오래 걸리는 쿼리를 기준으로 잡도록 변경
+     */
     @Override
     public CheckConnectionResponseVo getQueryExecutedTime(final Services service) {
         // measure time
@@ -687,7 +701,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                             .createdAt(dateTime)
                             .updatedAt(dateTime)
                             .serviceType(currentService.get(SERVICE_TYPE.getName()).asText())
-                            .ownerName(currentService.get(UPDATED_BY.getName()).asText())
                             .connectionStatus(DISCONNECTED)
                             .build()
             );
@@ -696,6 +709,9 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return servicesRepository.saveAll(services);
     }
 
+    /**
+     * Database service 의 연결정보를 가져오는 함수
+     */
     @Override
     public DatabaseConnectionRequest getDatabaseConnectionRequest(String serviceId) {
         final GetDatabasesResponseDto serviceInfo = serviceModelRegistry.getDatabaseServices().get(serviceId);
@@ -1139,9 +1155,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         return result;
     }
 
-    /**
-     * TODO exception 처리
-     */
     @Override
     public void updateDatabaseInfo(String serviceId) {
         // connection, connection history, service, slow query, model registration
@@ -1158,7 +1171,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
                 if (isRDBMS(serviceInfo.getServiceType()) && serviceInfo.getConnectionStatus().equals(CONNECTED)) {
                     log.debug("[UPDATE INFO] Save all service's monitoring history");
 
-                    saveDatabaseMonitoringInfo(serviceInfo.getServiceID().toString(), SCHEDULER.getName());
+                    saveDatabaseMonitoringInfo(serviceInfo.getServiceID().toString());
                 }
             });
 
@@ -1176,14 +1189,18 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             log.debug("[UPDATE INFO] Save monitoring history");
 
             if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
-                saveDatabaseMonitoringInfo(serviceId, SCHEDULER.getName());
+                saveDatabaseMonitoringInfo(serviceId);
+
+            // table check 설정이 true 일 때만 테이블 변경 감지
+            if (checkTableModification)
+                this.checkTableModification(serviceId);
 
             log.debug("[UPDATE INFO] END update single service database info");
         }
     }
 
     @Override
-    public void saveDatabaseMonitoringInfo(String serviceId, String ownerName) {
+    public void saveDatabaseMonitoringInfo(String serviceId) {
         // insert request info
         // insert cpu, memory info
         // insert slow query info
@@ -1192,7 +1209,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         if (serviceId == null || serviceId.isEmpty()) {
             for (Services service : servicesRepository.findAll()) {
                 if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
-                    saveMonitoringHistory(service, ownerName, now);
+                    saveMonitoringHistory(service, now);
             }
         } else {
             Services service = servicesRepository.findById(UUID.fromString(serviceId)).orElseThrow(
@@ -1200,7 +1217,7 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             );
 
             if (isRDBMS(service.getServiceType()) && service.getConnectionStatus().equals(CONNECTED))
-                saveMonitoringHistory(service, ownerName, now);
+                saveMonitoringHistory(service, now);
         }
     }
 
@@ -1227,8 +1244,25 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         servicesRepository.save(services);
     }
 
+    @Override
+    public void checkTableModification(final String serviceId) {
+        // table info open metadata 에서 가져오가
+        // table schema 변경 check
+        if (checkTableSchemaModification(serviceId)) {
+            // table row 변경 check
+            checkTableRowsModification(serviceId);
+        }
+    }
+
+    @Override
+    public void checkTableModification() {
+        for (Map.Entry<String, GetDatabasesResponseDto> entry : serviceModelRegistry.getDatabaseServices().entrySet()) {
+            checkTableModification(entry.getKey());
+        }
+    }
+
     // slow query, cpu / memory, request 통계 내용 저장
-    private void saveMonitoringHistory(Services service, String ownerName, Long now) {
+    private void saveMonitoringHistory(Services service, Long now) {
         final QueryStatisticsVo averageQueryOutcome = getAverageQueryOutcome(service.getServiceID().toString());
         final List<SlowQueryVo> slowQueries = getSlowQueries(service.getServiceID().toString());
         final CpuUsedVo cpuSpentTime = getCpuSpentTime(service.getServiceID().toString());
@@ -1238,7 +1272,6 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
         monitoringHistoryRepository.save(
                 MonitoringHistory.builder()
                         .serviceId(service.getServiceID())
-                        .ownerName(ownerName)
                         .createdAt(now)
                         .cpuUsed(cpuSpentTime == null ? null : cpuSpentTime.getCpuUsed())
                         .memoryUsed(memoryUsage == null ? null : memoryUsage.getMemoryUsed())
@@ -1302,5 +1335,111 @@ public class DatabaseManagementServiceImpl implements DatabaseManagementService 
             return serviceInfo.getConnection().getDatabaseName() != null ?
                     serviceInfo.getConnection().getDatabaseName() : serviceInfo.getConnection().getDatabase();
         }
+    }
+
+    /**
+     * 실제 데이터베이스에서 table 정보를 전부 가져오고 비교하면서 바뀐게 있으면 fabric server 에 event 전달하는 함수
+     * */
+    private Boolean checkTableSchemaModification(String serviceId) {
+        // O.M 에서 받아 온 table model (table schema 정보) 을 vo list 로 변환
+        final List<TableInfoResponseDto> tableInfosFromOM = modelService.getTableInfos(serviceId);
+
+        // object storage 인 경우
+        if (tableInfosFromOM == null) {
+            log.debug("[ DATABASE Model ] Service is object storage");
+
+            return false;
+        } else if (tableInfosFromOM.isEmpty()) { // 등록된 모델이 없는 경우
+            log.debug("[ DATABASE Model ] Model is not registered");
+
+            return false;
+        } else { // 등록된 모델이 있는 경우
+            // table schema 정보 가져오기
+            // {database}.{table}: 정보
+            final Map<String, List<TableSchemaInfo>> actualTableSchema = getTableSchema(serviceId);
+
+            for (TableInfoResponseDto tableInfo : tableInfosFromOM) {
+                String databaseTableName = this.extractTableName(tableInfo.getFullyQualifiedName());
+                // OM column 개수
+                final int columnCount = tableInfo.getColumns().size();
+
+                if (columnCount != actualTableSchema.get(databaseTableName).size()) {
+                    // TODO fabric server 로 event
+                    log.debug("[ Table Modify check ] Column is add or delete");
+
+                    return false;
+                } else { // column 개수가 같을 경우 다 비교
+                    final List<TableSchemaInfo> actualColumns = actualTableSchema.get(databaseTableName);
+
+                    List<String> actualColumnNames = actualColumns.stream()
+                            .map(TableSchemaInfo::getColumnName)
+                            .collect(Collectors.toList());
+
+                    List<String> omColumnNames = tableInfo.getColumns().stream()
+                            .map(ColumnInfo::getName)
+                            .collect(Collectors.toList());
+
+                    // 정렬해서 순서 포함 비교 (정렬 안 하면 순서가 다르면 false)
+                    Collections.sort(actualColumnNames);
+                    Collections.sort(omColumnNames);
+
+                    if (!actualColumnNames.equals(omColumnNames)) {
+                        // TODO fabric 으로 event 던지기
+                        log.debug("[ Table Modify check ] Columns do not match");
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private void checkTableRowsModification(String serviceId) {
+        // table row 가져오기
+        // serviceModelRegistry.getTableRow() 에 저장
+        // om 에서 불러온 데이터 VS 실제 row count 랑 일일이 비교
+        modelService.setTableProfile(serviceId);
+
+        if (serviceModelRegistry.getTableRows().containsKey(serviceId)) {
+            // key is table fqn
+            final Map<String, TableProfileVo> tableRowsFromOM = serviceModelRegistry.getTableRows().get(serviceId);
+            final Map<String, Integer> actualTableRowInfos = this.getTableRows(serviceId);
+
+            for (Map.Entry<String, TableProfileVo> tableRow : tableRowsFromOM.entrySet()) {
+                String databaseTableName = this.extractTableName(tableRow.getKey());
+
+                // TODO 실제 디비에서 못 가져오는 경우
+                if (!actualTableRowInfos.containsKey(databaseTableName)) {
+                    log.error("[ TABLE ROWS ] Not found");
+                } else {
+                    final Long actualRows = Long.valueOf(actualTableRowInfos.get(databaseTableName));
+
+                    if (!actualRows.equals(tableRow.getValue().getRowCount())) {
+                        // TODO send event to Fabric server
+                        log.debug("[ Table Modify check ] Rows do not match");
+                        break;
+                    }
+                }
+            }
+
+        } else {
+            log.debug("[ Check Table rows ] Not exists table rows: {}", serviceId);
+        }
+    }
+
+    /**
+     * fullyQualifiedName 은 {service_name}.default.{database}.{table} 형식이다
+     * database.table_name 을 추출하기 위한 함수
+     * */
+    private String extractTableName(String input) {
+        String[] parts = input.split("\\.");
+        int len = parts.length;
+
+        if (len < 2) {
+            return input; // 또는 예외 처리
+        }
+
+        return parts[len - 2] + "." + parts[len - 1];
     }
 }

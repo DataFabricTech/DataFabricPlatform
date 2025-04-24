@@ -19,9 +19,9 @@ public interface DatabaseManagementService {
 
     public Map<String, List<String>> getTables(DatabaseConnectionRequest request);
 
-    public Object getRows(DatabaseConnectionRequest request);
+    public Object getTableRows(String serviceId);
 
-    public Object getSchema(DatabaseConnectionRequest request);
+    public Object getTableSchema(String serviceId);
 
     public List<Map<String, Object>> executeQuery(DatabaseConnectionRequest request, String query);
 
@@ -29,7 +29,7 @@ public interface DatabaseManagementService {
 
     public Integer checkMinioConnection(DatabaseConnectionRequest request);
 
-    public void initializeServiceTable(String userName);
+    public void initializeServiceTable();
 
     public void saveConnections(List<Services> services);
 
@@ -63,9 +63,13 @@ public interface DatabaseManagementService {
 
     public void updateDatabaseInfo(String serviceId);
 
-    public void saveDatabaseMonitoringInfo(String serviceId, String ownerName);
+    public void saveDatabaseMonitoringInfo(String serviceId);
 
     public void disableMonitoring(String serviceId);
 
     public void enableMonitoring(String serviceId, Integer period);
+
+    public void checkTableModification(String serviceId);
+
+    void checkTableModification();
 }

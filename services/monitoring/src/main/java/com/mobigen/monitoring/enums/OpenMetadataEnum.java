@@ -33,7 +33,17 @@ public enum OpenMetadataEnum {
     DESCRIPTION("description"),
     CONFIG("config"),
     DELETED("deleted"),
-    FULLY_QUALIFIED_NAME("fullyQualifiedName")
+    FULLY_QUALIFIED_NAME("fullyQualifiedName"),
+
+    COLUMNS("columns"),
+    DATABASE_SCHEMA("databaseSchema"), // databaseSchema.name
+    DATABASE("database"), // database.name
+    SCHEMA_DEFINITION("schemaDefinition"),
+
+    PROFILE("profile"),
+    COLUMN_COUNT("columnCount"),
+    ROW_COUNT("rowCount"),
+    SIZE_IN_BYTE("sizeInByte"),
     ;
 
     private final String name;

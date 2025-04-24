@@ -28,12 +28,24 @@ public class OpenMetadataConfig {
     @Getter
     @Setter
     public static class Path {
+        // service 관련
         private String databaseService = "/api/v1/services/databaseServices";
-        private String databaseModel = "/api/v1/tables?database=";
         private String storageService = "/api/v1/services/storageServices";
+
+        // model 관련
+        private String databaseModel = "/api/v1/tables?database=";
         private String storageModel = "/api/v1/containers?root=true&service=";
+
+        // table 관련
+        // table 정보
+        private String tables = "/api/v1/tables?fields=tableConstraints,columns,schemaDefinition,dataModel,lifeCycle&limit=1000000&database=";
+        private String tableProfile = "/api/v1/tables/%s/tableProfile/latest"; // table fqn
+
+        // ingestion
         private String ingestionPipeline = "/api/v1/services/ingestionPipelines";
         private String query = "/api/v1/search/query";
+
+        // login 및 권한(token)
         private String login = "/api/v1/users/login";
         private String bot = "/api/v1/bots/name/ingestion-bot";
         private String authMechanism = "/api/v1/users/auth-mechanism";

@@ -66,6 +66,21 @@ dependencies {
 
     // yaml to code
     implementation("net.rakugakibox.util:yaml-resource-bundle:1.2")
+
+    // test container
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.3"))
+    testImplementation("org.testcontainers:junit-jupiter:1.19.1")
+    testImplementation("org.testcontainers:postgresql")
+
+    // Test Dependencies
+    // testImplementation("org.springframework.boot:spring-boot-starter-test")      // 이미 springboot 타입일 경우 추가되어 있음.
+    // JUnit 5 (Jupiter)
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    // Mock
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
 tasks.named<Test>("test") {

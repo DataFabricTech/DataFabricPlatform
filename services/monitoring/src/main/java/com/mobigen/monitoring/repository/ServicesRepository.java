@@ -18,7 +18,7 @@ public interface ServicesRepository extends JpaRepository<Services, UUID> {
     public long countByConnectionStatusAndDeletedIsFalse(ConnectionStatus connectionStatus);
 
     @Query(nativeQuery = true, value = "select service_id as serviceID, service_name as serviceName, service_display_name as serviceDisplayName, " +
-            "service_type as serviceType, owner_name as ownerName, created_at as createdAt, deleted, " +
+            "service_type as serviceType, created_at as createdAt, deleted, " +
             "connection_status as connectionStatus " +
             "from services " +
             "where deleted = ?1")

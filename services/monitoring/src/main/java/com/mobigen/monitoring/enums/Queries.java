@@ -38,7 +38,11 @@ public enum Queries {
 
     GET_MYSQL_SLOW_QUERY("sql/mariadb/get-slow-query.sql"),
     GET_ORACLE_SLOW_QUERY("sql/oracle/get-slow-query.sql"),
-    GET_POSTGRES_SLOW_QUERY("sql/postgres/get-slow-query.sql");
+    GET_POSTGRES_SLOW_QUERY("sql/postgres/get-slow-query.sql"),
+
+    GET_VIEW("sql/get-views.sql"),
+    get_ORACLE_VIEW("sql/oracle/get-view-schema-from-oracle.sql"),
+    ;
 
     private final String query;
 

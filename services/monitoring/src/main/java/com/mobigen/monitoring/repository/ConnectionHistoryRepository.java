@@ -16,8 +16,6 @@ import java.util.UUID;
 public interface ConnectionHistoryRepository extends JpaRepository<ConnectionHistory, UUID> {
     public List<ConnectionHistory> findByServiceIDOrderByUpdatedAtDesc(UUID serviceID, Pageable pageable);
 
-    public void deleteAllByUpdatedAtLessThan(Long threshold);
-
     @Query(nativeQuery = true, value = "select sch.service_id as serviceId, s.service_name as serviceName, s.service_display_name as serviceDisplayName, s.service_type as serviceType, sch.connection_status as connectionStatus " +
             "from connection_history as sch left join services as s on sch.service_id = s.service_id ")
     public List<ConnectionHistoryVo> getConnectionHistories(PageRequest pageRequest);

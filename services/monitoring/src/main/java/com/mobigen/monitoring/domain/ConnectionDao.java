@@ -24,9 +24,6 @@ public class ConnectionDao {
     @Column(name = "execute_at")
     private Long executeAt;
 
-    @Column(name = "execute_by")
-    private String executeBy;
-
     @Column(name = "query_execution_time")
     private Long queryExecutionTime;
 

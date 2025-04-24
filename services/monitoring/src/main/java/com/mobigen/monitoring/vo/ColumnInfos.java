@@ -1,0 +1,14 @@
+package com.mobigen.monitoring.vo;
+
+import lombok.*;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@Setter
+public class ColumnInfos {
+    private String name;
+    private String dataType;
+    private String constraint;
+}

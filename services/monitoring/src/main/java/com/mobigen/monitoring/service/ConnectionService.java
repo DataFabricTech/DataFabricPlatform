@@ -47,7 +47,6 @@ public class ConnectionService {
                         .name(services.getName())
                         .displayName(services.getDisplayName())
                         .serviceType(services.getServiceType())
-                        .ownerName(services.getOwnerName())
                         .createdAt(services.getCreatedAt())
                         .updatedAt(services.getUpdatedAt())
                         .deleted(services.isDeleted())

@@ -52,7 +52,7 @@ public class ServicesService {
      * Open metadata 로부터 받은 이베트에 따른 처리
      * */
     @Transactional
-    public Object handleServiceEvent(final String serviceId, final ServiceEventEnum serviceEventEnum, Boolean isHardDelete, String type, String ownerName) {
+    public Object handleServiceEvent(final String serviceId, final ServiceEventEnum serviceEventEnum, Boolean isHardDelete, String type) {
         if (serviceEventEnum.equals(CREATED) || serviceEventEnum.equals(UPDATED)) {
             final Long now = UnixTimeUtil.getCurrentMillis();
             ConnectionInfo connectionInfo;
@@ -68,7 +68,6 @@ public class ServicesService {
                                 .name(serviceInfo.getName())
                                 .displayName(serviceInfo.getDisplayName())
                                 .serviceType(serviceInfo.getServiceType())
-                                .ownerName(ownerName)
                                 .createdAt(now)
                                 .updatedAt(now)
                                 .deleted(false)
@@ -90,7 +89,6 @@ public class ServicesService {
                                 .name(serviceInfo.getName())
                                 .displayName(serviceInfo.getDisplayName())
                                 .serviceType(serviceInfo.getServiceType())
-                                .ownerName(ownerName)
                                 .createdAt(now)
                                 .updatedAt(now)
                                 .deleted(false)
@@ -109,7 +107,6 @@ public class ServicesService {
             connectionRepository.save(
                     ConnectionDao.builder()
                             .executeAt(UnixTimeUtil.getCurrentMillis())
-                            .executeBy(ownerName)
                             .queryExecutionTime(connectionInfo.getResponseTime())
                             .serviceID(UUID.fromString(serviceId))
                             .build()

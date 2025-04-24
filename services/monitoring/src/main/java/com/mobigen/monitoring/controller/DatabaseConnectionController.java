@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * database 에서 table 관련 함수 테스트하기 위해 만든 API
+ * */
 @RestController
 @RequestMapping("/api/v1/database")
 public class DatabaseConnectionController {
@@ -54,15 +57,16 @@ public class DatabaseConnectionController {
         return databaseConnectionService.getTables(request);
     }
 
-    @PostMapping("/test-row")
+    @GetMapping("/test-row")
     @CommonResponse
-    public Object getRows(@RequestBody DatabaseConnectionRequest request) {
-        return databaseConnectionService.getRows(request);
+    public Object getRows(@RequestParam String serviceId) {
+        return databaseConnectionService.getTableRows(serviceId);
     }
 
     @PostMapping("/test-schema")
     @CommonResponse
     public Object getSchema(@RequestBody DatabaseConnectionRequest request) {
-        return databaseConnectionService.getSchema(request);
+//        return databaseConnectionService.getTableSchema(request);
+        return null;
     }
 }

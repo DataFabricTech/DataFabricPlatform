@@ -22,9 +22,6 @@ public class MonitoringHistory {
     @Column(name = "service_id")
     private UUID serviceId;
 
-    @Column(name = "owner_name")
-    private String ownerName;
-
     @Column(name = "created_at")
     private Long createdAt;
 

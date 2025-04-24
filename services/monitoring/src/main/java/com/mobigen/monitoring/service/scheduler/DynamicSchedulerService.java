@@ -44,8 +44,7 @@ public class DynamicSchedulerService {
     private Long deletePeriod;
 
     // thread pool
-    // TODO thread pool 크기를 동적으로 변경
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
+    private final ScheduledThreadPoolExecutor scheduledExecutorService = new ScheduledThreadPoolExecutor(10);
 
     private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
@@ -113,8 +112,6 @@ public class DynamicSchedulerService {
      */
     public Runnable run(final String serviceId) {
         return () -> {
-            log.debug("[START] MONITORING service: {}", serviceId == null ? "all" : serviceId);
-
             // data update
             log.debug("[FETCH] Fetching service info from fabric server");
 
@@ -132,8 +129,6 @@ public class DynamicSchedulerService {
 
                 throw new CustomException("Service not found");
             }
-
-            log.debug("[END] MONITORING service: {}", serviceId == null ? "all" : serviceId);
         };
     }
 
@@ -158,5 +153,13 @@ public class DynamicSchedulerService {
         slowQueryStatisticRepository.deleteOlderThan(threshold);
 
         log.debug("[END] DELETE MONITORING");
+    }
+
+    public Integer updateThreadPoolSize(int newSize) {
+        int oldSize = scheduledExecutorService.getCorePoolSize();
+        scheduledExecutorService.setCorePoolSize(newSize);
+        log.info("Updated thread pool size from {} to {}", oldSize, newSize);
+
+        return scheduledExecutorService.getCorePoolSize();
     }
 }

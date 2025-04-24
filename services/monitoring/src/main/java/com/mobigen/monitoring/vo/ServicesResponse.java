@@ -7,7 +7,6 @@ public interface ServicesResponse {
     public String getServiceName();
     public String getServiceDisplayName();
     public String getServiceType();
-    public String getOwnerName();
     public Long  getCreatedAt();
     public boolean getDeleted();
     public ConnectionStatus getConnectionStatus();

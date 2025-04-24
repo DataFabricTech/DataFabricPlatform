@@ -4,11 +4,12 @@ import com.mobigen.monitoring.annotation.CommonResponse;
 import com.mobigen.monitoring.config.ServiceTypeConfig;
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.domain.Services;
+import com.mobigen.monitoring.dto.request.ServiceSyncRequestDto;
 import com.mobigen.monitoring.dto.response.CommonResponseDto;
-import com.mobigen.monitoring.enums.DatabaseType;
 import com.mobigen.monitoring.enums.ServiceEventEnum;
 import com.mobigen.monitoring.service.ConnectionService;
 import com.mobigen.monitoring.service.ModelService;
+import com.mobigen.monitoring.service.scheduler.DynamicSchedulerService;
 import com.mobigen.monitoring.service.storage.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,6 +39,7 @@ public class MonitoringController {
     private final IngestionHistoryService ingestionHistoryService;
     private final ModelService modelService;
     private final ServiceTypeConfig serviceTypeConfig;
+    private final DynamicSchedulerService dynamicSchedulerService;
 
     @GetMapping("/service-type")
     @CommonResponse
@@ -53,10 +55,9 @@ public class MonitoringController {
                     "모니터링의 상태를 확인하기 위한 API 입니다."
     )
     @GetMapping("/statusCheck")
-    public void statusCheck() {
-        /* *
-         * TODO monitoring status check
-         * */
+    @CommonResponse
+    public Object statusCheck() {
+        return dynamicSchedulerService.getTasks();
     }
 
     // Services
@@ -485,15 +486,20 @@ public class MonitoringController {
         return ingestionHistoryService.getIngestionHistory(pageRequest);
     }
 
-    @GetMapping("/service/sync")
-    public Object syncServices(
-            @RequestParam(required = false) String serviceId,
-            @RequestParam String event,
-            @RequestParam(required = false, defaultValue = "false") Boolean isHardDelete,
-            @RequestParam String serviceModelType,
-            @RequestParam(required = false, defaultValue = "admin") String ownerName) {
+    @PostMapping("/service/sync")
+    public Object syncServices(@RequestBody ServiceSyncRequestDto requestDto) {
         modelService.getServiceListFromFabricServer();
 
-        return servicesService.handleServiceEvent(serviceId, ServiceEventEnum.get(event), isHardDelete, serviceModelType, ownerName);
+        return servicesService.handleServiceEvent(
+                requestDto.getServiceId(),
+                ServiceEventEnum.get(requestDto.getEvent()),
+                requestDto.getIsHardDelete(),
+                requestDto.getServiceModelType());
+    }
+
+    @GetMapping("/thread/modify")
+    @CommonResponse
+    public Object threadModify(@RequestParam Integer newSize) {
+        return dynamicSchedulerService.updateThreadPoolSize(newSize);
     }
 }
