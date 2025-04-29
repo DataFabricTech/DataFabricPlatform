@@ -18,7 +18,7 @@ COPY build.gradle.kts ./
 ###############################################################
 FROM setter AS tester
 
-ARG SKIP_TEST=false
+ARG SKIP_TEST=true
 
 WORKDIR /app
 
@@ -26,7 +26,6 @@ RUN --mount=type=cache,target=$HOME/.m2 if [ "$SKIP_TEST" != "true" ] ; \
     then \
                 ./gradlew test \
     fi
-
 
 ###############################################################
 ###                      Stage : Build                      ###
@@ -37,9 +36,7 @@ ARG PROJECT_VERSION=v1.0.0
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=$HOME/.m2 \
-    ./gradlew build -x test -Dorg.gradle.workers.max=20
-
+RUN ./gradlew build
 ###############################################################
 ###             Stage : Make Product Image                  ###
 ###############################################################
