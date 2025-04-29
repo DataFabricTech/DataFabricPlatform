@@ -2,6 +2,7 @@ package com.mobigen.monitoring.repository;
 
 import com.mobigen.monitoring.domain.ConnectionHistory;
 import com.mobigen.monitoring.vo.ConnectionHistoryVo;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface ConnectionHistoryRepository extends JpaRepository<ConnectionHistory, UUID> {
-    public List<ConnectionHistory> findByServiceIDOrderByUpdatedAtDesc(UUID serviceID, Pageable pageable);
+    public Page<ConnectionHistory> findByServiceIDOrderByUpdatedAtDesc(UUID serviceID, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select sch.service_id as serviceId, s.service_name as serviceName, s.service_display_name as serviceDisplayName, s.service_type as serviceType, sch.connection_status as connectionStatus " +
             "from connection_history as sch left join services as s on sch.service_id = s.service_id ")

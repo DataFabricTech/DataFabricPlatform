@@ -6,6 +6,7 @@ import com.mobigen.monitoring.repository.ConnectionHistoryRepository;
 import com.mobigen.monitoring.vo.ConnectionHistoryVo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class ConnectionHistoryService {
     private final ConnectionHistoryRepository connectionHistoryRepository;
     private final MetadataService metadataService;
 
-    public List<ConnectionHistory> getConnectionHistories(UUID serviceID, PageRequest pageRequest) {
+    public Page<ConnectionHistory> getConnectionHistories(UUID serviceID, PageRequest pageRequest) {
         return connectionHistoryRepository.findByServiceIDOrderByUpdatedAtDesc(serviceID, pageRequest);
     }
 

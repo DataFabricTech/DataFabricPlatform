@@ -2,6 +2,7 @@ package com.mobigen.monitoring.service.storage;
 
 import com.mobigen.monitoring.config.ServiceModelRegistry;
 import com.mobigen.monitoring.domain.*;
+import com.mobigen.monitoring.dto.response.ServicesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetDatabasesResponseDto;
 import com.mobigen.monitoring.dto.response.fabric.GetObjectStorageResponseDto;
 import com.mobigen.monitoring.enums.ServiceEventEnum;
@@ -15,6 +16,7 @@ import com.mobigen.monitoring.vo.ServicesResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -44,8 +46,12 @@ public class ServicesService {
         return servicesRepository.findById(serviceID);
     }
 
-    public List<ServicesResponse> getServices(final boolean deleted, final PageRequest pageRequest) {
-        return servicesRepository.findServiceResponse(deleted, pageRequest);
+    public ServicesResponseDto getServices(final boolean deleted, final PageRequest pageRequest) {
+        final Page<ServicesResponse> serviceResponse = servicesRepository.findServiceResponse(deleted, pageRequest);
+        return ServicesResponseDto.builder()
+                .data(serviceResponse.getContent())
+                .totalCount(serviceResponse.getTotalElements())
+                .build();
     }
 
     /**

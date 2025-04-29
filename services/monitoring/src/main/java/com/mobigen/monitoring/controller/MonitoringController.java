@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
@@ -168,7 +169,7 @@ public class MonitoringController {
         UUID serviceId = UUID.fromString(serviceID);
 
         Optional<Services> serviceOpt = servicesService.getServices(serviceId);
-        final List<ConnectionHistory> connectionHistories = connectionHistoryService.getConnectionHistories(serviceId, PageRequest.of(pageNumber, pageSize));
+        final Page<ConnectionHistory> connectionHistories = connectionHistoryService.getConnectionHistories(serviceId, PageRequest.of(pageNumber, pageSize));
 
         return connectionService.getConnectStatus(serviceOpt, connectionHistories);
     }

@@ -3,6 +3,7 @@ package com.mobigen.monitoring.repository;
 import com.mobigen.monitoring.domain.Services;
 import com.mobigen.monitoring.vo.ServicesResponse;
 import com.mobigen.monitoring.enums.ConnectionStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +23,7 @@ public interface ServicesRepository extends JpaRepository<Services, UUID> {
             "connection_status as connectionStatus " +
             "from services " +
             "where deleted = ?1")
-    public List<ServicesResponse> findServiceResponse(boolean deleted, Pageable pageRequest);
+    public Page<ServicesResponse> findServiceResponse(boolean deleted, Pageable pageRequest);
 
     List<Services> findAllByDeletedIsFalseAndMonitoringIsTrue();
 }

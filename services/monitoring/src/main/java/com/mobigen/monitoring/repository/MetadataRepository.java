@@ -14,7 +14,6 @@ public interface MetadataRepository extends JpaRepository<Metadata, String> {
     @Query(nativeQuery = true, value = "select metadata_value as metadataValue " +
             "from metadata " +
             "where metadata_name = 'recent_collected_time' " +
-            "order by created_at DESC " +
             "LIMIT 1")
     public Optional<String> getRecentCollectedTime();
 

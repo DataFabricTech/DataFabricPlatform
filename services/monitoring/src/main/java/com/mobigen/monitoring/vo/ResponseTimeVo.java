@@ -7,6 +7,5 @@ public interface ResponseTimeVo {
     String getServiceName();
     String getServiceDisplayName();
     Long getExecuteAt();
-    String getExecuteBy();
     Long getQueryExecutionTime();
 }
