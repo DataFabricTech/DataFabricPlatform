@@ -23,7 +23,7 @@ public interface ServicesRepository extends JpaRepository<Services, UUID> {
             "connection_status as connectionStatus " +
             "from services " +
             "where deleted = ?1")
-    public Page<ServicesResponse> findServiceResponse(boolean deleted, Pageable pageRequest);
+    public List<ServicesResponse> findServiceResponse(boolean deleted, Pageable pageRequest);
 
     List<Services> findAllByDeletedIsFalseAndMonitoringIsTrue();
 }

@@ -46,12 +46,8 @@ public class ServicesService {
         return servicesRepository.findById(serviceID);
     }
 
-    public ServicesResponseDto getServices(final boolean deleted, final PageRequest pageRequest) {
-        final Page<ServicesResponse> serviceResponse = servicesRepository.findServiceResponse(deleted, pageRequest);
-        return ServicesResponseDto.builder()
-                .data(serviceResponse.getContent())
-                .totalCount(serviceResponse.getTotalElements())
-                .build();
+    public List<ServicesResponse> getServices(final boolean deleted, final PageRequest pageRequest) {
+        return servicesRepository.findServiceResponse(deleted, pageRequest);
     }
 
     /**
