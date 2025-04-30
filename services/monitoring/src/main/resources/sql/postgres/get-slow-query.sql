@@ -8,4 +8,4 @@ FROM
 WHERE
     calls > 0
 ORDER BY
-    avg_exec_time_sec DESC;
+    avg_exec_time DESC;
