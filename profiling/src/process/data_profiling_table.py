@@ -10,7 +10,9 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from itertools import islice
 
-from DataProfiling.models.postgres import ProfileColumn, ProfileTable
+from sqlalchemy import select
+
+from DataProfiling.models.postgres import MetaData, ProfileColumn, ProfileTable
 from DataProfiling.process.profiling_common import FilterOption, ProfilingCommon
 from DataProfiling.utils.logger import get_logger
 
@@ -353,11 +355,33 @@ class DataProfilingTable(ProfilingCommon):
             except Exception:
                 pass
 
+    def _cleanup_deleted_html(self, system_id: str, output_dir: str) -> None:
+        """status=DELETE 테이블의 stale HTML 파일 삭제 (디스크 누수 방지)."""
+        if not output_dir or not os.path.isdir(output_dir):
+            return
+        deleted_metas: List[MetaData] = self.get_all(
+            select(MetaData)
+            .where(MetaData.status == "DELETE",
+                   MetaData.meta_type == "table",
+                   MetaData.qualified_name.like(f"{system_id}%"))
+        )
+        removed = 0
+        for m in deleted_metas:
+            f = os.path.join(output_dir, f"{m.meta_id}.html")
+            if os.path.exists(f):
+                os.remove(f)
+                removed += 1
+        if removed:
+            self.logger.info(f"\t stale HTML {removed}개 정리 [{system_id}]")
+
     def profiling(self, system_id: str, filter_include, filter_exclude, options: DataProfilingOptions):
         start_time = datetime.now()
         self.logger.info(f"\t data-profiling 시작 [{system_id}]")
 
         output_dir = self._ensure_output_dir(options.output_dir) if options.generate_report else None
+
+        if options.generate_report and output_dir is not None:
+            self._cleanup_deleted_html(system_id, output_dir)
 
         meta_data_list = self.get_meta_data_by_system_id("table", system_id)
 
@@ -446,11 +470,8 @@ class DataProfilingTable(ProfilingCommon):
                     self._render_preview(title, df, report)
 
                 if options.generate_report and output_dir is not None:
-                    base = _safe_filename(meta_data.qualified_name or title)
-                    out_path = os.path.join(output_dir, 'html', f"{base}.html")
-                    out_path_json = os.path.join(output_dir, 'json', f"{base}.json")
-                    report.to_file(out_path)
-                    report.to_file(out_path_json)
+                    os.makedirs(output_dir, exist_ok=True)
+                    report.to_file(os.path.join(output_dir, f"{meta_data.meta_id}.html"))
                 self.logger.info(
                     f"\t 프로파일링 완료 [{title}] rows={len(df)}"
                 )
