@@ -18,6 +18,24 @@ from DataProfiling.utils.logger import get_logger
 
 from DataProfiling.utils.trino_dataframe import fetch_as_dataframe
 
+# matplotlib 한글 폰트 설정 (ydata-profiling 차트의 한글 깨짐 방지).
+# ProfileReport 생성 전에 적용되도록 모듈 import 시점에 1회 설정.
+import matplotlib  # noqa: E402
+matplotlib.use("Agg")
+from matplotlib import font_manager as _font_manager, pyplot as _plt  # noqa: E402
+for _font_path in _font_manager.findSystemFonts():
+    _lower = _font_path.lower()
+    if "notosanscjk" in _lower or "notosanskr" in _lower or "nanum" in _lower:
+        try:
+            _font_manager.fontManager.addfont(_font_path)
+        except Exception:
+            pass
+for _family in ("Noto Sans CJK KR", "NanumGothic", "Noto Sans KR"):
+    if any(_f.name == _family for _f in _font_manager.fontManager.ttflist):
+        _plt.rcParams["font.family"] = _family
+        break
+_plt.rcParams["axes.unicode_minus"] = False
+
 
 def _safe_filename(name: str) -> str:
     return (
