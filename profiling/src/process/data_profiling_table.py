@@ -30,10 +30,15 @@ for _font_path in _font_manager.findSystemFonts():
             _font_manager.fontManager.addfont(_font_path)
         except Exception:
             pass
-for _family in ("Noto Sans CJK KR", "NanumGothic", "Noto Sans KR"):
-    if any(_f.name == _family for _f in _font_manager.fontManager.ttflist):
-        _plt.rcParams["font.family"] = _family
+# 등록된 폰트 이름은 환경에 따라 'Noto Sans CJK JP/KR' 등으로 달라지므로 부분일치로 탐지
+_korean_font = None
+for _f in _font_manager.fontManager.ttflist:
+    if "Noto Sans CJK" in _f.name or "Noto Sans KR" in _f.name or "Nanum" in _f.name:
+        _korean_font = _f.name
         break
+if _korean_font:
+    _plt.rcParams["font.family"] = _korean_font
+    _plt.rcParams["font.sans-serif"] = [_korean_font] + list(_plt.rcParams.get("font.sans-serif", []))
 _plt.rcParams["axes.unicode_minus"] = False
 
 
