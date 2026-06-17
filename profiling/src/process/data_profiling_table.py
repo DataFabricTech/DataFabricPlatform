@@ -106,7 +106,8 @@ class DataProfilingTable(ProfilingCommon):
             name = c.get("meta_name")
             if not name:
                 continue
-            m[str(name)] = {
+            m[str(name).lower()] = {
+                "meta_name": str(name),
                 "qualified_name": c.get("qualified_name"),
                 "column_type": c.get("column_type"),
             }
@@ -165,10 +166,11 @@ class DataProfilingTable(ProfilingCommon):
             if not isinstance(v, dict):
                 continue
 
-            meta_col = meta_col_map.get(str(col_name), {})
+            meta_col = meta_col_map.get(str(col_name).lower(), {})
+            col_display_name = meta_col.get("meta_name", str(col_name))
             qualified_name = meta_col.get("qualified_name")
             if not qualified_name:
-                qualified_name = f"{meta_data.qualified_name}.{col_name}"
+                qualified_name = f"{meta_data.qualified_name}.{col_display_name}"
 
             top_counts = v.get("value_counts_without_nan")
             if hasattr(top_counts, 'items'):
@@ -188,7 +190,7 @@ class DataProfilingTable(ProfilingCommon):
                 
             update_data = dict(
                 column_id=qualified_name,
-                name=str(col_name),
+                name=col_display_name,
                 meta_type=meta_col.get("column_type"),
                 data_type=v.get("type"),
                 qualified_name=qualified_name,
