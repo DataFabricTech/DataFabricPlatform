@@ -4,6 +4,7 @@ import json
 import os
 import math
 import copy
+import re
 from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
@@ -256,13 +257,17 @@ class DataProfilingTable(ProfilingCommon):
 
     @classmethod
     def _localize_report_html(cls, report_path: str) -> None:
-        """ydata-profiling이 출력하는 통계 표의 영문 레이블을 한국어로 바꾼다."""
+        """ydata-profiling HTML의 레이블과 포함 이미지 데이터를 정리한다."""
         path = Path(report_path)
         html = path.read_text(encoding="utf-8")
         for english, korean in sorted(
             cls._REPORT_KO_LABELS.items(), key=lambda item: len(item[0]), reverse=True
         ):
             html = html.replace(english, korean)
+
+        # SVG 내부의 base64 이미지 시작부에 포함된 개행은 브라우저에서 `%0A`로
+        # 해석되어 이미지 로딩을 실패시킬 수 있다.
+        html = re.sub(r"(data:image/[^;\"']+;base64,)\s+", r"\1", html)
         path.write_text(html, encoding="utf-8")
 
     def _nan_to_none(self, v: Any):
