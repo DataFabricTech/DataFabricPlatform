@@ -4,6 +4,7 @@ import json
 import os
 import math
 import copy
+from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -62,10 +63,207 @@ class DataProfilingOptions:
     preview_top_k: int = 20
     max_avg_str_len: int = 500
     avg_str_len_sample_rows: int = 200
-
-
 class DataProfilingTable(ProfilingCommon):
     logger = get_logger()
+
+    # ydata-profiling 4.3.2는 한국어 로케일을 제공하지 않는다. 리포트에 포함되는
+    # 화면용 고정 문구만 바꾸며, 실제 컬럼명·데이터 값은 변경하지 않는다.
+    _REPORT_KO_LABELS = {
+        "Toggle navigation": "탐색 메뉴 열기/닫기",
+        "Overview": "개요",
+        "Variables": "변수",
+        "Alerts": "알림",
+        "Reproduction": "재현 정보",
+        "Correlations": "상관관계",
+        "Interactions": "상호작용",
+        "Missing values": "결측값",
+        "Columns": "컬럼",
+        "Table": "표",
+        "Heatmap": "히트맵",
+        "Scatter": "산점도",
+        "Scatter plot": "산점도",
+        "Dataset statistics": "데이터셋 통계",
+        "Variable types": "변수 유형",
+        "Number of variables": "변수 수",
+        "Number of observations": "관측치 수",
+        "Missing cells (%)": "결측 셀 비율(%)",
+        "Missing cells": "결측 셀 수",
+        "Duplicate rows (%)": "중복 행 비율(%)",
+        "Duplicate rows": "중복 행 수",
+        "Total size in memory": "메모리 내 전체 크기",
+        "Average record size in memory": "평균 레코드 메모리 크기",
+        "Analysis started": "분석 시작 시각",
+        "Analysis finished": "분석 종료 시각",
+        "Duration": "소요 시간",
+        "Software version": "소프트웨어 버전",
+        "Download configuration": "설정 내려받기",
+        "Dataset": "데이터셋",
+        "Variable descriptions": "변수 설명",
+        "Copyright": "저작권",
+        "Name": "이름",
+        "Parent": "상위 경로",
+        "Anchor": "앵커",
+        "Root": "루트",
+        "Select Columns": "컬럼 선택",
+        "More details": "상세 정보",
+        "Statistics": "통계",
+        "Histogram": "히스토그램",
+        "Histogram(s)": "히스토그램",
+        "Common values": "빈도 높은 값",
+        "Common Values": "빈도 높은 값",
+        "Common Values (Table)": "빈도 높은 값(표)",
+        "Common Values (Plot)": "빈도 높은 값(그래프)",
+        "Common words": "빈도 높은 단어",
+        "Common prefix": "공통 접두사",
+        "Most frequently occurring": "가장 자주 발생한 값",
+        "Extreme values": "극값",
+        "Quantile statistics": "분위수 통계",
+        "Descriptive statistics": "기술 통계",
+        "Distinct (%)": "고유값 비율(%)",
+        "Distinct": "고유값 수",
+        "Missing (%)": "결측 비율(%)",
+        "Missing": "결측 수",
+        "Infinite (%)": "무한값 비율(%)",
+        "Infinite": "무한값 수",
+        "Unique (%)": "유일값 비율(%)",
+        "Unique": "유일값 수",
+        "Mean": "평균",
+        "Median": "중앙값",
+        "Minimum": "최솟값",
+        "Maximum": "최댓값",
+        "Zeros (%)": "0값 비율(%)",
+        "Zeros": "0값 수",
+        "Negative (%)": "음수 비율(%)",
+        "Negative": "음수 수",
+        "Memory size": "메모리 크기",
+        "Autocorrelation": "자기상관",
+        "Augmented Dickey-Fuller test p-value": "확장 Dickey-Fuller 검정 p값",
+        "Standard deviation": "표준편차",
+        "Coefficient of variation (CV)": "변동계수(CV)",
+        "Kurtosis": "첨도",
+        "Median Absolute Deviation (MAD)": "중앙절대편차(MAD)",
+        "Skewness": "왜도",
+        "Sum": "합계",
+        "Variance": "분산",
+        "Monotonicity": "단조성",
+        "Strictly increasing": "엄격 증가",
+        "Increasing": "증가",
+        "Not monotonic": "비단조",
+        "Decreasing": "감소",
+        "Strictly decreasing": "엄격 감소",
+        "Interquartile range (IQR)": "사분위 범위(IQR)",
+        "Range": "범위",
+        "Real number (&Ropf;)": "실수(&Ropf;)",
+        "5-th percentile": "5백분위수",
+        "95-th percentile": "95백분위수",
+        "Q1": "제1사분위수",
+        "median": "중앙값",
+        "Q3": "제3사분위수",
+        "Value": "값",
+        "Count": "개수",
+        "Frequency (%)": "빈도(%)",
+        "Minimum 5 values": "최솟값 5개",
+        "Maximum 5 values": "최댓값 5개",
+        "Words": "단어 수",
+        "Characters and Unicode": "문자 및 유니코드",
+        "Unicode": "유니코드",
+        "Characters": "문자 수",
+        "Length": "길이",
+        "File": "파일",
+        "File size": "파일 크기",
+        "Extension": "확장자",
+        "Image": "이미지",
+        "Dimensions": "크기",
+        "Exif keys": "Exif 키",
+        "Exif data": "Exif 데이터",
+        "Min width": "최소 너비",
+        "Median width": "중앙 너비",
+        "Max width": "최대 너비",
+        "Min height": "최소 높이",
+        "Median height": "중앙 높이",
+        "Max height": "최대 높이",
+        "Min area": "최소 면적",
+        "Median area": "중앙 면적",
+        "Max area": "최대 면적",
+        "Max length": "최대 길이",
+        "Median length": "중앙 길이",
+        "Mean length": "평균 길이",
+        "Min length": "최소 길이",
+        "Total characters": "전체 문자 수",
+        "Distinct characters": "고유 문자 수",
+        "Distinct categories": "고유 범주 수",
+        "Distinct scripts": "고유 문자 체계 수",
+        "Distinct blocks": "고유 블록 수",
+        "Categories": "범주",
+        "Scripts": "문자 체계",
+        "Blocks": "블록",
+        "Most occurring characters": "가장 자주 등장한 문자",
+        "Most occurring categories": "가장 자주 등장한 범주",
+        "Most occurring scripts": "가장 자주 등장한 문자 체계",
+        "Most occurring blocks": "가장 자주 등장한 블록",
+        "Most frequent character per category": "범주별 최빈 문자",
+        "Most frequent character per script": "문자 체계별 최빈 문자",
+        "Most frequent character per block": "블록별 최빈 문자",
+        "The Unicode Standard assigns character properties to each code point, which can be used to analyse textual variables.": "유니코드 표준은 각 코드 포인트에 문자 속성을 부여하며, 이를 통해 텍스트형 변수를 분석할 수 있습니다.",
+        "Other Letter": "기타 문자",
+        "Hangul": "한글",
+        "Sample": "표본",
+        "URL": "URL",
+        "url stats": "URL 통계",
+        "Full": "전체 URL",
+        "Scheme": "스킴",
+        "Netloc": "네트워크 위치",
+        "Path": "경로",
+        "Query": "쿼리",
+        "Fragment": "프래그먼트",
+        "Stem": "파일명(확장자 제외)",
+        "Unique anchors": "고유 앵커 수",
+        "Unique directories": "고유 디렉터리 수",
+        "Unique extensions": "고유 확장자 수",
+        "Unique names": "고유 파일명 수",
+        "Unique stems": "고유 파일명(확장자 제외) 수",
+        "1st row": "1번째 행",
+        "2nd row": "2번째 행",
+        "3rd row": "3번째 행",
+        "4th row": "4번째 행",
+        "5th row": "5번째 행",
+        "Numeric": "수치형",
+        "Text": "텍스트",
+        "Boolean": "불리언",
+        "Date": "날짜",
+        "Categorical": "범주형",
+        "Unsupported": "지원되지 않는 유형",
+        "Real number (ℝ)": "실수(ℝ)",
+        "UNIQUE": "유일값",
+        "has unique values": "고유값을 가집니다",
+        "Histogram with fixed size bins": "고정 크기 구간 히스토그램",
+        "(bins=": "(구간 수=",
+        "Report generated by": "리포트 생성 도구",
+        "Dataset is empty": "데이터셋이 비어 있습니다",
+        "Dataset has duplicated values": "데이터셋에 중복 값이 있습니다",
+        " has a constant value": "는 상수 값입니다",
+        " has a high cardinality": "는 고유값 수가 많습니다",
+        " has infinite values": "에 무한값이 있습니다",
+        " has missing values": "에 결측값이 있습니다",
+        " is non stationary": "는 비정상 시계열입니다",
+        " is seasonal": "는 계절성을 가집니다",
+        " is uniformly distributed": "는 균등 분포를 따릅니다",
+        " has unique values": "는 유일값을 가집니다",
+        " is an unsupported type, check if it needs cleaning or further analysis": "는 지원되지 않는 유형입니다. 정제 또는 추가 분석이 필요한지 확인하세요",
+        " has predominantly zeros": "는 대부분 0값입니다",
+        " was rejected": "는 제외되었습니다",
+    }
+
+    @classmethod
+    def _localize_report_html(cls, report_path: str) -> None:
+        """ydata-profiling이 출력하는 통계 표의 영문 레이블을 한국어로 바꾼다."""
+        path = Path(report_path)
+        html = path.read_text(encoding="utf-8")
+        for english, korean in sorted(
+            cls._REPORT_KO_LABELS.items(), key=lambda item: len(item[0]), reverse=True
+        ):
+            html = html.replace(english, korean)
+        path.write_text(html, encoding="utf-8")
 
     def _nan_to_none(self, v: Any):
         if isinstance(v, float) and math.isnan(v):
@@ -409,7 +607,6 @@ class DataProfilingTable(ProfilingCommon):
             self._cleanup_deleted_html(system_id, output_dir)
 
         meta_data_list = self.get_meta_data_by_system_id("table", system_id)
-
         profiling_filter_count = 0
         profiling_save_count = 0
 
@@ -422,11 +619,9 @@ class DataProfilingTable(ProfilingCommon):
 
         for meta_data in meta_data_list:
             catalog_name, db_name, table_name = self.get_trino_info(meta_data)
-
             if self.check_filter(filter_include, filter_exclude, FilterOption.DATABASE.value, db_name):
                 profiling_filter_count += 1
                 continue
-
             if self.check_filter(filter_include, filter_exclude, FilterOption.TABLE.value, table_name):
                 profiling_filter_count += 1
                 continue
@@ -434,72 +629,40 @@ class DataProfilingTable(ProfilingCommon):
             excluded_cols: List[str] = []
             try:
                 excluded_cols = self._get_excluded_string_columns_by_avg_len(
-                    catalog_name=catalog_name,
-                    db_name=db_name,
-                    table_name=table_name,
-                    max_avg_len=options.max_avg_str_len,
-                    sample_rows=options.avg_str_len_sample_rows,
+                    catalog_name=catalog_name, db_name=db_name, table_name=table_name,
+                    max_avg_len=options.max_avg_str_len, sample_rows=options.avg_str_len_sample_rows,
                 )
             except Exception as e:
                 self.logger.warning(
                     f"avg string length 계산 실패 - 제외 없이 진행 [{system_id}.{db_name}.{table_name}] {e}"
                 )
 
-            if excluded_cols:
-                self.logger.info(
-                    f'\t 제외 컬럼(평균 문자열 길이 >= {options.max_avg_str_len}) '
-                    f'[{system_id}.{db_name}.{table_name}] {excluded_cols}'
-                )
-
             query = self._build_query_with_exclusions(
-                catalog_name=catalog_name,
-                db_name=db_name,
-                table_name=table_name,
-                limit_rows=options.limit_rows,
-                excluded_columns=excluded_cols,
+                catalog_name=catalog_name, db_name=db_name, table_name=table_name,
+                limit_rows=options.limit_rows, excluded_columns=excluded_cols,
             )
-
+            title = f"{system_id}.{db_name}.{table_name}"
             try:
-                df = fetch_as_dataframe(self.trino_connection, query)
-                df = self.replace_null(df)
+                df = self.replace_null(fetch_as_dataframe(self.trino_connection, query))
                 if len(df) == 0 and query.strip().lower().startswith("select null where 1=0"):
-                    self.logger.warning(
-                        f"\t 모든 컬럼이 제외되어 스킵 [{system_id}.{db_name}.{table_name}]"
-                    )
+                    self.logger.warning(f"\t 모든 컬럼이 제외되어 스킵 [{title}]")
                     continue
-                report = ProfileReport(
-                    df,
-                    title=f"{system_id}.{db_name}.{table_name}",
-                    minimal=True,
-                    explorative=options.explorative,
-                )
 
-                title = f"{system_id}.{db_name}.{table_name}"
-
-                # 프로파일링 결과를 json 형태로 변환
+                report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative)
                 profile_dict = json.loads(report.to_json())
-
-                # postgresql upsert (table/columns)
-                try:
-                    self.upsert_profile_table(meta_data, db_name, profile_dict)
-                    self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
-                except Exception as e:
-                    self.logger.error(f"\t postgresql upsert 실패 [{title}] {e}")
-
-                # for key, value in profile_dict.items():
-                #     print(f'{key} : {str(value)[:100]}')
+                self.upsert_profile_table(meta_data, db_name, profile_dict)
+                self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
 
                 if options.preview:
-                    # 옵션에 따라 출력 요약 제공
-                    self._preview_top_k = options.preview_top_k  # local override
+                    self._preview_top_k = options.preview_top_k
                     self._render_preview(title, df, report)
 
                 if options.generate_report and output_dir is not None:
-                    os.makedirs(output_dir, exist_ok=True)
-                    report.to_file(os.path.join(output_dir, f"{meta_data.meta_id}.html"))
-                self.logger.info(
-                    f"\t 프로파일링 완료 [{title}] rows={len(df)}"
-                )
+                    report_path = os.path.join(output_dir, f"{meta_data.meta_id}.html")
+                    report.to_file(report_path)
+                    self._localize_report_html(report_path)
+
+                self.logger.info(f"\t 프로파일링 완료 [{title}] rows={len(df)}")
                 profiling_save_count += 1
             except Exception as e:
                 self.logger.error(f"data-profiling 실패 [{system_id}.{db_name}.{table_name}] {e}")
