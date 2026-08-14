@@ -60,6 +60,7 @@ class DataProfilingOptions:
     output_dir: str = "reports/data_profiling"
     explorative: bool = True
     generate_report: bool = False
+    report_language: str = "en"
     preview: bool = True
     preview_top_k: int = 20
     max_avg_str_len: int = 500
@@ -122,6 +123,9 @@ class DataProfilingTable(ProfilingCommon):
         "Descriptive statistics": "기술 통계",
         "Distinct (%)": "고유값 비율(%)",
         "Distinct": "고유값 수",
+        "CONSTANT": "상수값",
+        "Constant": "상수값",
+        "MISSING": "결측값",
         "Missing (%)": "결측 비율(%)",
         "Missing": "결측 수",
         "Infinite (%)": "무한값 비율(%)",
@@ -256,7 +260,7 @@ class DataProfilingTable(ProfilingCommon):
     }
 
     @classmethod
-    def _localize_report_html(cls, report_path: str) -> None:
+    def _localize_report_html_to_korean(cls, report_path: str) -> None:
         path = Path(report_path)
         html = path.read_text(encoding="utf-8")
 
@@ -266,6 +270,19 @@ class DataProfilingTable(ProfilingCommon):
 
         def localize_text_node(match: re.Match) -> str:
             text = match.group(0)
+
+            # ydata-profiling 경고는 컬럼명·건수 등이 조합된 동적 문장이다.
+            # 텍스트 노드에서만 처리해 스크립트 식별자에는 영향을 주지 않는다.
+            text = re.sub(
+                r'(.+?) has constant value ""',
+                r"\1: 상수값",
+                text,
+            )
+            text = re.sub(
+                r"(.+?) has (\d[\d,]*) \(([\d.]+%)\) missing values",
+                r"\1: 결측값 \2개(\3)",
+                text,
+            )
             for english, korean in replacements:
                 text = text.replace(english, korean)
             return text
@@ -675,7 +692,8 @@ class DataProfilingTable(ProfilingCommon):
                 if options.generate_report and output_dir is not None:
                     report_path = os.path.join(output_dir, f"{meta_data.meta_id}.html")
                     report.to_file(report_path)
-                    self._localize_report_html(report_path)
+                    if options.report_language == "ko":
+                        self._localize_report_html_to_korean(report_path)
 
                 self.logger.info(f"\t 프로파일링 완료 [{title}] rows={len(df)}")
                 profiling_save_count += 1
