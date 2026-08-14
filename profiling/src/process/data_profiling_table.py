@@ -260,14 +260,27 @@ class DataProfilingTable(ProfilingCommon):
         """ydata-profiling HTML의 레이블과 포함 이미지 데이터를 정리한다."""
         path = Path(report_path)
         html = path.read_text(encoding="utf-8")
+
+        embedded_images: List[Tuple[str, str]] = []
+
+        def preserve_embedded_image(match: re.Match) -> str:
+            placeholder = f"\ue000{len(embedded_images)}\ue001"
+            image_data = re.sub(r"\s+", "", match.group(0))
+            embedded_images.append((placeholder, image_data))
+            return placeholder
+
+        html = re.sub(
+            r"data:image/[^;\"']+;base64,[A-Za-z0-9+/=\s]+",
+            preserve_embedded_image,
+            html,
+        )
         for english, korean in sorted(
             cls._REPORT_KO_LABELS.items(), key=lambda item: len(item[0]), reverse=True
         ):
             html = html.replace(english, korean)
 
-        # SVG 내부의 base64 이미지 시작부에 포함된 개행은 브라우저에서 `%0A`로
-        # 해석되어 이미지 로딩을 실패시킬 수 있다.
-        html = re.sub(r"(data:image/[^;\"']+;base64,)\s+", r"\1", html)
+        for placeholder, image_data in embedded_images:
+            html = html.replace(placeholder, image_data)
         path.write_text(html, encoding="utf-8")
 
     def _nan_to_none(self, v: Any):
