@@ -257,30 +257,27 @@ class DataProfilingTable(ProfilingCommon):
 
     @classmethod
     def _localize_report_html(cls, report_path: str) -> None:
-        """ydata-profiling HTML의 레이블과 포함 이미지 데이터를 정리한다."""
         path = Path(report_path)
         html = path.read_text(encoding="utf-8")
 
-        embedded_images: List[Tuple[str, str]] = []
-
-        def preserve_embedded_image(match: re.Match) -> str:
-            placeholder = f"\ue000{len(embedded_images)}\ue001"
-            image_data = re.sub(r"\s+", "", match.group(0))
-            embedded_images.append((placeholder, image_data))
-            return placeholder
-
-        html = re.sub(
-            r"data:image/[^;\"']+;base64,[A-Za-z0-9+/=\s]+",
-            preserve_embedded_image,
-            html,
-        )
-        for english, korean in sorted(
+        replacements = sorted(
             cls._REPORT_KO_LABELS.items(), key=lambda item: len(item[0]), reverse=True
-        ):
-            html = html.replace(english, korean)
+        )
 
-        for placeholder, image_data in embedded_images:
-            html = html.replace(placeholder, image_data)
+        def localize_text_node(match: re.Match) -> str:
+            text = match.group(0)
+            for english, korean in replacements:
+                text = text.replace(english, korean)
+            return text
+
+        blocks = re.split(
+            r"(<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>)",
+            html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        for index in range(0, len(blocks), 2):
+            blocks[index] = re.sub(r"(?<=>)[^<]+(?=<)", localize_text_node, blocks[index])
+        html = "".join(blocks)
         path.write_text(html, encoding="utf-8")
 
     def _nan_to_none(self, v: Any):
