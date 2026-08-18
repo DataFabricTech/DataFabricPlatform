@@ -42,12 +42,6 @@ def main():
         help="HTML 리포트 파일 생성 (기본: 생성 안 함)",
     )
     parser.add_argument(
-        "--report_language",
-        choices=("en", "ko"),
-        default="en",
-        help="HTML 리포트 표시 언어: en(원본 영어, 기본값), ko(한국어 치환)",
-    )
-    parser.add_argument(
         "--no_preview",
         action="store_true",
         help="콘솔 요약 출력 비활성화 (기본: 요약 출력)",
@@ -92,7 +86,6 @@ def main():
         limit_rows=args.limit_rows,
         output_dir=args.output_dir,
         generate_report=bool(args.generate_report),
-        report_language=args.report_language,
         preview=not bool(args.no_preview),
         preview_top_k=args.preview_top_k,
         max_avg_str_len=args.max_avg_str_len,
