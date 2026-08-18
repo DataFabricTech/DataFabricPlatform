@@ -68,9 +68,57 @@ class DataProfilingOptions:
 class DataProfilingTable(ProfilingCommon):
     logger = get_logger()
 
-    # ydata-profiling 4.3.2는 한국어 로케일을 제공하지 않는다. 리포트에 포함되는
-    # 화면용 고정 문구만 바꾸며, 실제 컬럼명·데이터 값은 변경하지 않는다.
+    _UNICODE_GENERAL_CATEGORY_KO_LABELS = {
+        "Uppercase Letter": "대문자",
+        "Lowercase Letter": "소문자",
+        "Titlecase Letter": "제목형 대문자",
+        "Modifier Letter": "수식 문자",
+        "Other Letter": "기타 문자",
+        "Nonspacing Mark": "비공백 결합 기호",
+        "Spacing Combining Mark": "간격 결합 기호",
+        "Enclosing Mark": "둘러싸는 결합 기호",
+        "Decimal Number": "10진 숫자",
+        "Letter Number": "문자 숫자",
+        "Other Number": "기타 숫자",
+        "Connector Punctuation": "연결 구두점",
+        "Dash Punctuation": "대시 구두점",
+        "Open Punctuation": "여는 구두점",
+        "Close Punctuation": "닫는 구두점",
+        "Initial Punctuation": "여는 인용 구두점",
+        "Final Punctuation": "닫는 인용 구두점",
+        "Other Punctuation": "기타 구두점",
+        "Math Symbol": "수학 기호",
+        "Currency Symbol": "통화 기호",
+        "Modifier Symbol": "수식 기호",
+        "Other Symbol": "기타 기호",
+        "Space Separator": "공백 구분자",
+        "Line Separator": "줄 구분자",
+        "Paragraph Separator": "문단 구분자",
+        "Control": "제어 문자",
+        "Format": "형식 문자",
+        "Surrogate": "대리 문자",
+        "Private Use": "사용자 정의 영역",
+        "Unassigned": "미할당 문자",
+    }
+    _UNICODE_BLOCK_KO_LABELS = {
+        "ASCII": "ASCII 기본 라틴",
+        "Basic Latin": "기본 라틴",
+        "None": "없음",
+        "Punctuation": "일반 문장부호",
+        "Geometric Shapes": "기하 도형",
+        "Math Operators": "수학 연산자",
+        "CJK": "한중일 통합 한자",
+        "CJK Compat": "한중일 호환 문자",
+        "CJK Compatibility": "한중일 호환 문자",
+        "Compat Jamo": "호환 자모",
+        "Hangul Compatibility Jamo": "한글 호환 자모",
+        "Misc Symbols": "기타 기호",
+        "Miscellaneous Symbols": "기타 기호",
+        "Hangul": "한글",
+    }
     _REPORT_KO_LABELS = {
+        **_UNICODE_GENERAL_CATEGORY_KO_LABELS,
+        **_UNICODE_BLOCK_KO_LABELS,
         "Toggle navigation": "탐색 메뉴 열기/닫기",
         "Overview": "개요",
         "Variables": "변수",
@@ -172,6 +220,9 @@ class DataProfilingTable(ProfilingCommon):
         "Words": "단어 수",
         "Characters and Unicode": "문자 및 유니코드",
         "Unicode": "유니코드",
+        "Unicode categories (click for more information)": "유니코드 범주(자세한 정보는 클릭)",
+        "Unicode scripts (click for more information)": "유니코드 문자 체계(자세한 정보는 클릭)",
+        "Unicode blocks (click for more information)": "유니코드 블록(자세한 정보는 클릭)",
         "Characters": "문자 수",
         "Length": "길이",
         "File": "파일",
@@ -283,17 +334,58 @@ class DataProfilingTable(ProfilingCommon):
                 r"\1: 결측값 \2개(\3)",
                 text,
             )
+            text = re.sub(r"Other values \((\d+)\)", r"기타 값 (\1개)", text)
             for english, korean in replacements:
                 text = text.replace(english, korean)
             return text
+
+        def localize_display_attribute(match: re.Match) -> str:
+            value = match.group("value")
+            for english, korean in replacements:
+                value = value.replace(english, korean)
+            return f"{match.group('attribute')}{match.group('quote')}{value}{match.group('quote')}"
+
+        def localize_script_alerts(script: str) -> str:
+            script = re.sub(
+                r'(?P<column>[^"\r\n]+?) has constant value (?:""|\\"\\")',
+                r"\g<column>: 상수값",
+                script,
+            )
+            script = re.sub(
+                r"(?P<column>[^\"\r\n]+?) has (?P<count>\d[\d,]*) \((?P<percent>[\d.]+%)\) missing values",
+                r"\g<column>: 결측값 \g<count>개(\g<percent>)",
+                script,
+            )
+            script = re.sub(r"Other values \((\d+)\)", r"기타 값 (\1개)", script)
+            script_labels = {
+                **cls._UNICODE_GENERAL_CATEGORY_KO_LABELS,
+                **cls._UNICODE_BLOCK_KO_LABELS,
+            }
+            for english, korean in script_labels.items():
+                pattern = rf'(?P<quote>["\']){re.escape(english)}(?P=quote)'
+                script = re.sub(
+                    pattern,
+                    lambda match: f"{match.group('quote')}{korean}{match.group('quote')}",
+                    script,
+                )
+            return script
 
         blocks = re.split(
             r"(<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>)",
             html,
             flags=re.IGNORECASE | re.DOTALL,
         )
-        for index in range(0, len(blocks), 2):
-            blocks[index] = re.sub(r"(?<=>)[^<]+(?=<)", localize_text_node, blocks[index])
+        for index, block in enumerate(blocks):
+            if index % 2 == 0:
+                block = re.sub(r"(?<=>)[^<]+(?=<)", localize_text_node, block)
+                blocks[index] = re.sub(
+                    r"(?P<attribute>\b(?:title|aria-label)\s*=\s*)(?P<quote>[\"'])(?P<value>.*?)(?P=quote)",
+                    localize_display_attribute,
+                    block,
+                    flags=re.IGNORECASE,
+                )
+            elif re.match(r"<script\b", block, flags=re.IGNORECASE):
+                blocks[index] = localize_script_alerts(block)
         html = "".join(blocks)
         path.write_text(html, encoding="utf-8")
 
