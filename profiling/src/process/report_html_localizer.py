@@ -165,8 +165,7 @@ def _localize_script_display_values(script: str) -> str:
     return script
 
 
-def localize_report_html_to_korean(report_path: str | Path) -> None:
-    """Localize a report in place. Calling this repeatedly is safe."""
+def localize_report_html_to_korean(report_path: str | Path, output_path: str | Path | None = None) -> None:
     path = Path(report_path)
     html = path.read_text(encoding="utf-8")
     blocks = re.split(r"(<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>)", html, flags=re.IGNORECASE | re.DOTALL)
@@ -180,4 +179,9 @@ def localize_report_html_to_korean(report_path: str | Path) -> None:
             )
         elif re.match(r"<script\b", block, flags=re.IGNORECASE):
             blocks[index] = _localize_script_display_values(block)
-    path.write_text("".join(blocks), encoding="utf-8")
+    localized_html = "".join(blocks)
+
+    dest = Path(output_path) if output_path is not None else path
+    tmp = dest.with_name(dest.name + ".tmp")
+    tmp.write_text(localized_html, encoding="utf-8")
+    tmp.replace(dest)

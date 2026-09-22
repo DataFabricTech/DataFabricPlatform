@@ -15,11 +15,13 @@ def main():
     output_dir = Path(args.output_dir)
     localized_count = 0
     for report_id in args.report_ids:
-        report_path = output_dir / f"{report_id}.html"
-        if not report_path.is_file():
-            print(f"리포트 없음: {report_path}")
+        raw_path = output_dir / f"{report_id}.html.raw"
+        final_path = output_dir / f"{report_id}.html"
+        if not raw_path.is_file():
+            print(f"리포트 없음: {raw_path}")
             continue
-        localize_report_html_to_korean(report_path)
+        localize_report_html_to_korean(raw_path, output_path=final_path)
+        raw_path.unlink()
         localized_count += 1
     print(f"한글화 완료: {localized_count}개")
 
