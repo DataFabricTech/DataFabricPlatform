@@ -45,7 +45,7 @@ class Config(BaseModel):
             print("env 에 프로세스 환경설정 파일을 설정하세요 [예: CONFIG_FILE = process_config.ini]")
             sys.exit()
         process_config = configparser.ConfigParser()
-        process_config.read(config_file)
+        process_config.read(config_file, encoding="utf-8")
 
         crypt_key = process_config.get("security", "cryptkey")
 

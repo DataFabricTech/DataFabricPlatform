@@ -17,6 +17,9 @@ def main():
     for report_id in args.report_ids:
         raw_path = output_dir / f"{report_id}.html.raw"
         final_path = output_dir / f"{report_id}.html"
+        legacy_path = output_dir / f"{report_id}.html.html"
+        if not raw_path.is_file() and legacy_path.is_file():
+            raw_path = legacy_path
         if not raw_path.is_file():
             print(f"리포트 없음: {raw_path}")
             continue
