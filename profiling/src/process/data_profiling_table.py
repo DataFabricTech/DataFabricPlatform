@@ -390,7 +390,7 @@ class DataProfilingTable(ProfilingCommon):
         )
         removed = 0
         for m in deleted_metas:
-            for suffix in (".html", ".html.raw"):
+            for suffix in (".html", ".html.raw", ".html.html"):
                 f = os.path.join(output_dir, f"{m.meta_id}{suffix}")
                 if os.path.exists(f):
                     os.remove(f)
@@ -460,7 +460,8 @@ class DataProfilingTable(ProfilingCommon):
 
                 if options.generate_report and output_dir is not None:
                     report_path = os.path.join(output_dir, f"{meta_data.meta_id}.html.raw")
-                    report.to_file(report_path)
+                    with open(report_path, "w", encoding="utf-8") as f:
+                        f.write(report.to_html())
 
                 self.logger.info(f"\t 프로파일링 완료 [{title}] rows={len(df)}")
                 profiling_save_count += 1
