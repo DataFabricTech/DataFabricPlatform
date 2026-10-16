@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 from DataProfiling.configs.database_session import create_session as db_create_session
@@ -26,6 +27,15 @@ def parse_key_value_list(kv_list):
             result[key] = [value]
 
     return result if len(result) > 0 else None
+
+
+def auto_workers(reserve_cores: int) -> int:
+    """이 프로세스가 쓸 수 있는 코어 수에서 reserve_cores 개를 다른 작업용으로 남긴 수(최소 1)."""
+    if hasattr(os, "sched_getaffinity"):  # 리눅스: 컨테이너 cpuset 제한을 반영
+        cores = len(os.sched_getaffinity(0))
+    else:
+        cores = os.cpu_count() or 1
+    return max(1, cores - reserve_cores)
 
 
 def main():
@@ -69,6 +79,29 @@ def main():
         default="reports/data_profiling",
         help="리포트 저장 디렉토리 (기본: reports/data_profiling)",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=int(os.getenv("PROFILING_WORKERS", "0")),
+        help="테이블을 동시에 처리할 프로세스 수, 0이면 CPU 코어 수 - reserve_cores (기본: 환경변수 PROFILING_WORKERS, 없으면 0)",
+    )
+    parser.add_argument(
+        "--reserve_cores",
+        type=int,
+        default=2,
+        help="--workers 0 일 때 다른 작업용으로 남겨 둘 코어 수 (기본: 2)",
+    )
+    parser.add_argument(
+        "--big_workers",
+        type=int,
+        default=int(os.getenv("PROFILING_BIG_WORKERS", "1")),
+        help="지난 실행 행 수 10만 이상인 테이블을 동시에 처리할 최대 프로세스 수 (기본: 환경변수 PROFILING_BIG_WORKERS, 없으면 1)",
+    )
+    parser.add_argument(
+        "--localize_report",
+        action="store_true",
+        help="리포트를 바로 한글화해 {meta_id}.html 로 저장 (기본: {meta_id}.html.raw 로 저장하고 별도 한글화 단계에서 처리)",
+    )
     parser.add_argument("--include", nargs="*", help="포함할 인자들 (예: database=public table=users)")
     parser.add_argument("--exclude", nargs="*", help="제외할 인자들 (예: table=data1 table=data2)")
 
@@ -90,6 +123,9 @@ def main():
         preview_top_k=args.preview_top_k,
         max_avg_str_len=args.max_avg_str_len,
         avg_str_len_sample_rows=args.avg_str_len_sample_rows,
+        workers=args.workers if args.workers > 0 else auto_workers(args.reserve_cores),
+        big_workers=args.big_workers,
+        localize_report=bool(args.localize_report),
     )
 
     try:

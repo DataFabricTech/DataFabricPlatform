@@ -1,19 +1,29 @@
 from __future__ import annotations
 
+import contextlib
+import functools
 import json
+import multiprocessing
 import os
 import math
 import copy
+import time
+from collections import deque
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
+from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from multiprocessing import util as mp_util
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from itertools import islice
 
+import numpy as np
 from sqlalchemy import select
 
 from DataProfiling.models.postgres import MetaData, ProfileColumn, ProfileTable
 from DataProfiling.process.profiling_common import FilterOption, ProfilingCommon
+from DataProfiling.process.report_html_localizer import localize_html_to_korean
 from DataProfiling.utils.logger import get_logger
 
 from DataProfiling.utils.trino_dataframe import fetch_as_dataframe
@@ -41,6 +51,45 @@ if _korean_font:
     _plt.rcParams["font.sans-serif"] = [_korean_font] + list(_plt.rcParams.get("font.sans-serif", []))
 _plt.rcParams["axes.unicode_minus"] = False
 
+# 워드클라우드는 matplotlib 폰트가 아니라 wordcloud 기본 폰트(한글 없음)로 그린다.
+# 한글 폰트 파일을 넘긴다(도커 이미지는 빌드 때 plot.py 에 font_path 를 넣어 두었고, 그 값이 우선한다).
+# 또 단어·글자 크기마다 폰트 파일을 다시 열지 않도록 (폰트, 크기)별로 캐시한다. 그려지는 이미지는 같다.
+import wordcloud.wordcloud as _wordcloud_module  # noqa: E402
+import ydata_profiling.visualisation.plot as _ydata_plot  # noqa: E402
+from PIL import ImageFont as _ImageFont  # noqa: E402
+
+_font_files = {os.path.basename(_f.fname).lower(): _f.fname for _f in _font_manager.fontManager.ttflist}
+_wordcloud_font = next(
+    (_font_files[name] for name in ("notosanscjk-regular.ttc", "nanumgothic.ttf", "malgun.ttf") if name in _font_files),
+    None,
+)
+if _wordcloud_font:
+    _ydata_plot.WordCloud = functools.partial(_ydata_plot.WordCloud, font_path=_wordcloud_font)
+
+
+class _CachedImageFont:
+    truetype = staticmethod(functools.lru_cache(maxsize=1024)(_ImageFont.truetype))
+
+    def __getattr__(self, name):
+        return getattr(_ImageFont, name)
+
+
+_wordcloud_module.ImageFont = _CachedImageFont()
+
+# DB 에 저장하지 않는 큰 항목(컬럼별 값 빈도 전체). to_json 직렬화에서 빼면 시간과 메모리가 크게 준다.
+_HEAVY_KEYS = ("value_counts_without_nan", "value_counts_index_sorted", "word_counts")
+# 지난 실행 행 수가 이 이상인 테이블은 메모리를 많이 써서, 병렬 실행 때 동시에 돌리는 개수를 따로 제한한다.
+_BIG_TABLE_ROWS = 100_000
+
+
+def _json_key(value: Any) -> Any:
+    """ydata 의 to_json 과 같은 규칙으로 값을 바꾼다(numpy 값 -> 파이썬 값, 그 밖의 객체 -> 문자열)."""
+    if isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, np.generic):
+        return value.item()
+    return str(value)
+
 
 def _safe_filename(name: str) -> str:
     return (
@@ -62,6 +111,9 @@ class DataProfilingOptions:
     preview_top_k: int = 20
     max_avg_str_len: int = 500
     avg_str_len_sample_rows: int = 200
+    workers: int = 1
+    big_workers: int = 1
+    localize_report: bool = False
 class DataProfilingTable(ProfilingCommon):
     logger = get_logger()
 
@@ -214,6 +266,32 @@ class DataProfilingTable(ProfilingCommon):
             )
 
             self.upsert_data(ProfileColumn, update_data, "column_id")
+
+    def _light_profile_dict(self, report) -> Dict[str, Any]:
+        """json.loads(report.to_json()) 과 같은 dict 를 만들되, DB 에 넣지 않는 큰 항목은 직렬화하지 않는다.
+
+        to_json 은 컬럼마다 값 빈도 전체를 문자열로 만들어 행 수가 늘수록 느려지고 메모리를 많이 쓴다.
+        큰 항목은 잠시 빼고 직렬화한 뒤 되돌리고(HTML 은 그대로 그려진다), top_value_counts 용 상위 5개만 넣어 둔다.
+        """
+        variables = report.get_description().variables
+        tops: Dict[str, Optional[Dict[str, Any]]] = {}
+        heavy: Dict[str, Dict[str, Any]] = {}
+        for col, v in variables.items():
+            counts = v.get("value_counts_without_nan")
+            tops[col] = None if counts is None else json.loads(
+                json.dumps({_json_key(k): _json_key(c) for k, c in islice(counts.items(), 5)})
+            )
+            heavy[col] = {k: v.pop(k) for k in _HEAVY_KEYS if k in v}
+        try:
+            profile_dict = json.loads(report.to_json())
+        finally:
+            for col, values in heavy.items():
+                variables[col].update(values)
+
+        for col, top in tops.items():
+            if top is not None and col in (profile_dict.get("variables") or {}):
+                profile_dict["variables"][col]["value_counts_without_nan"] = top
+        return profile_dict
 
     def replace_null(self, df):
         """
@@ -398,9 +476,200 @@ class DataProfilingTable(ProfilingCommon):
         if removed:
             self.logger.info(f"\t stale HTML {removed}개 정리 [{system_id}]")
 
+    def _write_report(self, report, meta_id: str, output_dir: str, localize: bool) -> None:
+        """HTML 을 끝까지 만든 뒤 임시 파일에 쓰고 이름을 바꾼다. 렌더링이 실패해도 기존 리포트는 그대로 남는다."""
+        html = report.to_html()
+        if localize:
+            html = localize_html_to_korean(html)
+            report_path = os.path.join(output_dir, f"{meta_id}.html")
+        else:
+            report_path = os.path.join(output_dir, f"{meta_id}.html.raw")
+
+        tmp_path = f"{report_path}.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        os.replace(tmp_path, report_path)
+
+        if localize:
+            # 이전 방식의 원본이 남아 있으면 별도 한글화 단계가 새 리포트를 예전 내용으로 덮어쓴다
+            for suffix in (".html.raw", ".html.html"):
+                stale_path = os.path.join(output_dir, f"{meta_id}{suffix}")
+                if os.path.exists(stale_path):
+                    os.remove(stale_path)
+
+    def profile_one(self, meta_data, system_id: str, options: DataProfilingOptions, output_dir: Optional[str]) -> bool:
+        """테이블 하나를 프로파일링해 DB 에 저장하고, 설정에 따라 리포트를 쓴다. 저장했으면 True."""
+        from ydata_profiling import ProfileReport  # type: ignore
+
+        started = time.perf_counter()
+        catalog_name, db_name, table_name = self.get_trino_info(meta_data)
+        title = f"{system_id}.{db_name}.{table_name}"
+
+        excluded_cols: List[str] = []
+        try:
+            excluded_cols = self._get_excluded_string_columns_by_avg_len(
+                catalog_name=catalog_name, db_name=db_name, table_name=table_name,
+                max_avg_len=options.max_avg_str_len, sample_rows=options.avg_str_len_sample_rows,
+            )
+        except Exception as e:
+            self.logger.warning(f"avg string length 계산 실패 - 제외 없이 진행 [{title}] {e}")
+
+        try:
+            query = self._build_query_with_exclusions(
+                catalog_name=catalog_name, db_name=db_name, table_name=table_name,
+                limit_rows=options.limit_rows, excluded_columns=excluded_cols,
+            )
+            df = self.replace_null(fetch_as_dataframe(self.trino_connection, query))
+            if len(df) == 0 and query.strip().lower().startswith("select null where 1=0"):
+                self.logger.warning(f"\t 모든 컬럼이 제외되어 스킵 [{title}]")
+                return False
+
+            # 병렬 실행 때는 프로세스마다 코어 하나만 쓰도록 ydata 내부 스레드 풀과 진행 표시줄을 끈다
+            parallel_kwargs = {"pool_size": 1, "progress_bar": False} if options.workers > 1 else {}
+            report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative, **parallel_kwargs)
+            profile_dict = self._light_profile_dict(report)
+            self.upsert_profile_table(meta_data, db_name, profile_dict)
+            self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
+
+            if options.preview:
+                self._preview_top_k = options.preview_top_k
+                self._render_preview(title, df, report)
+
+            if options.generate_report and output_dir is not None:
+                self._write_report(report, meta_data.meta_id, output_dir, options.localize_report)
+
+            self.logger.info(f"\t 프로파일링 완료 [{title}] rows={len(df)} {time.perf_counter() - started:.1f}s")
+            return True
+        except Exception as e:
+            self.logger.error(f"data-profiling 실패 [{title}] {e}")
+            return False
+
+    def _estimate_rows(self, meta_data: MetaData) -> Optional[int]:
+        """지난 결과가 없는 테이블의 행 수를 Trino 통계(SHOW STATS)로 추정한다. 통계가 없거나 실패하면 None."""
+        catalog_name, db_name, table_name = self.get_trino_info(meta_data)
+        try:
+            rows = self.trino_get_all(f'SHOW STATS FOR "{catalog_name}"."{db_name}"."{table_name}"')
+        except Exception:
+            return None
+        for row in rows or []:
+            # column_name 이 NULL 인 행이 테이블 전체 요약이고, 다섯 번째 값이 row_count 다
+            if row[0] is None and row[4] is not None:
+                return int(row[4])
+        return None
+
+    def _plan_parallel(self, targets: List[MetaData], options: DataProfilingOptions) -> Dict[bool, deque]:
+        """테이블을 예상 행 수 내림차순으로 정렬해 {True: 큰 테이블 큐, False: 일반 큐} 로 나눈다.
+
+        예상 행 수는 지난 실행의 n_rows, 없으면 Trino 통계, 그것도 없으면 limit_rows(가장 크게) 로 본다.
+        큰 테이블부터 시작해야 마지막에 큰 테이블 하나만 남아 다른 워커가 노는 시간이 줄어든다.
+        """
+        prev_rows = dict(self.execute(
+            select(ProfileTable.meta_id, ProfileTable.n_rows)
+            .where(ProfileTable.meta_id.in_([m.meta_id for m in targets]))
+        ).all())
+        self.db_session.commit()  # 읽기만 했으므로 트랜잭션을 닫아 둔다(몇 시간짜리 실행 동안 idle in transaction 방지)
+
+        estimated = assumed = 0
+        for meta_data in targets:
+            if prev_rows.get(meta_data.meta_id) is None:
+                prev_rows[meta_data.meta_id] = self._estimate_rows(meta_data)
+                if prev_rows[meta_data.meta_id] is None:
+                    assumed += 1
+                else:
+                    estimated += 1
+        if estimated or assumed:
+            self.logger.info(f"\t 지난 결과가 없는 테이블: Trino 통계로 추정 {estimated}개, 큰 테이블로 간주 {assumed}개")
+
+        def expected_rows(meta_id: str) -> int:
+            n_rows = prev_rows.get(meta_id)
+            return options.limit_rows if n_rows is None else min(n_rows, options.limit_rows)
+
+        ordered = sorted((m.meta_id for m in targets), key=expected_rows, reverse=True)
+        return {
+            True: deque(i for i in ordered if expected_rows(i) >= _BIG_TABLE_ROWS),
+            False: deque(i for i in ordered if expected_rows(i) < _BIG_TABLE_ROWS),
+        }
+
+    def _profile_parallel(self, targets: List[MetaData], system_id: str, options: DataProfilingOptions,
+                          output_dir: Optional[str]) -> int:
+        """테이블을 워커 프로세스들에 나눠 맡기고, 저장한 테이블 수를 돌려준다.
+
+        - 큰 테이블(예상 행 수 _BIG_TABLE_ROWS 이상)은 동시에 big_workers 개까지만 돌려 메모리를 지킨다.
+        - 워커가 비정상 종료하면(메모리 초과 등) 풀 전체가 깨진다. 풀을 다시 만들고, 그때 돌던 테이블은 한 번만 다시 시도한다.
+        """
+        queues = self._plan_parallel(targets, options)
+        total = len(queues[True]) + len(queues[False])
+        big_limit = max(1, min(options.big_workers, options.workers))
+        self.logger.info(
+            f"\t 병렬 프로파일링 시작: 대상 {total}개(큰 테이블 {len(queues[True])}개), "
+            f"워커 {options.workers}개(큰 테이블은 동시에 {big_limit}개까지)"
+        )
+
+        # 워커마다 수치 연산 라이브러리 스레드를 하나로 묶는다(워커 수 x 코어 수로 불어나지 않게)
+        for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+            os.environ.setdefault(key, "1")
+
+        def new_pool() -> ProcessPoolExecutor:
+            return ProcessPoolExecutor(
+                max_workers=options.workers,
+                mp_context=multiprocessing.get_context("spawn"),
+                initializer=_init_profiling_worker,
+            )
+
+        pool = new_pool()
+        running: Dict[Any, Tuple[str, bool]] = {}
+        retried = set()
+        saved = finished = 0
+        next_progress = 100
+        try:
+            while queues[True] or queues[False] or running:
+                while len(running) < options.workers:
+                    running_big = sum(is_big for _, is_big in running.values())
+                    is_big = bool(queues[True]) and running_big < big_limit
+                    if not is_big and not queues[False]:
+                        break
+                    meta_id = queues[is_big].popleft()
+                    future = pool.submit(_profile_in_worker, meta_id, system_id, options, output_dir)
+                    running[future] = (meta_id, is_big)
+
+                done, _ = wait(running, return_when=FIRST_COMPLETED)
+                lost: List[Tuple[str, bool]] = []
+                for future in done:
+                    meta_id, is_big = running.pop(future)
+                    try:
+                        saved += bool(future.result())
+                        finished += 1
+                    except BrokenProcessPool:
+                        lost.append((meta_id, is_big))
+                    except Exception as e:
+                        finished += 1
+                        self.logger.error(f"data-profiling 실패 [{meta_id}] {e}")
+
+                if lost:
+                    # 풀이 깨지면 그때 돌던 작업도 모두 실패로 끝나므로 함께 다시 넣는다
+                    lost += list(running.values())
+                    running.clear()
+                    pool.shutdown(wait=False)
+                    pool = new_pool()
+                    self.logger.warning(f"\t 워커 비정상 종료 - 풀을 다시 만들고 {len(lost)}개 테이블을 다시 시도")
+                    for meta_id, is_big in lost:
+                        if meta_id in retried:
+                            finished += 1
+                            self.logger.error(f"data-profiling 실패 [{meta_id}] 워커 비정상 종료가 반복되어 건너뜀")
+                        else:
+                            retried.add(meta_id)
+                            queues[is_big].appendleft(meta_id)
+
+                if finished >= next_progress:
+                    self.logger.info(f"\t 진행 {finished}/{total} (저장 {saved})")
+                    next_progress += 100
+        finally:
+            pool.shutdown()
+        return saved
+
     def profiling(self, system_id: str, filter_include, filter_exclude, options: DataProfilingOptions):
         start_time = datetime.now()
-        self.logger.info(f"\t data-profiling 시작 [{system_id}]")
+        self.logger.info(f"\t data-profiling 시작 [{system_id}] workers={options.workers}")
 
         output_dir = self._ensure_output_dir(options.output_dir) if options.generate_report else None
 
@@ -409,64 +678,21 @@ class DataProfilingTable(ProfilingCommon):
 
         meta_data_list = self.get_meta_data_by_system_id("table", system_id)
         profiling_filter_count = 0
-        profiling_save_count = 0
-
-        try:
-            from ydata_profiling import ProfileReport  # type: ignore
-        except Exception as e:  # pragma: no cover
-            raise RuntimeError(
-                "ydata-profiling 이 필요합니다. (pip install ydata-profiling)"
-            ) from e
-
+        targets: List[MetaData] = []
         for meta_data in meta_data_list:
-            catalog_name, db_name, table_name = self.get_trino_info(meta_data)
+            _catalog_name, db_name, table_name = self.get_trino_info(meta_data)
             if self.check_filter(filter_include, filter_exclude, FilterOption.DATABASE.value, db_name):
                 profiling_filter_count += 1
                 continue
             if self.check_filter(filter_include, filter_exclude, FilterOption.TABLE.value, table_name):
                 profiling_filter_count += 1
                 continue
+            targets.append(meta_data)
 
-            excluded_cols: List[str] = []
-            try:
-                excluded_cols = self._get_excluded_string_columns_by_avg_len(
-                    catalog_name=catalog_name, db_name=db_name, table_name=table_name,
-                    max_avg_len=options.max_avg_str_len, sample_rows=options.avg_str_len_sample_rows,
-                )
-            except Exception as e:
-                self.logger.warning(
-                    f"avg string length 계산 실패 - 제외 없이 진행 [{system_id}.{db_name}.{table_name}] {e}"
-                )
-
-            query = self._build_query_with_exclusions(
-                catalog_name=catalog_name, db_name=db_name, table_name=table_name,
-                limit_rows=options.limit_rows, excluded_columns=excluded_cols,
-            )
-            title = f"{system_id}.{db_name}.{table_name}"
-            try:
-                df = self.replace_null(fetch_as_dataframe(self.trino_connection, query))
-                if len(df) == 0 and query.strip().lower().startswith("select null where 1=0"):
-                    self.logger.warning(f"\t 모든 컬럼이 제외되어 스킵 [{title}]")
-                    continue
-
-                report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative)
-                profile_dict = json.loads(report.to_json())
-                self.upsert_profile_table(meta_data, db_name, profile_dict)
-                self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
-
-                if options.preview:
-                    self._preview_top_k = options.preview_top_k
-                    self._render_preview(title, df, report)
-
-                if options.generate_report and output_dir is not None:
-                    report_path = os.path.join(output_dir, f"{meta_data.meta_id}.html.raw")
-                    with open(report_path, "w", encoding="utf-8") as f:
-                        f.write(report.to_html())
-
-                self.logger.info(f"\t 프로파일링 완료 [{title}] rows={len(df)}")
-                profiling_save_count += 1
-            except Exception as e:
-                self.logger.error(f"data-profiling 실패 [{system_id}.{db_name}.{table_name}] {e}")
+        if options.workers > 1 and len(targets) > 1:
+            profiling_save_count = self._profile_parallel(targets, system_id, options, output_dir)
+        else:
+            profiling_save_count = sum(self.profile_one(m, system_id, options, output_dir) for m in targets)
 
         duration = datetime.now() - start_time
         self.logger.info(
@@ -474,6 +700,31 @@ class DataProfilingTable(ProfilingCommon):
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Total Table Count : {len(meta_data_list)}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Filter Count : {profiling_filter_count}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Saved Count : {profiling_save_count}\n"
+            f"\t\t\t\t\t\t\t\t\t\t\t\t\t Workers : {options.workers}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Total Time : {duration}"
         )
+
+
+# 병렬 실행용: 워커 프로세스마다 하나씩 만든다.
+_worker: Optional[DataProfilingTable] = None
+
+
+def _init_profiling_worker() -> None:
+    """워커 프로세스마다 DB 세션과 Trino 커서를 하나씩 연다(연결은 프로세스끼리 공유할 수 없다)."""
+    global _worker
+    from DataProfiling.configs.database_session import create_session as db_create_session
+    from DataProfiling.configs.trino_session import create_session as trino_create_session
+
+    sessions = contextlib.ExitStack()
+    db_session = sessions.enter_context(db_create_session())
+    trino_cursor = sessions.enter_context(trino_create_session())
+    mp_util.Finalize(None, sessions.close, exitpriority=10)
+    _worker = DataProfilingTable(db_session, trino_cursor)
+
+
+def _profile_in_worker(meta_id: str, system_id: str, options: DataProfilingOptions, output_dir: Optional[str]) -> bool:
+    meta_data = _worker.get_one(select(MetaData).where(MetaData.meta_id == meta_id))
+    if meta_data is None:
+        return False
+    return _worker.profile_one(meta_data, system_id, options, output_dir)
 
