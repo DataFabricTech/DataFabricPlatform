@@ -140,34 +140,54 @@ def _localize_text(text: str) -> str:
     return _replace_labels(re.sub(r"Other values \((\d+)\)", r"기타 값 (\1개)", text))
 
 
-def _localize_script_display_values(script: str) -> str:
-    """Translate only known display strings; never apply UI labels to all JS."""
-    script = re.sub(r'(?P<column>[^"\r\n]+?) has constant value (?:""|\\"\\")', r"\g<column>: 상수값", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has (?P<count>\d[\d,]*) \((?P<percent>[\d.]+%)\) missing values", r"\g<column>: 결측값 \g<count>개(\g<percent>)", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has (?P<count>\d[\d,]*) \((?P<percent>[\d.]+%)\) zeros", r"\g<column>: 0값 \g<count>개(\g<percent>)", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has unique values", r"\g<column>: 유일값", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has high cardinality", r"\g<column>: 고유값 수가 많음", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has infinite values", r"\g<column>: 무한값 포함", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) has predominantly zeros", r"\g<column>: 대부분 0값", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) is highly skewed \(γ1 = (?P<skew>[^)]+)\)", r"\g<column>: 왜도가 높음(γ1 = \g<skew>)", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) is non stationary", r"\g<column>: 비정상 시계열", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) is seasonal", r"\g<column>: 계절성 있음", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) is uniformly distributed", r"\g<column>: 균등 분포", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) is an unsupported type, check if it needs cleaning or further analysis", r"\g<column>: 지원되지 않는 유형(정제 또는 추가 분석 필요)", script)
-    script = re.sub(r"(?P<column>[^\"\r\n]+?) was rejected", r"\g<column>: 제외됨", script)
-    script = re.sub(r"Other values \((\d+)\)", r"기타 값 (\1개)", script)
+# (매치에 반드시 들어가는 문구, 정규식, 치환) - 문구가 없으면 정규식을 돌리지 않는다.
+_SCRIPT_DISPLAY_RULES = [
+    (literal, re.compile(pattern), replacement)
+    for literal, pattern, replacement in (
+        (" has constant value ", r'(?P<column>[^"\r\n]+?) has constant value (?:""|\\"\\")', r"\g<column>: 상수값"),
+        (" missing values", r"(?P<column>[^\"\r\n]+?) has (?P<count>\d[\d,]*) \((?P<percent>[\d.]+%)\) missing values", r"\g<column>: 결측값 \g<count>개(\g<percent>)"),
+        ("%) zeros", r"(?P<column>[^\"\r\n]+?) has (?P<count>\d[\d,]*) \((?P<percent>[\d.]+%)\) zeros", r"\g<column>: 0값 \g<count>개(\g<percent>)"),
+        (" has unique values", r"(?P<column>[^\"\r\n]+?) has unique values", r"\g<column>: 유일값"),
+        (" has high cardinality", r"(?P<column>[^\"\r\n]+?) has high cardinality", r"\g<column>: 고유값 수가 많음"),
+        (" has infinite values", r"(?P<column>[^\"\r\n]+?) has infinite values", r"\g<column>: 무한값 포함"),
+        (" has predominantly zeros", r"(?P<column>[^\"\r\n]+?) has predominantly zeros", r"\g<column>: 대부분 0값"),
+        (" is highly skewed (", r"(?P<column>[^\"\r\n]+?) is highly skewed \(γ1 = (?P<skew>[^)]+)\)", r"\g<column>: 왜도가 높음(γ1 = \g<skew>)"),
+        (" is non stationary", r"(?P<column>[^\"\r\n]+?) is non stationary", r"\g<column>: 비정상 시계열"),
+        (" is seasonal", r"(?P<column>[^\"\r\n]+?) is seasonal", r"\g<column>: 계절성 있음"),
+        (" is uniformly distributed", r"(?P<column>[^\"\r\n]+?) is uniformly distributed", r"\g<column>: 균등 분포"),
+        (" is an unsupported type", r"(?P<column>[^\"\r\n]+?) is an unsupported type, check if it needs cleaning or further analysis", r"\g<column>: 지원되지 않는 유형(정제 또는 추가 분석 필요)"),
+        (" was rejected", r"(?P<column>[^\"\r\n]+?) was rejected", r"\g<column>: 제외됨"),
+        ("Other values (", r"Other values \((\d+)\)", r"기타 값 (\1개)"),
+    )
+]
+
+_SCRIPT_LABEL_RULES = [
+    (english, re.compile(rf'(?P<quote>["\']){re.escape(english)}(?P=quote)'), korean)
     for english, korean in {
         **_UNICODE_GENERAL_CATEGORY_KO_LABELS,
         **_UNICODE_BLOCK_KO_LABELS,
         **_UNICODE_SCRIPT_KO_LABELS,
-    }.items():
-        script = re.sub(rf'(?P<quote>["\']){re.escape(english)}(?P=quote)', lambda m: f"{m.group('quote')}{korean}{m.group('quote')}", script)
+    }.items()
+]
+
+
+def _localize_script_display_values(script: str) -> str:
+    """Translate only known display strings; never apply UI labels to all JS.
+
+    리포트마다 들어 있는 jQuery·Bootstrap 스크립트(약 135KB)에는 이 문구가 없다.
+    문구가 있는 스크립트에만 정규식을 돌려, 결과는 같고 리포트당 약 2초를 줄인다.
+    """
+    for literal, pattern, replacement in _SCRIPT_DISPLAY_RULES:
+        if literal in script:
+            script = pattern.sub(replacement, script)
+    for english, pattern, korean in _SCRIPT_LABEL_RULES:
+        if english in script:
+            script = pattern.sub(lambda m, ko=korean: f"{m.group('quote')}{ko}{m.group('quote')}", script)
     return script
 
 
-def localize_report_html_to_korean(report_path: str | Path, output_path: str | Path | None = None) -> None:
-    path = Path(report_path)
-    html = path.read_text(encoding="utf-8")
+def localize_html_to_korean(html: str) -> str:
+    """리포트 HTML 문자열의 화면 문구를 한글로 바꿔 돌려준다."""
     blocks = re.split(r"(<(?:script|style)\b[^>]*>.*?</(?:script|style)\s*>)", html, flags=re.IGNORECASE | re.DOTALL)
     for index, block in enumerate(blocks):
         if index % 2 == 0:
@@ -179,7 +199,12 @@ def localize_report_html_to_korean(report_path: str | Path, output_path: str | P
             )
         elif re.match(r"<script\b", block, flags=re.IGNORECASE):
             blocks[index] = _localize_script_display_values(block)
-    localized_html = "".join(blocks)
+    return "".join(blocks)
+
+
+def localize_report_html_to_korean(report_path: str | Path, output_path: str | Path | None = None) -> None:
+    path = Path(report_path)
+    localized_html = localize_html_to_korean(path.read_text(encoding="utf-8"))
 
     dest = Path(output_path) if output_path is not None else path
     tmp = dest.with_name(dest.name + ".tmp")
