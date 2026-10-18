@@ -1,15 +1,20 @@
 import argparse
+import ctypes
 import os
 import sys
+from typing import Optional
 
 from DataProfiling.configs.database_session import create_session as db_create_session
 from DataProfiling.configs.trino_session import create_session as trino_create_session
 from DataProfiling.process.profiling_common import FilterOption
+from DataProfiling.utils.logger import get_logger
 
 from DataProfiling.process.data_profiling_table import (
     DataProfilingOptions,
     DataProfilingTable,
 )
+
+_RESERVE_MEMORY_GB = 2.0
 
 
 def parse_key_value_list(kv_list):
@@ -29,13 +34,101 @@ def parse_key_value_list(kv_list):
     return result if len(result) > 0 else None
 
 
-def auto_workers(reserve_cores: int) -> int:
-    """이 프로세스가 쓸 수 있는 코어 수에서 reserve_cores 개를 다른 작업용으로 남긴 수(최소 1)."""
-    if hasattr(os, "sched_getaffinity"):  # 리눅스: 컨테이너 cpuset 제한을 반영
-        cores = len(os.sched_getaffinity(0))
+def available_cores() -> int:
+    if hasattr(os, "sched_getaffinity"):
+        return len(os.sched_getaffinity(0))
+    return os.cpu_count() or 1
+
+
+def cpu_quota_cores() -> Optional[float]:
+    """컨테이너 CPU 한도(cgroup v2, v1)를 코어 수로. 한도가 없으면 None."""
+    try:
+        with open("/sys/fs/cgroup/cpu.max") as f:
+            quota, period = f.read().split()
+        return None if quota == "max" else int(quota) / int(period)
+    except (OSError, ValueError):
+        pass
+    try:
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us") as f:
+            quota = int(f.read())
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_period_us") as f:
+            period = int(f.read())
+        return None if quota <= 0 else quota / period
+    except (OSError, ValueError):
+        return None
+
+
+def available_memory_gb() -> Optional[float]:
+    """가용 메모리(GB). 호스트 여유와 컨테이너 한도 안의 여유 중 작은 값, 모르면 None."""
+    candidates = []
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    candidates.append(int(line.split()[1]) / 2**20)
+                    break
+    except OSError:
+        pass
+
+    for limit_path, usage_path in (
+        ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory.current"),
+        ("/sys/fs/cgroup/memory/memory.limit_in_bytes", "/sys/fs/cgroup/memory/memory.usage_in_bytes"),
+    ):
+        try:
+            with open(limit_path) as f:
+                limit = f.read().strip()
+            with open(usage_path) as f:
+                usage = int(f.read().strip())
+        except (OSError, ValueError):
+            continue
+        if limit.isdigit() and int(limit) < 2**60:
+            candidates.append((int(limit) - usage) / 2**30)
+        break
+
+    if not candidates and os.name == "nt":
+        class _MemoryStatus(ctypes.Structure):
+            _fields_ = [("dwLength", ctypes.c_uint32), ("dwMemoryLoad", ctypes.c_uint32),
+                        ("ullTotalPhys", ctypes.c_uint64), ("ullAvailPhys", ctypes.c_uint64),
+                        ("ullTotalPageFile", ctypes.c_uint64), ("ullAvailPageFile", ctypes.c_uint64),
+                        ("ullTotalVirtual", ctypes.c_uint64), ("ullAvailVirtual", ctypes.c_uint64),
+                        ("ullAvailExtendedVirtual", ctypes.c_uint64)]
+
+        status = _MemoryStatus()
+        status.dwLength = ctypes.sizeof(status)
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            candidates.append(status.ullAvailPhys / 2**30)
+
+    return min(candidates) if candidates else None
+
+
+def worker_memory_gb(limit_rows: int) -> float:
+    """워커 하나의 메모리 추정(GB): 기본 0.5GB + 100만 행당 3GB."""
+    return 0.5 + 3.0 * limit_rows / 1_000_000
+
+
+def auto_workers(cpu_ratio: float, limit_rows: int) -> int:
+    """코어 기준(컨테이너 CPU 한도, 없으면 코어 수 x cpu_ratio)과 메모리 기준 중 작은 값."""
+    quota = cpu_quota_cores()
+    if quota is not None:
+        by_cores = max(1, int(quota))
+        cores_rule = f"컨테이너 CPU 한도 {quota:g}코어"
     else:
-        cores = os.cpu_count() or 1
-    return max(1, cores - reserve_cores)
+        cores = available_cores()
+        by_cores = max(1, int(cores * cpu_ratio))
+        cores_rule = f"코어 {cores}개 x {cpu_ratio:g}"
+
+    available = available_memory_gb()
+    if available is None:
+        get_logger().info(f"\t 워커 수 자동 결정: {by_cores}개 ({cores_rule}, 메모리 정보 없음)")
+        return by_cores
+    per_worker = worker_memory_gb(limit_rows)
+    by_memory = max(1, int((available - _RESERVE_MEMORY_GB) / per_worker))
+    workers = min(by_cores, by_memory)
+    get_logger().info(
+        f"\t 워커 수 자동 결정: {workers}개 (코어 기준 {by_cores}: {cores_rule} / 메모리 기준 {by_memory}: "
+        f"가용 {available:.1f}GB - 예비 {_RESERVE_MEMORY_GB:.0f}GB, 워커당 {per_worker:.1f}GB 추정)"
+    )
+    return workers
 
 
 def main():
@@ -83,13 +176,13 @@ def main():
         "--workers",
         type=int,
         default=int(os.getenv("PROFILING_WORKERS", "0")),
-        help="테이블을 동시에 처리할 프로세스 수, 0이면 CPU 코어 수 - reserve_cores (기본: 환경변수 PROFILING_WORKERS, 없으면 0)",
+        help="테이블을 동시에 처리할 프로세스 수, 0이면 자동: 코어 수 x cpu_ratio 와 가용 메모리 중 작은 쪽 (기본: 환경변수 PROFILING_WORKERS, 없으면 0)",
     )
     parser.add_argument(
-        "--reserve_cores",
-        type=int,
-        default=2,
-        help="--workers 0 일 때 다른 작업용으로 남겨 둘 코어 수 (기본: 2)",
+        "--cpu_ratio",
+        type=float,
+        default=float(os.getenv("PROFILING_CPU_RATIO", "0.5")),
+        help="--workers 0 일 때 쓸 코어 비율. 컨테이너 CPU 한도(docker cpus)가 있으면 그 한도를 대신 쓴다 (기본: 0.5)",
     )
     parser.add_argument(
         "--big_workers",
@@ -123,10 +216,19 @@ def main():
         preview_top_k=args.preview_top_k,
         max_avg_str_len=args.max_avg_str_len,
         avg_str_len_sample_rows=args.avg_str_len_sample_rows,
-        workers=args.workers if args.workers > 0 else auto_workers(args.reserve_cores),
+        workers=args.workers if args.workers > 0 else auto_workers(args.cpu_ratio, args.limit_rows),
         big_workers=args.big_workers,
         localize_report=bool(args.localize_report),
     )
+
+    if args.workers > 1:
+        available = available_memory_gb()
+        needed = args.workers * worker_memory_gb(args.limit_rows) + _RESERVE_MEMORY_GB
+        if available is not None and available < needed:
+            get_logger().warning(
+                f"\t 워커 {args.workers}개는 메모리 약 {needed:.1f}GB 가 필요한데 가용 메모리가 {available:.1f}GB 입니다. "
+                f"--workers 를 줄이거나 --limit_rows 를 낮추세요."
+            )
 
     try:
         with db_create_session() as db_session:
