@@ -51,9 +51,7 @@ if _korean_font:
     _plt.rcParams["font.sans-serif"] = [_korean_font] + list(_plt.rcParams.get("font.sans-serif", []))
 _plt.rcParams["axes.unicode_minus"] = False
 
-# 워드클라우드는 matplotlib 폰트가 아니라 wordcloud 기본 폰트(한글 없음)로 그린다.
-# 한글 폰트 파일을 넘긴다(도커 이미지는 빌드 때 plot.py 에 font_path 를 넣어 두었고, 그 값이 우선한다).
-# 또 단어·글자 크기마다 폰트 파일을 다시 열지 않도록 (폰트, 크기)별로 캐시한다. 그려지는 이미지는 같다.
+# 워드클라우드 한글 폰트 지정 + (폰트, 크기)별 폰트 캐시
 import wordcloud.wordcloud as _wordcloud_module  # noqa: E402
 import ydata_profiling.visualisation.plot as _ydata_plot  # noqa: E402
 from PIL import ImageFont as _ImageFont  # noqa: E402
@@ -76,9 +74,7 @@ class _CachedImageFont:
 
 _wordcloud_module.ImageFont = _CachedImageFont()
 
-# DB 에 저장하지 않는 큰 항목(컬럼별 값 빈도 전체). to_json 직렬화에서 빼면 시간과 메모리가 크게 준다.
 _HEAVY_KEYS = ("value_counts_without_nan", "value_counts_index_sorted", "word_counts")
-# 지난 실행 행 수가 이 이상인 테이블은 메모리를 많이 써서, 병렬 실행 때 동시에 돌리는 개수를 따로 제한한다.
 _BIG_TABLE_ROWS = 100_000
 
 
@@ -268,11 +264,7 @@ class DataProfilingTable(ProfilingCommon):
             self.upsert_data(ProfileColumn, update_data, "column_id")
 
     def _light_profile_dict(self, report) -> Dict[str, Any]:
-        """json.loads(report.to_json()) 과 같은 dict 를 만들되, DB 에 넣지 않는 큰 항목은 직렬화하지 않는다.
-
-        to_json 은 컬럼마다 값 빈도 전체를 문자열로 만들어 행 수가 늘수록 느려지고 메모리를 많이 쓴다.
-        큰 항목은 잠시 빼고 직렬화한 뒤 되돌리고(HTML 은 그대로 그려진다), top_value_counts 용 상위 5개만 넣어 둔다.
-        """
+        """json.loads(report.to_json()) 과 같은 dict. DB 에 넣지 않는 큰 항목은 빼고 직렬화한다."""
         variables = report.get_description().variables
         tops: Dict[str, Optional[Dict[str, Any]]] = {}
         heavy: Dict[str, Dict[str, Any]] = {}
@@ -477,7 +469,7 @@ class DataProfilingTable(ProfilingCommon):
             self.logger.info(f"\t stale HTML {removed}개 정리 [{system_id}]")
 
     def _write_report(self, report, meta_id: str, output_dir: str, localize: bool) -> None:
-        """HTML 을 끝까지 만든 뒤 임시 파일에 쓰고 이름을 바꾼다. 렌더링이 실패해도 기존 리포트는 그대로 남는다."""
+        """HTML 을 다 만든 뒤 임시 파일에 쓰고 이름을 바꾼다."""
         html = report.to_html()
         if localize:
             html = localize_html_to_korean(html)
@@ -491,7 +483,6 @@ class DataProfilingTable(ProfilingCommon):
         os.replace(tmp_path, report_path)
 
         if localize:
-            # 이전 방식의 원본이 남아 있으면 별도 한글화 단계가 새 리포트를 예전 내용으로 덮어쓴다
             for suffix in (".html.raw", ".html.html"):
                 stale_path = os.path.join(output_dir, f"{meta_id}{suffix}")
                 if os.path.exists(stale_path):
@@ -524,7 +515,6 @@ class DataProfilingTable(ProfilingCommon):
                 self.logger.warning(f"\t 모든 컬럼이 제외되어 스킵 [{title}]")
                 return False
 
-            # 병렬 실행 때는 프로세스마다 코어 하나만 쓰도록 ydata 내부 스레드 풀과 진행 표시줄을 끈다
             parallel_kwargs = {"pool_size": 1, "progress_bar": False} if options.workers > 1 else {}
             report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative, **parallel_kwargs)
             profile_dict = self._light_profile_dict(report)
@@ -545,29 +535,24 @@ class DataProfilingTable(ProfilingCommon):
             return False
 
     def _estimate_rows(self, meta_data: MetaData) -> Optional[int]:
-        """지난 결과가 없는 테이블의 행 수를 Trino 통계(SHOW STATS)로 추정한다. 통계가 없거나 실패하면 None."""
+        """Trino SHOW STATS 의 row_count. 통계가 없으면 None."""
         catalog_name, db_name, table_name = self.get_trino_info(meta_data)
         try:
             rows = self.trino_get_all(f'SHOW STATS FOR "{catalog_name}"."{db_name}"."{table_name}"')
         except Exception:
             return None
         for row in rows or []:
-            # column_name 이 NULL 인 행이 테이블 전체 요약이고, 다섯 번째 값이 row_count 다
-            if row[0] is None and row[4] is not None:
+            if row[0] is None and row[4] is not None:  # column_name 이 NULL 인 행의 row_count
                 return int(row[4])
         return None
 
     def _plan_parallel(self, targets: List[MetaData], options: DataProfilingOptions) -> Dict[bool, deque]:
-        """테이블을 예상 행 수 내림차순으로 정렬해 {True: 큰 테이블 큐, False: 일반 큐} 로 나눈다.
-
-        예상 행 수는 지난 실행의 n_rows, 없으면 Trino 통계, 그것도 없으면 limit_rows(가장 크게) 로 본다.
-        큰 테이블부터 시작해야 마지막에 큰 테이블 하나만 남아 다른 워커가 노는 시간이 줄어든다.
-        """
+        """예상 행 수(지난 n_rows → Trino 통계 → limit_rows) 내림차순으로 {True: 큰 테이블, False: 일반} 큐를 만든다."""
         prev_rows = dict(self.execute(
             select(ProfileTable.meta_id, ProfileTable.n_rows)
             .where(ProfileTable.meta_id.in_([m.meta_id for m in targets]))
         ).all())
-        self.db_session.commit()  # 읽기만 했으므로 트랜잭션을 닫아 둔다(몇 시간짜리 실행 동안 idle in transaction 방지)
+        self.db_session.commit()  # 긴 실행 동안 트랜잭션을 열어 두지 않는다
 
         estimated = assumed = 0
         for meta_data in targets:
@@ -592,11 +577,7 @@ class DataProfilingTable(ProfilingCommon):
 
     def _profile_parallel(self, targets: List[MetaData], system_id: str, options: DataProfilingOptions,
                           output_dir: Optional[str]) -> int:
-        """테이블을 워커 프로세스들에 나눠 맡기고, 저장한 테이블 수를 돌려준다.
-
-        - 큰 테이블(예상 행 수 _BIG_TABLE_ROWS 이상)은 동시에 big_workers 개까지만 돌려 메모리를 지킨다.
-        - 워커가 비정상 종료하면(메모리 초과 등) 풀 전체가 깨진다. 풀을 다시 만들고, 그때 돌던 테이블은 한 번만 다시 시도한다.
-        """
+        """테이블을 워커 프로세스에 나눠 처리하고 저장한 수를 돌려준다. 큰 테이블은 동시에 big_workers 개까지."""
         queues = self._plan_parallel(targets, options)
         total = len(queues[True]) + len(queues[False])
         big_limit = max(1, min(options.big_workers, options.workers))
@@ -605,7 +586,6 @@ class DataProfilingTable(ProfilingCommon):
             f"워커 {options.workers}개(큰 테이블은 동시에 {big_limit}개까지)"
         )
 
-        # 워커마다 수치 연산 라이브러리 스레드를 하나로 묶는다(워커 수 x 코어 수로 불어나지 않게)
         for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
             os.environ.setdefault(key, "1")
 
@@ -646,7 +626,6 @@ class DataProfilingTable(ProfilingCommon):
                         self.logger.error(f"data-profiling 실패 [{meta_id}] {e}")
 
                 if lost:
-                    # 풀이 깨지면 그때 돌던 작업도 모두 실패로 끝나므로 함께 다시 넣는다
                     lost += list(running.values())
                     running.clear()
                     pool.shutdown(wait=False)
@@ -705,12 +684,11 @@ class DataProfilingTable(ProfilingCommon):
         )
 
 
-# 병렬 실행용: 워커 프로세스마다 하나씩 만든다.
 _worker: Optional[DataProfilingTable] = None
 
 
 def _init_profiling_worker() -> None:
-    """워커 프로세스마다 DB 세션과 Trino 커서를 하나씩 연다(연결은 프로세스끼리 공유할 수 없다)."""
+    """워커 프로세스마다 DB 세션과 Trino 커서를 연다."""
     global _worker
     from DataProfiling.configs.database_session import create_session as db_create_session
     from DataProfiling.configs.trino_session import create_session as trino_create_session

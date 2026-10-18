@@ -140,7 +140,7 @@ def _localize_text(text: str) -> str:
     return _replace_labels(re.sub(r"Other values \((\d+)\)", r"기타 값 (\1개)", text))
 
 
-# (매치에 반드시 들어가는 문구, 정규식, 치환) - 문구가 없으면 정규식을 돌리지 않는다.
+# (문구, 정규식, 치환): 문구가 없는 스크립트에는 정규식을 돌리지 않는다
 _SCRIPT_DISPLAY_RULES = [
     (literal, re.compile(pattern), replacement)
     for literal, pattern, replacement in (
@@ -172,11 +172,7 @@ _SCRIPT_LABEL_RULES = [
 
 
 def _localize_script_display_values(script: str) -> str:
-    """Translate only known display strings; never apply UI labels to all JS.
-
-    리포트마다 들어 있는 jQuery·Bootstrap 스크립트(약 135KB)에는 이 문구가 없다.
-    문구가 있는 스크립트에만 정규식을 돌려, 결과는 같고 리포트당 약 2초를 줄인다.
-    """
+    """Translate only known display strings; never apply UI labels to all JS."""
     for literal, pattern, replacement in _SCRIPT_DISPLAY_RULES:
         if literal in script:
             script = pattern.sub(replacement, script)
