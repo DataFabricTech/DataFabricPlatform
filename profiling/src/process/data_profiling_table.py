@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from itertools import islice
 
 import numpy as np
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from DataProfiling.models.postgres import MetaData, ProfileColumn, ProfileTable
 from DataProfiling.process.profiling_common import FilterOption, ProfilingCommon
@@ -76,6 +76,7 @@ _wordcloud_module.ImageFont = _CachedImageFont()
 
 _HEAVY_KEYS = ("value_counts_without_nan", "value_counts_index_sorted", "word_counts")
 _BIG_TABLE_ROWS = 100_000
+_LIKE_ESCAPE = str.maketrans({"\\": "\\\\", "%": "\\%", "_": "\\_"})
 
 
 def _json_key(value: Any) -> Any:
@@ -159,6 +160,11 @@ class DataProfilingTable(ProfilingCommon):
             }
         return m
 
+    def _column_id(self, meta_data, meta_col_map: Dict[str, Dict[str, Any]], col_name: Any) -> str:
+        meta_col = meta_col_map.get(str(col_name).lower(), {})
+        display_name = meta_col.get("meta_name", str(col_name))
+        return meta_col.get("qualified_name") or f"{meta_data.qualified_name}.{display_name}"
+
     def upsert_profile_table(
         self,
         meta_data,
@@ -192,7 +198,7 @@ class DataProfilingTable(ProfilingCommon):
             column_types=table.get("types"),
         )
 
-        self.upsert_data(ProfileTable, update_data, "meta_id")
+        self.upsert_many(ProfileTable, [update_data], "meta_id")
 
     def upsert_profile_columns(
         self,
@@ -201,12 +207,13 @@ class DataProfilingTable(ProfilingCommon):
         table_name: str,
         profile_dict: Dict[str, Any],
         err_description: Optional[str] = None,
-    ):
+    ) -> List[str]:
         variables = profile_dict.get("variables") or {}
         if not isinstance(variables, dict):
-            return
+            return []
 
         meta_col_map = self._parse_meta_columns(meta_data)
+        rows: List[Dict[str, Any]] = []
 
         for col_name, v in variables.items():
             if not isinstance(v, dict):
@@ -214,9 +221,7 @@ class DataProfilingTable(ProfilingCommon):
 
             meta_col = meta_col_map.get(str(col_name).lower(), {})
             col_display_name = meta_col.get("meta_name", str(col_name))
-            qualified_name = meta_col.get("qualified_name")
-            if not qualified_name:
-                qualified_name = f"{meta_data.qualified_name}.{col_display_name}"
+            qualified_name = self._column_id(meta_data, meta_col_map, col_name)
 
             top_counts = v.get("value_counts_without_nan")
             if hasattr(top_counts, 'items'):
@@ -261,7 +266,45 @@ class DataProfilingTable(ProfilingCommon):
                 attributes=self.replace_nan(v),
             )
 
-            self.upsert_data(ProfileColumn, update_data, "column_id")
+            rows.append(update_data)
+
+        self.upsert_many(ProfileColumn, rows, "column_id")
+        return [r["column_id"] for r in rows]
+
+    def _delete_stale_columns(self, meta_data, keep_column_ids: Sequence[str]) -> None:
+        if not keep_column_ids:
+            return
+
+        prefix = f"{meta_data.qualified_name}.".translate(_LIKE_ESCAPE)
+        result = self.execute(
+            delete(ProfileColumn).where(
+                ProfileColumn.column_id.like(f"{prefix}%", escape="\\"),
+                ProfileColumn.column_id.notin_(list(keep_column_ids)),
+            )
+        )
+        if result.rowcount:
+            self.logger.info(f"\t 삭제된 컬럼 통계 {result.rowcount}개 정리 [{meta_data.qualified_name}]")
+
+    def save_profile(
+        self,
+        meta_data,
+        db_name: str,
+        table_name: str,
+        profile_dict: Dict[str, Any],
+        excluded_columns: Sequence[str] = (),
+    ) -> None:
+        try:
+            self.upsert_profile_table(meta_data, db_name, profile_dict)
+            saved_column_ids = self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
+
+            meta_col_map = self._parse_meta_columns(meta_data)
+            keep = saved_column_ids + [self._column_id(meta_data, meta_col_map, c) for c in excluded_columns]
+            self._delete_stale_columns(meta_data, keep)
+
+            self.db_session.commit()
+        except Exception:
+            self.db_session.rollback()
+            raise
 
     def _light_profile_dict(self, report) -> Dict[str, Any]:
         """json.loads(report.to_json()) 과 같은 dict. DB 에 넣지 않는 큰 항목은 빼고 직렬화한다."""
@@ -518,8 +561,7 @@ class DataProfilingTable(ProfilingCommon):
             parallel_kwargs = {"pool_size": 1, "progress_bar": False} if options.workers > 1 else {}
             report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative, **parallel_kwargs)
             profile_dict = self._light_profile_dict(report)
-            self.upsert_profile_table(meta_data, db_name, profile_dict)
-            self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
+            self.save_profile(meta_data, db_name, table_name, profile_dict, excluded_cols)
 
             if options.preview:
                 self._preview_top_k = options.preview_top_k

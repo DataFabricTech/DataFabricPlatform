@@ -35,6 +35,20 @@ class ProfilingCommon(DataBaseManager):
                    MetaData.qualified_name.like(f"{system_id}%"))
         )
 
+    def upsert_many(self, update_table, rows: List[dict], update_key: str):
+        if not rows:
+            return
+
+        set_columns = [c for c in rows[0] if c != update_key]
+        chunk_size = max(1, 60000 // len(rows[0])) # PostgresQL 상항 제한
+        for start in range(0, len(rows), chunk_size):
+            stmt = insert(update_table).values(rows[start:start + chunk_size])
+            stmt = stmt.on_conflict_do_update(
+                index_elements=[update_key],
+                set_={c: getattr(stmt.excluded, c) for c in set_columns},
+            )
+            self.execute(stmt)
+
     def upsert_data(self, update_table, update_data: dict, update_key: str):
 
         stmt = insert(update_table).values(update_data)
