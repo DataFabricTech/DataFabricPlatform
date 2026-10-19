@@ -5,6 +5,7 @@ import sys
 from typing import Optional
 
 from DataProfiling.configs.database_session import create_session as db_create_session
+from DataProfiling.configs.process_config import process_config
 from DataProfiling.configs.trino_session import create_session as trino_create_session
 from DataProfiling.process.profiling_common import FilterOption
 from DataProfiling.utils.logger import get_logger
@@ -137,8 +138,11 @@ def main():
         epilog="* include, exclude 설정 가능한 인자 : database, table",
     )
 
+    conf = process_config.profiling
+
     parser.add_argument("--system_id", required=True, help="시스템 ID (필수)")
-    parser.add_argument("--limit_rows", type=int, default=1000000, help="테이블당 샘플 row 수 (기본: 1000000)")
+    parser.add_argument("--limit_rows", type=int, default=conf.limit_rows,
+                        help=f"테이블당 샘플 row 수 (설정: {conf.limit_rows})")
     parser.add_argument(
         "--generate_report",
         action="store_true",
@@ -175,25 +179,43 @@ def main():
     parser.add_argument(
         "--workers",
         type=int,
-        default=int(os.getenv("PROFILING_WORKERS", "0")),
-        help="테이블을 동시에 처리할 프로세스 수, 0이면 자동: 코어 수 x cpu_ratio 와 가용 메모리 중 작은 쪽 (기본: 환경변수 PROFILING_WORKERS, 없으면 0)",
+        default=conf.workers,
+        help=f"테이블을 동시에 처리할 프로세스 수, 0이면 자동: 코어 수 x cpu_ratio 와 가용 메모리 중 작은 쪽 (설정: {conf.workers})",
     )
     parser.add_argument(
         "--cpu_ratio",
         type=float,
-        default=float(os.getenv("PROFILING_CPU_RATIO", "0.5")),
-        help="--workers 0 일 때 쓸 코어 비율. 컨테이너 CPU 한도(docker cpus)가 있으면 그 한도를 대신 쓴다 (기본: 0.5)",
+        default=conf.cpu_ratio,
+        help=f"--workers 0 일 때 쓸 코어 비율. 컨테이너 CPU 한도(docker cpus)가 있으면 그 한도를 대신 쓴다 (설정: {conf.cpu_ratio})",
     )
     parser.add_argument(
         "--big_workers",
         type=int,
-        default=int(os.getenv("PROFILING_BIG_WORKERS", "1")),
-        help="지난 실행 행 수 10만 이상인 테이블을 동시에 처리할 최대 프로세스 수 (기본: 환경변수 PROFILING_BIG_WORKERS, 없으면 1)",
+        default=conf.big_workers,
+        help=f"지난 실행 행 수 10만 이상인 테이블을 동시에 처리할 최대 프로세스 수 (설정: {conf.big_workers})",
     )
     parser.add_argument(
         "--localize_report",
         action="store_true",
         help="리포트를 바로 한글화해 {meta_id}.html 로 저장 (기본: {meta_id}.html.raw 로 저장하고 별도 한글화 단계에서 처리)",
+    )
+    parser.add_argument(
+        "--incremental",
+        action="store_true",
+        default=conf.incremental,
+        help=f"스키마·행 수가 그대로인 테이블은 건너뛴다 (설정: {conf.incremental})",
+    )
+    parser.add_argument(
+        "--no_incremental",
+        dest="incremental",
+        action="store_false",
+        help="설정이 켜져 있어도 이번 실행은 전체를 처리한다",
+    )
+    parser.add_argument(
+        "--refresh_days",
+        type=int,
+        default=conf.refresh_days,
+        help=f"증분이어도 이 주기마다 한 번은 다시 처리한다 (설정: {conf.refresh_days}일)",
     )
     parser.add_argument("--include", nargs="*", help="포함할 인자들 (예: database=public table=users)")
     parser.add_argument("--exclude", nargs="*", help="제외할 인자들 (예: table=data1 table=data2)")
@@ -219,6 +241,8 @@ def main():
         workers=args.workers if args.workers > 0 else auto_workers(args.cpu_ratio, args.limit_rows),
         big_workers=args.big_workers,
         localize_report=bool(args.localize_report),
+        incremental=bool(args.incremental),
+        refresh_days=max(1, args.refresh_days),
     )
 
     if args.workers > 1:
