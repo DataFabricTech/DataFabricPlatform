@@ -28,10 +28,21 @@ class TrinoConfig(BaseModel):
         return f"trino://{self.user}@{self.host}:{self.port}"
 
 
+class ProfilingConfig(BaseModel):
+
+    workers: int = 0
+    big_workers: int = 1
+    cpu_ratio: float = 0.5
+    limit_rows: int = 1000000
+    incremental: bool = False
+    refresh_days: int = 7
+
+
 class Config(BaseModel):
 
     crypt_key: str
     log_config_file: str
+    profiling: ProfilingConfig
     database: PostgresqlConfig
     trino: TrinoConfig
 
@@ -48,10 +59,24 @@ class Config(BaseModel):
         process_config.read(config_file, encoding="utf-8")
 
         crypt_key = process_config.get("security", "cryptkey")
+        defaults = ProfilingConfig()
+
+        def profiling_option(key: str, getter: str = "get"):
+            if not process_config.has_option("profiling", key):
+                return getattr(defaults, key)
+            return getattr(process_config, getter)("profiling", key)
 
         return cls(
             crypt_key=crypt_key,
             log_config_file=process_config.get("profiling", "log_config_file"),
+            profiling=ProfilingConfig(
+                workers=profiling_option("workers", "getint"),
+                big_workers=profiling_option("big_workers", "getint"),
+                cpu_ratio=profiling_option("cpu_ratio", "getfloat"),
+                limit_rows=profiling_option("limit_rows", "getint"),
+                incremental=profiling_option("incremental", "getboolean"),
+                refresh_days=profiling_option("refresh_days", "getint"),
+            ),
             database=PostgresqlConfig(
                 host=process_config.get("postgres", "host"),
                 port=process_config.get("postgres", "port"),

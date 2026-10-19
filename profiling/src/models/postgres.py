@@ -81,6 +81,8 @@ class ProfileTable(SQLModel):
     n_vars_all_missing: Mapped[Optional[int]]
     p_cells_missing: Mapped[Optional[Decimal]]
     column_types: Mapped[Optional[Dict]] = mapped_column(JSONB)
+    source_hash: Mapped[Optional[str]]
+    stats_row_count: Mapped[Optional[int]]
 
 
 class ProfileColumn(SQLModel):

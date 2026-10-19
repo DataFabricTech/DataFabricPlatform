@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import hashlib
 import json
 import multiprocessing
 import os
@@ -111,6 +112,8 @@ class DataProfilingOptions:
     workers: int = 1
     big_workers: int = 1
     localize_report: bool = False
+    incremental: bool = False
+    refresh_days: int = 7
 class DataProfilingTable(ProfilingCommon):
     logger = get_logger()
 
@@ -165,12 +168,22 @@ class DataProfilingTable(ProfilingCommon):
         display_name = meta_col.get("meta_name", str(col_name))
         return meta_col.get("qualified_name") or f"{meta_data.qualified_name}.{display_name}"
 
+    def _source_hash(self, meta_data) -> Optional[str]:
+        attrs = getattr(meta_data, "attributes", None)
+        if isinstance(attrs, str):
+            try:
+                attrs = json.loads(attrs)
+            except Exception:
+                return None
+        return attrs.get("source_hash") if isinstance(attrs, dict) else None
+
     def upsert_profile_table(
         self,
         meta_data,
         db_name: str,
         profile_dict: Dict[str, Any],
         err_description: Optional[str] = None,
+        stats_row_count: Optional[int] = None,
     ):
         table = profile_dict.get("table") or {}
         if not isinstance(table, dict):
@@ -196,6 +209,8 @@ class DataProfilingTable(ProfilingCommon):
             n_vars_all_missing=self._nan_to_none(table.get("n_vars_all_missing")),
             p_cells_missing=self._to_decimal_or_none(table.get("p_cells_missing")),
             column_types=table.get("types"),
+            source_hash=self._source_hash(meta_data),
+            stats_row_count=stats_row_count,
         )
 
         self.upsert_many(ProfileTable, [update_data], "meta_id")
@@ -292,9 +307,10 @@ class DataProfilingTable(ProfilingCommon):
         table_name: str,
         profile_dict: Dict[str, Any],
         excluded_columns: Sequence[str] = (),
+        stats_row_count: Optional[int] = None,
     ) -> None:
         try:
-            self.upsert_profile_table(meta_data, db_name, profile_dict)
+            self.upsert_profile_table(meta_data, db_name, profile_dict, stats_row_count=stats_row_count)
             saved_column_ids = self.upsert_profile_columns(meta_data, db_name, table_name, profile_dict)
 
             meta_col_map = self._parse_meta_columns(meta_data)
@@ -531,7 +547,8 @@ class DataProfilingTable(ProfilingCommon):
                 if os.path.exists(stale_path):
                     os.remove(stale_path)
 
-    def profile_one(self, meta_data, system_id: str, options: DataProfilingOptions, output_dir: Optional[str]) -> bool:
+    def profile_one(self, meta_data, system_id: str, options: DataProfilingOptions, output_dir: Optional[str],
+                    stats_row_count: Optional[int] = None) -> bool:
         """테이블 하나를 프로파일링해 DB 에 저장하고, 설정에 따라 리포트를 쓴다. 저장했으면 True."""
         from ydata_profiling import ProfileReport  # type: ignore
 
@@ -561,7 +578,7 @@ class DataProfilingTable(ProfilingCommon):
             parallel_kwargs = {"pool_size": 1, "progress_bar": False} if options.workers > 1 else {}
             report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative, **parallel_kwargs)
             profile_dict = self._light_profile_dict(report)
-            self.save_profile(meta_data, db_name, table_name, profile_dict, excluded_cols)
+            self.save_profile(meta_data, db_name, table_name, profile_dict, excluded_cols, stats_row_count)
 
             if options.preview:
                 self._preview_top_k = options.preview_top_k
