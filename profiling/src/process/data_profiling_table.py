@@ -605,7 +605,60 @@ class DataProfilingTable(ProfilingCommon):
                 return int(row[4])
         return None
 
-    def _plan_parallel(self, targets: List[MetaData], options: DataProfilingOptions) -> Dict[bool, deque]:
+    def _is_refresh_due(self, meta_id: Any, last_update: Optional[datetime], refresh_days: int) -> bool:
+        if last_update is None:
+            return True
+        now = datetime.now()
+        if (now - last_update).days >= refresh_days:
+            return True
+        slot = int(hashlib.md5(str(meta_id).encode("utf-8")).hexdigest(), 16) % refresh_days
+        return now.timetuple().tm_yday % refresh_days == slot
+
+    def _needs_profiling(self, meta_data, state, stats_rows: Optional[int], refresh_days: int) -> Optional[str]:
+        if state is None:
+            return "지난 결과 없음"
+        source_hash, stats_row_count, update_date = state
+        if source_hash is None or source_hash != self._source_hash(meta_data):
+            return "스키마 변경"
+        if stats_rows is None or stats_row_count is None or stats_row_count != stats_rows:
+            return "행 수 변경"
+        if self._is_refresh_due(meta_data.meta_id, update_date, refresh_days):
+            return "주기 재확인"
+        return None
+
+    def _select_changed(self, targets: List[MetaData], options: DataProfilingOptions):
+        states = {
+            row[0]: row[1:]
+            for row in self.execute(
+                select(ProfileTable.meta_id, ProfileTable.source_hash,
+                       ProfileTable.stats_row_count, ProfileTable.update_date)
+                .where(ProfileTable.meta_id.in_([m.meta_id for m in targets]))
+            ).all()
+        }
+        self.db_session.commit()
+
+        changed: List[MetaData] = []
+        stats_rows: Dict[Any, Optional[int]] = {}
+        reasons: Dict[str, int] = {}
+        for meta_data in targets:
+            stats_rows[meta_data.meta_id] = self._estimate_rows(meta_data)
+            reason = self._needs_profiling(
+                meta_data, states.get(meta_data.meta_id), stats_rows[meta_data.meta_id], options.refresh_days
+            )
+            if reason:
+                reasons[reason] = reasons.get(reason, 0) + 1
+                changed.append(meta_data)
+
+        skipped = len(targets) - len(changed)
+        summary = ", ".join(f"{reason} {count}개" for reason, count in sorted(reasons.items()))
+        self.logger.info(
+            f"\t 증분 판단: 대상 {len(targets)}개 중 처리 {len(changed)}개, 건너뜀 {skipped}개"
+            + (f" ({summary})" if summary else "")
+        )
+        return changed, stats_rows, skipped
+
+    def _plan_parallel(self, targets: List[MetaData], options: DataProfilingOptions,
+                       stats_rows: Optional[Dict[Any, Optional[int]]] = None) -> Dict[bool, deque]:
         """예상 행 수(지난 n_rows → Trino 통계 → limit_rows) 내림차순으로 {True: 큰 테이블, False: 일반} 큐를 만든다."""
         prev_rows = dict(self.execute(
             select(ProfileTable.meta_id, ProfileTable.n_rows)
@@ -616,7 +669,8 @@ class DataProfilingTable(ProfilingCommon):
         estimated = assumed = 0
         for meta_data in targets:
             if prev_rows.get(meta_data.meta_id) is None:
-                prev_rows[meta_data.meta_id] = self._estimate_rows(meta_data)
+                prev_rows[meta_data.meta_id] = (stats_rows or {}).get(meta_data.meta_id) \
+                    if stats_rows is not None else self._estimate_rows(meta_data)
                 if prev_rows[meta_data.meta_id] is None:
                     assumed += 1
                 else:
@@ -635,9 +689,9 @@ class DataProfilingTable(ProfilingCommon):
         }
 
     def _profile_parallel(self, targets: List[MetaData], system_id: str, options: DataProfilingOptions,
-                          output_dir: Optional[str]) -> int:
+                          output_dir: Optional[str], stats_rows: Optional[Dict[Any, Optional[int]]] = None) -> int:
         """테이블을 워커 프로세스에 나눠 처리하고 저장한 수를 돌려준다. 큰 테이블은 동시에 big_workers 개까지."""
-        queues = self._plan_parallel(targets, options)
+        queues = self._plan_parallel(targets, options, stats_rows)
         total = len(queues[True]) + len(queues[False])
         big_limit = max(1, min(options.big_workers, options.workers))
         self.logger.info(
@@ -668,7 +722,8 @@ class DataProfilingTable(ProfilingCommon):
                     if not is_big and not queues[False]:
                         break
                     meta_id = queues[is_big].popleft()
-                    future = pool.submit(_profile_in_worker, meta_id, system_id, options, output_dir)
+                    future = pool.submit(_profile_in_worker, meta_id, system_id, options, output_dir,
+                                         (stats_rows or {}).get(meta_id))
                     running[future] = (meta_id, is_big)
 
                 done, _ = wait(running, return_when=FIRST_COMPLETED)
@@ -727,16 +782,25 @@ class DataProfilingTable(ProfilingCommon):
                 continue
             targets.append(meta_data)
 
+        skipped_count = 0
+        stats_rows: Optional[Dict[Any, Optional[int]]] = None
+        if options.incremental and targets:
+            targets, stats_rows, skipped_count = self._select_changed(targets, options)
+
         if options.workers > 1 and len(targets) > 1:
-            profiling_save_count = self._profile_parallel(targets, system_id, options, output_dir)
+            profiling_save_count = self._profile_parallel(targets, system_id, options, output_dir, stats_rows)
         else:
-            profiling_save_count = sum(self.profile_one(m, system_id, options, output_dir) for m in targets)
+            profiling_save_count = sum(
+                self.profile_one(m, system_id, options, output_dir, (stats_rows or {}).get(m.meta_id))
+                for m in targets
+            )
 
         duration = datetime.now() - start_time
         self.logger.info(
             f"data-profiling 종료 [{system_id}]\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Total Table Count : {len(meta_data_list)}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Filter Count : {profiling_filter_count}\n"
+            f"\t\t\t\t\t\t\t\t\t\t\t\t\t Skipped Count : {skipped_count}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Saved Count : {profiling_save_count}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Workers : {options.workers}\n"
             f"\t\t\t\t\t\t\t\t\t\t\t\t\t Total Time : {duration}"
@@ -759,9 +823,10 @@ def _init_profiling_worker() -> None:
     _worker = DataProfilingTable(db_session, trino_cursor)
 
 
-def _profile_in_worker(meta_id: str, system_id: str, options: DataProfilingOptions, output_dir: Optional[str]) -> bool:
+def _profile_in_worker(meta_id: str, system_id: str, options: DataProfilingOptions, output_dir: Optional[str],
+                       stats_row_count: Optional[int] = None) -> bool:
     meta_data = _worker.get_one(select(MetaData).where(MetaData.meta_id == meta_id))
     if meta_data is None:
         return False
-    return _worker.profile_one(meta_data, system_id, options, output_dir)
+    return _worker.profile_one(meta_data, system_id, options, output_dir, stats_row_count)
 
