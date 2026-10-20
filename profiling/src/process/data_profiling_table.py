@@ -578,6 +578,8 @@ class DataProfilingTable(ProfilingCommon):
             parallel_kwargs = {"pool_size": 1, "progress_bar": False} if options.workers > 1 else {}
             report = ProfileReport(df, title=title, minimal=True, explorative=options.explorative, **parallel_kwargs)
             profile_dict = self._light_profile_dict(report)
+            if stats_row_count is None:
+                stats_row_count = self._estimate_rows(meta_data)
             self.save_profile(meta_data, db_name, table_name, profile_dict, excluded_cols, stats_row_count)
 
             if options.preview:
