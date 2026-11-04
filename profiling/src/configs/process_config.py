@@ -3,7 +3,7 @@ import configparser
 
 import os, sys
 from dotenv import load_dotenv
-from Lib.CryptHandler import CryptHandler
+from src.common.CryptHandler import CryptHandler
 
 
 class PostgresqlConfig(BaseModel):

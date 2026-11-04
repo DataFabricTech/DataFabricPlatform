@@ -2,8 +2,8 @@ from trino.dbapi import connect
 
 from contextlib import contextmanager
 
-from DataProfiling.configs.process_config import process_config
-from DataProfiling.utils.logger import get_logger
+from src.configs.process_config import process_config
+from src.utils.logger import get_logger
 
 '''
     https://github.com/trinodb/trino-python-client/tree/master

@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from contextlib import contextmanager
 
-from DataProfiling.configs.process_config import process_config
-from DataProfiling.utils.logger import get_logger
+from src.configs.process_config import process_config
+from src.utils.logger import get_logger
 
 SessionFactory = sessionmaker(
     bind=create_engine(process_config.database.get_dns()),

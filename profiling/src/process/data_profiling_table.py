@@ -22,12 +22,12 @@ from itertools import islice
 import numpy as np
 from sqlalchemy import delete, select
 
-from DataProfiling.models.postgres import MetaData, ProfileColumn, ProfileTable
-from DataProfiling.process.profiling_common import FilterOption, ProfilingCommon
-from DataProfiling.process.report_html_localizer import localize_html_to_korean
-from DataProfiling.utils.logger import get_logger
+from src.models.postgres import MetaData, ProfileColumn, ProfileTable
+from src.process.profiling_common import FilterOption, ProfilingCommon
+from src.process.report_html_localizer import localize_html_to_korean
+from src.utils.logger import get_logger
 
-from DataProfiling.utils.trino_dataframe import fetch_as_dataframe
+from src.utils.trino_dataframe import fetch_as_dataframe
 
 # matplotlib 한글 폰트 설정 (ydata-profiling 차트의 한글 깨짐 방지).
 # ProfileReport 생성 전에 적용되도록 모듈 import 시점에 1회 설정.

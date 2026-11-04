@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from decimal import Decimal
 
-from DataProfiling.models.base import SQLModel
+from src.models.base import SQLModel
 
 
 class MetaData(SQLModel):

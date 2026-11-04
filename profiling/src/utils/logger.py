@@ -2,7 +2,7 @@ import os, sys
 import logging
 import logging.config
 
-from DataProfiling.configs.process_config import process_config
+from src.configs.process_config import process_config
 
 
 def set_logger():
