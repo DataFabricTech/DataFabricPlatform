@@ -4,8 +4,8 @@ from typing import List
 from enum import Enum
 import math
 
-from DataProfiling.utils.database_manager import DataBaseManager
-from DataProfiling.models.postgres import MetaSystemInfo, MetaData
+from src.utils.database_manager import DataBaseManager
+from src.models.postgres import MetaSystemInfo, MetaData
 
 
 class FilterOption(Enum):

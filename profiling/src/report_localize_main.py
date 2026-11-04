@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from DataProfiling.process.report_html_localizer import localize_report_html_to_korean
+from src.process.report_html_localizer import localize_report_html_to_korean
 
 
 def main():

@@ -4,13 +4,13 @@ import os
 import sys
 from typing import Optional
 
-from DataProfiling.configs.database_session import create_session as db_create_session
-from DataProfiling.configs.process_config import process_config
-from DataProfiling.configs.trino_session import create_session as trino_create_session
-from DataProfiling.process.profiling_common import FilterOption
-from DataProfiling.utils.logger import get_logger
+from src.configs.database_session import create_session as db_create_session
+from src.configs.process_config import process_config
+from src.configs.trino_session import create_session as trino_create_session
+from src.process.profiling_common import FilterOption
+from src.utils.logger import get_logger
 
-from DataProfiling.process.data_profiling_table import (
+from src.process.data_profiling_table import (
     DataProfilingOptions,
     DataProfilingTable,
 )
