@@ -815,8 +815,8 @@ _worker: Optional[DataProfilingTable] = None
 def _init_profiling_worker() -> None:
     """워커 프로세스마다 DB 세션과 Trino 커서를 연다."""
     global _worker
-    from DataProfiling.configs.database_session import create_session as db_create_session
-    from DataProfiling.configs.trino_session import create_session as trino_create_session
+    from src.configs.database_session import create_session as db_create_session
+    from src.configs.trino_session import create_session as trino_create_session
 
     sessions = contextlib.ExitStack()
     db_session = sessions.enter_context(db_create_session())
