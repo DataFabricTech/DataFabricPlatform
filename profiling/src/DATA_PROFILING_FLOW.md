@@ -34,7 +34,7 @@ profiling(system_id, filter_include, filter_exclude, options)
     │
     ├─ [1] 메타데이터 조회
     │       ProfilingCommon.get_meta_data_by_system_id("table", system_id)
-    │       → <metadata_table> 에서 status=ACTIVE, meta_type=table,
+    │       → 메타데이터 테이블에서 status=ACTIVE, meta_type=table,
     │         qualified_name LIKE '{system_id}%' 조건으로 목록 조회
     │
     └─ [2] 테이블 루프 (meta_data in meta_data_list)
@@ -70,11 +70,11 @@ profiling(system_id, filter_include, filter_exclude, options)
             │
             ├─ [DB 저장] PostgreSQL Upsert
             │       ├─ upsert_profile_table()
-            │       │       → <profile_table> (테이블 수준 통계)
+            │       │       → 테이블 지표 저장 (테이블 수준 통계)
             │       │         n_rows, n_columns, memory_size, p_cells_missing 등
             │       │
             │       └─ upsert_profile_columns()
-            │               → <profile_column_table> (컬럼 수준 통계)
+            │               → 컬럼 지표 저장 (컬럼 수준 통계)
             │                 각 컬럼별 n_missing, p_missing, n_distinct, top_value_counts 등
             │                 * value_counts_without_nan, value_counts_index_sorted, word_counts 는 용량 이슈로 제거
             │                 * top_value_counts: 상위 5개 값만 저장
@@ -94,19 +94,23 @@ profiling(system_id, filter_include, filter_exclude, options)
 
 | 세션 | 모듈 | 대상 | 비고 |
 |------|------|------|------|
-| PostgreSQL | `configs/database_session.py` | `<metadata_table>`, `<profile_table>`, `<profile_column_table>` | SQLAlchemy Session |
+| PostgreSQL | `configs/database_session.py` | 메타데이터·지표 저장 테이블 | SQLAlchemy Session |
 | Trino | `configs/trino_session.py` | 원천 데이터 | `trino.dbapi` cursor 반환 |
 
 ---
 
-## DB 테이블
+## 데이터 저장 구조
 
-| 테이블 | 역할 | 키 |
-|--------|------|-----|
-| `<metadata_table>` | 수집 대상 메타데이터 (입력) | `meta_id` |
-| `<system_info_table>` | 시스템 연결 정보 | `system_id` |
-| `<profile_table>` | 테이블 단위 프로파일링 결과 | `meta_id` |
-| `<profile_column_table>` | 컬럼 단위 프로파일링 결과 | `column_id` (= qualified_name) |
+프로파일링 결과는 PostgreSQL에 저장합니다. 저장 대상은 네 가지 역할로 나뉩니다.
+
+| 역할 | 구분 | 설명 |
+|------|------|------|
+| 메타데이터 | 입력 | 프로파일링 대상 테이블 목록 |
+| 시스템 연결 정보 | 입력 | 원천 시스템 접속 정보 |
+| 테이블 지표 | 출력 | 테이블 단위 산출 결과 |
+| 컬럼 지표 | 출력 | 컬럼 단위 산출 결과 |
+
+각 저장 대상은 `src/models/`에 SQLAlchemy 모델로 정의합니다. 테이블 구성은 운영 환경에 맞춰 정합니다.
 
 ---
 

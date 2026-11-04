@@ -58,7 +58,7 @@ flowchart LR
 
 - **[src/process](src/process/)**: 지표 산출 핵심 로직, 대상 선별, HTML 리포트 한국어 치환
 - **[src/configs](src/configs/)**: 설정 로딩, PostgreSQL·Trino 세션 생성
-- **[src/models](src/models/)**: 지표 저장 스키마 (SQLAlchemy)
+- **[src/models](src/models/)**: 지표 저장 모델 (SQLAlchemy)
 - **[src/utils](src/utils/)**: Trino 조회 결과의 DataFrame 변환, 로깅, DB 관리
 - **[src/common](src/common/)**: 설정값 복호화
 
@@ -73,6 +73,19 @@ flowchart LR
 | Python | 3.10 이상 |
 | Trino | 대상 데이터 조회용. 저장소가 연동되어 있어야 합니다 |
 | PostgreSQL | 산출 지표 저장용 |
+
+### 지표 저장 모델 정의
+
+지표를 저장할 모델을 `src/models/`에 SQLAlchemy로 정의합니다. 테이블 구성은 운영 환경에 맞춰 정합니다. 필요한 모델은 네 가지입니다.
+
+| 모델 | 구분 | 역할 |
+|---|---|---|
+| 메타데이터 | 입력 | 프로파일링 대상 테이블 목록 |
+| 시스템 연결 정보 | 입력 | 원천 시스템 접속 정보 |
+| 테이블 지표 | 출력 | 테이블 단위 산출 결과 |
+| 컬럼 지표 | 출력 | 컬럼 단위 산출 결과 |
+
+각 모델에 필요한 필드는 [프로세스 흐름 문서](src/DATA_PROFILING_FLOW.md)와 `src/process/`의 사용 지점을 참고하십시오.
 
 ### 설치
 
@@ -202,11 +215,13 @@ python -m src.report_localize_main --report_ids <META_ID> [<META_ID> ...] \
 
 ## Validation
 
-로컬 실행 기준으로 모듈 로드와 CLI 동작을 확인했습니다.
+리포트 한국어 치환 CLI(`report_localize_main`)는 로컬 실행 기준으로 동작을 확인했습니다.
+
+지표 산출 CLI(`data_profiling_main`)는 *지표 저장 모델 정의* 이후 실행합니다.
 
 ## License
 
-이 모듈은 상위 저장소와 동일하게 [Apache-2.0](../LICENSE) 라이선스를 따릅니다. 의존 패키지는 전부 permissive 라이선스입니다.
+이 모듈은 상위 저장소와 동일하게 [Apache-2.0](../LICENSE) 라이선스를 따릅니다. 의존 패키지에 GPL·AGPL 라이선스는 없습니다.
 
 | 패키지 | 라이선스 |
 |---|---|
