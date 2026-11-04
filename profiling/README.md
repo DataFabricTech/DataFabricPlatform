@@ -204,8 +204,9 @@ python -m src.report_localize_main --report_ids <META_ID> [<META_ID> ...] \
 
 | 패키지 | 라이선스 |
 |---|---|
-| ydata-profiling | MIT |
+| ydata-profiling · wordcloud | MIT |
 | trino | Apache-2.0 |
+| cryptography | Apache-2.0 또는 BSD-3-Clause |
 | SQLAlchemy · pillow · pydantic | MIT |
 | pandas · numpy · python-dotenv · psycopg2-binary | BSD 계열 |
 | matplotlib | PSF |
