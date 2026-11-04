@@ -87,7 +87,9 @@ pip install -r requirements.txt
 ### 설정 파일 준비
 
 ```bash
-cp config_templates/config.ini config.ini
+cp config_templates/config.ini  config.ini
+cp config_templates/logging.ini logging.ini
+mkdir -p logs
 echo "CONFIG_FILE=config.ini" > .env
 ```
 
@@ -108,12 +110,18 @@ python -m src.data_profiling_main --system_id <SYSTEM_ID> --generate_report
 | `security` | `cryptkey` | `postgres.password` 복호화 키 |
 | `postgres` | `host` `port` `database` `user` `password` | 지표 저장소. `password`는 `cryptkey`로 암호화한 값을 기록합니다 |
 | `trino` | `host` `port` `user` | 대상 데이터 조회 |
-| `profiling` | `log_config_file` | 로깅 설정 파일 경로 |
+| `profiling` | `log_config_file` | 로깅 설정 파일 경로. **ini 형식만 가능**합니다 |
 | | `workers` `big_workers` `cpu_ratio` | 병렬 처리. `workers=0`이면 `cpu_ratio`로 자동 계산 |
 | | `limit_rows` | 테이블당 샘플링 상한 행 수 |
 | | `incremental` `refresh_days` | 증분 산출 사용 여부와 재산출 주기 |
 
 **비밀번호는 평문으로 기록하지 않습니다.** `cryptkey`로 암호화한 값을 `postgres.password`에 넣습니다.
+
+### 로깅 설정
+
+`log_config_file`은 `logging.config.fileConfig()`로 읽으므로 **ini 형식**이어야 합니다. YAML은 사용할 수 없습니다. 파일이 없으면 실행이 중단됩니다.
+
+`config_templates/logging.ini`를 복사해 사용합니다. 로거 이름은 `profiling`이며, 콘솔과 일별 로테이션 파일 핸들러를 포함합니다.
 
 ## Usage
 
@@ -195,8 +203,6 @@ python -m src.report_localize_main --report_ids <META_ID> [<META_ID> ...] \
 ## Validation
 
 로컬 실행 기준으로 모듈 로드와 CLI 동작을 확인했습니다.
-
-컨테이너 이미지 빌드는 검증되지 않았습니다.
 
 ## License
 
