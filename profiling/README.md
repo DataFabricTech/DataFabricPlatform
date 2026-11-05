@@ -23,7 +23,6 @@ Open VDAP Platform이 관리하는 **프로파일링 설정과 스케줄링의 �
 - [설정](#configuration)
 - [사용 예시](#usage)
 - [산출 지표](#metrics)
-- [검증 범위](#validation)
 - [라이선스](#license)
 
 ## Features
@@ -212,12 +211,6 @@ python -m src.report_localize_main --report_ids <META_ID> [<META_ID> ...] \
 | 수치형 컬럼 | 최소·최대, 평균, 중앙값, 표준편차, 사분위수, 분포 |
 | 문자형 컬럼 | 길이 분포, 문자 범주, 샘플값 |
 | 컬럼 간 | 상관관계 |
-
-## Validation
-
-리포트 한국어 치환 CLI(`report_localize_main`)는 로컬 실행 기준으로 동작을 확인했습니다.
-
-지표 산출 CLI(`data_profiling_main`)는 *지표 저장 모델 정의* 이후 실행합니다.
 
 ## License
 
