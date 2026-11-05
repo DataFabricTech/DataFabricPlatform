@@ -44,3 +44,11 @@ bin/
 
 .kotlin/
 .venv/
+# profiling (Python)
+profiling/.venv/
+profiling/config.ini
+profiling/logging.ini
+profiling/logs/
+profiling/__pycache__/
+profiling/**/__pycache__/
+profiling/*.egg-info/
